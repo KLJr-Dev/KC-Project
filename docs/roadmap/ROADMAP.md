@@ -49,7 +49,7 @@ Goal: Establish ownership, intent, and system structure without committing to be
 - Organisation-owned repository
 - Root README
 - /docs directory
-- No code
+- No application code
 
 ### v0.0.2 — Roadmap & Scope Definition
 
@@ -63,31 +63,65 @@ Goal: Establish ownership, intent, and system structure without committing to be
 - NestJS scaffold
 - Module structure
 - Application boots locally
-- No endpoints
+- Default placeholder controller only
+- No domain endpoints
 
-### v0.0.4 — Backend API Shape
-
-- Controllers and routes stubbed
-- DTOs defined
-- Mock responses only
-
-### v0.0.5 — Frontend Bootstrapping
+### v0.0.4 — Frontend Bootstrapping
 
 - Next.js scaffold (App Router)
-- Layout and routing
+- Base layout and routing
 - Static placeholder pages
+- No backend dependency
 
-### v0.0.6 — Frontend ↔ Backend Wiring
+### v0.0.5 — Backend Reachability Test
 
-- Frontend calls backend APIs
-- Hardcoded/mock data
-- Error handling visible
+Purpose: verify that the frontend can reach the backend process
 
-### v0.0.7 — Development Tooling Baseline
+- Single trivial backend endpoint (e.g. /ping)
+- Endpoint returns static response
+- Frontend performs a simple fetch request
+- No domain logic
+- No shared DTOs
+- No authentication assumptions
 
-- Basic linting/formatting
-- TypeScript strictness defined
-- No CI
+This version validates process connectivity only, not application behaviour.
+
+### v0.0.6 — Backend API Shape Definition
+
+Purpose: define backend contracts without frontend pressure
+
+- Controllers stubbed for:
+  - users
+  - auth
+  - files
+- Route paths defined
+- DTOs defined (request/response shapes)
+- Services return mock or placeholder data
+- No persistence
+- No frontend ↔ backend dependency
+
+This version freezes API shape, not behaviour.
+
+### v0.0.7 — Frontend ↔ Backend Contract Integration
+
+Purpose: align frontend with backend contracts
+
+- Frontend updated to call real backend routes
+- DTOs mirrored client-side
+- Hardcoded or mocked responses still allowed
+- No authentication enforcement
+- Errors and edge cases visible
+
+This is the first meaningful full-stack interaction.
+
+### v0.0.8 — Development Tooling Baseline
+
+- ESLint and Prettier configured
+- TypeScript strictness agreed
+- Consistent formatting enforced
+- No CI/CD pipelines yet
+
+This version stabilises collaboration before complexity increases.
 
 ## v0.1.x — Identity & Authentication Surface
 

@@ -1,12 +1,22 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  /**
+   * v0.0.5 – Reachability endpoint
+   *
+   * This endpoint exists purely to verify that:
+   * - the backend is running
+   * - HTTP requests can reach it
+   * - responses are returned correctly
+   *
+   * No business logic. No auth. No services.
+   */
+  @Get('ping')
+  ping() {
+    return {
+      status: 'ok',
+      service: 'backend',
+    };
   }
 }
