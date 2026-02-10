@@ -3,14 +3,11 @@ import { Controller, Get } from '@nestjs/common';
 @Controller()
 export class AppController {
   /**
-   * v0.0.5 – Reachability endpoint
+   * v0.0.5 — Reachability endpoint
    *
-   * This endpoint exists purely to verify that:
-   * - the backend is running
-   * - HTTP requests can reach it
-   * - responses are returned correctly
-   *
-   * No business logic. No auth. No services.
+   * Infrastructure-only endpoint.
+   * Not part of application domain.
+   * Will be removed or disabled post v0.1.x.
    */
   @Get('ping')
   ping() {

@@ -15,26 +15,34 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.0.1)
+## Current Status (v0.0.5)
 
-This repository is currently in the **research and design phase**.
+Backend and frontend are **connected and serving**.
 
-At this stage:
-- No application code has been implemented
-- The repository structure has been established
-- Documentation scaffolding is in place for architecture, decisions, and roadmap
+- **Backend** (NestJS) — runs locally, exposes a trivial reachability endpoint (e.g. `/ping`)
+- **Frontend** (Next.js) — runs locally, performs a simple fetch to the backend
+- Both processes can be started independently; frontend can reach the backend
+- No domain logic, shared DTOs, or auth yet — connectivity only
 
-Early work is focused on:
-- defining project scope and boundaries
-- researching modern web application stacks
-- documenting architectural and engineering decisions
-- planning the transition from design to implementation
+### Run locally
+
+From the repo root:
+
+```bash
+# Terminal 1 — backend (NestJS)
+cd backend && npm run start:dev
+
+# Terminal 2 — frontend (Next.js)
+cd frontend && npm run dev
+```
+
+Backend: `http://localhost:4000` (default). Frontend: `http://localhost:3000` (Next.js dev). See `backend/README.md` and `frontend/README.md` for details.
 
 ## Repository Structure
 
 KC-PROJECT/
-├── backend/ # Backend service (NestJS) – not yet implemented
-├── frontend/ # Frontend application (Next.js) – not yet implemented
+├── backend/ # Backend service (NestJS) – serving; reachability endpoint
+├── frontend/ # Frontend application (Next.js) – serving; fetches backend
 ├── infra/ # Deployment and infrastructure definitions
 ├── docs/ # Engineering and project documentation
 │ ├── architecture/
