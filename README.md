@@ -15,14 +15,14 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.0.5)
+## Current Status (v0.0.7)
 
-Backend and frontend are **connected and serving**.
+Frontend and backend are **contract-integrated**.
 
-- **Backend** (NestJS) — runs locally, exposes a trivial reachability endpoint (e.g. `/ping`)
-- **Frontend** (Next.js) — runs locally, performs a simple fetch to the backend
-- Both processes can be started independently; frontend can reach the backend
-- No domain logic, shared DTOs, or auth yet — connectivity only
+- **Backend** (NestJS) — all API routes defined with DTOs and mock data (users, auth, files, admin, sharing)
+- **Frontend** (Next.js) — typed API client mirrors every backend DTO; pages exercise full CRUD for all domains
+- Both processes run independently; frontend calls backend on `localhost:4000`
+- No persistence, no authentication enforcement, no real file I/O — contracts only
 
 ### Run locally
 
@@ -41,8 +41,8 @@ Backend: `http://localhost:4000` (default). Frontend: `http://localhost:3000` (N
 ## Repository Structure
 
 KC-PROJECT/
-├── backend/ # Backend service (NestJS) – serving; reachability endpoint
-├── frontend/ # Frontend application (Next.js) – serving; fetches backend
+├── backend/ # Backend service (NestJS) – API shape defined, mock data
+├── frontend/ # Frontend application (Next.js) – contract integration UI
 ├── infra/ # Deployment and infrastructure definitions
 ├── docs/ # Engineering and project documentation
 │ ├── architecture/

@@ -119,6 +119,8 @@ This is the first meaningful full-stack interaction.
 - ESLint and Prettier configured
 - TypeScript strictness agreed
 - Consistent formatting enforced
+- OpenAPI/Swagger spec generated from backend (via @nestjs/swagger)
+- Frontend types auto-generated from OpenAPI spec (replaces manual DTO mirroring from v0.0.7)
 - No CI/CD pipelines yet
 
 This version stabilises collaboration before complexity increases.
