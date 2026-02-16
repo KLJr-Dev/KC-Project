@@ -141,6 +141,18 @@ Goal: Introduce identity with minimal security guarantees.
 - Minimal validation
 - Duplicate handling weak
 
+#### Frontend Tasks (feature/v0.1.1-fe-auth-ui)
+
+> Temporary — remove after v0.1.1 is complete.
+
+- [ ] Split `/auth` into separate `/register` and `/login` routes (new page files)
+- [ ] Build proper registration page — labeled inputs, client-side required-field validation, loading state, success/error display
+- [ ] Build login page scaffold — same quality as registration, calls existing `authLogin()` stub (prep for v0.1.2)
+- [ ] Redesign home page — replace dev dashboard with app-style landing, CTA to register/login
+- [ ] Update layout navigation — replace dev nav (Users/Files/Admin/Sharing) with user-facing nav (Home, Register, Login)
+- [ ] Create auth context stub (`lib/auth-context.tsx`) — store token from `AuthResponseDto` in state/localStorage, plumbing for v0.1.3
+- [ ] Extract reusable form components — shared input fields, submit buttons, error banners used by both register and login
+
 ### v0.1.2 — Login Endpoint
 
 - Login logic added
