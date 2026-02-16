@@ -1,6 +1,6 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v0.0.8** (end of the foundation phase).
+This document describes the system architecture as of **v0.1.2** (identity & authentication surface).
 
 ---
 
@@ -49,10 +49,11 @@ graph TD
     AppModule --> AdminModule
 
     AuthModule --> AuthController["AuthController\nPOST /auth/register\nPOST /auth/login"]
-    AuthModule --> AuthService["AuthService\nMock responses"]
+    AuthModule --> AuthService["AuthService\nReal register + login"]
+    AuthModule -.->|imports| UsersModule
 
     UsersModule --> UsersController["UsersController\nCRUD /users"]
-    UsersModule --> UsersService["UsersService\nIn-memory store"]
+    UsersModule --> UsersService["UsersService\nIn-memory store\n(plaintext passwords)"]
 
     FilesModule --> FilesController["FilesController\nPOST /files\nGET-DELETE /files/:id"]
     FilesModule --> FilesService["FilesService\nIn-memory metadata"]
@@ -77,22 +78,38 @@ Every module follows the same internal structure:
 ## Frontend Structure
 
 ```
-app/                      Next.js App Router pages
-├── layout.tsx            Root layout with nav bar
-├── page.tsx              Dashboard (ping check + section cards)
-├── users/                Users CRUD pages
-├── auth/                 Register + login forms
-├── files/                Upload + view metadata
-├── admin/                Admin CRUD pages
-└── sharing/              Sharing CRUD pages
+app/                          Next.js App Router pages
+├── layout.tsx                Root layout (Header, PageContainer, Footer)
+├── providers.tsx             Client wrapper for AuthProvider + ThemeProvider
+├── globals.css               Design tokens (CSS variables), Tailwind, dark mode
+├── page.tsx                  Landing / home page
+├── auth/
+│   └── page.tsx              Tabbed Register + Sign In form
+├── users/                    Users CRUD pages
+├── files/                    Upload + view metadata
+├── admin/                    Admin CRUD pages
+└── sharing/                  Sharing CRUD pages
+
+app/components/               Layout-level components
+├── header.tsx                Nav bar + auth toggle + theme toggle
+├── footer.tsx                Site footer
+└── page-container.tsx        Content wrapper (max-width, padding)
+
+app/components/ui/            Reusable UI primitives
+├── form-input.tsx            Label + input + validation error
+├── submit-button.tsx         Button with loading state
+├── error-banner.tsx          Error message block
+└── success-banner.tsx        Success message block
 
 lib/
-├── types.gen.ts          Auto-generated from OpenAPI spec
-├── types.ts              Re-export layer with friendly aliases
-└── api.ts                Typed fetch wrappers for all backend routes
+├── api.ts                    Typed fetch wrappers for all backend routes
+├── auth-context.tsx          Auth state (token, userId) + localStorage persistence
+├── theme-context.tsx         Theme state (light/dark/system) + class-based toggle
+├── types.gen.ts              Auto-generated from OpenAPI spec
+└── types.ts                  Re-export layer with friendly aliases
 ```
 
-All pages are `'use client'` components. They call `lib/api.ts` functions which return typed promises. Errors are displayed inline (red blocks), success as raw JSON (green blocks). This is a contract verification UI, not production design.
+All pages are `'use client'` components. They call `lib/api.ts` functions which return typed promises. Auth state is managed via `AuthContext` (persisted to localStorage). The layout uses a shared app shell (Header, Footer, PageContainer) with design tokens defined as CSS variables in `globals.css`.
 
 ---
 
@@ -175,13 +192,13 @@ sequenceDiagram
     Page-->>Browser: Re-render with data or error
 ```
 
-At v0.0.8, there is no middleware, no guards, no validation pipe, and no database layer in this chain. These will be inserted incrementally as the roadmap progresses.
+As of v0.1.2, there is no middleware, no guards, no validation pipe, and no database layer in this chain. Basic field validation exists in `AuthService` (throws 400/401/409). These layers will be inserted incrementally as the roadmap progresses.
 
 ---
 
 ## Module Dependencies
 
-All five domain modules are currently **independent** — none imports or injects services from another. `AppModule` is the sole composition point.
+As of v0.1.2, `AuthModule` imports `UsersModule` to access user data during registration and login. All other modules remain independent.
 
 ```mermaid
 graph TD
@@ -197,30 +214,35 @@ graph TD
     AppModule --> FilesModule
     AppModule --> SharingModule
     AppModule --> AdminModule
+
+    AuthModule -.->|"imports (register + login)"| UsersModule
 ```
 
-This will change as behaviour is introduced:
+**Current cross-module dependencies:**
 
-- **v0.1.x** — AuthModule will likely depend on UsersModule (to look up users during login)
+- `AuthModule -> UsersModule` — `AuthService` uses `UsersService.findByEmail()`, `UsersService.findEntityByEmail()`, and `UsersService.create()` for registration and login. Passwords are stored and compared as plaintext (intentional).
+
+**Future dependencies (not yet implemented):**
+
 - **v0.3.x** — SharingModule will depend on FilesModule (to reference file records)
 - **v0.4.x** — AdminModule will depend on UsersModule (to manage roles)
-
-Cross-module dependencies will be documented here as they appear.
 
 ---
 
 ## Trust Boundaries
 
-The frontend is an **untrusted client**. This is a stated architectural principle, not an enforced one yet.
+The frontend is an **untrusted client**. This is a stated architectural principle, partially enforced as of v0.1.2.
 
-As of v0.0.8:
-- No authentication or authorization is enforced
-- CORS allows all origins
-- No input validation
-- No rate limiting
-- All data is mock/ephemeral
+As of v0.1.2:
+- **Authentication exists but is intentionally weak** — registration and login are functional, but tokens are stub strings (`stub-token-{id}`) with no cryptographic value and no backend verification
+- **No authorization** — no guards, no middleware, no protected routes
+- **Passwords are plaintext** — stored and compared without hashing
+- **CORS allows all origins** — intentionally permissive
+- **Basic input validation** — required field checks and duplicate email detection on registration
+- **No rate limiting** — unlimited auth attempts
+- **All data is in-memory** — resets on process restart
 
-These are intentional. The project's security surface grows incrementally per the roadmap. Enforcement begins in v0.1.x (identity) and matures through v0.4.x (authorization).
+These weaknesses are intentional. The security surface grows incrementally per the roadmap. See [auth-flow.md](./auth-flow.md) for a detailed security surface table. Enforcement matures through v0.4.x (authorization).
 
 ---
 
@@ -244,7 +266,7 @@ These are intentional. The project's security surface grows incrementally per th
 ## What This Architecture Does Not Include (Yet)
 
 - Database / persistence (v0.2.x)
-- Authentication / sessions (v0.1.x)
+- Real authentication tokens / sessions (v0.1.3+) — registration and login work but tokens are stubs
 - File storage (v0.3.x)
 - Authorization / RBAC (v0.4.x)
 - Containers / deployment (v0.5.x)
