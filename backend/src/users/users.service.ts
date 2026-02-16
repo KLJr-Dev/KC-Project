@@ -52,10 +52,15 @@ export class UsersService {
     return this.toResponse(user);
   }
 
-  /** Find a user entity by email or return null. Used by auth registration. */
+  /** Find a user by email, return DTO (no password). Used by auth registration duplicate check. */
   findByEmail(email: string): UserResponseDto | null {
     const user = this.users.find((u) => u.email === email);
     return user ? this.toResponse(user) : null;
+  }
+
+  /** Find a user by email, return raw entity (includes password). Used by auth login. */
+  findEntityByEmail(email: string): User | null {
+    return this.users.find((u) => u.email === email) ?? null;
   }
 
   /** GET /users — return all users as response DTOs. */
