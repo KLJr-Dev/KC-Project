@@ -1,19 +1,20 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
 
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.1.2 — Login Endpoint
  *
- * Auth service. Returns mock/placeholder responses only; no persistence, no
- * real login or token generation. Structure only; behaviour in v0.1.x.
- *
- * --- NestJS convention: Service = business logic ---
- * Same as admin: controller delegates here. Later we'll add user lookup,
- * password check, token creation; the controller stays thin and only calls
- * register() / login().
+ * Auth service handling registration (v0.1.1) and login (v0.1.2).
+ * Passwords are stored and compared as plaintext (intentionally insecure).
+ * Error messages are intentionally distinct to enable user enumeration.
  */
 @Injectable()
 export class AuthService {
@@ -56,12 +57,41 @@ export class AuthService {
     };
   }
 
-  /** v0.0.6 — stub for POST /auth/login. Ignores input; returns mock success. */
-  login(_dto: LoginDto): AuthResponseDto {
+  /**
+   * v0.1.2 — implementation for POST /auth/login.
+   *
+   * Behaviour:
+   * - 400 if email or password missing
+   * - 401 "No user with that email" if user not found (intentionally leaky)
+   * - 401 "Incorrect password" if plaintext comparison fails (intentionally leaky)
+   * - 201 on success: returns AuthResponseDto with stub token
+   */
+  login(dto: LoginDto): AuthResponseDto {
+    const { email, password } = dto;
+
+    if (!email || !password) {
+      throw new BadRequestException(
+        'Missing required login fields: email and password are both required (v0.1.2)',
+      );
+    }
+
+    const user = this.usersService.findEntityByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException(
+        `No user with that email (v0.1.2)`,
+      );
+    }
+
+    if (user.password !== password) {
+      throw new UnauthorizedException(
+        `Incorrect password (v0.1.2)`,
+      );
+    }
+
     return {
-      token: 'stub-token-login',
-      userId: '1',
-      message: 'Login stub (v0.0.6)',
+      token: `stub-token-${user.id}`,
+      userId: user.id,
+      message: 'Login success (v0.1.2)',
     };
   }
 }
