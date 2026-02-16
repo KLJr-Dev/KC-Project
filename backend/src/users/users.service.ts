@@ -52,6 +52,12 @@ export class UsersService {
     return this.toResponse(user);
   }
 
+  /** Find a user entity by email or return null. Used by auth registration. */
+  findByEmail(email: string): UserResponseDto | null {
+    const user = this.users.find((u) => u.email === email);
+    return user ? this.toResponse(user) : null;
+  }
+
   /** GET /users — return all users as response DTOs. */
   findAll(): UserResponseDto[] {
     return this.users.map((u) => this.toResponse(u));
