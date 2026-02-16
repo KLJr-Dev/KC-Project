@@ -6,11 +6,12 @@ that route.
 
 ---
 
-## Current Status (v0.0.7)
+## Current Status (v0.0.8)
 
 All pages are `'use client'` components that call the backend API via
-`lib/api.ts` and display raw JSON responses. This is a **contract
-verification UI**, not production design.
+`lib/api.ts` and display raw JSON responses. Types are auto-generated
+from the backend's OpenAPI spec. This is a **contract verification UI**,
+not production design.
 
 ---
 
