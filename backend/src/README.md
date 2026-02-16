@@ -252,11 +252,12 @@ dto/
 
 ---
 
-## Current version context (v0.0.8)
+## Current version context (v0.1.0)
 
-**v0.0.8 — Development Tooling Baseline** is complete.
+**v0.1.0 — User Model Introduced** is complete.
 
-- **admin, auth, users, files, sharing:** Routes defined, DTOs defined, services return mock/placeholder data. No persistence, no real auth, no file I/O.
+- **users module:** `User` entity defined at `users/entities/user.entity.ts` with `id`, `email`, `username`, `password`, `createdAt`. `UsersService` stores `User[]` internally and maps to `UserResponseDto` at the boundary (password stripped). Password stored in plaintext (intentionally insecure — hashing introduced at v0.1.2).
+- **admin, auth, files, sharing:** Routes defined, DTOs defined, services return mock/placeholder data. No changes from v0.0.8.
 - **OpenAPI/Swagger** spec auto-generated from DTOs via `@nestjs/swagger` CLI plugin. Swagger UI at `/api/docs`, JSON spec at `/api/docs-json`.
 - **TypeScript** `strict: true` enabled. Response DTO required fields use definite assignment (`!:`).
 - **Prettier** config shared at repo root (`.prettierrc`). `format` / `format:check` scripts available.

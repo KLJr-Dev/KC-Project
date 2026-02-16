@@ -1,18 +1,15 @@
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.1.0 — User Model Introduced
  *
- * Response shape for GET /users/read, GET /users/get/:id, and for create/update
- * responses. Stub only; data is mock. No persistence. We do not expose
- * password in response (only id, email, username, createdAt).
- *
- * --- Why no password in response? ---
- * Even in stub form, the contract should not return secrets. Real APIs
- * never send password back; establishing that in the DTO now avoids mistakes
- * when we add persistence.
+ * Response shape for user endpoints. Shape unchanged from v0.0.6.
+ * Password is deliberately excluded — the User entity holds it
+ * internally, but the service's toResponse() mapping strips it
+ * before this DTO reaches the controller.
  */
 export class UserResponseDto {
   id!: string;
   email?: string;
   username?: string;
   createdAt!: string;
+  updatedAt!: string;
 }

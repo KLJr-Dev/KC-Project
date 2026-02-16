@@ -1,13 +1,9 @@
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.1.0 — User Model Introduced
  *
- * Request body for PUT /users/update/:id. Partial shape; validation
- * minimal/absent. Clients send only fields they want to change.
- *
- * --- Why separate from CreateUserDto? ---
- * Update often allows partial payloads and may exclude sensitive fields
- * (e.g. password change on a different endpoint). Dedicated DTO keeps
- * the contract clear. Same shape as create for simplicity in v0.0.6.
+ * Request body for PUT /users/:id. Partial shape — clients send only
+ * fields they want to change. Password updates are now applied to the
+ * User entity (plaintext, intentionally insecure).
  */
 export class UpdateUserDto {
   email?: string;

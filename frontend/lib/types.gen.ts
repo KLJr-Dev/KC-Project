@@ -4,736 +4,731 @@
  */
 
 export interface paths {
-  '/ping': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * v0.0.5 — Reachability endpoint
+         *
+         *     Infrastructure-only endpoint.
+         *     Not part of application domain.
+         *     Will be removed or disabled post v0.1.x.
+         */
+        get: operations["AppController_ping"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * v0.0.5 — Reachability endpoint
-     *
-     *     Infrastructure-only endpoint.
-     *     Not part of application domain.
-     *     Will be removed or disabled post v0.1.x.
-     */
-    get: operations['AppController_ping'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/register': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** v0.0.6 — POST /auth/register. Body parsed into RegisterDto. */
+        post: operations["AuthController_register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** v0.0.6 — POST /auth/register. Body parsed into RegisterDto. */
-    post: operations['AuthController_register'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/login': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** v0.0.6 — POST /auth/login. Body parsed into LoginDto. */
+        post: operations["AuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** v0.0.6 — POST /auth/login. Body parsed into LoginDto. */
-    post: operations['AuthController_login'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/users': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UsersController_findAll"];
+        put?: never;
+        post: operations["UsersController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** v0.0.6 — GET /users. */
-    get: operations['UsersController_read'];
-    put?: never;
-    /** v0.0.6 — POST /users. Body parsed into CreateUserDto. */
-    post: operations['UsersController_create'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/users/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UsersController_findById"];
+        put: operations["UsersController_update"];
+        post?: never;
+        delete: operations["UsersController_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** v0.0.6 — GET /users/:id. 404 if id not in mock list. */
-    get: operations['UsersController_getById'];
-    /** v0.0.6 — PUT /users/:id. 404 if id not found. */
-    put: operations['UsersController_update'];
-    post?: never;
-    /** v0.0.6 — DELETE /users/:id. 404 if id not found. */
-    delete: operations['UsersController_delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/files': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** v0.0.6 — POST /files. Body parsed into UploadFileDto; no file bytes processed. */
+        post: operations["FilesController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** v0.0.6 — POST /files. Body parsed into UploadFileDto; no file bytes processed. */
-    post: operations['FilesController_upload'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/files/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** v0.0.6 — GET /files/:id. Returns file metadata stub only; no stream. */
+        get: operations["FilesController_download"];
+        put?: never;
+        post?: never;
+        /** v0.0.6 — DELETE /files/:id. 404 if id not found. */
+        delete: operations["FilesController_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** v0.0.6 — GET /files/:id. Returns file metadata stub only; no stream. */
-    get: operations['FilesController_download'];
-    put?: never;
-    post?: never;
-    /** v0.0.6 — DELETE /files/:id. 404 if id not found. */
-    delete: operations['FilesController_delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/sharing': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/sharing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** v0.0.6 — GET /sharing. */
+        get: operations["SharingController_read"];
+        put?: never;
+        /** v0.0.6 — POST /sharing. Body parsed into CreateSharingDto. */
+        post: operations["SharingController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** v0.0.6 — GET /sharing. */
-    get: operations['SharingController_read'];
-    put?: never;
-    /** v0.0.6 — POST /sharing. Body parsed into CreateSharingDto. */
-    post: operations['SharingController_create'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/sharing/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/sharing/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** v0.0.6 — GET /sharing/:id. 404 if id not in mock list. */
+        get: operations["SharingController_getById"];
+        /** v0.0.6 — PUT /sharing/:id. 404 if id not found. */
+        put: operations["SharingController_update"];
+        post?: never;
+        /** v0.0.6 — DELETE /sharing/:id. 404 if id not found. */
+        delete: operations["SharingController_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** v0.0.6 — GET /sharing/:id. 404 if id not in mock list. */
-    get: operations['SharingController_getById'];
-    /** v0.0.6 — PUT /sharing/:id. 404 if id not found. */
-    put: operations['SharingController_update'];
-    post?: never;
-    /** v0.0.6 — DELETE /sharing/:id. 404 if id not found. */
-    delete: operations['SharingController_delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** v0.0.6 — GET /admin. Returns list; 200 always for stub. */
+        get: operations["AdminController_read"];
+        put?: never;
+        /** v0.0.6 — POST /admin. Body parsed into CreateAdminDto by Nest. */
+        post: operations["AdminController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** v0.0.6 — GET /admin. Returns list; 200 always for stub. */
-    get: operations['AdminController_read'];
-    put?: never;
-    /** v0.0.6 — POST /admin. Body parsed into CreateAdminDto by Nest. */
-    post: operations['AdminController_create'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** v0.0.6 — GET /admin/:id. 404 if id not in mock list. */
+        get: operations["AdminController_getById"];
+        /** v0.0.6 — PUT /admin/:id. 404 if id not found. */
+        put: operations["AdminController_update"];
+        post?: never;
+        /** v0.0.6 — DELETE /admin/:id. 404 if id not found. */
+        delete: operations["AdminController_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** v0.0.6 — GET /admin/:id. 404 if id not in mock list. */
-    get: operations['AdminController_getById'];
-    /** v0.0.6 — PUT /admin/:id. 404 if id not found. */
-    put: operations['AdminController_update'];
-    post?: never;
-    /** v0.0.6 — DELETE /admin/:id. 404 if id not found. */
-    delete: operations['AdminController_delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    RegisterDto: {
-      email?: string;
-      password?: string;
-      username?: string;
+    schemas: {
+        RegisterDto: {
+            email?: string;
+            password?: string;
+            username?: string;
+        };
+        AuthResponseDto: {
+            token: string;
+            userId: string;
+            message?: string;
+        };
+        LoginDto: {
+            email?: string;
+            password?: string;
+        };
+        CreateUserDto: {
+            email?: string;
+            username?: string;
+            password?: string;
+        };
+        UserResponseDto: {
+            id: string;
+            email?: string;
+            username?: string;
+            createdAt: string;
+        };
+        UpdateUserDto: {
+            email?: string;
+            username?: string;
+            password?: string;
+        };
+        UploadFileDto: {
+            filename?: string;
+        };
+        FileResponseDto: {
+            id: string;
+            filename: string;
+            size?: number;
+            uploadedAt: string;
+        };
+        CreateSharingDto: {
+            fileId?: string;
+            public?: boolean;
+            expiresAt?: string;
+        };
+        SharingResponseDto: {
+            id: string;
+            fileId?: string;
+            public?: boolean;
+            createdAt: string;
+            expiresAt?: string;
+        };
+        UpdateSharingDto: {
+            public?: boolean;
+            expiresAt?: string;
+        };
+        CreateAdminDto: {
+            label?: string;
+            role?: string;
+        };
+        AdminResponseDto: {
+            id: string;
+            label?: string;
+            role?: string;
+            createdAt: string;
+        };
+        UpdateAdminDto: {
+            label?: string;
+            role?: string;
+        };
     };
-    AuthResponseDto: {
-      token: string;
-      userId: string;
-      message?: string;
-    };
-    LoginDto: {
-      email?: string;
-      password?: string;
-    };
-    CreateUserDto: {
-      email?: string;
-      username?: string;
-      password?: string;
-    };
-    UserResponseDto: {
-      id: string;
-      email?: string;
-      username?: string;
-      createdAt: string;
-    };
-    UpdateUserDto: {
-      email?: string;
-      username?: string;
-      password?: string;
-    };
-    UploadFileDto: {
-      filename?: string;
-    };
-    FileResponseDto: {
-      id: string;
-      filename: string;
-      size?: number;
-      uploadedAt: string;
-    };
-    CreateSharingDto: {
-      fileId?: string;
-      public?: boolean;
-      expiresAt?: string;
-    };
-    SharingResponseDto: {
-      id: string;
-      fileId?: string;
-      public?: boolean;
-      createdAt: string;
-      expiresAt?: string;
-    };
-    UpdateSharingDto: {
-      public?: boolean;
-      expiresAt?: string;
-    };
-    CreateAdminDto: {
-      label?: string;
-      role?: string;
-    };
-    AdminResponseDto: {
-      id: string;
-      label?: string;
-      role?: string;
-      createdAt: string;
-    };
-    UpdateAdminDto: {
-      label?: string;
-      role?: string;
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  AppController_ping: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    AppController_ping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  AuthController_register: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RegisterDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-        content: {
-          'application/json': components['schemas']['AuthResponseDto'];
+    };
+    AuthController_register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  AuthController_login: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['LoginDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['AuthResponseDto'];
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponseDto"];
+                };
+            };
         };
-      };
     };
-  };
-  UsersController_read: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    AuthController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['UserResponseDto'][];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginDto"];
+            };
         };
-      };
-    };
-  };
-  UsersController_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateUserDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponseDto"];
+                };
+            };
         };
-        content: {
-          'application/json': components['schemas']['UserResponseDto'];
+    };
+    UsersController_findAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  UsersController_getById: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"][];
+                };
+            };
         };
-        content: {
-          'application/json': components['schemas']['UserResponseDto'];
+    };
+    UsersController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  UsersController_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateUserDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['UserResponseDto'];
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
         };
-      };
     };
-  };
-  UsersController_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    UsersController_findById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  FilesController_upload: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UploadFileDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
         };
-        content: {
-          'application/json': components['schemas']['FileResponseDto'];
+    };
+    UsersController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-      };
-    };
-  };
-  FilesController_download: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['FileResponseDto'];
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
         };
-      };
     };
-  };
-  FilesController_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    UsersController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  SharingController_read: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-        content: {
-          'application/json': components['schemas']['SharingResponseDto'][];
+    };
+    FilesController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  SharingController_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateSharingDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadFileDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['SharingResponseDto'];
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileResponseDto"];
+                };
+            };
         };
-      };
     };
-  };
-  SharingController_getById: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    FilesController_download: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['SharingResponseDto'];
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileResponseDto"];
+                };
+            };
         };
-      };
     };
-  };
-  SharingController_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateSharingDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    FilesController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['SharingResponseDto'];
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-      };
     };
-  };
-  SharingController_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    SharingController_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  AdminController_read: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingResponseDto"][];
+                };
+            };
         };
-        content: {
-          'application/json': components['schemas']['AdminResponseDto'][];
+    };
+    SharingController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  AdminController_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateAdminDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSharingDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['AdminResponseDto'];
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingResponseDto"];
+                };
+            };
         };
-      };
     };
-  };
-  AdminController_getById: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    SharingController_getById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['AdminResponseDto'];
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingResponseDto"];
+                };
+            };
         };
-      };
     };
-  };
-  AdminController_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateAdminDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    SharingController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['AdminResponseDto'];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSharingDto"];
+            };
         };
-      };
-    };
-  };
-  AdminController_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingResponseDto"];
+                };
+            };
         };
-        content?: never;
-      };
     };
-  };
+    SharingController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminController_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminResponseDto"][];
+                };
+            };
+        };
+    };
+    AdminController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAdminDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminResponseDto"];
+                };
+            };
+        };
+    };
+    AdminController_getById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminResponseDto"];
+                };
+            };
+        };
+    };
+    AdminController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAdminDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminResponseDto"];
+                };
+            };
+        };
+    };
+    AdminController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
 }

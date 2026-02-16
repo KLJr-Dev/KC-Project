@@ -15,12 +15,12 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.0.8)
+## Current Status (v0.1.0)
 
-Development tooling baseline established.
+User model introduced — identity surface begins.
 
-- **Backend** (NestJS) — API routes with DTOs, mock data, OpenAPI/Swagger spec at `/api/docs`
-- **Frontend** (Next.js) — types auto-generated from OpenAPI spec, typed API client, domain pages
+- **Backend** (NestJS) — `User` entity defined with `id`, `email`, `username`, `password`, `createdAt`. Service uses entities internally; DTOs are the API boundary only. Password stored in plaintext (intentionally insecure).
+- **Frontend** (Next.js) — types auto-generated from OpenAPI spec, typed API client, domain pages. No frontend changes in v0.1.0 (entity is backend-internal).
 - **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both
 - Both processes run independently; frontend calls backend on `localhost:4000`
 - No persistence, no authentication enforcement, no real file I/O

@@ -11,12 +11,14 @@ later hardened according to the project roadmap.
 
 ## Current Status
 
-**Version:** v0.0.8 (Foundation Phase complete)
+**Version:** v0.1.0 (Identity surface begins)
 
 - NestJS 11 application with five domain modules (users, auth, files, sharing, admin)
+- `User` entity defined — service stores entities internally, maps to DTOs at boundary
+- Password stored in plaintext on User entity (intentionally insecure)
 - RESTful API with full CRUD for users, files, sharing, and admin; action endpoints for auth
 - DTOs define request/response contracts for all routes
-- Services return mock/in-memory data (no persistence)
+- Non-user services still return mock/in-memory data
 - OpenAPI/Swagger spec auto-generated via `@nestjs/swagger` CLI plugin
 - TypeScript `strict: true` enabled
 - Prettier formatting enforced (shared root config)
