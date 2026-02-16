@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import Link from 'next/link';
+import Providers from './providers';
+import Header from './components/header';
+import Footer from './components/footer';
+import PageContainer from './components/page-container';
 import './globals.css';
 
 const geistSans = Geist({
@@ -15,17 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'KC-Project',
-  description: 'v0.0.7 — Frontend ↔ Backend Contract Integration',
+  description: 'v0.1.1 - Identity & Authentication Surface',
 };
-
-const NAV_LINKS = [
-  { href: '/', label: 'Dashboard' },
-  { href: '/users', label: 'Users' },
-  { href: '/auth', label: 'Auth' },
-  { href: '/files', label: 'Files' },
-  { href: '/admin', label: 'Admin' },
-  { href: '/sharing', label: 'Sharing' },
-];
 
 export default function RootLayout({
   children,
@@ -33,23 +27,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <nav className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="mx-auto flex max-w-5xl items-center gap-6 px-6 py-3">
-            <span className="font-semibold text-black dark:text-zinc-100">KC</span>
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-zinc-100"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
-        <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('kc_theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})()`,
+          }}
+        />
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
+      >
+        <Providers>
+          <Header />
+          <PageContainer>{children}</PageContainer>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

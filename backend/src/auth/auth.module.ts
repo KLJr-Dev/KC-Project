@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { UsersModule } from '../users/users.module';
 
 /**
  * v0.0.6 — Backend API Shape Definition
@@ -15,6 +16,7 @@ import { AuthService } from './auth.service';
  * framework.
  */
 @Module({
+  imports: [UsersModule],
   controllers: [AuthController],
   providers: [AuthService],
 })

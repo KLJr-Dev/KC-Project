@@ -1,146 +1,247 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { authRegister, authLogin } from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
+import FormInput from '../components/ui/form-input';
+import SubmitButton from '../components/ui/submit-button';
+import ErrorBanner from '../components/ui/error-banner';
+import SuccessBanner from '../components/ui/success-banner';
+
+type AuthMode = 'register' | 'login';
+
+function validateEmail(email: string): string | null {
+  if (!email) return 'Email is required';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Enter a valid email address';
+  return null;
+}
 
 export default function AuthPage() {
-  // register
+  const searchParams = useSearchParams();
+  const initialMode = searchParams.get('mode') === 'login' ? 'login' : 'register';
+  const [mode, setMode] = useState<AuthMode>(initialMode);
+  const { login } = useAuth();
+
+  // ── Register state ──────────────────────────────────────────────────
   const [regEmail, setRegEmail] = useState('');
   const [regUsername, setRegUsername] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regResult, setRegResult] = useState<string | null>(null);
+  const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
+  const [regSuccess, setRegSuccess] = useState<string | null>(null);
+  const [regFieldErrors, setRegFieldErrors] = useState<Record<string, string | null>>({});
 
-  // login
+  // ── Login state ─────────────────────────────────────────────────────
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [loginResult, setLoginResult] = useState<string | null>(null);
+  const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginSuccess, setLoginSuccess] = useState<string | null>(null);
+  const [loginFieldErrors, setLoginFieldErrors] = useState<Record<string, string | null>>({});
 
+  // ── Register handler ────────────────────────────────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRegResult(null);
+
+    const errors: Record<string, string | null> = {
+      email: validateEmail(regEmail),
+      username: regUsername ? null : 'Username is required',
+      password: regPassword ? null : 'Password is required',
+    };
+    setRegFieldErrors(errors);
+
+    if (Object.values(errors).some(Boolean)) return;
+
+    setRegLoading(true);
     setRegError(null);
+    setRegSuccess(null);
+
     try {
       const res = await authRegister({
         email: regEmail,
         username: regUsername,
         password: regPassword,
       });
-      setRegResult(JSON.stringify(res, null, 2));
+      login(res);
+      setRegSuccess(`Account created - user ID: ${res.userId}`);
+      setRegEmail('');
+      setRegUsername('');
+      setRegPassword('');
+      setRegFieldErrors({});
     } catch (err) {
-      setRegError(String(err));
+      setRegError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRegLoading(false);
     }
   };
 
+  // ── Login handler ───────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginResult(null);
+
+    const errors: Record<string, string | null> = {
+      email: validateEmail(loginEmail),
+      password: loginPassword ? null : 'Password is required',
+    };
+    setLoginFieldErrors(errors);
+
+    if (Object.values(errors).some(Boolean)) return;
+
+    setLoginLoading(true);
     setLoginError(null);
+    setLoginSuccess(null);
+
     try {
       const res = await authLogin({
         email: loginEmail,
         password: loginPassword,
       });
-      setLoginResult(JSON.stringify(res, null, 2));
+      login(res);
+      setLoginSuccess(`Signed in - user ID: ${res.userId}`);
     } catch (err) {
-      setLoginError(String(err));
+      setLoginError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoginLoading(false);
     }
   };
 
+  // ── Tab bar ─────────────────────────────────────────────────────────
+  const tabs: { key: AuthMode; label: string }[] = [
+    { key: 'register', label: 'Register' },
+    { key: 'login', label: 'Sign In' },
+  ];
+
   return (
-    <div className="space-y-10">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Auth</h1>
+    <div className="flex justify-center pt-8">
+      <div className="w-full max-w-md space-y-6">
+        {/* Tabs */}
+        <div className="flex rounded-md border border-border">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setMode(tab.key)}
+              className={`flex-1 py-2.5 text-center text-sm font-medium transition-colors ${
+                mode === tab.key
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted hover:text-foreground'
+              } ${tab.key === 'register' ? 'rounded-l-md' : 'rounded-r-md'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        {/* Register */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-            POST /auth/register
-          </h2>
+        {/* Register form */}
+        {mode === 'register' && (
+          <form onSubmit={handleRegister} className="space-y-4" noValidate>
+            <ErrorBanner message={regError} />
+            <SuccessBanner message={regSuccess} />
 
-          {regError && (
-            <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-              {regError}
-            </pre>
-          )}
-
-          <form onSubmit={handleRegister} className="space-y-2">
-            <input
-              type="text"
-              placeholder="email"
+            <FormInput
+              id="reg-email"
+              label="Email"
+              type="email"
               value={regEmail}
-              onChange={(e) => setRegEmail(e.target.value)}
-              className="block w-full rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              onChange={setRegEmail}
+              required
+              placeholder="you@example.com"
+              error={regFieldErrors.email}
+              disabled={regLoading}
+              autoComplete="email"
             />
-            <input
-              type="text"
-              placeholder="username"
+
+            <FormInput
+              id="reg-username"
+              label="Username"
               value={regUsername}
-              onChange={(e) => setRegUsername(e.target.value)}
-              className="block w-full rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              onChange={setRegUsername}
+              required
+              placeholder="Choose a username"
+              error={regFieldErrors.username}
+              disabled={regLoading}
+              autoComplete="username"
             />
-            <input
-              type="text"
-              placeholder="password"
+
+            <FormInput
+              id="reg-password"
+              label="Password"
+              type="password"
               value={regPassword}
-              onChange={(e) => setRegPassword(e.target.value)}
-              className="block w-full rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              onChange={setRegPassword}
+              required
+              placeholder="Create a password"
+              error={regFieldErrors.password}
+              disabled={regLoading}
+              autoComplete="new-password"
             />
-            <button
-              type="submit"
-              className="rounded bg-black px-4 py-1.5 text-sm text-white dark:bg-zinc-100 dark:text-black"
-            >
-              Register
-            </button>
+
+            <SubmitButton loading={regLoading} loadingText="Creating account…">
+              Create Account
+            </SubmitButton>
+
+            <p className="text-center text-sm text-muted">
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className="text-foreground underline underline-offset-2 hover:opacity-80"
+              >
+                Sign in
+              </button>
+            </p>
           </form>
+        )}
 
-          {regResult && (
-            <pre className="rounded border border-green-300 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-              {regResult}
-            </pre>
-          )}
-        </div>
+        {/* Login form */}
+        {mode === 'login' && (
+          <form onSubmit={handleLogin} className="space-y-4" noValidate>
+            <ErrorBanner message={loginError} />
+            <SuccessBanner message={loginSuccess} />
 
-        {/* Login */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">POST /auth/login</h2>
-
-          {loginError && (
-            <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-              {loginError}
-            </pre>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-2">
-            <input
-              type="text"
-              placeholder="email"
+            <FormInput
+              id="login-email"
+              label="Email"
+              type="email"
               value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-              className="block w-full rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              onChange={setLoginEmail}
+              required
+              placeholder="you@example.com"
+              error={loginFieldErrors.email}
+              disabled={loginLoading}
+              autoComplete="email"
             />
-            <input
-              type="text"
-              placeholder="password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              className="block w-full rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            />
-            <button
-              type="submit"
-              className="rounded bg-black px-4 py-1.5 text-sm text-white dark:bg-zinc-100 dark:text-black"
-            >
-              Login
-            </button>
-          </form>
 
-          {loginResult && (
-            <pre className="rounded border border-green-300 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-              {loginResult}
-            </pre>
-          )}
-        </div>
+            <FormInput
+              id="login-password"
+              label="Password"
+              type="password"
+              value={loginPassword}
+              onChange={setLoginPassword}
+              required
+              placeholder="Enter your password"
+              error={loginFieldErrors.password}
+              disabled={loginLoading}
+              autoComplete="current-password"
+            />
+
+            <SubmitButton loading={loginLoading} loadingText="Signing in…">
+              Sign In
+            </SubmitButton>
+
+            <p className="text-center text-sm text-muted">
+              Need an account?{' '}
+              <button
+                type="button"
+                onClick={() => setMode('register')}
+                className="text-foreground underline underline-offset-2 hover:opacity-80"
+              >
+                Register
+              </button>
+            </p>
+          </form>
+        )}
       </div>
     </div>
   );
