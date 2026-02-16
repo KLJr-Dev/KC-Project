@@ -18,14 +18,16 @@ const FEATURES = [
 
 const DEVS = [
   {
-    name: 'Dev 1',
-    role: 'Frontend',
-    description: 'Next.js, React, UI/UX, client-side security surface.',
+    name: 'Konstanty Litwinow Jr',
+    email: 'x23437073@student.ncirl.ie',
+    github: 'https://github.com/Kostek02',
+    description: 'Interested in Web App Development and Security',
   },
   {
-    name: 'Dev 2',
-    role: 'Backend',
-    description: 'NestJS, API design, persistence, server-side security surface.',
+    name: 'Christian Diaz de Sandi',
+    email: 'x243163181@student.ncirl.ie',
+    github: 'https://github.com/ChristianDS1',
+    description: 'Interested in Web App Development and Security',
   },
 ];
 
@@ -138,7 +140,8 @@ export default function HomePage() {
           {DEVS.map((dev) => (
             <div key={dev.name} className="rounded-md border border-border p-5 space-y-1">
               <h3 className="text-sm font-medium text-foreground">{dev.name}</h3>
-              <p className="text-xs font-medium text-muted">{dev.role}</p>
+              <p className="text-xs font-medium text-muted">{dev.email}</p>
+              <a href={dev.github} className="text-xs font-medium text-muted hover:text-primary">GitHub Profile</a>
               <p className="pt-1 text-sm text-muted">{dev.description}</p>
             </div>
           ))}
