@@ -1,88 +1,149 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ping } from '../lib/api';
 
-type BackendStatus = 'unknown' | 'connected' | 'error';
-
-const SECTIONS = [
+const FEATURES = [
   {
-    href: '/users',
-    label: 'Users',
-    description: 'CRUD operations on the users resource',
+    title: 'Identity & Auth',
+    description:
+      'Registration, login, sessions, and token handling, built with intentional gaps.',
   },
   {
-    href: '/auth',
-    label: 'Auth',
-    description: 'Register and login forms',
+    title: 'File Management',
+    description: 'Upload, download, and share files with deliberately weak access controls.',
   },
   {
-    href: '/files',
-    label: 'Files',
-    description: 'Upload metadata, view, and delete stubs',
-  },
-  {
-    href: '/admin',
-    label: 'Admin',
-    description: 'Administrative resource CRUD',
-  },
-  {
-    href: '/sharing',
-    label: 'Sharing',
-    description: 'Share links CRUD',
+    title: 'Admin Surface',
+    description: 'Role-based boundaries designed to be bypassed and escalated.',
   },
 ];
 
-export default function Dashboard() {
-  const [status, setStatus] = useState<BackendStatus>('unknown');
+const DEVS = [
+  {
+    name: 'Dev 1',
+    role: 'Frontend',
+    description: 'Next.js, React, UI/UX, client-side security surface.',
+  },
+  {
+    name: 'Dev 2',
+    role: 'Backend',
+    description: 'NestJS, API design, persistence, server-side security surface.',
+  },
+];
 
-  useEffect(() => {
-    ping()
-      .then(() => setStatus('connected'))
-      .catch(() => setStatus('error'));
-  }, []);
-
+export default function HomePage() {
   return (
-    <div className="space-y-10">
-      <div>
-        <h1 className="text-2xl font-semibold text-black dark:text-zinc-100">
-          KC-Project Dashboard
+    <div className="space-y-16">
+      {/* Hero */}
+      <section className="space-y-6 pt-8 text-center">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+          KC-Project
         </h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          v0.0.7 — Frontend ↔ Backend Contract Integration
+        <p className="mx-auto max-w-2xl text-lg text-muted">
+          A full-stack web application built to be broken. Designed insecure, tested through
+          structured penetration testing, then hardened.
         </p>
-      </div>
-
-      <div className="flex items-center gap-3 rounded border border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <span
-          className={`inline-block h-2.5 w-2.5 rounded-full ${
-            status === 'connected'
-              ? 'bg-green-500'
-              : status === 'error'
-                ? 'bg-red-500'
-                : 'bg-zinc-400 animate-pulse'
-          }`}
-        />
-        <span className="text-sm font-mono text-zinc-700 dark:text-zinc-300">
-          Backend ({`localhost:4000`}): {status === 'unknown' && 'checking…'}
-          {status === 'connected' && 'connected'}
-          {status === 'error' && 'unreachable'}
-        </span>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {SECTIONS.map((s) => (
+        <div className="flex items-center justify-center gap-4 pt-2">
           <Link
-            key={s.href}
-            href={s.href}
-            className="rounded border border-zinc-200 p-4 hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
+            href="/auth"
+            className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
-            <h2 className="font-medium text-black dark:text-zinc-100">{s.label}</h2>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{s.description}</p>
+            Create an Account
           </Link>
-        ))}
-      </div>
+          <Link
+            href="/auth?mode=login"
+            className="rounded-md border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
+          >
+            Sign In
+          </Link>
+        </div>
+      </section>
+
+      {/* About + Current Version: 2-column */}
+      <section className="grid gap-6 sm:grid-cols-2">
+        <div className="space-y-3 rounded-md border border-border p-6">
+          <h2 className="text-lg font-semibold text-foreground">About the Project</h2>
+          <div className="space-y-3 text-sm leading-relaxed text-muted">
+            <p>
+              KC-Project is a long-term software engineering and web security project. It follows an
+              intentional <strong className="text-foreground">insecure-by-design</strong> approach:
+              vulnerabilities are introduced knowingly so they can be documented, exploited, and then
+              remediated.
+            </p>
+            <p>
+              The goal is to understand how real-world security failures emerge from architectural
+              decisions, missing checks, and trust assumptions. Every version is a coherent, testable
+              system state.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col justify-between rounded-md border border-border p-6">
+          <div className="space-y-3">
+            <h2 className="text-sm font-medium text-muted">Current Version</h2>
+            <p className="text-lg font-semibold text-foreground">v0.1.1 - Registration Endpoint</p>
+            <p className="text-sm text-muted">
+              User creation with minimal validation. Identity and authentication surface is being
+              introduced. No persistence, no real token generation yet.
+            </p>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
+              In-memory store
+            </span>
+            <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
+              Stub tokens
+            </span>
+            <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
+              No persistence
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Security Surfaces */}
+      <section className="space-y-6">
+        <h2 className="text-xl font-semibold text-foreground">Security Surfaces</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="rounded-md border border-border p-5 space-y-2">
+              <h3 className="text-sm font-medium text-foreground">{f.title}</h3>
+              <p className="text-sm text-muted">{f.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Tech Stack */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold text-foreground">Tech Stack</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-md border border-border p-5 space-y-2">
+            <h3 className="text-sm font-medium text-foreground">Frontend</h3>
+            <p className="text-sm text-muted">
+              Next.js (App Router), React, TypeScript, Tailwind CSS. Types auto-generated from
+              OpenAPI spec.
+            </p>
+          </div>
+          <div className="rounded-md border border-border p-5 space-y-2">
+            <h3 className="text-sm font-medium text-foreground">Backend</h3>
+            <p className="text-sm text-muted">
+              NestJS, TypeScript, Swagger/OpenAPI. PostgreSQL planned for persistence phase.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* The Team */}
+      <section className="space-y-6">
+        <h2 className="text-xl font-semibold text-foreground">The Team</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {DEVS.map((dev) => (
+            <div key={dev.name} className="rounded-md border border-border p-5 space-y-1">
+              <h3 className="text-sm font-medium text-foreground">{dev.name}</h3>
+              <p className="text-xs font-medium text-muted">{dev.role}</p>
+              <p className="pt-1 text-sm text-muted">{dev.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

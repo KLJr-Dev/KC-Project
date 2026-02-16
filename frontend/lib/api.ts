@@ -30,10 +30,20 @@ const API_BASE = 'http://localhost:4000';
 // ── Helpers ──────────────────────────────────────────────────────────
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...init,
+    });
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new Error(
+        'Unable to reach the server. Make sure the backend is running on localhost:4000.',
+      );
+    }
+    throw err;
+  }
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`${res.status} ${res.statusText}: ${body}`);

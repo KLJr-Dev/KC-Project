@@ -141,18 +141,6 @@ Goal: Introduce identity with minimal security guarantees.
 - Minimal validation
 - Duplicate handling weak
 
-#### Backend Tasks (feature/v0.1.1-be-registration)
-
-> Temporary — remove after v0.1.1 is complete.
-
-- [ ] Inject `UsersService` into `AuthService` (import `UsersModule` into `AuthModule`)
-- [ ] Add `findByEmail(email: string)` method to `UsersService` (search in-memory array)
-- [ ] Implement real `register()` in `AuthService` — call `UsersService.create()`, return `AuthResponseDto` with new user ID and stub token
-- [ ] Add weak duplicate email check — 409 Conflict if email exists, verbose error message (intentionally leaky)
-- [ ] Make `RegisterDto` fields required (remove `?` from email, username, password)
-- [ ] Unit tests — `AuthService.register()`: creates user, rejects duplicate, handles missing fields
-- [ ] E2E tests — `POST /auth/register`: 201 success, 409 duplicate, 400 missing fields, verify `AuthResponseDto` shape
-
 ### v0.1.2 — Login Endpoint
 
 - Login logic added
