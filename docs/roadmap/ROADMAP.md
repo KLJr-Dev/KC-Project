@@ -141,17 +141,15 @@ Goal: Introduce identity with minimal security guarantees.
 - Minimal validation
 - Duplicate handling weak
 
-#### Frontend Tasks (feature/v0.1.1-fe-auth-ui)
+#### Frontend Tasks (feature/v0.1.1-fe-auth-ui) — COMPLETED
 
-> Temporary — remove after v0.1.1 is complete.
-
-- [ ] Split `/auth` into separate `/register` and `/login` routes (new page files)
-- [ ] Build proper registration page — labeled inputs, client-side required-field validation, loading state, success/error display
-- [ ] Build login page scaffold — same quality as registration, calls existing `authLogin()` stub (prep for v0.1.2)
-- [ ] Redesign home page — replace dev dashboard with app-style landing, CTA to register/login
-- [ ] Update layout navigation — replace dev nav (Users/Files/Admin/Sharing) with user-facing nav (Home, Register, Login)
-- [ ] Create auth context stub (`lib/auth-context.tsx`) — store token from `AuthResponseDto` in state/localStorage, plumbing for v0.1.3
-- [ ] Extract reusable form components — shared input fields, submit buttons, error banners used by both register and login
+- [x] Split `/auth` into separate `/register` and `/login` routes (adapted: single `/auth` page with Register/Login tab toggle)
+- [x] Build proper registration page — labeled inputs, client-side required-field validation, loading state, success/error display
+- [x] Build login page scaffold — same quality as registration, calls existing `authLogin()` stub (prep for v0.1.2)
+- [x] Redesign home page — replace dev dashboard with app-style landing, CTA to register/login
+- [x] Update layout navigation — replace dev nav (Users/Files/Admin/Sharing) with user-facing nav (Home, Sign In)
+- [x] Create auth context stub (`lib/auth-context.tsx`) — store token from `AuthResponseDto` in state/localStorage, plumbing for v0.1.3
+- [x] Extract reusable form components — shared input fields, submit buttons, error banners used by both register and login
 
 ### v0.1.2 — Login Endpoint
 
