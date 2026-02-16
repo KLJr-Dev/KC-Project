@@ -12,8 +12,8 @@
  * info" so the file resource has one consistent shape.
  */
 export class FileResponseDto {
-  id: string;
-  filename: string;
+  id!: string;
+  filename!: string;
   size?: number;
-  uploadedAt: string;
+  uploadedAt!: string;
 }

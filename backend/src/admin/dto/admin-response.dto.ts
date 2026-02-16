@@ -12,8 +12,8 @@
  * if we need different shapes for list vs single item.
  */
 export class AdminResponseDto {
-  id: string;
+  id!: string;
   label?: string;
   role?: string;
-  createdAt: string;
+  createdAt!: string;
 }

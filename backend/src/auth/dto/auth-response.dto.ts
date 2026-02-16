@@ -12,7 +12,7 @@
  * until v0.1.3 (sessions/JWT).
  */
 export class AuthResponseDto {
-  token: string;
-  userId: string;
+  token!: string;
+  userId!: string;
   message?: string;
 }

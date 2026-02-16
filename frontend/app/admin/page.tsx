@@ -39,9 +39,7 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">
-        Admin
-      </h1>
+      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Admin</h1>
 
       {error && (
         <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
@@ -51,9 +49,7 @@ export default function AdminPage() {
 
       {/* Create */}
       <form onSubmit={handleCreate} className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          POST /admin
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">POST /admin</h2>
         <div className="flex flex-wrap gap-2">
           <input
             type="text"
@@ -85,9 +81,7 @@ export default function AdminPage() {
 
       {/* List */}
       <div>
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          GET /admin
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">GET /admin</h2>
         {items.length === 0 ? (
           <p className="mt-2 text-sm text-zinc-400">No admin entries.</p>
         ) : (
@@ -102,10 +96,7 @@ export default function AdminPage() {
             </thead>
             <tbody>
               {items.map((a) => (
-                <tr
-                  key={a.id}
-                  className="border-b border-zinc-100 dark:border-zinc-800/50"
-                >
+                <tr key={a.id} className="border-b border-zinc-100 dark:border-zinc-800/50">
                   <td className="py-2 pr-4">
                     <Link
                       href={`/admin/${a.id}`}
@@ -116,9 +107,7 @@ export default function AdminPage() {
                   </td>
                   <td className="py-2 pr-4 font-mono">{a.label ?? '—'}</td>
                   <td className="py-2 pr-4 font-mono">{a.role ?? '—'}</td>
-                  <td className="py-2 font-mono text-zinc-400">
-                    {a.createdAt}
-                  </td>
+                  <td className="py-2 font-mono text-zinc-400">{a.createdAt}</td>
                 </tr>
               ))}
             </tbody>

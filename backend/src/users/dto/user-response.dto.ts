@@ -11,8 +11,8 @@
  * when we add persistence.
  */
 export class UserResponseDto {
-  id: string;
+  id!: string;
   email?: string;
   username?: string;
-  createdAt: string;
+  createdAt!: string;
 }

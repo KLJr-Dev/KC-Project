@@ -33,9 +33,7 @@ export default function FileDetailPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">
-        File {id}
-      </h1>
+      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">File {id}</h1>
 
       {error && (
         <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
@@ -50,9 +48,7 @@ export default function FileDetailPage() {
       )}
 
       <div className="space-y-2">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          DELETE /files/{id}
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">DELETE /files/{id}</h2>
         <button
           onClick={handleDelete}
           className="rounded bg-red-600 px-4 py-1.5 text-sm text-white hover:bg-red-700"

@@ -59,67 +59,52 @@ export const ping = () => request<PingResponse>('/ping');
 
 // ── Users ────────────────────────────────────────────────────────────
 
-export const usersCreate = (dto: CreateUser) =>
-  post<UserResponse>('/users', dto);
+export const usersCreate = (dto: CreateUser) => post<UserResponse>('/users', dto);
 
 export const usersList = () => request<UserResponse[]>('/users');
 
-export const usersGetById = (id: string) =>
-  request<UserResponse>(`/users/${id}`);
+export const usersGetById = (id: string) => request<UserResponse>(`/users/${id}`);
 
-export const usersUpdate = (id: string, dto: UpdateUser) =>
-  put<UserResponse>(`/users/${id}`, dto);
+export const usersUpdate = (id: string, dto: UpdateUser) => put<UserResponse>(`/users/${id}`, dto);
 
-export const usersDelete = (id: string) =>
-  del<DeleteResponse>(`/users/${id}`);
+export const usersDelete = (id: string) => del<DeleteResponse>(`/users/${id}`);
 
 // ── Auth ─────────────────────────────────────────────────────────────
 
-export const authRegister = (dto: RegisterRequest) =>
-  post<AuthResponse>('/auth/register', dto);
+export const authRegister = (dto: RegisterRequest) => post<AuthResponse>('/auth/register', dto);
 
-export const authLogin = (dto: LoginRequest) =>
-  post<AuthResponse>('/auth/login', dto);
+export const authLogin = (dto: LoginRequest) => post<AuthResponse>('/auth/login', dto);
 
 // ── Files ────────────────────────────────────────────────────────────
 
-export const filesUpload = (dto: UploadFileRequest) =>
-  post<FileResponse>('/files', dto);
+export const filesUpload = (dto: UploadFileRequest) => post<FileResponse>('/files', dto);
 
-export const filesGetById = (id: string) =>
-  request<FileResponse>(`/files/${id}`);
+export const filesGetById = (id: string) => request<FileResponse>(`/files/${id}`);
 
-export const filesDelete = (id: string) =>
-  del<DeleteResponse>(`/files/${id}`);
+export const filesDelete = (id: string) => del<DeleteResponse>(`/files/${id}`);
 
 // ── Sharing ──────────────────────────────────────────────────────────
 
-export const sharingCreate = (dto: CreateSharing) =>
-  post<SharingResponse>('/sharing', dto);
+export const sharingCreate = (dto: CreateSharing) => post<SharingResponse>('/sharing', dto);
 
 export const sharingList = () => request<SharingResponse[]>('/sharing');
 
-export const sharingGetById = (id: string) =>
-  request<SharingResponse>(`/sharing/${id}`);
+export const sharingGetById = (id: string) => request<SharingResponse>(`/sharing/${id}`);
 
 export const sharingUpdate = (id: string, dto: UpdateSharing) =>
   put<SharingResponse>(`/sharing/${id}`, dto);
 
-export const sharingDelete = (id: string) =>
-  del<DeleteResponse>(`/sharing/${id}`);
+export const sharingDelete = (id: string) => del<DeleteResponse>(`/sharing/${id}`);
 
 // ── Admin ────────────────────────────────────────────────────────────
 
-export const adminCreate = (dto: CreateAdmin) =>
-  post<AdminResponse>('/admin', dto);
+export const adminCreate = (dto: CreateAdmin) => post<AdminResponse>('/admin', dto);
 
 export const adminList = () => request<AdminResponse[]>('/admin');
 
-export const adminGetById = (id: string) =>
-  request<AdminResponse>(`/admin/${id}`);
+export const adminGetById = (id: string) => request<AdminResponse>(`/admin/${id}`);
 
 export const adminUpdate = (id: string, dto: UpdateAdmin) =>
   put<AdminResponse>(`/admin/${id}`, dto);
 
-export const adminDelete = (id: string) =>
-  del<DeleteResponse>(`/admin/${id}`);
+export const adminDelete = (id: string) => del<DeleteResponse>(`/admin/${id}`);

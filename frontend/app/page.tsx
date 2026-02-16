@@ -65,8 +65,7 @@ export default function Dashboard() {
           }`}
         />
         <span className="text-sm font-mono text-zinc-700 dark:text-zinc-300">
-          Backend ({`localhost:4000`}):{' '}
-          {status === 'unknown' && 'checking…'}
+          Backend ({`localhost:4000`}): {status === 'unknown' && 'checking…'}
           {status === 'connected' && 'connected'}
           {status === 'error' && 'unreachable'}
         </span>
@@ -79,12 +78,8 @@ export default function Dashboard() {
             href={s.href}
             className="rounded border border-zinc-200 p-4 hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
           >
-            <h2 className="font-medium text-black dark:text-zinc-100">
-              {s.label}
-            </h2>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              {s.description}
-            </p>
+            <h2 className="font-medium text-black dark:text-zinc-100">{s.label}</h2>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{s.description}</p>
           </Link>
         ))}
       </div>

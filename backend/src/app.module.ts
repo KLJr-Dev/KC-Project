@@ -20,13 +20,7 @@ import { AdminModule } from './admin/admin.module';
  * Feature modules encapsulate domain behaviour.
  */
 @Module({
-  imports: [
-    AuthModule,
-    UsersModule,
-    FilesModule,
-    SharingModule,
-    AdminModule,
-  ],
+  imports: [AuthModule, UsersModule, FilesModule, SharingModule, AdminModule],
   controllers: [AppController], // infrastructure-only (/ping)
 })
 export class AppModule {}

@@ -11,9 +11,9 @@
  * type for v0.0.6.
  */
 export class SharingResponseDto {
-  id: string;
+  id!: string;
   fileId?: string;
   public?: boolean;
-  createdAt: string;
+  createdAt!: string;
   expiresAt?: string;
 }

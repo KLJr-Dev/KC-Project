@@ -15,14 +15,15 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.0.7)
+## Current Status (v0.0.8)
 
-Frontend and backend are **contract-integrated**.
+Development tooling baseline established.
 
-- **Backend** (NestJS) — all API routes defined with DTOs and mock data (users, auth, files, admin, sharing)
-- **Frontend** (Next.js) — typed API client mirrors every backend DTO; pages exercise full CRUD for all domains
+- **Backend** (NestJS) — API routes with DTOs, mock data, OpenAPI/Swagger spec at `/api/docs`
+- **Frontend** (Next.js) — types auto-generated from OpenAPI spec, typed API client, domain pages
+- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both
 - Both processes run independently; frontend calls backend on `localhost:4000`
-- No persistence, no authentication enforcement, no real file I/O — contracts only
+- No persistence, no authentication enforcement, no real file I/O
 
 ### Run locally
 

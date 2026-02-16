@@ -45,9 +45,7 @@ export default function SharingPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">
-        Sharing
-      </h1>
+      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Sharing</h1>
 
       {error && (
         <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
@@ -57,9 +55,7 @@ export default function SharingPage() {
 
       {/* Create */}
       <form onSubmit={handleCreate} className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          POST /sharing
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">POST /sharing</h2>
         <div className="flex flex-wrap items-center gap-2">
           <input
             type="text"
@@ -99,9 +95,7 @@ export default function SharingPage() {
 
       {/* List */}
       <div>
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          GET /sharing
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">GET /sharing</h2>
         {items.length === 0 ? (
           <p className="mt-2 text-sm text-zinc-400">No sharing entries.</p>
         ) : (
@@ -109,22 +103,15 @@ export default function SharingPage() {
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800">
                 <th className="py-2 pr-4 font-medium text-zinc-500">ID</th>
-                <th className="py-2 pr-4 font-medium text-zinc-500">
-                  File ID
-                </th>
+                <th className="py-2 pr-4 font-medium text-zinc-500">File ID</th>
                 <th className="py-2 pr-4 font-medium text-zinc-500">Public</th>
-                <th className="py-2 pr-4 font-medium text-zinc-500">
-                  Expires
-                </th>
+                <th className="py-2 pr-4 font-medium text-zinc-500">Expires</th>
                 <th className="py-2 font-medium text-zinc-500">Created</th>
               </tr>
             </thead>
             <tbody>
               {items.map((s) => (
-                <tr
-                  key={s.id}
-                  className="border-b border-zinc-100 dark:border-zinc-800/50"
-                >
+                <tr key={s.id} className="border-b border-zinc-100 dark:border-zinc-800/50">
                   <td className="py-2 pr-4">
                     <Link
                       href={`/sharing/${s.id}`}
@@ -134,15 +121,9 @@ export default function SharingPage() {
                     </Link>
                   </td>
                   <td className="py-2 pr-4 font-mono">{s.fileId ?? '—'}</td>
-                  <td className="py-2 pr-4 font-mono">
-                    {s.public ? 'yes' : 'no'}
-                  </td>
-                  <td className="py-2 pr-4 font-mono text-zinc-400">
-                    {s.expiresAt ?? '—'}
-                  </td>
-                  <td className="py-2 font-mono text-zinc-400">
-                    {s.createdAt}
-                  </td>
+                  <td className="py-2 pr-4 font-mono">{s.public ? 'yes' : 'no'}</td>
+                  <td className="py-2 pr-4 font-mono text-zinc-400">{s.expiresAt ?? '—'}</td>
+                  <td className="py-2 font-mono text-zinc-400">{s.createdAt}</td>
                 </tr>
               ))}
             </tbody>

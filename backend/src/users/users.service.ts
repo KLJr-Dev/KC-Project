@@ -18,7 +18,12 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersService {
   /** v0.0.6 — in-memory stub; not persisted. Resets on process restart. */
   private mockUsers: UserResponseDto[] = [
-    { id: '1', email: 'stub@example.com', username: 'stub-user', createdAt: '2025-01-01T00:00:00Z' },
+    {
+      id: '1',
+      email: 'stub@example.com',
+      username: 'stub-user',
+      createdAt: '2025-01-01T00:00:00Z',
+    },
   ];
 
   /** v0.0.6 — stub for POST /users/create. Appends to mock list; response omits password. */

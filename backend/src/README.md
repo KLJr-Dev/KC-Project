@@ -252,13 +252,14 @@ dto/
 
 ---
 
-## Current version context (v0.0.6)
+## Current version context (v0.0.8)
 
-**v0.0.6 — Backend API Shape Definition** is complete for the roadmap scope.
+**v0.0.8 — Development Tooling Baseline** is complete.
 
 - **admin, auth, users, files, sharing:** Routes defined, DTOs defined, services return mock/placeholder data. No persistence, no real auth, no file I/O.
+- **OpenAPI/Swagger** spec auto-generated from DTOs via `@nestjs/swagger` CLI plugin. Swagger UI at `/api/docs`, JSON spec at `/api/docs-json`.
+- **TypeScript** `strict: true` enabled. Response DTO required fields use definite assignment (`!:`).
+- **Prettier** config shared at repo root (`.prettierrc`). `format` / `format:check` scripts available.
 - No persistence
 - No authentication enforcement
 - No authorization enforcement
-
-This version **freezes API shape (routes + DTOs + mock responses), not behaviour**. Next: v0.0.7 — Frontend ↔ Backend Contract Integration.

@@ -43,9 +43,7 @@ export default function FilesPage() {
 
   return (
     <div className="space-y-10">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">
-        Files
-      </h1>
+      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Files</h1>
 
       {error && (
         <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
@@ -55,9 +53,7 @@ export default function FilesPage() {
 
       {/* Upload */}
       <div className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          POST /files
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">POST /files</h2>
         <form onSubmit={handleUpload} className="flex gap-2">
           <input
             type="text"
@@ -82,9 +78,7 @@ export default function FilesPage() {
 
       {/* Lookup by ID */}
       <div className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          GET /files/:id
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">GET /files/:id</h2>
         <form onSubmit={handleLookup} className="flex gap-2">
           <input
             type="text"

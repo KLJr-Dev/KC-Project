@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import {
-  sharingGetById,
-  sharingUpdate,
-  sharingDelete,
-} from '../../../lib/api';
+import { sharingGetById, sharingUpdate, sharingDelete } from '../../../lib/api';
 import type { SharingResponse } from '../../../lib/types';
 
 export default function SharingDetailPage() {
@@ -60,9 +56,7 @@ export default function SharingDetailPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">
-        Sharing {id}
-      </h1>
+      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Sharing {id}</h1>
 
       {error && (
         <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
@@ -77,9 +71,7 @@ export default function SharingDetailPage() {
       )}
 
       <form onSubmit={handleUpdate} className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          PUT /sharing/{id}
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">PUT /sharing/{id}</h2>
         <div className="flex flex-wrap items-center gap-2">
           <input
             type="text"

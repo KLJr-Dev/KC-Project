@@ -50,9 +50,7 @@ export default function AuthPage() {
 
   return (
     <div className="space-y-10">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">
-        Auth
-      </h1>
+      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Auth</h1>
 
       <div className="grid gap-8 md:grid-cols-2">
         {/* Register */}
@@ -106,9 +104,7 @@ export default function AuthPage() {
 
         {/* Login */}
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-            POST /auth/login
-          </h2>
+          <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">POST /auth/login</h2>
 
           {loginError && (
             <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">

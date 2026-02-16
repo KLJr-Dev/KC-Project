@@ -1,103 +1,43 @@
 /**
- * v0.0.7 — Frontend ↔ Backend Contract Integration
+ * v0.0.8 — Frontend types derived from OpenAPI spec
  *
- * Client-side mirrors of every backend DTO. Plain interfaces only —
- * no classes, no decorators, no runtime. Source of truth lives in
- * backend/src/* /dto/; these will be replaced by OpenAPI codegen in v0.0.8.
+ * Re-exports schema types from the auto-generated types.gen.ts with
+ * friendly aliases. All pages and api.ts import from here so import
+ * paths stay stable even if the codegen output changes.
+ *
+ * To regenerate: npm run generate:types (requires backend on :4000)
  */
+
+import type { components } from './types.gen';
 
 // ── Users ────────────────────────────────────────────────────────────
 
-export interface CreateUser {
-  email?: string;
-  username?: string;
-  password?: string;
-}
-
-export interface UpdateUser {
-  email?: string;
-  username?: string;
-  password?: string;
-}
-
-export interface UserResponse {
-  id: string;
-  email?: string;
-  username?: string;
-  createdAt: string;
-}
+export type CreateUser = components['schemas']['CreateUserDto'];
+export type UpdateUser = components['schemas']['UpdateUserDto'];
+export type UserResponse = components['schemas']['UserResponseDto'];
 
 // ── Auth ─────────────────────────────────────────────────────────────
 
-export interface RegisterRequest {
-  email?: string;
-  password?: string;
-  username?: string;
-}
-
-export interface LoginRequest {
-  email?: string;
-  password?: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  userId: string;
-  message?: string;
-}
+export type RegisterRequest = components['schemas']['RegisterDto'];
+export type LoginRequest = components['schemas']['LoginDto'];
+export type AuthResponse = components['schemas']['AuthResponseDto'];
 
 // ── Files ────────────────────────────────────────────────────────────
 
-export interface UploadFileRequest {
-  filename?: string;
-}
-
-export interface FileResponse {
-  id: string;
-  filename: string;
-  size?: number;
-  uploadedAt: string;
-}
+export type UploadFileRequest = components['schemas']['UploadFileDto'];
+export type FileResponse = components['schemas']['FileResponseDto'];
 
 // ── Sharing ──────────────────────────────────────────────────────────
 
-export interface CreateSharing {
-  fileId?: string;
-  public?: boolean;
-  expiresAt?: string;
-}
-
-export interface UpdateSharing {
-  public?: boolean;
-  expiresAt?: string;
-}
-
-export interface SharingResponse {
-  id: string;
-  fileId?: string;
-  public?: boolean;
-  createdAt: string;
-  expiresAt?: string;
-}
+export type CreateSharing = components['schemas']['CreateSharingDto'];
+export type UpdateSharing = components['schemas']['UpdateSharingDto'];
+export type SharingResponse = components['schemas']['SharingResponseDto'];
 
 // ── Admin ────────────────────────────────────────────────────────────
 
-export interface CreateAdmin {
-  label?: string;
-  role?: string;
-}
-
-export interface UpdateAdmin {
-  label?: string;
-  role?: string;
-}
-
-export interface AdminResponse {
-  id: string;
-  label?: string;
-  role?: string;
-  createdAt: string;
-}
+export type CreateAdmin = components['schemas']['CreateAdminDto'];
+export type UpdateAdmin = components['schemas']['UpdateAdminDto'];
+export type AdminResponse = components['schemas']['AdminResponseDto'];
 
 // ── Infrastructure ───────────────────────────────────────────────────
 

@@ -53,9 +53,7 @@ export default function AdminDetailPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">
-        Admin {id}
-      </h1>
+      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Admin {id}</h1>
 
       {error && (
         <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
@@ -70,9 +68,7 @@ export default function AdminDetailPage() {
       )}
 
       <form onSubmit={handleUpdate} className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          PUT /admin/{id}
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">PUT /admin/{id}</h2>
         <div className="flex flex-wrap gap-2">
           <input
             type="text"
@@ -98,9 +94,7 @@ export default function AdminDetailPage() {
       </form>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-          DELETE /admin/{id}
-        </h2>
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">DELETE /admin/{id}</h2>
         <button
           onClick={handleDelete}
           className="rounded bg-red-600 px-4 py-1.5 text-sm text-white hover:bg-red-700"
