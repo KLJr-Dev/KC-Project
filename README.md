@@ -15,15 +15,15 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.1.0)
+## Current Status (v0.1.2)
 
-User model introduced — identity surface begins.
+Identity and authentication surface - registration and login functional.
 
-- **Backend** (NestJS) — `User` entity defined with `id`, `email`, `username`, `password`, `createdAt`. Service uses entities internally; DTOs are the API boundary only. Password stored in plaintext (intentionally insecure).
-- **Frontend** (Next.js) — types auto-generated from OpenAPI spec, typed API client, domain pages. No frontend changes in v0.1.0 (entity is backend-internal).
+- **Backend** (NestJS) — Real registration endpoint (`POST /auth/register`) with field validation, duplicate email detection, and in-memory user store. Login endpoint (`POST /auth/login`) with plaintext password comparison. `AuthModule` imports `UsersModule`. Passwords stored in plaintext (intentionally insecure).
+- **Frontend** (Next.js) — Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, theme toggle (light/dark), app shell (Header, Footer, PageContainer). Types auto-generated from OpenAPI spec.
 - **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both
 - Both processes run independently; frontend calls backend on `localhost:4000`
-- No persistence, no authentication enforcement, no real file I/O
+- No persistence (in-memory, resets on restart), stub tokens, no authorization guards
 
 ### Run locally
 
@@ -41,16 +41,18 @@ Backend: `http://localhost:4000` (default). Frontend: `http://localhost:3000` (N
 
 ## Repository Structure
 
+```
 KC-PROJECT/
-├── backend/ # Backend service (NestJS) – API shape defined, mock data
-├── frontend/ # Frontend application (Next.js) – contract integration UI
-├── infra/ # Deployment and infrastructure definitions
-├── docs/ # Engineering and project documentation
-│ ├── architecture/
-│ ├── decisions/
-│ ├── roadmap/
-│ └── README.md
-└── README.md # Project overview
+├── backend/              # Backend service (NestJS) - REST API, auth, user management
+├── frontend/             # Frontend application (Next.js) - auth UI, app shell
+├── infra/                # Deployment and infrastructure definitions
+├── docs/                 # Engineering and project documentation
+│   ├── architecture/     # System architecture + auth flow diagrams
+│   ├── decisions/        # Architecture Decision Records (ADRs)
+│   ├── roadmap/          # Version-by-version development plan
+│   └── README.md
+└── README.md             # Project overview
+```
 
 
 Each directory contains a README describing its intended responsibility.
@@ -72,13 +74,21 @@ milestones.
 - `v1.x` — Insecure functional implementations
 - `v2.x` — Hardened and secured counterparts
 
+## Branching Strategy
+
+```
+main          Stable releases only (squash-merged from dev)
+ └── dev      Integration branch - features merge here, tested before PR to main
+      ├── frontend    Frontend feature work
+      └── backend     Backend feature work
+```
+
+- `main` only receives commits from `dev` (or `hotfix` branches)
+- Feature work happens on `frontend` / `backend` branches off `dev`
+- Both branches merge into `dev` for integration testing, then `dev` is PR'd to `main`
+
 ## Collaboration
 
 This project is developed collaboratively using Git for version control.
-
-Branching strategy, contribution guidelines, and CI/CD workflows will be introduced
-once the implementation phase begins.
-
----
-
-More details will be added as the project evolves.
+Contributions follow the branching strategy above. CI/CD workflows will be introduced
+in later versions.
