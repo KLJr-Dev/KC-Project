@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'KC-Project',
-  description: 'v0.1.1 - Identity & Authentication Surface',
+  description: 'v0.1.2 - Identity & Authentication Surface',
 };
 
 export default function RootLayout({

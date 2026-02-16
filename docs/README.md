@@ -11,6 +11,7 @@ This directory contains engineering and technical documentation for KC-Project.
 System architecture overview — how the frontend, backend, and API layer connect, module structure, technology stack, type flow, and trust boundaries.
 
 - [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — Full architecture document
+- [auth-flow.md](architecture/auth-flow.md) — v0.1.x authentication flows, sequence diagrams, and security surface
 
 ### [decisions/](decisions/)
 
