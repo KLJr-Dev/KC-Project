@@ -15,16 +15,16 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.2.1)
+## Current Status (v0.2.2)
 
-Persisted authentication confirmed — credentials in DB (plaintext, no hashing), verbose DB errors leak to client.
+Identifier trust failures — authentication enforced on all resource endpoints, but zero authorization or ownership checks.
 
-- **Backend** (NestJS) — Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). No rate limiting, no account lockout, no password requirements. Passwords stored/compared as plaintext — persisted permanently in PostgreSQL. All 5 domain services (users, auth, files, sharing, admin) backed by TypeORM repositories. Raw TypeORM/PG errors leak as 500 responses (CWE-209). Swagger at `/api/docs` (v0.2.1).
-- **Database** (PostgreSQL 16) — Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), `synchronize: true`, SQL logging enabled. 4 tables: `user`, `file_entity`, `sharing_entity`, `admin_item`. No unique constraints, no foreign keys — intentionally weak schema.
+- **Backend** (NestJS) — Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). JwtAuthGuard on ALL resource endpoints (users, files, sharing, admin). `ownerId` tracked on files and shares but never enforced — any authenticated user can read/modify/delete any resource (IDOR). No rate limiting, no account lockout, no password requirements. Passwords plaintext. Swagger at `/api/docs` (v0.2.2).
+- **Database** (PostgreSQL 16) — Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), `synchronize: true`, SQL logging enabled. 4 tables with ownerId on file_entity and sharing_entity (no FK constraints). No unique constraints — intentionally weak schema.
 - **Frontend** (Next.js) — Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, automatic Bearer header on all API calls. Theme toggle (light/dark), app shell. Types auto-generated from OpenAPI spec.
-- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (19 tests, all running against real PG)
+- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (23 tests, all running against real PG)
 - **Documentation** — ADRs 001-020, formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary
-- 23 CWE entries across v0.1.0–v0.2.1 (v0.2.1 adds CWE-209 verbose DB errors)
+- 25 CWE entries across v0.1.0–v0.2.2 (v0.2.2 adds CWE-639 IDOR, CWE-862 missing authorization)
 
 ### Run locally
 

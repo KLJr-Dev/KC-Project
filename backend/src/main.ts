@@ -3,7 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 /**
- * v0.2.1 — Persisted Authentication
+ * v0.2.2 — Identifier Trust Failures
  *
  * Application entry point. Creates the NestJS app, configures CORS and
  * Swagger, and starts listening on port 4000 (or PORT env var).
@@ -29,9 +29,9 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('KC-Project API')
     .setDescription(
-      'v0.2.1 — Persisted Authentication: credentials in DB (plaintext, no hashing), verbose DB errors leak to client (CWE-209)',
+      'v0.2.2 — Identifier Trust Failures: JwtAuthGuard on all resources, ownerId tracked but never enforced, IDOR across all endpoints (CWE-639, CWE-862)',
     )
-    .setVersion('0.2.1')
+    .setVersion('0.2.2')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

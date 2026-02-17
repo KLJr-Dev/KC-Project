@@ -1,10 +1,10 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Describes the v0.2.0 PostgreSQL schema (current), the v1.0.0 target schema, and the v2.0.0 hardened schema.
+Entity definitions and relationships for KC-Project. Describes the v0.2.2 PostgreSQL schema (current), the v1.0.0 target schema, and the v2.0.0 hardened schema.
 
 ---
 
-## Current State (v0.2.0) -- PostgreSQL
+## Current State (v0.2.2) -- PostgreSQL
 
 PostgreSQL 16 via Docker Compose. TypeORM with `synchronize: true` auto-creates tables from entity decorators. See [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
 
@@ -13,8 +13,8 @@ PostgreSQL 16 via Docker Compose. TypeORM with `synchronize: true` auto-creates 
 | Table | Entity Class | Notes |
 |-------|-------------|-------|
 | `user` | `User` | Auth + identity. Plaintext password column (CWE-256). |
-| `file_entity` | `FileEntity` | Metadata only — no real file I/O yet. |
-| `sharing_entity` | `SharingEntity` | No FK to files — weak referential integrity. |
+| `file_entity` | `FileEntity` | Metadata only — no real file I/O yet. `ownerId` column added in v0.2.2 (stored, never enforced). |
+| `sharing_entity` | `SharingEntity` | No FK to files. `ownerId` column added in v0.2.2 (stored, never enforced). |
 | `admin_item` | `AdminItem` | Placeholder admin records. |
 
 All tables use `@PrimaryColumn()` with manually assigned sequential string IDs (`"1"`, `"2"`, ...) — intentionally predictable (CWE-330). No unique constraints, no foreign keys, no indices beyond primary keys. Schema weaknesses are intentional per [ADR-006](../decisions/ADR-006-insecure-by-design.md).
@@ -36,6 +36,44 @@ class User {
   createdAt: string;   // ISO 8601
   @Column()
   updatedAt: string;   // ISO 8601
+}
+```
+
+### FileEntity (v0.2.2)
+
+```typescript
+@Entity()
+class FileEntity {
+  @PrimaryColumn()
+  id: string;            // Sequential string
+  @Column({ nullable: true })
+  ownerId: string;       // User ID from JWT — stored but never checked (CWE-639)
+  @Column()
+  filename: string;
+  @Column({ type: 'int', default: 0 })
+  size: number;
+  @Column()
+  uploadedAt: string;    // ISO 8601
+}
+```
+
+### SharingEntity (v0.2.2)
+
+```typescript
+@Entity()
+class SharingEntity {
+  @PrimaryColumn()
+  id: string;            // Sequential string
+  @Column({ nullable: true })
+  ownerId: string;       // User ID from JWT — stored but never checked (CWE-639)
+  @Column({ nullable: true })
+  fileId: string;        // No FK constraint (CWE-1188)
+  @Column({ default: false })
+  public: boolean;
+  @Column()
+  createdAt: string;
+  @Column({ nullable: true })
+  expiresAt: string;
 }
 ```
 
@@ -140,6 +178,9 @@ erDiagram
 | Predictable sharing tokens | CWE-330 | A01:2021 | shares | `public_token` is sequential or easily guessable. |
 | No share expiry enforcement | CWE-613 | A07:2021 | shares | `expires_at` can be NULL, and the app doesn't check it. |
 | SQL error messages exposed | CWE-209 | A05:2021 | All | Raw database errors returned to client. |
+| ownerId stored but never enforced | CWE-639 | A01:2021 | file_entity, sharing_entity | ownerId column populated on creation but no WHERE clause checks it on read/update/delete. Any authenticated user can access any resource (IDOR). |
+| No FK on ownerId | CWE-1188 | A05:2021 | file_entity, sharing_entity | ownerId references user by convention, no DB constraint. Can reference deleted users. |
+| Authentication without authorization | CWE-862 | A01:2021 | All | JwtAuthGuard on all controllers but no ownership or role checks. |
 
 ---
 

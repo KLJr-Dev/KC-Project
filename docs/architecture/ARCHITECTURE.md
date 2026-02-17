@@ -1,6 +1,6 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v0.2.0** (persistence & database surface).
+This document describes the system architecture as of **v0.2.2** (identifier trust failures).
 
 ---
 
@@ -54,17 +54,21 @@ graph TD
     AuthModule --> AuthController["AuthController\nPOST /auth/register\nPOST /auth/login\nGET /auth/me\nPOST /auth/logout"]
     AuthModule --> AuthService["AuthService\nRegister, login, profile, logout"]
     AuthModule -.->|imports| UsersModule
+    AuthModule -.->|"exports JwtModule (v0.2.2)"| UsersModule
+    AuthModule -.->|"exports JwtModule"| FilesModule
+    AuthModule -.->|"exports JwtModule"| SharingModule
+    AuthModule -.->|"exports JwtModule"| AdminModule
 
-    UsersModule --> UsersController["UsersController\nCRUD /users"]
+    UsersModule --> UsersController["UsersController\n🔒 JwtAuthGuard\nCRUD /users"]
     UsersModule --> UsersService["UsersService\nRepository - User\n(plaintext passwords in PG)"]
 
-    FilesModule --> FilesController["FilesController\nPOST /files\nGET-DELETE /files/:id"]
-    FilesModule --> FilesService["FilesService\nRepository - FileEntity"]
+    FilesModule --> FilesController["FilesController\n🔒 JwtAuthGuard\nPOST /files (ownerId from JWT)\nGET-DELETE /files/:id"]
+    FilesModule --> FilesService["FilesService\nRepository - FileEntity\n(ownerId stored, never checked)"]
 
-    SharingModule --> SharingController["SharingController\nCRUD /sharing"]
-    SharingModule --> SharingService["SharingService\nRepository - SharingEntity"]
+    SharingModule --> SharingController["SharingController\n🔒 JwtAuthGuard\nCRUD /sharing (ownerId from JWT)"]
+    SharingModule --> SharingService["SharingService\nRepository - SharingEntity\n(ownerId stored, never checked)"]
 
-    AdminModule --> AdminController["AdminController\nCRUD /admin"]
+    AdminModule --> AdminController["AdminController\n🔒 JwtAuthGuard\nCRUD /admin"]
     AdminModule --> AdminService["AdminService\nRepository - AdminItem"]
 ```
 
@@ -72,7 +76,7 @@ graph TD
 
 Every module follows the same internal structure:
 
-- **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic.
+- **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic. As of v0.2.2, all resource controllers use `@UseGuards(JwtAuthGuard)` at the class level — authentication is enforced but no authorization/ownership checks exist (CWE-862).
 - **Service** — Business logic and data access via TypeORM repositories (PostgreSQL). Singleton per module via DI.
 - **DTOs** — Request shapes (Create/Update) and response shapes. Classes (not interfaces) so NestJS can instantiate them and the Swagger plugin can introspect them.
 
@@ -195,19 +199,19 @@ sequenceDiagram
     Page-->>Browser: Re-render with data or error
 ```
 
-As of v0.2.0, JwtAuthGuard protects `/auth/me` and `/auth/logout`. No middleware, no validation pipe. Basic field validation exists in `AuthService` (throws 400/401/409). All data access goes through TypeORM repositories to PostgreSQL.
+As of v0.2.2, JwtAuthGuard protects **all** endpoints (auth, users, files, sharing, admin). Authentication is enforced everywhere, but no authorization or ownership checks exist — any authenticated user can access any resource (CWE-639, CWE-862). No middleware, no validation pipe. Basic field validation exists in `AuthService` (throws 400/401/409). All data access goes through TypeORM repositories to PostgreSQL.
 
 ---
 
 ## Module Dependencies
 
-As of v0.2.0, `AuthModule` imports `UsersModule` to access user data during registration and login. All other modules remain independent. `TypeOrmModule` is imported by `AppModule` (global config) and each feature module (entity registration).
+As of v0.2.2, `AuthModule` imports `UsersModule` and **exports `JwtModule`**. All four resource modules (Users, Files, Sharing, Admin) import `AuthModule` to gain access to `JwtAuthGuard`.
 
 ```mermaid
 graph TD
     AppModule["AppModule"]
     UsersModule["UsersModule"]
-    AuthModule["AuthModule"]
+    AuthModule["AuthModule\nexports: JwtModule"]
     FilesModule["FilesModule"]
     SharingModule["SharingModule"]
     AdminModule["AdminModule"]
@@ -219,11 +223,19 @@ graph TD
     AppModule --> AdminModule
 
     AuthModule -.->|"imports (register + login)"| UsersModule
+    UsersModule -.->|"imports (JwtAuthGuard)"| AuthModule
+    FilesModule -.->|"imports (JwtAuthGuard)"| AuthModule
+    SharingModule -.->|"imports (JwtAuthGuard)"| AuthModule
+    AdminModule -.->|"imports (JwtAuthGuard)"| AuthModule
 ```
 
 **Current cross-module dependencies:**
 
 - `AuthModule -> UsersModule` — `AuthService` uses `UsersService.findByEmail()`, `UsersService.findEntityByEmail()`, and `UsersService.create()` for registration and login. Passwords are stored and compared as plaintext (intentional).
+- `UsersModule -> AuthModule` (v0.2.2) — `forwardRef` circular import for JwtAuthGuard on UsersController.
+- `FilesModule -> AuthModule` (v0.2.2) — JwtAuthGuard on FilesController.
+- `SharingModule -> AuthModule` (v0.2.2) — JwtAuthGuard on SharingController.
+- `AdminModule -> AuthModule` (v0.2.2) — JwtAuthGuard on AdminController.
 
 **Future dependencies (not yet implemented):**
 
@@ -234,13 +246,13 @@ graph TD
 
 ## Trust Boundaries
 
-The frontend is an **untrusted client**. This is a stated architectural principle, partially enforced as of v0.2.0.
+The frontend is an **untrusted client**. This is a stated architectural principle, partially enforced as of v0.2.2.
 
-As of v0.2.0:
+As of v0.2.2:
 - **Authentication exists but is intentionally weak** — real HS256 JWTs with hardcoded secret (`'kc-secret'`), no expiration (CWE-347, CWE-613)
-- **JwtAuthGuard protects** `/auth/me` and `/auth/logout` — all other routes unprotected
-- **No authorization** — no RBAC, no ownership checks
-- **Passwords are plaintext** — stored and compared without hashing, now persisted in PostgreSQL (CWE-256)
+- **JwtAuthGuard protects ALL endpoints** — auth, users, files, sharing, admin (v0.2.2)
+- **No authorization** — authentication without authorization. Any authenticated user can access any resource by ID (CWE-639 IDOR, CWE-862 missing authorization). ownerId recorded on files/shares but never enforced.
+- **Passwords are plaintext** — stored and compared without hashing, persisted in PostgreSQL (CWE-256)
 - **CORS allows all origins** — intentionally permissive (CWE-942)
 - **Basic input validation** — required field checks and duplicate email detection on registration
 - **No rate limiting** — unlimited auth attempts (CWE-307)
@@ -272,8 +284,9 @@ These weaknesses are intentional. The security surface grows incrementally per t
 
 ## What This Architecture Does Not Include (Yet)
 
+- Authorization / ownership enforcement — ownerId exists but is never checked (v0.4.x)
 - File storage — real file I/O (v0.3.x)
-- Authorization / RBAC (v0.4.x)
+- RBAC / role-based access (v0.4.x)
 - App containers / deployment (v0.5.x) — only PG is containerised
 - CI/CD pipelines
 - Environment configuration (credentials still hardcoded)
