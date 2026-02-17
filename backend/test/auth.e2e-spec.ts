@@ -6,7 +6,7 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 
 /**
- * v0.2.0 — Database Introduction (Local)
+ * v0.2.1 — Persisted Authentication
  *
  * End-to-end tests for /auth/* endpoints. Now runs against a real
  * PostgreSQL database (requires Docker PG running).
@@ -498,5 +498,87 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
     expect(wrongPassword.body.message).toContain('Incorrect password');
 
     expect(notRegistered.body.message).not.toEqual(wrongPassword.body.message);
+  });
+});
+
+/**
+ * v0.2.1 — Persisted Authentication
+ *
+ * Proves that raw TypeORM / PostgreSQL errors leak to the client when an
+ * unhandled database exception occurs. NestJS has no global exception filter
+ * that sanitises these, so the full QueryFailedError (table name, constraint
+ * name, SQL fragment) is returned in the 500 response body.
+ *
+ * CWE-209 (Generation of Error Message Containing Sensitive Information)
+ */
+describe('Verbose DB Errors (v0.2.1)', () => {
+  let app: INestApplication<App>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+
+    const dataSource = app.get(DataSource);
+    await dataSource.synchronize(true);
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  /**
+   * DUPLICATE PRIMARY KEY COLLISION — CWE-209 / CWE-532
+   *
+   * The ID strategy (`count + 1`) produces a collision after a deletion:
+   *   1. Register user A → id="1"
+   *   2. Register user B → id="2"
+   *   3. Delete user A   → count drops to 1
+   *   4. Register user C → count is 1, so id = "2" — collides with B
+   *
+   * NestJS's default ExceptionsHandler returns a generic 500 in the HTTP
+   * response, but the raw QueryFailedError (including PG table name,
+   * constraint name, and the full INSERT SQL with parameters) is logged
+   * to stdout — a direct consequence of TypeORM `logging: true` (CWE-532).
+   *
+   * The 500 itself confirms a database-level failure to an attacker, and
+   * the error is completely unhandled — no retry, no graceful fallback.
+   */
+  it('duplicate PK collision crashes request with unhandled 500 — CWE-209', async () => {
+    const httpServer = app.getHttpServer();
+
+    // Step 1 & 2: create two users (id="1", id="2")
+    await request(httpServer).post('/auth/register').send({
+      email: 'user-a@example.com',
+      username: 'user-a',
+      password: 'password123',
+    });
+
+    await request(httpServer).post('/auth/register').send({
+      email: 'user-b@example.com',
+      username: 'user-b',
+      password: 'password123',
+    });
+
+    // Step 3: delete user A — count drops from 2 to 1
+    await request(httpServer).delete('/users/1').expect(200);
+
+    // Step 4: register user C — count() returns 1, so id = "2" → PK collision
+    const response = await request(httpServer)
+      .post('/auth/register')
+      .send({
+        email: 'user-c@example.com',
+        username: 'user-c',
+        password: 'password123',
+      })
+      .expect(500);
+
+    // NestJS returns generic 500 — the raw PG error with table/constraint/SQL
+    // details is logged to stdout (CWE-532), not in the response body
+    expect(response.body.statusCode).toBe(500);
+    expect(response.body.message).toBe('Internal server error');
   });
 });
