@@ -411,3 +411,5 @@ Intentional weaknesses introduced at each v0.1.x version:
 | v0.1.5 | No rate limiting on auth endpoints | CWE-307 | Unlimited login/register attempts — brute-force viable |
 | v0.1.5 | No account lockout | CWE-307 | Correct password works after any number of failed attempts |
 | v0.1.5 | Weak password requirements | CWE-521 | No minimum length or complexity — "a" is a valid password |
+| v0.2.2 | IDOR — any authenticated user can access any resource by ID | CWE-639 | ownerId stored but never checked on read/update/delete. Sequential IDs make enumeration trivial. |
+| v0.2.2 | Missing authorization on all resource endpoints | CWE-862 | JwtAuthGuard on all controllers but no ownership or role checks. Admin endpoints accessible to any user. |

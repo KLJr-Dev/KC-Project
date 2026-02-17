@@ -23,13 +23,14 @@ flowchart LR
 ### What exists
 
 - **Frontend** -- Next.js 16, App Router, React 19, Tailwind CSS 4. Client components call backend via fetch. Auth state persisted to localStorage. Bearer token sent on all API calls.
-- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated. Real HS256 JWTs (hardcoded secret, no expiry).
-- **Database** -- PostgreSQL 16 in Docker (`infra/compose.yml`). TypeORM with `synchronize: true`. 4 tables: user, file_entity, sharing_entity, admin_item. Hardcoded credentials (CWE-798).
+- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated. Real HS256 JWTs (hardcoded secret, no expiry). **All resource endpoints protected by JwtAuthGuard (v0.2.2)** — authentication enforced but no authorization/ownership checks. ownerId tracked on files and shares but never enforced (CWE-639, CWE-862).
+- **Database** -- PostgreSQL 16 in Docker (`infra/compose.yml`). TypeORM with `synchronize: true`. 4 tables: user, file_entity (with ownerId), sharing_entity (with ownerId), admin_item. Hardcoded credentials (CWE-798).
 - **Communication** -- Plain HTTP, JSON bodies, Bearer token in Authorization header.
 - **Storage** -- TypeORM repositories backed by PostgreSQL. Data persists across restarts.
 
 ### What does not exist yet
 
+- Authorization / ownership checks (ownerId exists but is never enforced)
 - File storage (real file I/O)
 - App containers (frontend/backend still run natively)
 - Reverse proxy, TLS, network segmentation

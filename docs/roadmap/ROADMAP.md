@@ -216,7 +216,7 @@ Goal: Make data persistent and mistakes permanent.
 - CWEs carried forward: CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613 — now persisted permanently
 - Swagger bumped to 0.2.0
 
-### v0.2.1 — Persisted Authentication ✅
+### v0.2.1 — Persisted Authentication 
 
 - Credentials stored in DB — carried from v0.2.0 (plaintext in PostgreSQL, CWE-256)
 - No hashing — carried from v0.2.0 (plaintext `===` comparison, no bcrypt/argon2/scrypt)
@@ -226,10 +226,18 @@ Goal: Make data persistent and mistakes permanent.
 - CWEs carried forward: all v0.2.0 CWEs (CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613, CWE-798, CWE-1188, CWE-1393, CWE-532)
 - Swagger bumped to 0.2.1
 
-### v0.2.2 — Identifier Trust Failures
+### v0.2.2 — Identifier Trust Failures 
 
-- Client-supplied IDs trusted
-- Ownership checks missing
+- JwtAuthGuard added to all 4 resource controllers (users, files, sharing, admin) — authentication enforced everywhere
+- AuthModule exports JwtModule; resource modules import AuthModule for guard access
+- `ownerId` column added to FileEntity and SharingEntity — populated from JWT on creation, **never checked** on read/update/delete
+- ownerId wired into FileResponseDto and SharingResponseDto (exposed in API responses)
+- No ownership verification on any endpoint — any authenticated user can access any resource by ID (IDOR)
+- No role or privilege checks — regular users can access admin endpoints
+- New IDOR e2e test file (`idor.e2e-spec.ts`): 4 tests proving cross-user file read, file delete, profile modification, and unauthenticated 401s
+- CWEs introduced: CWE-639 (IDOR — authorization bypass via user-controlled key), CWE-862 (missing authorization)
+- CWEs carried forward: all v0.2.1 CWEs (CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613, CWE-798, CWE-1188, CWE-1393, CWE-532)
+- Swagger bumped to 0.2.2
 
 ### v0.2.3 — Enumeration Surface
 

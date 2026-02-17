@@ -273,7 +273,45 @@ sequenceDiagram
   Note over Attacker, AuthSvc: No throttling, no lockout, no alerts
 ```
 
-### Current weaknesses (v0.1.x)
+### IDOR Attack (v0.2.2) -- CWE-639
+
+User B accesses User A's file. JwtAuthGuard verifies B is authenticated, but no code checks whether B owns the resource.
+
+```mermaid
+sequenceDiagram
+  participant UserA as User A
+  participant UserB as User B (Attacker)
+  participant Controller as FilesController
+  participant Guard as JwtAuthGuard
+  participant Service as FilesService
+  participant PG as PostgreSQL
+
+  Note over UserA, PG: Step 1 — User A uploads a file
+  UserA->>Controller: POST /files { filename: "secret.txt" } + Bearer JWT-A
+  Controller->>Guard: canActivate()
+  Guard-->>Controller: request.user = { sub: "1" }
+  Controller->>Service: upload(dto, ownerId="1")
+  Service->>PG: INSERT INTO file_entity (id, ownerId, filename, ...) VALUES ("1", "1", "secret.txt", ...)
+  PG-->>Service: OK
+  Service-->>Controller: { id: "1", ownerId: "1", filename: "secret.txt" }
+  Controller-->>UserA: 201 Created
+
+  Note over UserA, PG: Step 2 — User B reads User A's file by ID
+  UserB->>Controller: GET /files/1 + Bearer JWT-B
+  Controller->>Guard: canActivate()
+  Guard-->>Controller: request.user = { sub: "2" }
+  Note right of Guard: Guard only checks JWT validity, not ownership
+  Controller->>Service: getById("1")
+  Service->>PG: SELECT * FROM file_entity WHERE id = '1'
+  Note right of Service: No WHERE owner_id = '2' clause
+  PG-->>Service: { id: "1", ownerId: "1", filename: "secret.txt" }
+  Service-->>Controller: FileResponseDto
+  Controller-->>UserB: 200 OK — User A's file returned to User B
+
+  Note over UserA, PG: IDOR: User B accessed User A's resource without authorization
+```
+
+### Current weaknesses (v0.1.x — v0.2.2)
 
 | Weakness | CWE | OWASP Top 10 | Introduced |
 |----------|-----|-------------|------------|
@@ -296,6 +334,8 @@ sequenceDiagram
 | No rate limiting on auth endpoints | CWE-307 | A07:2021 Identification and Authentication Failures | v0.1.5 |
 | No account lockout after failed attempts | CWE-307 | A07:2021 Identification and Authentication Failures | v0.1.5 |
 | Weak password requirements (no min length/complexity) | CWE-521 | A07:2021 Identification and Authentication Failures | v0.1.5 |
+| IDOR — any authenticated user can access any resource by ID | CWE-639 | A01:2021 Broken Access Control | v0.2.2 |
+| Missing authorization on all resource endpoints | CWE-862 | A01:2021 Broken Access Control | v0.2.2 |
 
 ---
 
