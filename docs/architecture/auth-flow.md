@@ -270,6 +270,49 @@ sequenceDiagram
 
 ---
 
+## Authentication Edge Cases (v0.1.5)
+
+v0.1.5 closes the identity surface by explicitly documenting and testing three categories of auth edge cases that were implicit in earlier versions.
+
+### User Enumeration (CWE-204 / CWE-209)
+
+Two distinct enumeration vectors exist:
+
+1. **Login error messages (CWE-204)**: `POST /auth/login` returns "No user with that email" for unregistered emails vs "Incorrect password" for registered emails with wrong password. An attacker can probe any email address to determine registration status.
+
+2. **Registration duplicate error (CWE-209)**: `POST /auth/register` returns `409 "User with email X already exists"` — the error message includes the email address, confirming it's registered.
+
+Both vectors exist since v0.1.1/v0.1.2. v0.1.5 adds an explicit enumeration e2e test that frames the full attack: probe with unknown email, register it, probe again — different error messages confirm the attack.
+
+### No Rate Limiting (CWE-307)
+
+There is no rate limiting anywhere in the stack:
+- No nginx reverse proxy (not deployed yet)
+- No `@nestjs/throttler` or application-level throttle
+- No per-IP or per-account request limits
+
+An attacker can send unlimited requests to any endpoint. Combined with weak passwords (CWE-521), brute-force attacks are trivial. The e2e test sends 10 rapid wrong-password attempts — all return 401, none are blocked.
+
+### No Account Lockout (CWE-307)
+
+After any number of failed login attempts, the correct password still works. There is no lockout threshold, no exponential backoff, no temporary suspension. The e2e test proves this: 10 failed attempts followed by the correct password → 201 success.
+
+### Weak Password Requirements (CWE-521)
+
+No password strength validation exists anywhere:
+- **Backend**: `AuthService.register()` only checks `if (!password)` — any non-empty string passes. No `class-validator` decorators, no `ValidationPipe`.
+- **Frontend**: No password strength meter, no minimum length check, no complexity rules. Client-side validation only checks email format (UX only, bypassable).
+
+The e2e test registers and logs in with password `"a"` — both succeed.
+
+### Key details
+
+- All four e2e tests are in the `Authentication Edge Cases (v0.1.5)` describe block
+- These weaknesses complete the v0.1.x identity surface — 18 CWE entries total across v0.1.0–v0.1.5
+- Next: v0.2.x introduces persistence, making these weaknesses permanent and exploitable against a real database
+
+---
+
 ## Module Dependencies
 
 `AuthModule` imports `UsersModule` (user data access) and `JwtModule` (token signing/verification).
@@ -365,4 +408,6 @@ Intentional weaknesses introduced at each v0.1.x version:
 | v0.1.3 | Source code comments in CSR bundle | CWE-615 | Frontend comments (VULN annotations, API structure) visible in DevTools |
 | v0.1.4 | Cosmetic logout (no server-side invalidation) | CWE-613 | POST /auth/logout returns success but does not revoke token |
 | v0.1.4 | Token replay after logout | CWE-613 | Same JWT works on /auth/me after logout — proven by e2e test |
-| v0.1.5 | No rate limiting | CWE-307 | Unlimited login attempts (planned) |
+| v0.1.5 | No rate limiting on auth endpoints | CWE-307 | Unlimited login/register attempts — brute-force viable |
+| v0.1.5 | No account lockout | CWE-307 | Correct password works after any number of failed attempts |
+| v0.1.5 | Weak password requirements | CWE-521 | No minimum length or complexity — "a" is a valid password |

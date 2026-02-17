@@ -9,7 +9,7 @@ import { Request } from 'express';
 import { JwtPayload } from './jwt-payload.interface';
 
 /**
- * v0.1.3 — Session Concept
+ * v0.1.5 — Authentication Edge Cases
  *
  * Route guard that protects endpoints by verifying JWT Bearer tokens.
  * Applied via @UseGuards(JwtAuthGuard) on controller methods.

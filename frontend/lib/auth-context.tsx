@@ -1,5 +1,5 @@
 /**
- * v0.1.4 — Logout & Token Misuse
+ * v0.1.5 — Authentication Edge Cases
  *
  * CWE-615 WARNING: This entire module is client-side rendered ('use client').
  * All comments, the localStorage key name ('kc_auth'), token handling logic,

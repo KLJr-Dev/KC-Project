@@ -1,5 +1,5 @@
 /**
- * v0.1.2 — Login Endpoint
+ * v0.1.5 — Authentication Edge Cases
  *
  * Request body for POST /auth/login. Both fields required.
  *
