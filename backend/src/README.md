@@ -252,14 +252,15 @@ dto/
 
 ---
 
-## Current version context (v0.2.0)
+## Current version context (v0.2.1)
 
-**v0.2.0 — Database Introduction** is complete.
+**v0.2.1 — Persisted Authentication** is complete.
 
 - **All modules:** Services backed by TypeORM repositories, data persisted in PostgreSQL. All methods async.
-- **users module:** `User` entity with TypeORM decorators at `users/entities/user.entity.ts`. `UsersService` uses `Repository<User>` and maps to `UserResponseDto` at the boundary (password stripped). Password stored in plaintext in PostgreSQL (CWE-256).
+- **users module:** `User` entity with TypeORM decorators at `users/entities/user.entity.ts`. `UsersService` uses `Repository<User>` and maps to `UserResponseDto` at the boundary (password stripped). Password stored in plaintext in PostgreSQL (CWE-256). No hashing whatsoever — `===` comparison.
 - **auth module:** Registration, login, profile, logout. Real HS256 JWTs (hardcoded secret, no expiry). JwtAuthGuard on `/auth/me` and `/auth/logout`.
 - **files, sharing, admin:** Entities defined, services use TypeORM repositories, placeholder behaviour.
+- **Verbose DB errors (v0.2.1):** No global exception filter — raw TypeORM `QueryFailedError` exceptions (table names, constraint names, SQL fragments) leak in 500 response bodies. CWE-209.
 - **OpenAPI/Swagger** spec auto-generated from DTOs via `@nestjs/swagger` CLI plugin. Swagger UI at `/api/docs`, JSON spec at `/api/docs-json`.
 - **TypeScript** `strict: true` enabled. Response DTO required fields use definite assignment (`!:`).
 - **Prettier** config shared at repo root (`.prettierrc`). `format` / `format:check` scripts available.
