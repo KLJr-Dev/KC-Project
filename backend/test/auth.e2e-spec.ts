@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 
 /**
- * v0.1.3 — Session Concept (e2e tests)
+ * v0.1.4 — Logout & Token Misuse (e2e tests)
  *
  * End-to-end tests for the /auth/* endpoints. Each describe block covers
  * one route. Tests exercise both happy paths and error paths, confirming
@@ -270,6 +270,115 @@ describe('AuthController GET /auth/me (e2e)', () => {
 
     // Confirm password is NOT in the response
     expect(meRes.body).not.toHaveProperty('password');
+  });
+});
+
+describe('AuthController POST /auth/logout (e2e)', () => {
+  let app: INestApplication<App>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  /**
+   * No Authorization header → 401. Confirms JwtAuthGuard protects the
+   * logout route — you must be "logged in" to log out.
+   */
+  it('POST /auth/logout returns 401 without Authorization header', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/auth/logout')
+      .expect(401);
+
+    expect(response.body.message).toContain('Missing Authorization header');
+  });
+
+  /**
+   * Valid token → 201. Confirms the logout endpoint accepts the token
+   * and returns a success message. The server does nothing with the
+   * token — it remains valid.
+   */
+  it('POST /auth/logout returns 201 with valid token', async () => {
+    const httpServer = app.getHttpServer();
+
+    // Register + login to get a token
+    await request(httpServer).post('/auth/register').send({
+      email: 'logout-test@example.com',
+      username: 'logout-user',
+      password: 'password123',
+    });
+
+    const loginRes = await request(httpServer)
+      .post('/auth/login')
+      .send({ email: 'logout-test@example.com', password: 'password123' })
+      .expect(201);
+
+    const token = loginRes.body.token;
+
+    const logoutRes = await request(httpServer)
+      .post('/auth/logout')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(201);
+
+    expect(logoutRes.body.message).toContain('Logged out');
+  });
+
+  /**
+   * TOKEN REPLAY AFTER LOGOUT — THE KEY v0.1.4 TEST.
+   *
+   * Proves CWE-613: after calling POST /auth/logout, the same JWT
+   * still works on GET /auth/me. The logout was cosmetic — the server
+   * did not invalidate the token in any way.
+   *
+   * This test explicitly documents the vulnerability:
+   *   1. Register + login → get JWT
+   *   2. Call POST /auth/logout with the JWT → 201 "Logged out"
+   *   3. Call GET /auth/me with the SAME JWT → 200 OK (still works!)
+   *
+   * In a secure system (v2.0.0), step 3 would return 401 because the
+   * token (or its associated refresh token) would be revoked on logout.
+   */
+  it('token remains valid after logout — CWE-613 token replay', async () => {
+    const httpServer = app.getHttpServer();
+
+    // 1. Register + login
+    await request(httpServer).post('/auth/register').send({
+      email: 'replay-test@example.com',
+      username: 'replay-user',
+      password: 'password123',
+    });
+
+    const loginRes = await request(httpServer)
+      .post('/auth/login')
+      .send({ email: 'replay-test@example.com', password: 'password123' })
+      .expect(201);
+
+    const token = loginRes.body.token;
+
+    // 2. Logout — server says "logged out" but does nothing
+    await request(httpServer)
+      .post('/auth/logout')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(201);
+
+    // 3. Token replay — the same JWT STILL WORKS after logout
+    const meRes = await request(httpServer)
+      .get('/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    // The token was NOT invalidated — full profile still accessible
+    expect(meRes.body).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        email: 'replay-test@example.com',
+        username: 'replay-user',
+      }),
+    );
   });
 });
 

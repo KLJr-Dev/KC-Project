@@ -143,40 +143,47 @@ This version stabilises collaboration before complexity increases.
 
 Goal: Introduce identity with minimal security guarantees.
 
-### v0.1.0 — User Model Introduced
+### v0.1.0 — User Model Introduced ✅
 
-- User entity defined
-- IDs exposed
-- No persistence yet
+- `User` entity with sequential string IDs (CWE-330)
+- `UsersService` with in-memory array store
+- CRUD endpoints on `/users` (unprotected)
 
-### v0.1.1 — Registration Endpoint
+### v0.1.1 — Registration Endpoint ✅
 
-- User creation
-- Minimal validation
-- Duplicate handling weak
+- `POST /auth/register` — create user + issue stub token
+- Plaintext password storage (CWE-256)
+- Leaky duplicate error includes email (CWE-209)
+- Frontend auth page with Register tab, `AuthContext` + localStorage persistence
 
-### v0.1.2 — Login Endpoint
+### v0.1.2 — Login Endpoint ✅
 
-- Login logic added
-- Plaintext or weakly handled passwords
+- `POST /auth/login` — plaintext password comparison (CWE-256)
+- Distinct error messages enable user enumeration (CWE-204)
+- Frontend Sign In tab wired to auth context
 
 ### v0.1.3 — Session Concept ✅
 
-- Real JWTs (HS256, `'kc-secret'`, no expiration) replace stub tokens
+- Real JWTs (HS256, hardcoded `'kc-secret'`, no expiration) replace stub tokens
 - `JwtAuthGuard` + `@CurrentUser()` decorator introduced
-- `GET /auth/me` — first protected endpoint, returns user profile
-- Frontend `api.ts` sends `Authorization: Bearer` header automatically via `getHeaders()`
-- Header component displays authenticated username via `authMe()` on mount
-- Comprehensive inline documentation with CWE + OWASP vulnerability annotations on all files
-- CWE-615 tracked: frontend comments visible in browser bundle (CSR)
-- e2e tests updated for JWT format + `/auth/me` coverage
+- `GET /auth/me` — first protected endpoint
+- Frontend `getHeaders()` sends Bearer token automatically from localStorage
+- Header displays authenticated username via `authMe()`
+- CWE-615 tracked: frontend VULN comments visible in CSR bundle
+- e2e tests for JWT format + `/auth/me` coverage
 - Swagger bumped to 0.1.3
 
-### v0.1.4 — Logout & Token Misuse
+### v0.1.4 — Logout & Token Misuse ✅
 
-- Logout endpoint exists
-- Tokens remain reusable
-- Session invalidation incomplete
+- `POST /auth/logout` behind `JwtAuthGuard` — intentionally does nothing server-side
+- `AuthService.logout()` returns cosmetic success message, no deny-list / session table / revocation
+- Frontend `authLogout()` called fire-and-forget from `AuthContext.logout()` before clearing localStorage
+- Token replay proven: same JWT works on `GET /auth/me` after logout (CWE-613 e2e test)
+- Comprehensive inline docs with CWE-613 | A07:2021 annotations on all touched files
+- CWE-615 tracked: frontend VULN comments visible in browser bundle (CSR)
+- 3 new e2e tests (401 no token, 201 with token, token replay after logout)
+- Swagger bumped to 0.1.4
+- Auth flow docs + diagrams updated with logout sequence and token replay sequence
 
 ### v0.1.5 — Authentication Edge Cases
 

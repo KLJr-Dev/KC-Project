@@ -7,7 +7,7 @@ import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
 
 /**
- * v0.1.3 — Session Concept
+ * v0.1.4 — Logout & Token Misuse
  *
  * Auth controller — thin HTTP layer for authentication endpoints.
  * All business logic lives in AuthService; the controller only handles
@@ -17,6 +17,7 @@ import type { JwtPayload } from './jwt-payload.interface';
  *   POST /auth/register  → Create account + receive JWT     (public)
  *   POST /auth/login     → Verify credentials + receive JWT (public)
  *   GET  /auth/me        → Retrieve own profile             (protected)
+ *   POST /auth/logout    → Cosmetic logout, no invalidation (protected)
  *
  * --- NestJS convention: Controller as HTTP adapter ---
  * Controllers are deliberately thin. They:
@@ -94,5 +95,38 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   getMe(@CurrentUser() user: JwtPayload) {
     return this.authService.getProfile(user.sub);
+  }
+
+  /**
+   * POST /auth/logout — Protected endpoint (requires valid JWT).
+   *
+   * Accepts a valid JWT and returns 201 with a success message.
+   * INTENTIONALLY does nothing server-side — the JWT is not revoked,
+   * deny-listed, or tracked in any way. The client is expected to clear
+   * its own localStorage, but the token remains usable by anyone who
+   * has a copy.
+   *
+   * This is the core v0.1.4 vulnerability: the logout is cosmetic.
+   * The 201 response gives the user a false sense of security — they
+   * believe they are "logged out" but an attacker who stole the JWT
+   * before (or during) logout retains indefinite access.
+   *
+   * Why it requires a valid token:
+   *   Protecting the logout route with JwtAuthGuard is standard practice
+   *   (you should only be able to logout if you're logged in). It also
+   *   means the guard runs and validates the token — proving the token
+   *   IS valid at the moment of logout, which makes the subsequent
+   *   token replay test more meaningful.
+   *
+   * VULN: No session invalidation — logout is client-side only.
+   *       CWE-613 (Insufficient Session Expiration) | A07:2021
+   *       Remediation (v2.0.0): POST /auth/logout deletes the refresh
+   *       token from the database. Short-lived access tokens (15 min)
+   *       expire naturally. httpOnly cookie cleared via Set-Cookie maxAge=0.
+   */
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  logout() {
+    return this.authService.logout();
   }
 }

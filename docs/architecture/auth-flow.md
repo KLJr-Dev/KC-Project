@@ -191,14 +191,82 @@ sequenceDiagram
 
 ---
 
-## Logout Flow (v0.1.4 - future)
+## Logout Flow (v0.1.4)
 
-Not yet implemented on the backend. Current client-side behaviour:
+Backend logout endpoint exists but is intentionally cosmetic. The server does NOT invalidate, deny-list, or track the JWT in any way. The response says "logged out" but the token remains cryptographically valid and replayable.
 
-- `AuthContext.logout()` clears `token` and `userId` from React state and `localStorage`
-- Header toggles from "Logout" back to "Sign In"
-- **No server-side invalidation** - the token (once real) remains valid after client-side logout
-- Tokens will be reusable after logout (intentional per roadmap)
+### Logout Sequence
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant Header as Header Component
+    participant AuthCtx as AuthContext
+    participant API as lib/api.ts
+    participant Controller as AuthController
+    participant Guard as JwtAuthGuard
+    participant AuthSvc as AuthService
+
+    Browser->>Header: Click "Logout"
+    Header->>AuthCtx: logout()
+    AuthCtx->>API: authLogout() (fire-and-forget)
+    API->>Controller: POST /auth/logout + Authorization: Bearer JWT
+    Controller->>Guard: canActivate()
+    Guard->>Guard: jwtService.verify(token) — valid
+    Guard-->>Controller: request.user = { sub, iat }
+    Controller->>AuthSvc: logout()
+    Note right of AuthSvc: Intentionally does NOTHING
+    Note right of AuthSvc: No deny-list, no session table
+    Note right of AuthSvc: No token revocation
+    AuthSvc-->>Controller: { message: "Logged out (client-side only, token still valid)" }
+    Controller-->>API: 201 JSON
+    API-->>AuthCtx: (ignored — fire-and-forget)
+
+    Note over AuthCtx: Client-side cleanup (runs immediately, does not await API)
+    AuthCtx->>AuthCtx: setState({ token: null, userId: null })
+    AuthCtx->>AuthCtx: localStorage.removeItem('kc_auth')
+    AuthCtx-->>Header: isAuthenticated = false
+    Header-->>Browser: UI flips to "Sign In"
+```
+
+### Token Replay After Logout
+
+This sequence proves CWE-613: the JWT works after logout.
+
+```mermaid
+sequenceDiagram
+    participant Attacker
+    participant Controller as AuthController
+    participant Guard as JwtAuthGuard
+    participant AuthSvc as AuthService
+    participant UsersSvc as UsersService
+
+    Note over Attacker, UsersSvc: User logged out moments ago — token was copied before logout
+
+    Attacker->>Controller: GET /auth/me + Authorization: Bearer (same JWT)
+    Controller->>Guard: canActivate()
+    Guard->>Guard: jwtService.verify(token)
+    Note right of Guard: Token is still cryptographically valid
+    Note right of Guard: No deny-list check (none exists)
+    Note right of Guard: No expiration check (no exp claim)
+    Guard-->>Controller: request.user = { sub, iat }
+    Controller->>AuthSvc: getProfile(user.sub)
+    AuthSvc->>UsersSvc: findById(userId)
+    UsersSvc-->>AuthSvc: UserResponseDto
+    AuthSvc-->>Controller: { id, email, username }
+    Controller-->>Attacker: 200 OK — full profile returned
+
+    Note over Attacker, UsersSvc: Attacker retains full access despite "logout"
+```
+
+### Key details
+
+- `POST /auth/logout` requires a valid JWT (JwtAuthGuard protects it)
+- `AuthService.logout()` is intentionally empty — returns a message and does nothing else
+- The frontend calls `authLogout()` fire-and-forget then immediately clears localStorage
+- The user sees "Sign In" — they believe they are logged out
+- Any copy of the JWT (DevTools, XSS exfiltration, network interception) remains valid indefinitely
+- e2e test `'token remains valid after logout — CWE-613 token replay'` proves this
 
 ---
 
@@ -254,6 +322,8 @@ graph TD
     APILayer -->|"POST /auth/register"| Backend["Backend :4000"]
     APILayer -->|"POST /auth/login"| Backend
     APILayer -->|"GET /auth/me + Bearer JWT"| Backend
+    APILayer -->|"POST /auth/logout + Bearer JWT"| Backend
+    AuthProvider -->|"authLogout() fire-and-forget"| APILayer
 ```
 
 ### Auth Context State
@@ -264,7 +334,7 @@ graph TD
   userId: string | null      // user ID from AuthResponseDto or null
   isAuthenticated: boolean   // derived: !!token (presence check only, no validation)
   login(response): void      // stores token + userId in state + localStorage
-  logout(): void             // clears state + localStorage (client-side only)
+  logout(): void             // fire-and-forget POST /auth/logout, then clears state + localStorage
 }
 ```
 
@@ -293,5 +363,6 @@ Intentional weaknesses introduced at each v0.1.x version:
 | v0.1.3 | Permissive CORS | CWE-942 | `enableCors()` with no options — all origins allowed |
 | v0.1.3 | Cleartext transport | CWE-319 | HTTP only — tokens and passwords sent unencrypted |
 | v0.1.3 | Source code comments in CSR bundle | CWE-615 | Frontend comments (VULN annotations, API structure) visible in DevTools |
-| v0.1.4 | No session invalidation | CWE-613 | Server doesn't track or revoke tokens (planned) |
+| v0.1.4 | Cosmetic logout (no server-side invalidation) | CWE-613 | POST /auth/logout returns success but does not revoke token |
+| v0.1.4 | Token replay after logout | CWE-613 | Same JWT works on /auth/me after logout — proven by e2e test |
 | v0.1.5 | No rate limiting | CWE-307 | Unlimited login attempts (planned) |
