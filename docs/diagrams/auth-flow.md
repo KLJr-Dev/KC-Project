@@ -215,6 +215,64 @@ sequenceDiagram
   Note over Attacker, UsersSvc: Token replay succeeds indefinitely
 ```
 
+### User Enumeration via Distinct Errors (v0.1.5) -- CWE-204
+
+```mermaid
+sequenceDiagram
+  participant Attacker
+  participant Controller as AuthController
+  participant AuthSvc as AuthService
+  participant UsersSvc as UsersService
+  participant Store as In-Memory Store
+
+  Note over Attacker, Store: Step 1 -- Probe unregistered email
+
+  Attacker->>Controller: POST /auth/login { email: "target@example.com", password: "x" }
+  Controller->>AuthSvc: login(dto)
+  AuthSvc->>UsersSvc: findEntityByEmail("target@example.com")
+  UsersSvc->>Store: Search array -- not found
+  AuthSvc-->>Controller: 401 "No user with that email"
+  Controller-->>Attacker: 401 -- email is NOT registered
+
+  Note over Attacker, Store: Step 2 -- Probe registered email
+
+  Attacker->>Controller: POST /auth/login { email: "known@example.com", password: "wrong" }
+  Controller->>AuthSvc: login(dto)
+  AuthSvc->>UsersSvc: findEntityByEmail("known@example.com")
+  UsersSvc->>Store: Search array -- found
+  AuthSvc->>AuthSvc: "wrong" !== stored password
+  AuthSvc-->>Controller: 401 "Incorrect password"
+  Controller-->>Attacker: 401 -- email IS registered (different message)
+
+  Note over Attacker, Store: Different error messages confirm registration status
+```
+
+### Brute-Force Attack (v0.1.5) -- CWE-307
+
+```mermaid
+sequenceDiagram
+  participant Attacker
+  participant Controller as AuthController
+  participant AuthSvc as AuthService
+
+  Note over Attacker, AuthSvc: No rate limiting, no lockout
+
+  loop 10+ attempts at full speed
+    Attacker->>Controller: POST /auth/login { email: "target@example.com", password: "guess-N" }
+    Controller->>AuthSvc: login(dto)
+    AuthSvc-->>Controller: 401 "Incorrect password"
+    Controller-->>Attacker: 401 -- try again immediately
+  end
+
+  Note over Attacker, AuthSvc: Attempt 11 -- correct password
+  Attacker->>Controller: POST /auth/login { email: "target@example.com", password: "correct" }
+  Controller->>AuthSvc: login(dto)
+  AuthSvc-->>Controller: 201 { token: JWT, userId }
+  Controller-->>Attacker: 201 -- access granted despite brute-force
+
+  Note over Attacker, AuthSvc: No throttling, no lockout, no alerts
+```
+
 ### Current weaknesses (v0.1.x)
 
 | Weakness | CWE | OWASP Top 10 | Introduced |
@@ -235,6 +293,9 @@ sequenceDiagram
 | Source code comments in CSR bundle | CWE-615 | A05:2021 Security Misconfiguration | v0.1.3 |
 | Cosmetic logout (no server-side invalidation) | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.4 |
 | Token replay after logout | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.4 |
+| No rate limiting on auth endpoints | CWE-307 | A07:2021 Identification and Authentication Failures | v0.1.5 |
+| No account lockout after failed attempts | CWE-307 | A07:2021 Identification and Authentication Failures | v0.1.5 |
+| Weak password requirements (no min length/complexity) | CWE-521 | A07:2021 Identification and Authentication Failures | v0.1.5 |
 
 ---
 

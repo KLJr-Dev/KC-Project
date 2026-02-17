@@ -15,16 +15,16 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.1.4)
+## Current Status (v0.1.5)
 
-Identity and authentication surface — logout & token misuse implemented.
+Identity and authentication surface complete — v0.1.x closed. Next: v0.2.x persistence.
 
-- **Backend** (NestJS) — Registration (`POST /auth/register`), login (`POST /auth/login`), protected profile (`GET /auth/me`), and cosmetic logout (`POST /auth/logout`). Real HS256 JWTs via `@nestjs/jwt` (hardcoded secret `'kc-secret'`, no expiration — intentionally insecure). Logout endpoint intentionally does nothing — no deny-list, no session revocation (CWE-613). `JwtAuthGuard` verifies Bearer tokens. Passwords stored/compared as plaintext. Swagger at `/api/docs` (v0.1.4).
-- **Frontend** (Next.js) — Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, automatic Bearer header on all API calls via `getHeaders()`, header displays authenticated username via `authMe()`. Logout calls `authLogout()` fire-and-forget then clears localStorage. Theme toggle (light/dark), app shell (Header, Footer, PageContainer). Types auto-generated from OpenAPI spec.
-- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (13 auth tests including token replay after logout)
-- **Documentation** — ADRs 001-018, formal spec (scope, requirements, personas, security baseline), architecture diagrams, STRIDE threat model, data model, auth flow docs (with logout + token replay sequences), glossary
+- **Backend** (NestJS) — Registration (`POST /auth/register`), login (`POST /auth/login`), protected profile (`GET /auth/me`), and cosmetic logout (`POST /auth/logout`). Real HS256 JWTs via `@nestjs/jwt` (hardcoded secret `'kc-secret'`, no expiration — intentionally insecure). No rate limiting, no account lockout, no password requirements (CWE-307, CWE-521). Passwords stored/compared as plaintext. Swagger at `/api/docs` (v0.1.5).
+- **Frontend** (Next.js) — Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, automatic Bearer header on all API calls via `getHeaders()`, header displays authenticated username via `authMe()`. Logout calls `authLogout()` fire-and-forget then clears localStorage. No password strength validation. Theme toggle (light/dark), app shell (Header, Footer, PageContainer). Types auto-generated from OpenAPI spec.
+- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (17 auth tests including brute-force, enumeration, weak password, token replay)
+- **Documentation** — ADRs 001-018, formal spec (scope, requirements, personas, security baseline), architecture diagrams, STRIDE threat model, data model, auth flow docs (with enumeration, brute-force, logout, token replay sequences), glossary
 - Both processes run independently; frontend calls backend on `localhost:4000`
-- No persistence (in-memory, resets on restart), no token expiration, cosmetic-only logout (token remains valid after logout), all intentional (CWE-documented)
+- No persistence (in-memory, resets on restart), no token expiration, cosmetic-only logout, no rate limiting — all intentional (18 CWE entries across v0.1.0–v0.1.5)
 
 ### Run locally
 

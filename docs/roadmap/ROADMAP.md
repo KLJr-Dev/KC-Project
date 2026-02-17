@@ -143,26 +143,26 @@ This version stabilises collaboration before complexity increases.
 
 Goal: Introduce identity with minimal security guarantees.
 
-### v0.1.0 — User Model Introduced ✅
+### v0.1.0 — User Model Introduced
 
 - `User` entity with sequential string IDs (CWE-330)
 - `UsersService` with in-memory array store
 - CRUD endpoints on `/users` (unprotected)
 
-### v0.1.1 — Registration Endpoint ✅
+### v0.1.1 — Registration Endpoint
 
 - `POST /auth/register` — create user + issue stub token
 - Plaintext password storage (CWE-256)
 - Leaky duplicate error includes email (CWE-209)
 - Frontend auth page with Register tab, `AuthContext` + localStorage persistence
 
-### v0.1.2 — Login Endpoint ✅
+### v0.1.2 — Login Endpoint
 
 - `POST /auth/login` — plaintext password comparison (CWE-256)
 - Distinct error messages enable user enumeration (CWE-204)
 - Frontend Sign In tab wired to auth context
 
-### v0.1.3 — Session Concept ✅
+### v0.1.3 — Session Concept
 
 - Real JWTs (HS256, hardcoded `'kc-secret'`, no expiration) replace stub tokens
 - `JwtAuthGuard` + `@CurrentUser()` decorator introduced
@@ -173,7 +173,7 @@ Goal: Introduce identity with minimal security guarantees.
 - e2e tests for JWT format + `/auth/me` coverage
 - Swagger bumped to 0.1.3
 
-### v0.1.4 — Logout & Token Misuse ✅
+### v0.1.4 — Logout & Token Misuse
 
 - `POST /auth/logout` behind `JwtAuthGuard` — intentionally does nothing server-side
 - `AuthService.logout()` returns cosmetic success message, no deny-list / session table / revocation
@@ -185,11 +185,17 @@ Goal: Introduce identity with minimal security guarantees.
 - Swagger bumped to 0.1.4
 - Auth flow docs + diagrams updated with logout sequence and token replay sequence
 
-### v0.1.5 — Authentication Edge Cases
+### v0.1.5 — Authentication Edge Cases ✅
 
-- Error-based enumeration
-- Distinct error messages
-- Missing rate limits
+- No rate limiting on auth endpoints (CWE-307) — unlimited login/register attempts, brute-force viable
+- No account lockout after failed logins (CWE-307) — correct password works after any number of failures
+- Weak password requirements (CWE-521) — no minimum length or complexity, `"a"` is a valid password
+- No `class-validator` decorators or `ValidationPipe` on DTOs (CWE-20)
+- User enumeration explicitly tested (CWE-204) — distinct errors reveal email registration status
+- 4 new e2e tests (brute-force, no lockout, weak password, enumeration)
+- All files bumped to v0.1.5, Swagger bumped to 0.1.5
+- Auth flow docs + diagrams updated with enumeration and brute-force sequences
+- **v0.1.x identity surface complete** — 18 CWE entries across v0.1.0–v0.1.5
 
 ## v0.2.x — Persistence & Database Surface
 
