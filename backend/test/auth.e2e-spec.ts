@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 
 /**
- * v0.1.4 — Logout & Token Misuse (e2e tests)
+ * v0.1.5 — Authentication Edge Cases (e2e tests)
  *
  * End-to-end tests for the /auth/* endpoints. Each describe block covers
  * one route. Tests exercise both happy paths and error paths, confirming
@@ -379,6 +379,161 @@ describe('AuthController POST /auth/logout (e2e)', () => {
         username: 'replay-user',
       }),
     );
+  });
+});
+
+describe('Authentication Edge Cases (v0.1.5)', () => {
+  let app: INestApplication<App>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  /**
+   * BRUTE-FORCE TEST — CWE-307
+   *
+   * Sends 10 rapid login attempts with wrong passwords. All return 401.
+   * None are blocked, throttled, or rate-limited. Proves the server allows
+   * unlimited authentication attempts at full speed.
+   *
+   * In a secure system (v2.0.0), nginx rate limiting would block after
+   * 5 requests/minute, and application-level throttling would return 429.
+   */
+  it('allows unlimited rapid login attempts — CWE-307 brute force', async () => {
+    const httpServer = app.getHttpServer();
+
+    // Register a target user
+    await request(httpServer).post('/auth/register').send({
+      email: 'brute-target@example.com',
+      username: 'brute-target',
+      password: 'correct-password',
+    });
+
+    // Send 10 sequential wrong-password attempts
+    for (let i = 0; i < 10; i++) {
+      const res = await request(httpServer)
+        .post('/auth/login')
+        .send({ email: 'brute-target@example.com', password: `wrong-${i}` })
+        .expect(401);
+
+      // Every single attempt returns 401 — none blocked or rate-limited
+      expect(res.body.message).toContain('Incorrect password');
+    }
+  });
+
+  /**
+   * NO ACCOUNT LOCKOUT — CWE-307
+   *
+   * After 10 failed login attempts, login with the correct password still
+   * succeeds. The account is never locked, suspended, or flagged. This
+   * combined with the brute-force test above proves that an attacker can
+   * attempt unlimited passwords with no consequence.
+   */
+  it('account is never locked after failed attempts — CWE-307 no lockout', async () => {
+    const httpServer = app.getHttpServer();
+
+    // Register a target user
+    await request(httpServer).post('/auth/register').send({
+      email: 'lockout-target@example.com',
+      username: 'lockout-target',
+      password: 'real-password',
+    });
+
+    // 10 wrong-password attempts
+    for (let i = 0; i < 10; i++) {
+      await request(httpServer)
+        .post('/auth/login')
+        .send({ email: 'lockout-target@example.com', password: `wrong-${i}` })
+        .expect(401);
+    }
+
+    // Correct password STILL works after 10 failures — no lockout
+    const loginRes = await request(httpServer)
+      .post('/auth/login')
+      .send({ email: 'lockout-target@example.com', password: 'real-password' })
+      .expect(201);
+
+    expect(loginRes.body.token).toMatch(JWT_REGEX);
+  });
+
+  /**
+   * WEAK PASSWORD ACCEPTED — CWE-521
+   *
+   * Registers with password "a" (single character) and then logs in with
+   * it. Both succeed. Proves there are no password requirements — no
+   * minimum length, no complexity rules, no strength validation.
+   */
+  it('accepts single-character password — CWE-521 weak password', async () => {
+    const httpServer = app.getHttpServer();
+
+    // Register with password "a" — should succeed (no requirements)
+    const registerRes = await request(httpServer)
+      .post('/auth/register')
+      .send({
+        email: 'weak-pw@example.com',
+        username: 'weak-pw-user',
+        password: 'a',
+      })
+      .expect(201);
+
+    expect(registerRes.body.token).toMatch(JWT_REGEX);
+
+    // Login with password "a" — also succeeds
+    const loginRes = await request(httpServer)
+      .post('/auth/login')
+      .send({ email: 'weak-pw@example.com', password: 'a' })
+      .expect(201);
+
+    expect(loginRes.body.token).toMatch(JWT_REGEX);
+  });
+
+  /**
+   * USER ENUMERATION VIA DISTINCT ERRORS — CWE-204
+   *
+   * Demonstrates the full enumeration attack: an attacker can determine
+   * whether an email is registered by comparing error messages.
+   *
+   * Step 1: Login with unregistered email → "No user with that email"
+   * Step 2: Register that email
+   * Step 3: Login with wrong password → "Incorrect password"
+   *
+   * The different messages for the same endpoint reveal registration status.
+   * In a secure system (v2.0.0), both cases return "Authentication failed."
+   */
+  it('distinct error messages reveal email registration status — CWE-204 enumeration', async () => {
+    const httpServer = app.getHttpServer();
+    const targetEmail = 'enum-test@example.com';
+
+    // Step 1: email not registered → distinct "no user" message
+    const notRegistered = await request(httpServer)
+      .post('/auth/login')
+      .send({ email: targetEmail, password: 'anything' })
+      .expect(401);
+
+    expect(notRegistered.body.message).toContain('No user with that email');
+
+    // Step 2: register the email
+    await request(httpServer).post('/auth/register').send({
+      email: targetEmail,
+      username: 'enum-user',
+      password: 'secret',
+    });
+
+    // Step 3: email now registered, wrong password → different message
+    const wrongPassword = await request(httpServer)
+      .post('/auth/login')
+      .send({ email: targetEmail, password: 'wrong' })
+      .expect(401);
+
+    expect(wrongPassword.body.message).toContain('Incorrect password');
+
+    // The two messages are DIFFERENT — enumeration confirmed
+    expect(notRegistered.body.message).not.toEqual(wrongPassword.body.message);
   });
 });
 

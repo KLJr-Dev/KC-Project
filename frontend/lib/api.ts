@@ -1,5 +1,5 @@
 /**
- * v0.1.4 — Logout & Token Misuse
+ * v0.1.5 — Authentication Edge Cases
  *
  * CWE-615 WARNING: This file is client-side rendered ('use client' in consuming
  * components). All comments, function names, string literals, and the API_BASE
