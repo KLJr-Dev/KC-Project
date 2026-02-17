@@ -1,26 +1,44 @@
 # Infrastructure
 
-This directory will contain deployment and infrastructure definitions for **KC-Project**.
+Deployment and infrastructure definitions for **KC-Project**.
 
 ---
 
-## Current Status
+## Current Status (v0.2.0)
 
-**Unused.** Infrastructure is not introduced until **v0.5.x** (Containerisation & Deployment Surface) per the [roadmap](../docs/roadmap/ROADMAP.md).
+**PostgreSQL only.** The database runs in a Docker container; the backend and frontend still run natively (`npm run start:dev`). Full app containerisation is deferred to v0.5.x per the [roadmap](../docs/roadmap/ROADMAP.md). See [ADR-020](../docs/decisions/ADR-020-docker-db-only.md).
+
+### Quick Start
+
+```bash
+# Start PostgreSQL
+docker compose -f infra/compose.yml up -d
+
+# Stop (keep data)
+docker compose -f infra/compose.yml down
+
+# Stop + delete all data
+docker compose -f infra/compose.yml down -v
+```
+
+### What's Running
+
+| Service | Image | Port | Credentials |
+|---------|-------|------|-------------|
+| `kc-postgres` | `postgres:16` | `5432` | `postgres` / `postgres` |
+
+Database: `kc_dev`. Data persisted via a named Docker volume (`pgdata`).
 
 ---
 
-## Planned Contents (v0.5.x+)
+## Contents
+
+- `compose.yml` — Docker Compose for PostgreSQL (v0.2.0+)
+
+## Planned (v0.5.x+)
 
 - `Dockerfile` for frontend
 - `Dockerfile` for backend
-- `docker-compose.yml` for local multi-container orchestration
+- App services added to `compose.yml`
 - Environment variable templates (`.env.example`)
-- Database initialisation scripts
 - VM deployment notes (v0.6.x)
-
----
-
-## Why This Directory Exists Now
-
-The directory was created during the repository skeleton phase (v0.0.1) to establish the project's top-level structure. Having the placeholder ensures the intended layout is visible from the start, even though no infrastructure code exists yet.
