@@ -13,12 +13,13 @@ import { UsersService } from '../users/users.service';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 
 /**
- * v0.1.3 — Session Concept
+ * v0.1.4 — Logout & Token Misuse
  *
  * Core authentication business logic. Handles:
  *   - register()    → create user + issue JWT          (POST /auth/register)
  *   - login()       → verify credentials + issue JWT   (POST /auth/login)
  *   - getProfile()  → look up user by ID from token    (GET /auth/me)
+ *   - logout()      → intentionally does nothing        (POST /auth/logout)
  *
  * Dependencies (injected via constructor):
  *   - UsersService  → user CRUD against the in-memory store
@@ -49,6 +50,14 @@ import { UserResponseDto } from '../users/dto/user-response.dto';
  *       is valid forever — even after password change or user deletion.
  *       CWE-613 (Insufficient Session Expiration) | A07:2021
  *       Remediation (v2.0.0): 15-minute access token TTL + refresh token rotation.
+ *
+ * VULN (v0.1.4): logout() does nothing server-side. No deny-list, no session
+ *       table, no token revocation. The JWT remains cryptographically valid
+ *       after logout. An attacker who copied the token before logout retains
+ *       full access indefinitely.
+ *       CWE-613 (Insufficient Session Expiration) | A07:2021
+ *       Remediation (v2.0.0): DELETE refresh token from database on logout,
+ *       combined with short-lived access tokens that expire in 15 minutes.
  */
 @Injectable()
 export class AuthService {
@@ -190,5 +199,37 @@ export class AuthService {
       );
     }
     return user;
+  }
+
+  /**
+   * POST /auth/logout — Intentionally does NOT invalidate the JWT.
+   *
+   * This method exists to make CWE-613 explicit and testable. It returns
+   * a success message, giving the client (and the user) a false sense of
+   * security — the response says "logged out" but the token is still valid.
+   *
+   * What this method does NOT do (intentionally):
+   *   - Does not add the token to a deny-list (no deny-list exists)
+   *   - Does not delete a session record (no session table exists)
+   *   - Does not revoke the JWT (JWTs are stateless and self-contained)
+   *   - Does not invalidate the signing key (that would break all tokens)
+   *
+   * After this call, the same JWT can be used on GET /auth/me (or any
+   * future protected endpoint) and will succeed. This is the core
+   * vulnerability of v0.1.4.
+   *
+   * VULN: No server-side session tracking or token revocation.
+   *       CWE-613 (Insufficient Session Expiration) | A07:2021
+   *       Remediation (v2.0.0): Maintain a refresh_tokens table in the
+   *       database. On logout, DELETE the refresh token. Access tokens
+   *       (15-min TTL) expire naturally; refresh tokens cannot be renewed.
+   *
+   * @returns  Object with a message confirming "logout" (cosmetic only)
+   */
+  logout(): { message: string } {
+    // Intentionally empty — no server-side invalidation
+    return {
+      message: 'Logged out (client-side only, token still valid) (v0.1.4)',
+    };
   }
 }

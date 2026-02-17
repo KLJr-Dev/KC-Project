@@ -4,9 +4,9 @@ Authentication flows across the project lifecycle. Each section shows how the au
 
 ---
 
-## Current State (v0.1.x) -- JWT Sessions
+## Current State (v0.1.x) -- JWT Sessions + Cosmetic Logout
 
-Registration, login, and the first protected endpoint (`GET /auth/me`) are functional. Real JWTs (HS256, `'kc-secret'`, no expiry) replaced the stub tokens as of v0.1.3. The frontend attaches the JWT as a Bearer header on every request.
+Registration, login, the first protected endpoint (`GET /auth/me`), and a cosmetic logout (`POST /auth/logout`) are functional. Real JWTs (HS256, `'kc-secret'`, no expiry) replaced the stub tokens as of v0.1.3. The frontend attaches the JWT as a Bearer header on every request. As of v0.1.4, logout exists but does not revoke the token.
 
 ### Registration (v0.1.1)
 
@@ -159,6 +159,62 @@ sequenceDiagram
   Header-->>Browser: Display "username | Logout"
 ```
 
+### Logout (v0.1.4) -- Cosmetic Only
+
+```mermaid
+sequenceDiagram
+  participant Browser
+  participant Header as Header Component
+  participant AuthCtx as AuthContext
+  participant API as lib/api.ts
+  participant Controller as AuthController
+  participant Guard as JwtAuthGuard
+  participant AuthSvc as AuthService
+
+  Browser->>Header: Click "Logout"
+  Header->>AuthCtx: logout()
+  AuthCtx->>API: authLogout() -- fire-and-forget
+  API->>Controller: POST /auth/logout + Authorization: Bearer JWT
+  Controller->>Guard: canActivate()
+  Guard->>Guard: jwtService.verify(token) -- valid
+  Guard-->>Controller: request.user = { sub, iat }
+  Controller->>AuthSvc: logout()
+  Note right of AuthSvc: Does NOTHING -- no deny-list, no revocation
+  AuthSvc-->>Controller: { message: "Logged out" }
+  Controller-->>API: 201 JSON
+
+  Note over AuthCtx: Runs immediately without awaiting API response
+  AuthCtx->>AuthCtx: setState({ token: null, userId: null })
+  AuthCtx->>AuthCtx: localStorage.removeItem('kc_auth')
+  Header-->>Browser: UI flips from "username | Logout" to "Sign In"
+```
+
+### Token Replay After Logout (v0.1.4) -- CWE-613
+
+```mermaid
+sequenceDiagram
+  participant Attacker
+  participant Controller as AuthController
+  participant Guard as JwtAuthGuard
+  participant AuthSvc as AuthService
+  participant UsersSvc as UsersService
+
+  Note over Attacker, UsersSvc: Token was copied before user clicked Logout
+
+  Attacker->>Controller: GET /auth/me + Authorization: Bearer JWT
+  Controller->>Guard: canActivate()
+  Guard->>Guard: jwtService.verify(token) -- still valid
+  Note right of Guard: No deny-list, no exp claim, no session check
+  Guard-->>Controller: request.user = { sub, iat }
+  Controller->>AuthSvc: getProfile(user.sub)
+  AuthSvc->>UsersSvc: findById(userId)
+  UsersSvc-->>AuthSvc: UserResponseDto
+  AuthSvc-->>Controller: { id, email, username }
+  Controller-->>Attacker: 200 OK -- full access despite logout
+
+  Note over Attacker, UsersSvc: Token replay succeeds indefinitely
+```
+
 ### Current weaknesses (v0.1.x)
 
 | Weakness | CWE | OWASP Top 10 | Introduced |
@@ -177,6 +233,8 @@ sequenceDiagram
 | Permissive CORS (all origins) | CWE-942 | A05:2021 Security Misconfiguration | v0.0.5 |
 | Cleartext transport (HTTP, no TLS) | CWE-319 | A02:2021 Cryptographic Failures | v0.0.5 |
 | Source code comments in CSR bundle | CWE-615 | A05:2021 Security Misconfiguration | v0.1.3 |
+| Cosmetic logout (no server-side invalidation) | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.4 |
+| Token replay after logout | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.4 |
 
 ---
 
