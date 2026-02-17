@@ -1,5 +1,5 @@
 /**
- * v0.1.3 — Session Concept
+ * v0.1.5 — Authentication Edge Cases
  *
  * CWE-615 WARNING: This page is client-side rendered ('use client'). All
  * comments, form handling logic, API endpoint names, validation patterns,
@@ -25,6 +25,15 @@
  * it is NOT a security control. The backend is the authority for validation.
  * An attacker can bypass client-side validation trivially (DevTools console,
  * curl, Postman) and send arbitrary data to the API.
+ *
+ * VULN (v0.1.5): No password strength validation. The frontend does not
+ *       enforce minimum length, complexity, or any password requirements.
+ *       A user can register with "a" as their password. The backend also
+ *       has no requirements (CWE-521), so there is zero password strength
+ *       enforcement anywhere in the stack.
+ *       CWE-521 (Weak Password Requirements) | A07:2021
+ *       Remediation (v2.0.0): Client-side strength meter (UX only) +
+ *       server-side validation via class-validator (@MinLength(12), etc.)
  *
  * Form data in Network tab: The full request payload { email, username,
  * password } is visible in the browser's Network tab as a JSON body. In
