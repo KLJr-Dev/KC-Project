@@ -7,7 +7,7 @@ import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
 
 /**
- * v0.1.4 — Logout & Token Misuse
+ * v0.1.5 — Authentication Edge Cases
  *
  * Auth controller — thin HTTP layer for authentication endpoints.
  * All business logic lives in AuthService; the controller only handles
@@ -49,6 +49,11 @@ export class AuthController {
    * a JWT. Returns 201 with AuthResponseDto { token, userId, message }.
    *
    * No authentication required — anyone can register.
+   *
+   * VULN: No rate limiting — unlimited registration attempts per second.
+   *       An attacker can mass-register accounts or enumerate existing emails
+   *       via the 409 response (CWE-209) without any throttling.
+   *       CWE-307 (Improper Restriction of Excessive Authentication Attempts) | A07:2021
    */
   @Post('register')
   register(@Body() dto: RegisterDto) {
@@ -63,6 +68,11 @@ export class AuthController {
    * Returns 201 with AuthResponseDto { token, userId, message }.
    *
    * No authentication required — anyone can attempt login.
+   *
+   * VULN: No rate limiting and no account lockout — unlimited login attempts.
+   *       An attacker can brute-force passwords at full speed. After any
+   *       number of wrong attempts, the correct password still works.
+   *       CWE-307 (Improper Restriction of Excessive Authentication Attempts) | A07:2021
    */
   @Post('login')
   login(@Body() dto: LoginDto) {
