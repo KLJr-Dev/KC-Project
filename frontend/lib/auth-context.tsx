@@ -1,5 +1,5 @@
 /**
- * v0.1.3 — Session Concept
+ * v0.1.4 — Logout & Token Misuse
  *
  * CWE-615 WARNING: This entire module is client-side rendered ('use client').
  * All comments, the localStorage key name ('kc_auth'), token handling logic,
@@ -40,18 +40,21 @@
  *       client-side state will be out of sync until that happens.
  *       CWE-345 (Insufficient Verification of Data Authenticity) | A07:2021
  *
- * VULN: logout() only clears client-side state (React state + localStorage).
- *       There is no server-side session invalidation — the JWT remains
- *       cryptographically valid after logout. An attacker who copied the
- *       token before logout can continue using it indefinitely.
+ * VULN (v0.1.4): logout() calls POST /auth/logout fire-and-forget, then clears
+ *       client-side state. The backend endpoint intentionally does nothing —
+ *       no deny-list, no session deletion, no token revocation. The JWT
+ *       remains cryptographically valid after logout. An attacker who copied
+ *       the token before (or during) logout retains indefinite access.
  *       CWE-613 (Insufficient Session Expiration) | A07:2021
- *       Remediation (v2.0.0): POST /auth/logout that deletes the refresh
- *       token from the database, combined with short-lived access tokens.
+ *       Remediation (v2.0.0): POST /auth/logout deletes refresh token from DB.
+ *       Short-lived access tokens (15-min TTL) expire naturally. httpOnly
+ *       cookie cleared via Set-Cookie maxAge=0 from the backend response.
  */
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { AuthResponse } from './types';
+import { authLogout } from './api';
 
 /** Shape of auth state stored in React state and localStorage. */
 interface AuthState {
@@ -119,10 +122,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   /**
-   * Clear auth state — client-side only.
-   * VULN: No server-side invalidation — the JWT is still valid (CWE-613)
+   * Logout — fire-and-forget POST /auth/logout, then clear client state.
+   *
+   * The backend call is intentionally fire-and-forget: we don't await it
+   * because (a) the backend does nothing with it in v0.1.4, and (b) even
+   * in a secure version, the client should clear local state regardless of
+   * whether the server request succeeds.
+   *
+   * VULN: The backend does not revoke the JWT. After this function runs,
+   *       the token is gone from THIS browser's localStorage, but any copy
+   *       of the token (e.g. from DevTools, XSS exfiltration, network
+   *       interception) remains fully valid.
+   *       CWE-613 (Insufficient Session Expiration) | A07:2021
    */
   const logout = useCallback(() => {
+    // Fire-and-forget: tell the backend we're "logging out" (it does nothing)
+    authLogout().catch(() => {}); // VULN: no-op on backend (CWE-613)
     setState({ token: null, userId: null });
     localStorage.removeItem(STORAGE_KEY);
   }, []);
