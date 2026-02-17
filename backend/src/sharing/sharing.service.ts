@@ -7,7 +7,7 @@ import { CreateSharingDto } from './dto/create-sharing.dto';
 import { UpdateSharingDto } from './dto/update-sharing.dto';
 
 /**
- * v0.2.0 — Database Introduction (Local)
+ * v0.2.2 — Identifier Trust Failures
  *
  * Sharing service. Data is now persisted in PostgreSQL via TypeORM.
  * No real public links or expiry logic — placeholder behaviour.
@@ -15,6 +15,12 @@ import { UpdateSharingDto } from './dto/update-sharing.dto';
  *
  * All methods are async (return Promises) because repository operations
  * hit the database.
+ *
+ * VULN (v0.2.2): ownerId is stored at creation time but never checked on
+ *       read, update, or delete. Any authenticated user can access or
+ *       modify any sharing record by guessing/knowing its sequential ID.
+ *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2021
+ *       Remediation (v2.0.0): WHERE owner_id = $1 on every query.
  */
 @Injectable()
 export class SharingService {
@@ -27,6 +33,7 @@ export class SharingService {
   private toResponse(entity: SharingEntity): SharingResponseDto {
     const dto = new SharingResponseDto();
     dto.id = entity.id;
+    dto.ownerId = entity.ownerId;
     dto.fileId = entity.fileId;
     dto.public = entity.public;
     dto.createdAt = entity.createdAt;
@@ -35,11 +42,12 @@ export class SharingService {
   }
 
   /** POST /sharing — persist share record to database. */
-  async create(dto: CreateSharingDto): Promise<SharingResponseDto> {
+  async create(dto: CreateSharingDto, ownerId: string): Promise<SharingResponseDto> {
     const count = await this.shareRepo.count();
     const id = String(count + 1);
     const entity = this.shareRepo.create({
       id,
+      ownerId, // VULN: stored but never checked on read/update/delete (CWE-639)
       fileId: dto.fileId ?? '',
       public: dto.public ?? false,
       createdAt: new Date().toISOString(),
