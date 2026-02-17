@@ -4,9 +4,9 @@ Authentication flows across the project lifecycle. Each section shows how the au
 
 ---
 
-## Current State (v0.1.x) -- Stub Tokens
+## Current State (v0.1.x) -- JWT Sessions
 
-Registration and login are functional. Tokens are meaningless strings (`stub-token-{id}`) with no cryptographic value. No backend verification of tokens on any route.
+Registration, login, and the first protected endpoint (`GET /auth/me`) are functional. Real JWTs (HS256, `'kc-secret'`, no expiry) replaced the stub tokens as of v0.1.3. The frontend attaches the JWT as a Bearer header on every request.
 
 ### Registration (v0.1.1)
 
@@ -48,15 +48,16 @@ sequenceDiagram
   AuthSvc->>UsersSvc: create({ email, username, password })
   UsersSvc->>Store: Push new User entity (plaintext password)
   UsersSvc-->>AuthSvc: UserResponseDto (id, email, username)
-  AuthSvc-->>Controller: AuthResponseDto { token: stub-token-{id}, userId, message }
+  AuthSvc->>AuthSvc: jwtService.sign({ sub: userId })
+  AuthSvc-->>Controller: AuthResponseDto { token: JWT, userId, message }
   Controller-->>API: 201 JSON response
   API-->>AuthPage: AuthResponse object
   AuthPage->>AuthCtx: login(response) -- store token + userId
   AuthCtx->>AuthCtx: Write to localStorage
-  AuthPage-->>Browser: SuccessBanner + header flips to Logout
+  AuthPage-->>Browser: SuccessBanner + header shows username + Logout
 ```
 
-### Login (v0.1.2)
+### Login (v0.1.2 + v0.1.3 JWT)
 
 ```mermaid
 sequenceDiagram
@@ -102,12 +103,60 @@ sequenceDiagram
     AuthPage-->>Browser: ErrorBanner displayed
   end
 
-  AuthSvc-->>Controller: AuthResponseDto { token: stub-token-{id}, userId, message }
+  AuthSvc->>AuthSvc: jwtService.sign({ sub: userId })
+  AuthSvc-->>Controller: AuthResponseDto { token: JWT, userId, message }
   Controller-->>API: 201 JSON response
   API-->>AuthPage: AuthResponse object
   AuthPage->>AuthCtx: login(response) -- store token + userId
   AuthCtx->>AuthCtx: Write to localStorage
-  AuthPage-->>Browser: SuccessBanner + header flips to Logout
+  AuthPage-->>Browser: SuccessBanner + header shows username + Logout
+```
+
+### Protected Request: GET /auth/me (v0.1.3)
+
+```mermaid
+sequenceDiagram
+  participant Browser
+  participant Header as Header Component
+  participant API as lib/api.ts
+  participant Controller as AuthController
+  participant Guard as JwtAuthGuard
+  participant AuthSvc as AuthService
+  participant UsersSvc as UsersService
+  participant Store as In-Memory Store
+
+  Browser->>Header: Mount (isAuthenticated = true)
+  Header->>API: authMe()
+  API->>API: getHeaders() reads JWT from localStorage
+  API->>Controller: GET /auth/me + Authorization: Bearer JWT
+  Controller->>Guard: canActivate()
+  Guard->>Guard: Extract Bearer token from header
+  Guard->>Guard: jwtService.verify(token)
+
+  alt Invalid / missing token
+    Guard-->>Controller: 401 Unauthorized
+    Controller-->>API: 401 JSON error
+    API-->>Header: catch error
+    Header-->>Browser: Show "Logout" without username
+  end
+
+  Guard-->>Controller: request.user = { sub, iat }
+  Controller->>AuthSvc: getProfile(user.sub)
+  AuthSvc->>UsersSvc: findById(userId)
+  UsersSvc->>Store: Search in-memory array
+
+  alt User not found
+    AuthSvc-->>Controller: 404 Not Found
+    Controller-->>API: 404 JSON error
+    API-->>Header: catch error
+    Header-->>Browser: Show "Logout" without username
+  end
+
+  UsersSvc-->>AuthSvc: UserResponseDto
+  AuthSvc-->>Controller: { id, email, username }
+  Controller-->>API: 200 JSON
+  API-->>Header: UserResponse
+  Header-->>Browser: Display "username | Logout"
 ```
 
 ### Current weaknesses (v0.1.x)
@@ -119,8 +168,15 @@ sequenceDiagram
 | Leaky duplicate error (email in message) | CWE-209 | A07:2021 Identification and Authentication Failures | v0.1.1 |
 | Distinct auth errors enable enumeration | CWE-204 | A07:2021 Identification and Authentication Failures | v0.1.2 |
 | Sequential predictable user IDs | CWE-330 | A01:2021 Broken Access Control | v0.1.0 |
-| Stub tokens with no cryptographic value | CWE-347 | A07:2021 Identification and Authentication Failures | v0.1.1 |
+| Weak JWT secret (hardcoded `'kc-secret'`) | CWE-798 | A02:2021 Cryptographic Failures | v0.1.3 |
+| JWT signed with weak HS256 algorithm | CWE-347 | A02:2021 Cryptographic Failures | v0.1.3 |
+| No token expiration (no `exp` claim) | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.3 |
+| Guard does not check user still exists | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.3 |
 | Token stored in localStorage (XSS-accessible) | CWE-922 | A07:2021 Identification and Authentication Failures | v0.1.1 |
+| Missing authorization on /auth/me | CWE-862 | A01:2021 Broken Access Control | v0.1.3 |
+| Permissive CORS (all origins) | CWE-942 | A05:2021 Security Misconfiguration | v0.0.5 |
+| Cleartext transport (HTTP, no TLS) | CWE-319 | A02:2021 Cryptographic Failures | v0.0.5 |
+| Source code comments in CSR bundle | CWE-615 | A05:2021 Security Misconfiguration | v0.1.3 |
 
 ---
 

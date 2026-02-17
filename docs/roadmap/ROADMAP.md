@@ -160,11 +160,17 @@ Goal: Introduce identity with minimal security guarantees.
 - Login logic added
 - Plaintext or weakly handled passwords
 
-### v0.1.3 — Session Concept
+### v0.1.3 — Session Concept ✅
 
-- Sessions or JWT introduced
-- Tokens stored client-side
-- No expiration enforcement
+- Real JWTs (HS256, `'kc-secret'`, no expiration) replace stub tokens
+- `JwtAuthGuard` + `@CurrentUser()` decorator introduced
+- `GET /auth/me` — first protected endpoint, returns user profile
+- Frontend `api.ts` sends `Authorization: Bearer` header automatically via `getHeaders()`
+- Header component displays authenticated username via `authMe()` on mount
+- Comprehensive inline documentation with CWE + OWASP vulnerability annotations on all files
+- CWE-615 tracked: frontend comments visible in browser bundle (CSR)
+- e2e tests updated for JWT format + `/auth/me` coverage
+- Swagger bumped to 0.1.3
 
 ### v0.1.4 — Logout & Token Misuse
 
