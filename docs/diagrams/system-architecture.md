@@ -4,36 +4,36 @@ System topology at three lifecycle stages. Each diagram shows how the components
 
 ---
 
-## Current State (v0.1.x)
+## Current State (v0.2.x)
 
-Two bare processes running on the developer's machine. No database, no containers, no reverse proxy. All data lives in-memory and resets on restart.
+Three processes: frontend and backend run natively on the developer's machine, PostgreSQL runs in a Docker container. Data persists across restarts.
 
 ```mermaid
 flowchart LR
   Browser["Browser"]
   Frontend["Next.js\n:3000\nApp Router\nTailwind CSS"]
   Backend["NestJS\n:4000\nREST API\nSwagger at /api/docs"]
-  InMemory["In-Memory Store\n(resets on restart)"]
+  PG["PostgreSQL 16\n:5432\nDocker container\nkc_dev database"]
 
   Browser -->|"HTTP"| Frontend
   Frontend -->|"HTTP REST\nJSON over localhost:4000"| Backend
-  Backend --> InMemory
+  Backend -->|"TypeORM"| PG
 ```
 
 ### What exists
 
-- **Frontend** -- Next.js 16, App Router, React 19, Tailwind CSS 4. Client components call backend via fetch. Auth state persisted to localStorage.
-- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated.
-- **Communication** -- Plain HTTP, JSON bodies, no auth headers sent yet (stub tokens only).
-- **Storage** -- In-memory arrays in each service. No persistence.
+- **Frontend** -- Next.js 16, App Router, React 19, Tailwind CSS 4. Client components call backend via fetch. Auth state persisted to localStorage. Bearer token sent on all API calls.
+- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated. Real HS256 JWTs (hardcoded secret, no expiry).
+- **Database** -- PostgreSQL 16 in Docker (`infra/compose.yml`). TypeORM with `synchronize: true`. 4 tables: user, file_entity, sharing_entity, admin_item. Hardcoded credentials (CWE-798).
+- **Communication** -- Plain HTTP, JSON bodies, Bearer token in Authorization header.
+- **Storage** -- TypeORM repositories backed by PostgreSQL. Data persists across restarts.
 
 ### What does not exist yet
 
-- Database / persistence
-- Real tokens (JWT or sessions)
-- File storage
-- Containers or deployment config
+- File storage (real file I/O)
+- App containers (frontend/backend still run natively)
 - Reverse proxy, TLS, network segmentation
+- Input validation, rate limiting
 
 ---
 
@@ -138,9 +138,9 @@ Summary of which components exist at each stage:
 |-----------|--------|--------|--------|
 | Next.js frontend | Bare process | Docker container (root) | Docker container (non-root, read-only) |
 | NestJS backend | Bare process | Docker container (root) | Docker container (non-root, helmet) |
-| PostgreSQL | -- | Docker container (exposed) | Docker container (internal only) |
+| PostgreSQL | Docker container (v0.2.0+) | Docker container (exposed) | Docker container (internal only) |
 | nginx reverse proxy | -- | -- | Docker container (TLS, rate limiting) |
 | File storage | -- | Docker volume (world-readable) | Docker volume (scoped, validated) |
-| docker-compose | -- | Default bridge network | Custom internal network |
+| docker-compose | DB only (v0.2.0+) | Full stack | Custom internal network |
 | Ubuntu VM | -- | Host for containers | Host for containers |
 | TLS certificates | -- | -- | Let's Encrypt or self-signed |

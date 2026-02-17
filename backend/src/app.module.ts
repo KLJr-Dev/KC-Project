@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 
@@ -9,18 +10,47 @@ import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
 
 /**
- * Root application module.
+ * v0.2.0 — Database Introduction (Local)
  *
- * This module does NOT contain business logic.
- * Its sole responsibility is to:
- * - compose feature modules
- * - define application boundaries
- * - bootstrap the backend
+ * Root application module. Composes feature modules and configures the
+ * PostgreSQL connection via TypeORM.
  *
- * Feature modules encapsulate domain behaviour.
+ * VULN: Database credentials are hardcoded directly in source code.
+ *       Anyone who reads the repo knows the superuser password.
+ *       CWE-798 (Use of Hard-coded Credentials) | A07:2021
+ *       Remediation (v2.0.0): Load from environment variables or
+ *       Docker secrets, never commit credentials to source.
+ *
+ * VULN: synchronize: true auto-creates and alters tables from entity
+ *       metadata on every application start. In production this can
+ *       cause data loss or schema corruption.
+ *       CWE-1188 (Insecure Default Initialization of Resource) | A05:2021
+ *       Remediation (v2.0.0): synchronize: false, use TypeORM migrations.
+ *
+ * VULN: logging: true prints all SQL statements to stdout, including
+ *       queries containing plaintext passwords and user data.
+ *       CWE-532 (Insertion of Sensitive Information into Log File) | A09:2021
+ *       Remediation (v2.0.0): Disable query logging or redact sensitive fields.
  */
 @Module({
-  imports: [AuthModule, UsersModule, FilesModule, SharingModule, AdminModule],
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres', // VULN: hardcoded credentials (CWE-798)
+      password: 'postgres', // VULN: hardcoded credentials (CWE-798)
+      database: 'kc_dev',
+      autoLoadEntities: true,
+      synchronize: true, // VULN: auto-alters schema in place (CWE-1188)
+      logging: true, // VULN: logs all SQL including sensitive data (CWE-532)
+    }),
+    AuthModule,
+    UsersModule,
+    FilesModule,
+    SharingModule,
+    AdminModule,
+  ],
   controllers: [AppController], // infrastructure-only (/ping)
 })
 export class AppModule {}

@@ -1,71 +1,77 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { AdminItem } from './entities/admin-item.entity';
 import { AdminResponseDto } from './dto/admin-response.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.2.0 — Database Introduction (Local)
  *
- * Admin service. In-memory mock only; no persistence. All methods exist to
- * satisfy controller routes and return placeholder data. Behaviour is not
- * guaranteed; structure is.
+ * Admin service. Data is now persisted in PostgreSQL via TypeORM.
+ * Placeholder admin records — real admin behaviour (roles, user management)
+ * comes in v0.4.x.
  *
- * --- NestJS convention: Service = business logic & data access ---
- * @Injectable() marks this class as a "provider": Nest can instantiate it and
- * inject it into controllers (or other services). The controller never touches
- * data directly — it calls this service. Later we can swap this stub for a
- * real implementation (DB, etc.) without changing the controller. Services are
- * singletons per module: one instance shared by all consumers.
- *
- * --- Why keep logic here, not in the controller? ---
- * So we can unit-test business rules without HTTP. So multiple controllers or
- * background jobs can reuse the same logic. So the HTTP layer stays thin and
- * only deals with request/response shape.
+ * All methods are async (return Promises) because repository operations
+ * hit the database.
  */
 @Injectable()
 export class AdminService {
-  /** v0.0.6 — in-memory stub; not persisted. Resets on process restart. */
-  private mockItems: AdminResponseDto[] = [
-    { id: '1', label: 'admin-stub-1', role: 'admin', createdAt: '2025-01-01T00:00:00Z' },
-  ];
+  constructor(
+    @InjectRepository(AdminItem)
+    private readonly adminRepo: Repository<AdminItem>,
+  ) {}
 
-  /** v0.0.6 — stub for POST /admin/create. Appends to mock list, returns created shape. */
-  create(_dto: CreateAdminDto): AdminResponseDto {
-    const id = String(this.mockItems.length + 1);
-    const created: AdminResponseDto = {
+  /** Map an AdminItem entity to an AdminResponseDto. */
+  private toResponse(entity: AdminItem): AdminResponseDto {
+    const dto = new AdminResponseDto();
+    dto.id = entity.id;
+    dto.label = entity.label;
+    dto.role = entity.role;
+    dto.createdAt = entity.createdAt;
+    return dto;
+  }
+
+  /** POST /admin — persist admin item to database. */
+  async create(dto: CreateAdminDto): Promise<AdminResponseDto> {
+    const count = await this.adminRepo.count();
+    const id = String(count + 1);
+    const entity = this.adminRepo.create({
       id,
-      label: _dto.label,
-      role: _dto.role,
+      label: dto.label ?? '',
+      role: dto.role ?? '',
       createdAt: new Date().toISOString(),
-    };
-    this.mockItems.push(created);
-    return created;
+    });
+    const saved = await this.adminRepo.save(entity);
+    return this.toResponse(saved);
   }
 
-  /** v0.0.6 — stub for GET /admin/read. Returns copy to avoid external mutation. */
-  read(): AdminResponseDto[] {
-    return [...this.mockItems];
+  /** GET /admin — return all admin items. */
+  async read(): Promise<AdminResponseDto[]> {
+    const entities = await this.adminRepo.find();
+    return entities.map((e) => this.toResponse(e));
   }
 
-  /** v0.0.6 — stub for GET /admin/get/:id. Null = not found; controller maps to 404. */
-  getById(id: string): AdminResponseDto | null {
-    return this.mockItems.find((item) => item.id === id) ?? null;
+  /** GET /admin/:id — return single admin item or null. */
+  async getById(id: string): Promise<AdminResponseDto | null> {
+    const entity = await this.adminRepo.findOne({ where: { id } });
+    return entity ? this.toResponse(entity) : null;
   }
 
-  /** v0.0.6 — stub for PUT /admin/update/:id. Mutates in place; null if id missing. */
-  update(id: string, dto: UpdateAdminDto): AdminResponseDto | null {
-    const item = this.mockItems.find((i) => i.id === id);
-    if (!item) return null;
-    if (dto.label !== undefined) item.label = dto.label;
-    if (dto.role !== undefined) item.role = dto.role;
-    return item;
+  /** PUT /admin/:id — update admin item, return DTO or null. */
+  async update(id: string, dto: UpdateAdminDto): Promise<AdminResponseDto | null> {
+    const entity = await this.adminRepo.findOne({ where: { id } });
+    if (!entity) return null;
+    if (dto.label !== undefined) entity.label = dto.label;
+    if (dto.role !== undefined) entity.role = dto.role;
+    const saved = await this.adminRepo.save(entity);
+    return this.toResponse(saved);
   }
 
-  /** v0.0.6 — stub for DELETE /admin/delete/:id. Returns true if removed, false if unknown id. */
-  delete(id: string): boolean {
-    const idx = this.mockItems.findIndex((i) => i.id === id);
-    if (idx === -1) return false;
-    this.mockItems.splice(idx, 1);
-    return true;
+  /** DELETE /admin/:id — remove record, return success boolean. */
+  async delete(id: string): Promise<boolean> {
+    const result = await this.adminRepo.delete(id);
+    return (result.affected ?? 0) > 0;
   }
 }

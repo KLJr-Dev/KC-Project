@@ -18,7 +18,7 @@
  *       Remediation (v2.0.0): UUIDs (v4) for all identifiers.
  *
  * Fields:
- *   sub  — User ID. Maps to User.id in the in-memory store. Required.
+ *   sub  — User ID. Maps to User.id in PostgreSQL. Required.
  *   iat  — Issued-at timestamp (seconds since epoch). Auto-added by the
  *          jsonwebtoken library when JwtService.sign() is called. We never
  *          set this manually. Optional in the type because it only exists

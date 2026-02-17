@@ -1,30 +1,32 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 /**
- * v0.1.0 — User Model Introduced
+ * v0.2.0 — Database Introduction (Local)
  *
- * Users service. Internal store is now User entities (with password),
- * not response DTOs. The service maps entities to UserResponseDto at
- * the boundary — password never leaves this layer.
+ * Users service. Data is now persisted in PostgreSQL via TypeORM.
+ * All methods are async (return Promises) because repository operations
+ * hit the database.
  *
- * Still in-memory, no persistence. Resets on process restart.
+ * ID generation: Sequential string from `count + 1`. This can produce
+ * duplicates after deletions — same intentional weakness from ADR-008,
+ * now persisted permanently.
+ * CWE-330 (Use of Insufficiently Random Values) | A02:2021
+ *
+ * VULN: Passwords stored as plaintext in the password column (CWE-256).
+ * VULN: No unique constraint on email — duplicate check is application-level only.
  */
 @Injectable()
 export class UsersService {
-  private users: User[] = [
-    {
-      id: '1',
-      email: 'stub@example.com',
-      username: 'stub-user',
-      password: 'password123',
-      createdAt: '2025-01-01T00:00:00Z',
-      updatedAt: '2025-01-01T00:00:00Z',
-    },
-  ];
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+  ) {}
 
   /** Map a User entity to a UserResponseDto (strips password). */
   private toResponse(user: User): UserResponseDto {
@@ -37,59 +39,60 @@ export class UsersService {
     return dto;
   }
 
-  /** POST /users — create a new user from DTO, store as entity. */
-  create(dto: CreateUserDto): UserResponseDto {
-    const id = String(this.users.length + 1);
-    const user: User = {
+  /** POST /users — create a new user, persist to database. */
+  async create(dto: CreateUserDto): Promise<UserResponseDto> {
+    const count = await this.userRepo.count();
+    const id = String(count + 1);
+    const user = this.userRepo.create({
       id,
       email: dto.email ?? '',
       username: dto.username ?? '',
       password: dto.password ?? '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    };
-    this.users.push(user);
-    return this.toResponse(user);
+    });
+    const saved = await this.userRepo.save(user);
+    return this.toResponse(saved);
   }
 
   /** Find a user by email, return DTO (no password). Used by auth registration duplicate check. */
-  findByEmail(email: string): UserResponseDto | null {
-    const user = this.users.find((u) => u.email === email);
+  async findByEmail(email: string): Promise<UserResponseDto | null> {
+    const user = await this.userRepo.findOne({ where: { email } });
     return user ? this.toResponse(user) : null;
   }
 
   /** Find a user by email, return raw entity (includes password). Used by auth login. */
-  findEntityByEmail(email: string): User | null {
-    return this.users.find((u) => u.email === email) ?? null;
+  async findEntityByEmail(email: string): Promise<User | null> {
+    return this.userRepo.findOne({ where: { email } });
   }
 
   /** GET /users — return all users as response DTOs. */
-  findAll(): UserResponseDto[] {
-    return this.users.map((u) => this.toResponse(u));
+  async findAll(): Promise<UserResponseDto[]> {
+    const users = await this.userRepo.find();
+    return users.map((u) => this.toResponse(u));
   }
 
   /** GET /users/:id — return single user or null. */
-  findById(id: string): UserResponseDto | null {
-    const user = this.users.find((u) => u.id === id);
+  async findById(id: string): Promise<UserResponseDto | null> {
+    const user = await this.userRepo.findOne({ where: { id } });
     return user ? this.toResponse(user) : null;
   }
 
   /** PUT /users/:id — update entity in place, return DTO or null. */
-  update(id: string, dto: UpdateUserDto): UserResponseDto | null {
-    const user = this.users.find((u) => u.id === id);
+  async update(id: string, dto: UpdateUserDto): Promise<UserResponseDto | null> {
+    const user = await this.userRepo.findOne({ where: { id } });
     if (!user) return null;
     if (dto.email !== undefined) user.email = dto.email;
     if (dto.username !== undefined) user.username = dto.username;
     if (dto.password !== undefined) user.password = dto.password;
     user.updatedAt = new Date().toISOString();
-    return this.toResponse(user);
+    const saved = await this.userRepo.save(user);
+    return this.toResponse(saved);
   }
 
   /** DELETE /users/:id — remove entity, return success boolean. */
-  delete(id: string): boolean {
-    const idx = this.users.findIndex((u) => u.id === id);
-    if (idx === -1) return false;
-    this.users.splice(idx, 1);
-    return true;
+  async delete(id: string): Promise<boolean> {
+    const result = await this.userRepo.delete(id);
+    return (result.affected ?? 0) > 0;
   }
 }

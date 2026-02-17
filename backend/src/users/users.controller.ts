@@ -4,43 +4,43 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 /**
- * v0.1.0 — User Model Introduced
+ * v0.2.0 — Database Introduction (Local)
  *
  * Users controller. RESTful resource at /users. Thin HTTP layer that
- * delegates to UsersService. Controller routes unchanged from v0.0.6;
- * the service now uses User entities internally and maps to DTOs.
+ * delegates to UsersService. All handlers are now async because the
+ * service hits PostgreSQL via TypeORM.
  */
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() dto: CreateUserDto) {
+  async create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
   @Get()
-  findAll() {
+  async findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  findById(@Param('id') id: string) {
-    const user = this.usersService.findById(id);
+  async findById(@Param('id') id: string) {
+    const user = await this.usersService.findById(id);
     if (!user) throw new NotFoundException();
     return user;
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    const user = this.usersService.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    const user = await this.usersService.update(id, dto);
     if (!user) throw new NotFoundException();
     return user;
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    const ok = this.usersService.delete(id);
+  async delete(@Param('id') id: string) {
+    const ok = await this.usersService.delete(id);
     if (!ok) throw new NotFoundException();
     return { deleted: id };
   }

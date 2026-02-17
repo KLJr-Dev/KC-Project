@@ -1,47 +1,59 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { FileEntity } from './entities/file.entity';
 import { FileResponseDto } from './dto/file-response.dto';
 import { UploadFileDto } from './dto/upload-file.dto';
 
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.2.0 — Database Introduction (Local)
  *
- * Files service. In-memory mock only; no filesystem, no real upload/download.
- * All methods return placeholder data. Real file handling (v0.3.x) comes later.
+ * Files service. Data is now persisted in PostgreSQL via TypeORM.
+ * No real file I/O — metadata only. Real file handling comes in v0.3.x.
  *
- * --- NestJS convention: Service = business logic & data access ---
- * Controller delegates here. Later we'll add storage and stream handling;
- * controller stays thin. Services are singletons per module.
+ * All methods are async (return Promises) because repository operations
+ * hit the database.
  */
 @Injectable()
 export class FilesService {
-  /** v0.0.6 — in-memory stub; not persisted. Resets on process restart. */
-  private mockFiles: FileResponseDto[] = [
-    { id: '1', filename: 'stub-file.txt', size: 0, uploadedAt: '2025-01-01T00:00:00Z' },
-  ];
+  constructor(
+    @InjectRepository(FileEntity)
+    private readonly fileRepo: Repository<FileEntity>,
+  ) {}
 
-  /** v0.0.6 — stub for POST /files/upload. Ignores actual file; returns mock metadata. */
-  upload(dto: UploadFileDto): FileResponseDto {
-    const id = String(this.mockFiles.length + 1);
-    const created: FileResponseDto = {
+  /** Map a FileEntity to a FileResponseDto. */
+  private toResponse(entity: FileEntity): FileResponseDto {
+    const dto = new FileResponseDto();
+    dto.id = entity.id;
+    dto.filename = entity.filename;
+    dto.size = entity.size;
+    dto.uploadedAt = entity.uploadedAt;
+    return dto;
+  }
+
+  /** POST /files — persist file metadata to database. */
+  async upload(dto: UploadFileDto): Promise<FileResponseDto> {
+    const count = await this.fileRepo.count();
+    const id = String(count + 1);
+    const entity = this.fileRepo.create({
       id,
       filename: dto.filename ?? 'stub-upload',
       size: 0,
       uploadedAt: new Date().toISOString(),
-    };
-    this.mockFiles.push(created);
-    return created;
+    });
+    const saved = await this.fileRepo.save(entity);
+    return this.toResponse(saved);
   }
 
-  /** v0.0.6 — stub for GET /files/download/:id. Returns metadata only; no stream. Null = 404. */
-  getById(id: string): FileResponseDto | null {
-    return this.mockFiles.find((f) => f.id === id) ?? null;
+  /** GET /files/:id — return file metadata or null. */
+  async getById(id: string): Promise<FileResponseDto | null> {
+    const entity = await this.fileRepo.findOne({ where: { id } });
+    return entity ? this.toResponse(entity) : null;
   }
 
-  /** v0.0.6 — stub for DELETE /files/delete/:id. Returns true if removed, false if unknown id. */
-  delete(id: string): boolean {
-    const idx = this.mockFiles.findIndex((f) => f.id === id);
-    if (idx === -1) return false;
-    this.mockFiles.splice(idx, 1);
-    return true;
+  /** DELETE /files/:id — remove record, return success boolean. */
+  async delete(id: string): Promise<boolean> {
+    const result = await this.fileRepo.delete(id);
+    return (result.affected ?? 0) > 0;
   }
 }
