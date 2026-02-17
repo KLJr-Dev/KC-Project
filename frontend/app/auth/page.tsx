@@ -1,3 +1,40 @@
+/**
+ * v0.1.3 — Session Concept
+ *
+ * CWE-615 WARNING: This page is client-side rendered ('use client'). All
+ * comments, form handling logic, API endpoint names, validation patterns,
+ * and auth flow details are shipped to the browser and visible in DevTools.
+ * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A05:2021
+ *
+ * --- Purpose ---
+ * Combined register/login page with tab switching. Renders two forms that
+ * call authRegister() and authLogin() from lib/api.ts. On success, stores
+ * the JWT via AuthContext.login() which writes to localStorage.
+ *
+ * --- Security notes for this page ---
+ *
+ * Password in React state: The password field value is held in React state
+ * (regPassword / loginPassword). This means it's visible in:
+ *   - React DevTools component inspector (state tab)
+ *   - Browser memory (until garbage collected after unmount)
+ *   - Network tab (sent as JSON in the POST body over plain HTTP)
+ * There is no way to avoid holding the password in state for a controlled
+ * input, but in v2.0.0 TLS ensures it's encrypted in transit.
+ *
+ * Client-side validation: validateEmail() provides UX convenience only —
+ * it is NOT a security control. The backend is the authority for validation.
+ * An attacker can bypass client-side validation trivially (DevTools console,
+ * curl, Postman) and send arbitrary data to the API.
+ *
+ * Form data in Network tab: The full request payload { email, username,
+ * password } is visible in the browser's Network tab as a JSON body. In
+ * v0.1.x (plain HTTP), this is also readable by any network observer.
+ * CWE-319 (Cleartext Transmission) | A02:2021
+ *
+ * Auth response handling: On successful register/login, the response
+ * (including the JWT) is passed to AuthContext.login() which stores it
+ * in localStorage. The response is also visible in the Network tab.
+ */
 'use client';
 
 import { useState } from 'react';
@@ -11,6 +48,11 @@ import SuccessBanner from '../components/ui/success-banner';
 
 type AuthMode = 'register' | 'login';
 
+/**
+ * Client-side email format validation. UX convenience only — not a
+ * security control. The backend must independently validate all input.
+ * An attacker can bypass this trivially via DevTools or direct API calls.
+ */
 function validateEmail(email: string): string | null {
   if (!email) return 'Email is required';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Enter a valid email address';
