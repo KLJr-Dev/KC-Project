@@ -3,16 +3,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
 import { FileEntity } from './entities/file.entity';
+import { AuthModule } from '../auth/auth.module';
 
 /**
- * v0.2.0 — Database Introduction (Local)
+ * v0.2.2 — Identifier Trust Failures
  *
  * Files module. Registers /files/* routes and service backed by PostgreSQL.
- * TypeOrmModule.forFeature() registers the FileEntity repository so it
- * can be injected into FilesService.
+ * AuthModule imported to provide JwtService for JwtAuthGuard on controller.
+ *
+ * VULN (v0.2.2): ownerId is recorded on file creation but never checked
+ *       on read/delete. Any authenticated user can access any file.
+ *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2021
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([FileEntity])],
+  imports: [TypeOrmModule.forFeature([FileEntity]), AuthModule],
   controllers: [FilesController],
   providers: [FilesService],
 })

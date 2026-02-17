@@ -10,7 +10,7 @@ import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
 
 /**
- * v0.2.1 — Persisted Authentication
+ * v0.2.2 — Identifier Trust Failures
  *
  * Root application module. Composes feature modules and configures the
  * PostgreSQL connection via TypeORM.

@@ -1,15 +1,24 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 /**
- * v0.2.0 — Database Introduction (Local)
+ * v0.2.2 — Identifier Trust Failures
  *
  * Admin controller. RESTful resource at /admin. All handlers are now
  * async because the service hits PostgreSQL via TypeORM.
+ *
+ * VULN (v0.2.2): JwtAuthGuard enforces authentication but any
+ *       authenticated user (not just admins) can access all admin
+ *       endpoints. No role or privilege check exists.
+ *       CWE-862 (Missing Authorization) | A01:2021
+ *       CWE-639 | A01:2021
+ *       Remediation (v2.0.0): RBAC — check user.role === 'admin'.
  */
 @Controller('admin')
+@UseGuards(JwtAuthGuard)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 

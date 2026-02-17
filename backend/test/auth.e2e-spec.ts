@@ -551,7 +551,7 @@ describe('Verbose DB Errors (v0.2.1)', () => {
     const httpServer = app.getHttpServer();
 
     // Step 1 & 2: create two users (id="1", id="2")
-    await request(httpServer).post('/auth/register').send({
+    const regA = await request(httpServer).post('/auth/register').send({
       email: 'user-a@example.com',
       username: 'user-a',
       password: 'password123',
@@ -564,7 +564,11 @@ describe('Verbose DB Errors (v0.2.1)', () => {
     });
 
     // Step 3: delete user A — count drops from 2 to 1
-    await request(httpServer).delete('/users/1').expect(200);
+    // v0.2.2: /users now requires JWT, so send Bearer token
+    await request(httpServer)
+      .delete('/users/1')
+      .set('Authorization', `Bearer ${regA.body.token}`)
+      .expect(200);
 
     // Step 4: register user C — count() returns 1, so id = "2" → PK collision
     const response = await request(httpServer)
