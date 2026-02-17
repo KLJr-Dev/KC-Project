@@ -10,7 +10,7 @@ import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
 
 /**
- * v0.2.0 — Database Introduction (Local)
+ * v0.2.1 — Persisted Authentication
  *
  * Root application module. Composes feature modules and configures the
  * PostgreSQL connection via TypeORM.
@@ -31,6 +31,16 @@ import { AdminModule } from './admin/admin.module';
  *       queries containing plaintext passwords and user data.
  *       CWE-532 (Insertion of Sensitive Information into Log File) | A09:2021
  *       Remediation (v2.0.0): Disable query logging or redact sensitive fields.
+ *
+ * VULN (v0.2.1): No global exception filter. When TypeORM throws a
+ *       QueryFailedError (e.g. duplicate PK, constraint violation), the
+ *       request crashes with a generic 500. The raw error — including PG
+ *       table names, constraint names, and full SQL with parameters — is
+ *       logged to stdout (CWE-532). The 500 confirms a DB failure to the
+ *       attacker, and no graceful recovery or retry logic exists.
+ *       CWE-209 (Generation of Error Message Containing Sensitive Information) | A05:2021
+ *       Remediation (v2.0.0): Add a global ExceptionFilter that catches
+ *       TypeORM errors, logs a sanitised message, and returns a user-friendly error.
  */
 @Module({
   imports: [

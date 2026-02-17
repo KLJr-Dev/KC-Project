@@ -216,11 +216,15 @@ Goal: Make data persistent and mistakes permanent.
 - CWEs carried forward: CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613 — now persisted permanently
 - Swagger bumped to 0.2.0
 
-### v0.2.1 — Persisted Authentication
+### v0.2.1 — Persisted Authentication ✅
 
-- Credentials stored in DB
-- Weak hashing or none
-- Verbose DB errors
+- Credentials stored in DB — carried from v0.2.0 (plaintext in PostgreSQL, CWE-256)
+- No hashing — carried from v0.2.0 (plaintext `===` comparison, no bcrypt/argon2/scrypt)
+- Verbose DB errors: raw TypeORM `QueryFailedError` (PG table names, constraint names, SQL fragments) returned in 500 response body
+- E2e test proving duplicate PK collision (`count + 1` after deletion) leaks raw PG error details
+- CWE introduced: CWE-209 (verbose DB error messages exposing database internals to client)
+- CWEs carried forward: all v0.2.0 CWEs (CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613, CWE-798, CWE-1188, CWE-1393, CWE-532)
+- Swagger bumped to 0.2.1
 
 ### v0.2.2 — Identifier Trust Failures
 

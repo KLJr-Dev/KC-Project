@@ -7,7 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 /**
- * v0.2.0 — Database Introduction (Local)
+ * v0.2.1 — Persisted Authentication
  *
  * Users service. Data is now persisted in PostgreSQL via TypeORM.
  * All methods are async (return Promises) because repository operations
@@ -20,6 +20,17 @@ import { UpdateUserDto } from './dto/update-user.dto';
  *
  * VULN: Passwords stored as plaintext in the password column (CWE-256).
  * VULN: No unique constraint on email — duplicate check is application-level only.
+ *
+ * VULN (v0.2.1): Unhandled TypeORM QueryFailedError exceptions (e.g. duplicate
+ *       PK from the count+1 ID strategy) crash the request with a generic 500.
+ *       The raw error — including PG table name, constraint name, and the full
+ *       INSERT SQL with parameters — is logged to stdout via TypeORM's
+ *       `logging: true` (CWE-532). The 500 itself confirms to an attacker
+ *       that a database-level constraint was violated.
+ *       CWE-209 (Generation of Error Message Containing Sensitive Information) | A05:2021
+ *       Remediation (v2.0.0): Global exception filter that catches
+ *       QueryFailedError, logs a sanitised message, and returns a
+ *       user-friendly error without database internals.
  */
 @Injectable()
 export class UsersService {
@@ -39,7 +50,17 @@ export class UsersService {
     return dto;
   }
 
-  /** POST /users — create a new user, persist to database. */
+  /**
+   * POST /users — create a new user, persist to database.
+   *
+   * Uses insert() (pure INSERT) instead of save() (upsert) so that a
+   * duplicate PK from the count+1 strategy actually fails with a raw
+   * PostgreSQL error instead of silently overwriting an existing user.
+   *
+   * VULN (v0.2.1): The unhandled QueryFailedError from a duplicate PK
+   *       collision leaks PG table name, constraint name, and SQL in the
+   *       500 response body (CWE-209).
+   */
   async create(dto: CreateUserDto): Promise<UserResponseDto> {
     const count = await this.userRepo.count();
     const id = String(count + 1);
@@ -51,8 +72,8 @@ export class UsersService {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    const saved = await this.userRepo.save(user);
-    return this.toResponse(saved);
+    await this.userRepo.insert(user);
+    return this.toResponse(user);
   }
 
   /** Find a user by email, return DTO (no password). Used by auth registration duplicate check. */
