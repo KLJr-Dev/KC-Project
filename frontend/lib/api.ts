@@ -1,5 +1,5 @@
 /**
- * v0.1.3 — Session Concept
+ * v0.1.4 — Logout & Token Misuse
  *
  * CWE-615 WARNING: This file is client-side rendered ('use client' in consuming
  * components). All comments, function names, string literals, and the API_BASE
@@ -25,7 +25,7 @@
  *   - Error handling (network errors, HTTP errors)
  *   - Response typing (generics ensure callers get typed data)
  *
- * --- Auth header flow (v0.1.3) ---
+ * --- Auth header flow (v0.1.4) ---
  * getHeaders() reads the JWT from localStorage (key: 'kc_auth') and attaches
  * it as an Authorization: Bearer header on every request. This means:
  *   - All API calls are automatically authenticated if a token exists
@@ -181,6 +181,26 @@ export const authLogin = (dto: LoginRequest) => post<AuthResponse>('/auth/login'
 
 /** GET /auth/me — fetch the currently authenticated user's profile using the stored JWT. */
 export const authMe = () => request<UserResponse>('/auth/me');
+
+/**
+ * POST /auth/logout — calls the backend logout endpoint.
+ *
+ * The backend does NOTHING with this request (v0.1.4). It returns a cosmetic
+ * success message but does not revoke the JWT, update a deny-list, or clear
+ * any server-side session. The token remains cryptographically valid and
+ * replayable by any attacker who intercepted it.
+ *
+ * The frontend calls this fire-and-forget (does not await or handle errors)
+ * before clearing localStorage. Even if the backend were to revoke the token
+ * in the future, the client would still need to clear local state anyway.
+ *
+ * VULN: Cosmetic logout — server confirms "logged out" but the JWT lives on.
+ *       CWE-613 (Insufficient Session Expiration) | A07:2021
+ *       Remediation (v2.0.0): POST /auth/logout deletes refresh token from DB.
+ *       Frontend clears httpOnly cookie via Set-Cookie maxAge=0 from backend.
+ */
+export const authLogout = () =>
+  request<{ message: string }>('/auth/logout', { method: 'POST' });
 
 // ── Files ────────────────────────────────────────────────────────────
 // File management endpoints. Currently stub routes on the backend.
