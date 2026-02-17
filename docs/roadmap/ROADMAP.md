@@ -203,9 +203,18 @@ Goal: Make data persistent and mistakes permanent.
 
 ### v0.2.0 — Database Introduction (Local)
 
-- Local PostgreSQL (or equivalent)
-- User table created
-- Unsafe defaults
+- PostgreSQL 16 via Docker Compose (`infra/compose.yml`, DB container only — app runs natively)
+- TypeORM integration (`@nestjs/typeorm`) with `synchronize: true`, hardcoded credentials, SQL logging
+- All 5 domain entities decorated and mapped to PostgreSQL tables (user, file_entity, sharing_entity, admin_item)
+- All 5 services migrated from in-memory arrays to `Repository<Entity>` (fully async)
+- All controllers and AuthService updated to async/await
+- Stub seed data removed — database starts empty, populated via the app
+- E2e tests updated for PG (truncate between tests, proper teardown)
+- Unit tests updated for async mocks (mockResolvedValue)
+- ADR-019 (TypeORM as ORM), ADR-020 (Docker for DB only, not app)
+- CWEs introduced: CWE-798 (hardcoded DB credentials), CWE-1188 (synchronize: true), CWE-1393 (default PG password), CWE-532 (SQL logging)
+- CWEs carried forward: CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613 — now persisted permanently
+- Swagger bumped to 0.2.0
 
 ### v0.2.1 — Persisted Authentication
 

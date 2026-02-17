@@ -4,62 +4,47 @@ import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.2.0 — Database Introduction (Local)
  *
- * Admin controller. RESTful resource at /admin. All handlers return
- * mock/placeholder data. No persistence, no auth, no frontend dependency.
- * This version freezes API shape only.
- *
- * --- NestJS convention: Controller = thin HTTP layer ---
- * @Controller('admin') mounts all routes under /admin. HTTP verb determines
- * the action (POST = create, GET = read, PUT = update, DELETE = delete).
- * Business logic lives in the service so it can be tested and reused without
- * HTTP. Constructor injection: Nest injects AdminService because it's in the
- * same module's providers[]. We never `new AdminService()` — the framework
- * manages a single instance (singleton per module).
- *
- * --- Route decorators ---
- * @Get(), @Post(), @Put(), @Delete() map HTTP method + path segment to a
- * method. Path is relative to @Controller('admin'), so @Get(':id') => GET
- * /admin/:id. @Param('id') and @Body() automatically bind request data to
- * method arguments; no manual req.params or req.body.
+ * Admin controller. RESTful resource at /admin. All handlers are now
+ * async because the service hits PostgreSQL via TypeORM.
  */
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  /** v0.0.6 — POST /admin. Body parsed into CreateAdminDto by Nest. */
+  /** POST /admin — create admin item. */
   @Post()
-  create(@Body() dto: CreateAdminDto) {
+  async create(@Body() dto: CreateAdminDto) {
     return this.adminService.create(dto);
   }
 
-  /** v0.0.6 — GET /admin. Returns list; 200 always for stub. */
+  /** GET /admin — list all admin items. */
   @Get()
-  read() {
+  async read() {
     return this.adminService.read();
   }
 
-  /** v0.0.6 — GET /admin/:id. 404 if id not in mock list. */
+  /** GET /admin/:id — single admin item or 404. */
   @Get(':id')
-  getById(@Param('id') id: string) {
-    const item = this.adminService.getById(id);
+  async getById(@Param('id') id: string) {
+    const item = await this.adminService.getById(id);
     if (!item) throw new NotFoundException();
     return item;
   }
 
-  /** v0.0.6 — PUT /admin/:id. 404 if id not found. */
+  /** PUT /admin/:id — update admin item or 404. */
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateAdminDto) {
-    const item = this.adminService.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateAdminDto) {
+    const item = await this.adminService.update(id, dto);
     if (!item) throw new NotFoundException();
     return item;
   }
 
-  /** v0.0.6 — DELETE /admin/:id. 404 if id not found. */
+  /** DELETE /admin/:id — remove admin item or 404. */
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    const ok = this.adminService.delete(id);
+  async delete(@Param('id') id: string) {
+    const ok = await this.adminService.delete(id);
     if (!ok) throw new NotFoundException();
     return { deleted: id };
   }
