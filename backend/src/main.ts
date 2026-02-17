@@ -3,17 +3,12 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 /**
- * v0.1.5 — Authentication Edge Cases
+ * v0.2.0 — Database Introduction (Local)
  *
  * Application entry point. Creates the NestJS app, configures CORS and
  * Swagger, and starts listening on port 4000 (or PORT env var).
  *
- * This file is the first thing that runs when the backend starts. It:
- *   1. Creates the NestJS application from AppModule (the root module)
- *   2. Enables CORS (permissive — all origins allowed)
- *   3. Builds the OpenAPI/Swagger document from controller metadata
- *   4. Mounts the Swagger UI at /api/docs
- *   5. Starts the HTTP server
+ * Requires: docker compose -f infra/compose.yml up -d (PostgreSQL)
  */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -34,9 +29,9 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('KC-Project API')
     .setDescription(
-      'v0.1.5 — Authentication Edge Cases: no rate limiting (CWE-307), weak passwords (CWE-521)',
+      'v0.2.0 — Database Introduction: PostgreSQL via TypeORM, all data persisted, unsafe defaults (CWE-798, CWE-1188)',
     )
-    .setVersion('0.1.5')
+    .setVersion('0.2.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

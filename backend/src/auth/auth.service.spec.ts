@@ -3,11 +3,20 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 
+/**
+ * v0.2.0 — Database Introduction (Local)
+ *
+ * Unit tests for AuthService. UsersService and JwtService are mocked.
+ * All methods are now async — tests use await.
+ */
+
 let service: AuthService;
 let usersService: jest.Mocked<UsersService>;
+let jwtService: jest.Mocked<JwtService>;
 
 beforeEach(() => {
   usersService = {
@@ -20,14 +29,18 @@ beforeEach(() => {
     findEntityByEmail: jest.fn(),
   } as unknown as jest.Mocked<UsersService>;
 
-  service = new AuthService(usersService);
+  jwtService = {
+    sign: jest.fn().mockReturnValue('mock-jwt-token'),
+    verify: jest.fn(),
+  } as unknown as jest.Mocked<JwtService>;
+
+  service = new AuthService(usersService, jwtService);
 });
 
 describe('AuthService.register', () => {
-
-  it('creates a user and returns AuthResponseDto on success', () => {
-    usersService.findByEmail.mockReturnValue(null);
-    usersService.create.mockReturnValue({
+  it('creates a user and returns AuthResponseDto on success', async () => {
+    usersService.findByEmail.mockResolvedValue(null);
+    usersService.create.mockResolvedValue({
       id: '2',
       email: 'new@example.com',
       username: 'new-user',
@@ -35,7 +48,7 @@ describe('AuthService.register', () => {
       updatedAt: 'now',
     });
 
-    const result = service.register({
+    const result = await service.register({
       email: 'new@example.com',
       username: 'new-user',
       password: 'password123',
@@ -48,11 +61,11 @@ describe('AuthService.register', () => {
       password: 'password123',
     });
     expect(result.userId).toBe('2');
-    expect(result.token).toBe('stub-token-2');
+    expect(result.token).toBe('mock-jwt-token');
   });
 
-  it('rejects duplicate email with ConflictException', () => {
-    usersService.findByEmail.mockReturnValue({
+  it('rejects duplicate email with ConflictException', async () => {
+    usersService.findByEmail.mockResolvedValue({
       id: '1',
       email: 'existing@example.com',
       username: 'existing-user',
@@ -60,20 +73,20 @@ describe('AuthService.register', () => {
       updatedAt: 'now',
     });
 
-    expect(() =>
+    await expect(
       service.register({
         email: 'existing@example.com',
         username: 'someone',
         password: 'password123',
       }),
-    ).toThrow(ConflictException);
+    ).rejects.toThrow(ConflictException);
   });
 
-  it('throws BadRequestException when required fields are missing', () => {
-    expect(() =>
+  it('throws BadRequestException when required fields are missing', async () => {
+    await expect(
       // @ts-expect-error — intentionally passing incomplete DTO for test
       service.register({ email: '', username: 'user' }),
-    ).toThrow(BadRequestException);
+    ).rejects.toThrow(BadRequestException);
   });
 });
 
@@ -87,40 +100,40 @@ describe('AuthService.login', () => {
     updatedAt: '2025-01-01T00:00:00Z',
   };
 
-  it('returns AuthResponseDto on valid credentials', () => {
-    usersService.findEntityByEmail.mockReturnValue(stubUser);
+  it('returns AuthResponseDto on valid credentials', async () => {
+    usersService.findEntityByEmail.mockResolvedValue(stubUser);
 
-    const result = service.login({
+    const result = await service.login({
       email: 'test@example.com',
       password: 'password123',
     });
 
     expect(usersService.findEntityByEmail).toHaveBeenCalledWith('test@example.com');
     expect(result.userId).toBe('1');
-    expect(result.token).toBe('stub-token-1');
+    expect(result.token).toBe('mock-jwt-token');
     expect(result.message).toContain('Login success');
   });
 
-  it('throws UnauthorizedException when email not found', () => {
-    usersService.findEntityByEmail.mockReturnValue(null);
+  it('throws UnauthorizedException when email not found', async () => {
+    usersService.findEntityByEmail.mockResolvedValue(null);
 
-    expect(() =>
+    await expect(
       service.login({ email: 'nobody@example.com', password: 'password123' }),
-    ).toThrow(UnauthorizedException);
+    ).rejects.toThrow(UnauthorizedException);
   });
 
-  it('throws UnauthorizedException on wrong password', () => {
-    usersService.findEntityByEmail.mockReturnValue(stubUser);
+  it('throws UnauthorizedException on wrong password', async () => {
+    usersService.findEntityByEmail.mockResolvedValue(stubUser);
 
-    expect(() =>
+    await expect(
       service.login({ email: 'test@example.com', password: 'wrong' }),
-    ).toThrow(UnauthorizedException);
+    ).rejects.toThrow(UnauthorizedException);
   });
 
-  it('throws BadRequestException when required fields are missing', () => {
-    expect(() =>
+  it('throws BadRequestException when required fields are missing', async () => {
+    await expect(
       // @ts-expect-error — intentionally passing incomplete DTO for test
       service.login({ email: '' }),
-    ).toThrow(BadRequestException);
+    ).rejects.toThrow(BadRequestException);
   });
 });

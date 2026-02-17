@@ -13,70 +13,36 @@ import { UsersService } from '../users/users.service';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 
 /**
- * v0.1.5 — Authentication Edge Cases
+ * v0.2.0 — Database Introduction (Local)
  *
- * Core authentication business logic. Handles:
+ * Core authentication business logic. All methods are now async because
+ * UsersService methods hit PostgreSQL via TypeORM repositories.
+ *
+ * Handles:
  *   - register()    → create user + issue JWT          (POST /auth/register)
  *   - login()       → verify credentials + issue JWT   (POST /auth/login)
  *   - getProfile()  → look up user by ID from token    (GET /auth/me)
  *   - logout()      → intentionally does nothing        (POST /auth/logout)
  *
- * Dependencies (injected via constructor):
- *   - UsersService  → user CRUD against the in-memory store
- *   - JwtService    → sign and verify HS256 JWTs (provided by JwtModule in AuthModule)
+ * --- Intentional vulnerabilities (carried from v0.1.x, now persistent) ---
  *
- * --- Intentional vulnerabilities (carried forward + new in v0.1.3) ---
- *
- * VULN (v0.1.1): Passwords are stored as plaintext in the in-memory User entity.
- *       No hashing, no salting. UsersService.create() stores dto.password as-is.
+ * VULN (v0.1.1): Passwords stored as plaintext in the database.
  *       CWE-256 (Plaintext Storage of a Password) | A07:2021
- *       Remediation (v2.0.0): bcrypt with cost factor 12.
  *
- * VULN (v0.1.2): Passwords are compared as plaintext (=== operator).
+ * VULN (v0.1.2): Passwords compared as plaintext (=== operator).
  *       CWE-256 | A07:2021
- *       Remediation (v2.0.0): bcrypt.compare().
  *
- * VULN (v0.1.2): Error messages are intentionally distinct ("No user with that
- *       email" vs "Incorrect password"), enabling user enumeration.
+ * VULN (v0.1.2): Distinct error messages enable user enumeration.
  *       CWE-204 (Observable Response Discrepancy) | A07:2021
- *       Remediation (v2.0.0): Generic "Authentication failed" for all cases.
  *
- * VULN (v0.1.3): JWTs are signed with a hardcoded weak secret ('kc-secret')
- *       using HS256. Anyone who knows the secret can forge tokens.
- *       CWE-347 (Improper Verification of Cryptographic Signature) | A02:2021
- *       Remediation (v2.0.0): RS256 asymmetric keys loaded from environment.
+ * VULN (v0.1.3): JWTs signed with hardcoded weak secret, no expiration.
+ *       CWE-347 | A02:2021, CWE-613 | A07:2021
  *
- * VULN (v0.1.3): JWTs have no expiration claim (`exp`). Once issued, a token
- *       is valid forever — even after password change or user deletion.
- *       CWE-613 (Insufficient Session Expiration) | A07:2021
- *       Remediation (v2.0.0): 15-minute access token TTL + refresh token rotation.
+ * VULN (v0.1.4): logout() does nothing server-side. Token replay possible.
+ *       CWE-613 | A07:2021
  *
- * VULN (v0.1.4): logout() does nothing server-side. No deny-list, no session
- *       table, no token revocation. The JWT remains cryptographically valid
- *       after logout. An attacker who copied the token before logout retains
- *       full access indefinitely.
- *       CWE-613 (Insufficient Session Expiration) | A07:2021
- *       Remediation (v2.0.0): DELETE refresh token from database on logout,
- *       combined with short-lived access tokens that expire in 15 minutes.
- *
- * VULN (v0.1.5): No rate limiting on register() or login(). An attacker can
- *       send unlimited requests per second — brute-forcing passwords, stuffing
- *       credentials, or mass-registering accounts. No account lockout after
- *       failed login attempts — 1000 wrong passwords, then the correct one
- *       still works.
- *       CWE-307 (Improper Restriction of Excessive Authentication Attempts) | A07:2021
- *       Remediation (v2.0.0): nginx rate limiting (limit_req_zone, 5 req/min
- *       per IP on /auth/*) + @nestjs/throttler as application-level backup.
- *       Account lockout after 5 failed attempts with exponential backoff.
- *
- * VULN (v0.1.5): No password requirements. register() accepts any non-empty
- *       string as a password — "a", "1", " " all succeed. No minimum length,
- *       no complexity rules, no strength meter. Combined with no rate limiting,
- *       weak passwords are trivially brute-forced.
- *       CWE-521 (Weak Password Requirements) | A07:2021
- *       Remediation (v2.0.0): Minimum 12 characters, at least 1 uppercase,
- *       1 lowercase, 1 digit, 1 special character. Validated server-side via
- *       class-validator decorators + ValidationPipe.
+ * VULN (v0.1.5): No rate limiting, no account lockout, weak passwords accepted.
+ *       CWE-307 | A07:2021, CWE-521 | A07:2021
  */
 @Injectable()
 export class AuthService {
@@ -88,21 +54,10 @@ export class AuthService {
   /**
    * POST /auth/register — Create a new user and issue a JWT.
    *
-   * Flow:
-   *   1. Validate required fields (email, username, password)
-   *   2. Check for duplicate email via UsersService.findByEmail()
-   *   3. Create user via UsersService.create() (stores plaintext password)
-   *   4. Sign JWT with payload { sub: user.id } — no expiry
-   *   5. Return AuthResponseDto with the real JWT
-   *
-   * Error responses:
-   *   - 400 BadRequest     → missing required fields
-   *   - 409 Conflict       → duplicate email (leaky message includes email — CWE-209)
-   *
-   * @param dto  RegisterDto with email, username, password
-   * @returns    AuthResponseDto with signed JWT, userId, and message
+   * Now persists the user to PostgreSQL. Plaintext password is written
+   * directly to the database column (CWE-256).
    */
-  register(dto: RegisterDto): AuthResponseDto {
+  async register(dto: RegisterDto): Promise<AuthResponseDto> {
     const { email, username, password } = dto;
 
     if (!email || !username || !password) {
@@ -111,7 +66,7 @@ export class AuthService {
       );
     }
 
-    const existing = this.usersService.findByEmail(email);
+    const existing = await this.usersService.findByEmail(email);
     if (existing) {
       // VULN: error message includes the email — information disclosure (CWE-209)
       throw new ConflictException(
@@ -119,10 +74,10 @@ export class AuthService {
       );
     }
 
-    const created = this.usersService.create({
+    const created = await this.usersService.create({
       email,
       username,
-      password, // VULN: stored as plaintext by UsersService (CWE-256)
+      password, // VULN: stored as plaintext in PostgreSQL (CWE-256)
     });
 
     // VULN: JWT signed with weak hardcoded secret, no expiry (CWE-347, CWE-613)
@@ -131,30 +86,16 @@ export class AuthService {
     return {
       token,
       userId: created.id,
-      message: 'Registration success (v0.1.3)',
+      message: 'Registration success (v0.2.0)',
     };
   }
 
   /**
    * POST /auth/login — Verify credentials and issue a JWT.
    *
-   * Flow:
-   *   1. Validate required fields (email, password)
-   *   2. Look up user by email via UsersService.findEntityByEmail()
-   *      (returns raw User entity including plaintext password)
-   *   3. Compare password with === (plaintext comparison — CWE-256)
-   *   4. Sign JWT with payload { sub: user.id } — no expiry
-   *   5. Return AuthResponseDto with the real JWT
-   *
-   * Error responses:
-   *   - 400 BadRequest      → missing required fields
-   *   - 401 Unauthorized    → "No user with that email" (leaky — CWE-204)
-   *   - 401 Unauthorized    → "Incorrect password" (leaky — CWE-204)
-   *
-   * @param dto  LoginDto with email, password
-   * @returns    AuthResponseDto with signed JWT, userId, and message
+   * Reads plaintext password from PostgreSQL and compares with ===.
    */
-  login(dto: LoginDto): AuthResponseDto {
+  async login(dto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = dto;
 
     if (!email || !password) {
@@ -163,7 +104,7 @@ export class AuthService {
       );
     }
 
-    const user = this.usersService.findEntityByEmail(email);
+    const user = await this.usersService.findEntityByEmail(email);
     if (!user) {
       // VULN: distinct error reveals that this email is not registered (CWE-204)
       throw new UnauthorizedException(
@@ -185,33 +126,15 @@ export class AuthService {
     return {
       token,
       userId: user.id,
-      message: 'Login success (v0.1.3)',
+      message: 'Login success (v0.2.0)',
     };
   }
 
   /**
    * GET /auth/me — Retrieve the profile of the currently authenticated user.
-   *
-   * Called by AuthController after JwtAuthGuard has verified the token and
-   * extracted the payload into request.user. The controller passes user.sub
-   * (the user ID from the JWT) to this method.
-   *
-   * Flow:
-   *   1. Look up user by ID via UsersService.findById()
-   *   2. If not found, throw 404 (the JWT references a deleted/non-existent user)
-   *   3. Return UserResponseDto (id, email, username — no password)
-   *
-   * Why this lives in AuthService (not a separate ProfileService):
-   *   AuthService already has UsersService injected. Keeping getProfile() here
-   *   avoids injecting a second service into the controller and keeps the
-   *   controller thin. If profile logic grows, it can be extracted later.
-   *
-   * @param userId  The `sub` claim from the verified JWT payload
-   * @returns       UserResponseDto (password is stripped by UsersService.findById)
-   * @throws        NotFoundException if user ID does not exist in the store
    */
-  getProfile(userId: string): UserResponseDto {
-    const user = this.usersService.findById(userId);
+  async getProfile(userId: string): Promise<UserResponseDto> {
+    const user = await this.usersService.findById(userId);
     if (!user) {
       throw new NotFoundException(
         `User with ID ${userId} not found (v0.1.3)`,
@@ -223,30 +146,10 @@ export class AuthService {
   /**
    * POST /auth/logout — Intentionally does NOT invalidate the JWT.
    *
-   * This method exists to make CWE-613 explicit and testable. It returns
-   * a success message, giving the client (and the user) a false sense of
-   * security — the response says "logged out" but the token is still valid.
-   *
-   * What this method does NOT do (intentionally):
-   *   - Does not add the token to a deny-list (no deny-list exists)
-   *   - Does not delete a session record (no session table exists)
-   *   - Does not revoke the JWT (JWTs are stateless and self-contained)
-   *   - Does not invalidate the signing key (that would break all tokens)
-   *
-   * After this call, the same JWT can be used on GET /auth/me (or any
-   * future protected endpoint) and will succeed. This is the core
-   * vulnerability of v0.1.4.
-   *
    * VULN: No server-side session tracking or token revocation.
    *       CWE-613 (Insufficient Session Expiration) | A07:2021
-   *       Remediation (v2.0.0): Maintain a refresh_tokens table in the
-   *       database. On logout, DELETE the refresh token. Access tokens
-   *       (15-min TTL) expire naturally; refresh tokens cannot be renewed.
-   *
-   * @returns  Object with a message confirming "logout" (cosmetic only)
    */
   logout(): { message: string } {
-    // Intentionally empty — no server-side invalidation
     return {
       message: 'Logged out (client-side only, token still valid) (v0.1.4)',
     };

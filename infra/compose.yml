@@ -1,0 +1,31 @@
+# v0.2.0 — Database Introduction (Local)
+#
+# Docker Compose for PostgreSQL only. The backend and frontend still run
+# natively (npm run start:dev). App containerisation is deferred to v0.5.x.
+#
+# Usage:
+#   docker compose -f infra/compose.yml up -d      Start PG
+#   docker compose -f infra/compose.yml down        Stop PG (keep data)
+#   docker compose -f infra/compose.yml down -v     Stop PG + delete data
+#
+# VULN: Default superuser with trivial password, port exposed to host.
+#       CWE-1393 (Use of Default Credentials) | A07:2021
+#       CWE-798  (Use of Hard-coded Credentials) | A07:2021
+#       Remediation (v2.0.0): Strong password from Docker secrets,
+#       no host port binding, dedicated non-superuser for the app.
+
+services:
+  db:
+    image: postgres:16
+    container_name: kc-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kc_dev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
