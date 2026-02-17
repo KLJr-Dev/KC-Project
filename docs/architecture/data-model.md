@@ -1,33 +1,53 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Describes the v1.0.0 target schema (when a real database exists), the current in-memory model, and the v2.0.0 hardened schema.
+Entity definitions and relationships for KC-Project. Describes the v0.2.0 PostgreSQL schema (current), the v1.0.0 target schema, and the v2.0.0 hardened schema.
 
 ---
 
-## Current State (v0.1.x) -- In-Memory
+## Current State (v0.2.0) -- PostgreSQL
 
-No database. Entities are plain TypeScript classes stored in service-level arrays. See [ADR-008](../decisions/ADR-008-in-memory-before-persistence.md).
+PostgreSQL 16 via Docker Compose. TypeORM with `synchronize: true` auto-creates tables from entity decorators. See [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
 
-### User Entity (current)
+### Tables
+
+| Table | Entity Class | Notes |
+|-------|-------------|-------|
+| `user` | `User` | Auth + identity. Plaintext password column (CWE-256). |
+| `file_entity` | `FileEntity` | Metadata only — no real file I/O yet. |
+| `sharing_entity` | `SharingEntity` | No FK to files — weak referential integrity. |
+| `admin_item` | `AdminItem` | Placeholder admin records. |
+
+All tables use `@PrimaryColumn()` with manually assigned sequential string IDs (`"1"`, `"2"`, ...) — intentionally predictable (CWE-330). No unique constraints, no foreign keys, no indices beyond primary keys. Schema weaknesses are intentional per [ADR-006](../decisions/ADR-006-insecure-by-design.md).
+
+### User Entity (v0.2.0)
 
 ```typescript
+@Entity()
 class User {
+  @PrimaryColumn()
   id: string;          // Sequential string ("1", "2", "3"...)
-  email: string;
+  @Column()
+  email: string;       // No unique constraint
+  @Column()
   username: string;
-  password: string;    // Plaintext
+  @Column()
+  password: string;    // Plaintext in DB (CWE-256)
+  @Column()
   createdAt: string;   // ISO 8601
+  @Column()
   updatedAt: string;   // ISO 8601
 }
 ```
 
-No other entities have real data yet. Files, sharing, and admin modules store placeholder/mock data.
+### Previous State (v0.0.x–v0.1.x)
+
+No database. Entities were plain TypeScript classes stored in service-level arrays. Data reset on restart. See [ADR-008](../decisions/ADR-008-in-memory-before-persistence.md).
 
 ---
 
 ## v1.0.0 -- Database Schema (PostgreSQL)
 
-The target schema when persistence is introduced (v0.2.x). Three core entities with relationships.
+The target schema at the insecure MVP. Builds on v0.2.0 with additional columns, relationships, and file storage.
 
 ### Entity Relationship Diagram
 

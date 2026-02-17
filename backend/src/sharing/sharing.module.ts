@@ -1,19 +1,18 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharingController } from './sharing.controller';
 import { SharingService } from './sharing.service';
+import { SharingEntity } from './entities/sharing.entity';
 
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.2.0 — Database Introduction (Local)
  *
- * Sharing module. Registers /sharing/* routes and stub service. No persistence.
- * Purpose: freeze API shape (CRUD + DTOs + mock responses). Real public links
- * and expiry (v0.3.4) come later.
- *
- * --- NestJS convention: Module as composition boundary ---
- * controllers[] and providers[] declare what this feature owns; framework
- * wires SharingController and SharingService.
+ * Sharing module. Registers /sharing/* routes and service backed by PostgreSQL.
+ * TypeOrmModule.forFeature() registers the SharingEntity repository so it
+ * can be injected into SharingService.
  */
 @Module({
+  imports: [TypeOrmModule.forFeature([SharingEntity])],
   controllers: [SharingController],
   providers: [SharingService],
 })

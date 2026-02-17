@@ -15,30 +15,33 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.1.5)
+## Current Status (v0.2.0)
 
-Identity and authentication surface complete — v0.1.x closed. Next: v0.2.x persistence.
+Persistence surface started — all data now persisted in PostgreSQL. v0.1.x identity surface complete.
 
-- **Backend** (NestJS) — Registration (`POST /auth/register`), login (`POST /auth/login`), protected profile (`GET /auth/me`), and cosmetic logout (`POST /auth/logout`). Real HS256 JWTs via `@nestjs/jwt` (hardcoded secret `'kc-secret'`, no expiration — intentionally insecure). No rate limiting, no account lockout, no password requirements (CWE-307, CWE-521). Passwords stored/compared as plaintext. Swagger at `/api/docs` (v0.1.5).
-- **Frontend** (Next.js) — Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, automatic Bearer header on all API calls via `getHeaders()`, header displays authenticated username via `authMe()`. Logout calls `authLogout()` fire-and-forget then clears localStorage. No password strength validation. Theme toggle (light/dark), app shell (Header, Footer, PageContainer). Types auto-generated from OpenAPI spec.
-- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (17 auth tests including brute-force, enumeration, weak password, token replay)
-- **Documentation** — ADRs 001-018, formal spec (scope, requirements, personas, security baseline), architecture diagrams, STRIDE threat model, data model, auth flow docs (with enumeration, brute-force, logout, token replay sequences), glossary
-- Both processes run independently; frontend calls backend on `localhost:4000`
-- No persistence (in-memory, resets on restart), no token expiration, cosmetic-only logout, no rate limiting — all intentional (18 CWE entries across v0.1.0–v0.1.5)
+- **Backend** (NestJS) — Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). No rate limiting, no account lockout, no password requirements. Passwords stored/compared as plaintext — now persisted permanently in PostgreSQL. All 5 domain services (users, auth, files, sharing, admin) backed by TypeORM repositories. Swagger at `/api/docs` (v0.2.0).
+- **Database** (PostgreSQL 16) — Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), `synchronize: true`, SQL logging enabled. 4 tables: `user`, `file_entity`, `sharing_entity`, `admin_item`. No unique constraints, no foreign keys — intentionally weak schema.
+- **Frontend** (Next.js) — Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, automatic Bearer header on all API calls. Theme toggle (light/dark), app shell. Types auto-generated from OpenAPI spec. No changes needed for v0.2.0 (API response shapes unchanged).
+- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (18 tests, all running against real PG)
+- **Documentation** — ADRs 001-020, formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary
+- 22 CWE entries across v0.1.0–v0.2.0 (v0.2.0 adds CWE-798, CWE-1188, CWE-1393, CWE-532)
 
 ### Run locally
 
 From the repo root:
 
 ```bash
-# Terminal 1 — backend (NestJS)
+# Terminal 1 — PostgreSQL (requires Docker)
+docker compose -f infra/compose.yml up -d
+
+# Terminal 2 — backend (NestJS)
 cd backend && npm run start:dev
 
-# Terminal 2 — frontend (Next.js)
+# Terminal 3 — frontend (Next.js)
 cd frontend && npm run dev
 ```
 
-Backend: `http://localhost:4000` (default). Frontend: `http://localhost:3000` (Next.js dev). See `backend/README.md` and `frontend/README.md` for details.
+Backend: `http://localhost:4000`. Frontend: `http://localhost:3000`. PostgreSQL: `localhost:5432` (`postgres`/`postgres`, database `kc_dev`). See `backend/README.md`, `frontend/README.md`, and `infra/README.md` for details.
 
 ## Repository Structure
 
@@ -46,10 +49,10 @@ Backend: `http://localhost:4000` (default). Frontend: `http://localhost:3000` (N
 KC-PROJECT/
 ├── backend/              # Backend service (NestJS) - REST API, auth, user management
 ├── frontend/             # Frontend application (Next.js) - auth UI, app shell
-├── infra/                # Deployment and infrastructure definitions (future)
+├── infra/                # Infrastructure (Docker Compose for PostgreSQL)
 ├── docs/                 # Engineering and project documentation
 │   ├── architecture/     # System architecture, auth flow, data model, STRIDE
-│   ├── decisions/        # Architecture Decision Records (ADR-001 to ADR-018)
+│   ├── decisions/        # Architecture Decision Records (ADR-001 to ADR-020)
 │   ├── diagrams/         # Standalone diagrams (architecture, auth, infra, threats, timeline)
 │   ├── roadmap/          # Version-by-version development plan
 │   ├── security/         # Pentesting methodology (future)

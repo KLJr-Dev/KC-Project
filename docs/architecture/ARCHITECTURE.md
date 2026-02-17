@@ -1,12 +1,12 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v0.1.2** (identity & authentication surface).
+This document describes the system architecture as of **v0.2.0** (persistence & database surface).
 
 ---
 
 ## System Overview
 
-KC-Project is a two-process full-stack web application with no persistence layer yet.
+KC-Project is a three-process full-stack web application. Frontend and backend run natively; PostgreSQL runs in a Docker container.
 
 ```mermaid
 flowchart LR
@@ -15,15 +15,18 @@ flowchart LR
     end
     subgraph server [Trust Boundary]
         Backend["Backend\nNestJS :4000\nREST API"]
+        PG["PostgreSQL :5432\nDocker container"]
     end
     Frontend -- "HTTP/REST\nJSON over localhost:4000" --> Backend
     Backend -- "JSON responses" --> Frontend
+    Backend -- "TypeORM" --> PG
 ```
 
-- **Frontend** — Next.js 16 with App Router, Tailwind CSS, React 19. Runs on port 3000. All pages are client components (`'use client'`) that call the backend via fetch.
-- **Backend** — NestJS 11 on Express. Runs on port 4000. Modular architecture with controllers, services, and DTOs. CORS enabled (intentionally permissive). No database.
+- **Frontend** — Next.js 16 with App Router, Tailwind CSS, React 19. Runs on port 3000. All pages are client components (`'use client'`) that call the backend via fetch. Bearer token in Authorization header.
+- **Backend** — NestJS 11 on Express. Runs on port 4000. Modular architecture with controllers, services, and DTOs. CORS enabled (intentionally permissive). TypeORM repositories backed by PostgreSQL.
+- **Database** — PostgreSQL 16 in Docker (`infra/compose.yml`). Hardcoded credentials, `synchronize: true`, SQL logging. See [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
 - **Communication** — Plain HTTP REST. JSON request/response bodies. No WebSockets, no GraphQL, no tRPC.
-- **Persistence** — None. All data is in-memory and resets on process restart.
+- **Persistence** — All data persisted in PostgreSQL via TypeORM. Survives process restarts.
 
 ---
 
@@ -48,21 +51,21 @@ graph TD
     AppModule --> SharingModule
     AppModule --> AdminModule
 
-    AuthModule --> AuthController["AuthController\nPOST /auth/register\nPOST /auth/login"]
-    AuthModule --> AuthService["AuthService\nReal register + login"]
+    AuthModule --> AuthController["AuthController\nPOST /auth/register\nPOST /auth/login\nGET /auth/me\nPOST /auth/logout"]
+    AuthModule --> AuthService["AuthService\nRegister, login, profile, logout"]
     AuthModule -.->|imports| UsersModule
 
     UsersModule --> UsersController["UsersController\nCRUD /users"]
-    UsersModule --> UsersService["UsersService\nIn-memory store\n(plaintext passwords)"]
+    UsersModule --> UsersService["UsersService\nRepository - User\n(plaintext passwords in PG)"]
 
     FilesModule --> FilesController["FilesController\nPOST /files\nGET-DELETE /files/:id"]
-    FilesModule --> FilesService["FilesService\nIn-memory metadata"]
+    FilesModule --> FilesService["FilesService\nRepository - FileEntity"]
 
     SharingModule --> SharingController["SharingController\nCRUD /sharing"]
-    SharingModule --> SharingService["SharingService\nIn-memory store"]
+    SharingModule --> SharingService["SharingService\nRepository - SharingEntity"]
 
     AdminModule --> AdminController["AdminController\nCRUD /admin"]
-    AdminModule --> AdminService["AdminService\nIn-memory store"]
+    AdminModule --> AdminService["AdminService\nRepository - AdminItem"]
 ```
 
 ### Per-module pattern
@@ -70,7 +73,7 @@ graph TD
 Every module follows the same internal structure:
 
 - **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic.
-- **Service** — Business logic and data access (currently in-memory arrays). Singleton per module via DI.
+- **Service** — Business logic and data access via TypeORM repositories (PostgreSQL). Singleton per module via DI.
 - **DTOs** — Request shapes (Create/Update) and response shapes. Classes (not interfaces) so NestJS can instantiate them and the Swagger plugin can introspect them.
 
 ---
@@ -178,27 +181,27 @@ sequenceDiagram
     participant API as lib/api.ts
     participant Controller as NestJS Controller
     participant Service as NestJS Service
-    participant Store as In-Memory Store
+    participant PG as PostgreSQL
 
     Browser->>Page: User action (form submit, page load)
     Page->>API: Typed function call (e.g. usersCreate)
     API->>Controller: fetch("http://localhost:4000/users", ...)
     Controller->>Service: Delegate (e.g. service.create(dto))
-    Service->>Store: Read/write in-memory array
-    Store-->>Service: Data
-    Service-->>Controller: Response object
+    Service->>PG: TypeORM repository query
+    PG-->>Service: Entity data
+    Service-->>Controller: Response DTO
     Controller-->>API: JSON HTTP response
     API-->>Page: Typed promise resolves
     Page-->>Browser: Re-render with data or error
 ```
 
-As of v0.1.2, there is no middleware, no guards, no validation pipe, and no database layer in this chain. Basic field validation exists in `AuthService` (throws 400/401/409). These layers will be inserted incrementally as the roadmap progresses.
+As of v0.2.0, JwtAuthGuard protects `/auth/me` and `/auth/logout`. No middleware, no validation pipe. Basic field validation exists in `AuthService` (throws 400/401/409). All data access goes through TypeORM repositories to PostgreSQL.
 
 ---
 
 ## Module Dependencies
 
-As of v0.1.2, `AuthModule` imports `UsersModule` to access user data during registration and login. All other modules remain independent.
+As of v0.2.0, `AuthModule` imports `UsersModule` to access user data during registration and login. All other modules remain independent. `TypeOrmModule` is imported by `AppModule` (global config) and each feature module (entity registration).
 
 ```mermaid
 graph TD
@@ -231,16 +234,18 @@ graph TD
 
 ## Trust Boundaries
 
-The frontend is an **untrusted client**. This is a stated architectural principle, partially enforced as of v0.1.2.
+The frontend is an **untrusted client**. This is a stated architectural principle, partially enforced as of v0.2.0.
 
-As of v0.1.2:
-- **Authentication exists but is intentionally weak** — registration and login are functional, but tokens are stub strings (`stub-token-{id}`) with no cryptographic value and no backend verification
-- **No authorization** — no guards, no middleware, no protected routes
-- **Passwords are plaintext** — stored and compared without hashing
-- **CORS allows all origins** — intentionally permissive
+As of v0.2.0:
+- **Authentication exists but is intentionally weak** — real HS256 JWTs with hardcoded secret (`'kc-secret'`), no expiration (CWE-347, CWE-613)
+- **JwtAuthGuard protects** `/auth/me` and `/auth/logout` — all other routes unprotected
+- **No authorization** — no RBAC, no ownership checks
+- **Passwords are plaintext** — stored and compared without hashing, now persisted in PostgreSQL (CWE-256)
+- **CORS allows all origins** — intentionally permissive (CWE-942)
 - **Basic input validation** — required field checks and duplicate email detection on registration
-- **No rate limiting** — unlimited auth attempts
-- **All data is in-memory** — resets on process restart
+- **No rate limiting** — unlimited auth attempts (CWE-307)
+- **DB credentials hardcoded** — in source code (CWE-798)
+- **All data persisted** — PostgreSQL via TypeORM, survives restarts
 
 These weaknesses are intentional. The security surface grows incrementally per the roadmap. See [auth-flow.md](./auth-flow.md) for a detailed security surface table. Enforcement matures through v0.4.x (authorization).
 
@@ -252,6 +257,8 @@ These weaknesses are intentional. The security surface grows incrementally per t
 |-------|-----------|---------|
 | Backend framework | NestJS | 11.x |
 | Backend runtime | Node.js | 20+ |
+| Database | PostgreSQL | 16.x |
+| ORM | TypeORM | latest |
 | Frontend framework | Next.js (App Router) | 16.x |
 | UI library | React | 19.x |
 | Styling | Tailwind CSS | 4.x |
@@ -265,10 +272,8 @@ These weaknesses are intentional. The security surface grows incrementally per t
 
 ## What This Architecture Does Not Include (Yet)
 
-- Database / persistence (v0.2.x)
-- Real authentication tokens / sessions (v0.1.3+) — registration and login work but tokens are stubs
-- File storage (v0.3.x)
+- File storage — real file I/O (v0.3.x)
 - Authorization / RBAC (v0.4.x)
-- Containers / deployment (v0.5.x)
+- App containers / deployment (v0.5.x) — only PG is containerised
 - CI/CD pipelines
-- Environment configuration
+- Environment configuration (credentials still hardcoded)

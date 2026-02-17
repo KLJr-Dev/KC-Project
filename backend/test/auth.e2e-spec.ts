@@ -2,27 +2,24 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 
 /**
- * v0.1.5 — Authentication Edge Cases (e2e tests)
+ * v0.2.0 — Database Introduction (Local)
  *
- * End-to-end tests for the /auth/* endpoints. Each describe block covers
- * one route. Tests exercise both happy paths and error paths, confirming
- * that intentional vulnerabilities behave as documented.
+ * End-to-end tests for /auth/* endpoints. Now runs against a real
+ * PostgreSQL database (requires Docker PG running).
  *
  * Test infrastructure:
  *   - Each describe block creates a fresh NestJS app via beforeEach().
- *     This means the in-memory user store resets between test blocks
- *     (but NOT between individual tests within the same block — the
- *     store persists across tests sharing a beforeEach).
+ *   - beforeEach() also truncates all tables via synchronize(true) to
+ *     ensure test isolation — no leftover data between test blocks.
+ *   - afterAll() closes the app and its DB connection.
  *   - supertest sends real HTTP requests to the app's HTTP server.
- *   - No mocking — tests hit the full stack (controller → service → store).
+ *   - No mocking — tests hit the full stack (controller → service → PG).
  *
- * JWT format expectation:
- *   Tokens are now real JWTs (3 dot-separated base64url segments):
- *     header.payload.signature
- *   Regex: /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
+ * Requires: docker compose -f infra/compose.yml up -d
  */
 
 /** Regex matching a valid JWT format (3 base64url segments separated by dots). */
@@ -38,12 +35,18 @@ describe('AuthController /auth/register (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    // Truncate all tables for test isolation
+    const dataSource = app.get(DataSource);
+    await dataSource.synchronize(true);
+  });
+
+  afterEach(async () => {
+    await app.close();
   });
 
   /**
    * Happy path: registration succeeds and returns a real JWT.
-   * Confirms that JwtService.sign() is wired correctly and produces
-   * a properly formatted token (not the old stub-token-{id} string).
    */
   it('POST /auth/register returns 201 with a real JWT on success', async () => {
     const response = await request(app.getHttpServer())
@@ -113,11 +116,17 @@ describe('AuthController /auth/login (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    const dataSource = app.get(DataSource);
+    await dataSource.synchronize(true);
+  });
+
+  afterEach(async () => {
+    await app.close();
   });
 
   /**
    * Happy path: login with correct credentials returns a real JWT.
-   * Confirms the full flow: register → login → receive JWT.
    */
   it('POST /auth/login returns 201 with a real JWT for valid credentials', async () => {
     const httpServer = app.getHttpServer();
@@ -157,9 +166,7 @@ describe('AuthController /auth/login (e2e)', () => {
 
   /**
    * Wrong password returns 401 with a DIFFERENT distinct message.
-   * Combined with the above test, this confirms user enumeration:
-   * an attacker can distinguish "email not registered" from "email
-   * registered but wrong password" (CWE-204).
+   * Combined with the above test, this confirms user enumeration (CWE-204).
    */
   it('POST /auth/login returns 401 for wrong password', async () => {
     const httpServer = app.getHttpServer();
@@ -199,11 +206,18 @@ describe('AuthController GET /auth/me (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    const dataSource = app.get(DataSource);
+    await dataSource.synchronize(true);
+  });
+
+  afterEach(async () => {
+    await app.close();
   });
 
   /**
    * No Authorization header → 401. Confirms JwtAuthGuard rejects
-   * unauthenticated requests before the controller handler runs.
+   * unauthenticated requests.
    */
   it('GET /auth/me returns 401 when no Authorization header is provided', async () => {
     const response = await request(app.getHttpServer())
@@ -214,9 +228,7 @@ describe('AuthController GET /auth/me (e2e)', () => {
   });
 
   /**
-   * Garbage/invalid token → 401. Confirms JwtAuthGuard rejects tokens
-   * that fail signature verification. This is the baseline: even though
-   * the secret is weak, you still need a validly signed token.
+   * Garbage/invalid token → 401.
    */
   it('GET /auth/me returns 401 with an invalid/garbage token', async () => {
     const response = await request(app.getHttpServer())
@@ -228,24 +240,18 @@ describe('AuthController GET /auth/me (e2e)', () => {
   });
 
   /**
-   * Valid token from login → 200 with user profile. Proves the full
-   * JWT session flow works end-to-end:
+   * Valid token → 200 with user profile. Full JWT session flow:
    *   register → login → receive JWT → use JWT on protected route → get profile
-   *
-   * Also confirms that the response contains the user's id, email, and
-   * username (but NOT the password — UsersService.findById strips it).
    */
   it('GET /auth/me returns 200 with user profile when a valid token is provided', async () => {
     const httpServer = app.getHttpServer();
 
-    // Register a user
     await request(httpServer).post('/auth/register').send({
       email: 'me-test@example.com',
       username: 'me-user',
       password: 'mypassword',
     });
 
-    // Login to get a real JWT
     const loginRes = await request(httpServer)
       .post('/auth/login')
       .send({ email: 'me-test@example.com', password: 'mypassword' })
@@ -254,7 +260,6 @@ describe('AuthController GET /auth/me (e2e)', () => {
     const token = loginRes.body.token;
     expect(token).toMatch(JWT_REGEX);
 
-    // Use the JWT to access the protected endpoint
     const meRes = await request(httpServer)
       .get('/auth/me')
       .set('Authorization', `Bearer ${token}`)
@@ -268,7 +273,6 @@ describe('AuthController GET /auth/me (e2e)', () => {
       }),
     );
 
-    // Confirm password is NOT in the response
     expect(meRes.body).not.toHaveProperty('password');
   });
 });
@@ -283,11 +287,17 @@ describe('AuthController POST /auth/logout (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    const dataSource = app.get(DataSource);
+    await dataSource.synchronize(true);
+  });
+
+  afterEach(async () => {
+    await app.close();
   });
 
   /**
-   * No Authorization header → 401. Confirms JwtAuthGuard protects the
-   * logout route — you must be "logged in" to log out.
+   * No Authorization header → 401.
    */
   it('POST /auth/logout returns 401 without Authorization header', async () => {
     const response = await request(app.getHttpServer())
@@ -298,14 +308,11 @@ describe('AuthController POST /auth/logout (e2e)', () => {
   });
 
   /**
-   * Valid token → 201. Confirms the logout endpoint accepts the token
-   * and returns a success message. The server does nothing with the
-   * token — it remains valid.
+   * Valid token → 201 with success message.
    */
   it('POST /auth/logout returns 201 with valid token', async () => {
     const httpServer = app.getHttpServer();
 
-    // Register + login to get a token
     await request(httpServer).post('/auth/register').send({
       email: 'logout-test@example.com',
       username: 'logout-user',
@@ -328,24 +335,12 @@ describe('AuthController POST /auth/logout (e2e)', () => {
   });
 
   /**
-   * TOKEN REPLAY AFTER LOGOUT — THE KEY v0.1.4 TEST.
-   *
-   * Proves CWE-613: after calling POST /auth/logout, the same JWT
-   * still works on GET /auth/me. The logout was cosmetic — the server
-   * did not invalidate the token in any way.
-   *
-   * This test explicitly documents the vulnerability:
-   *   1. Register + login → get JWT
-   *   2. Call POST /auth/logout with the JWT → 201 "Logged out"
-   *   3. Call GET /auth/me with the SAME JWT → 200 OK (still works!)
-   *
-   * In a secure system (v2.0.0), step 3 would return 401 because the
-   * token (or its associated refresh token) would be revoked on logout.
+   * TOKEN REPLAY AFTER LOGOUT — CWE-613.
+   * Proves the JWT still works after logout.
    */
   it('token remains valid after logout — CWE-613 token replay', async () => {
     const httpServer = app.getHttpServer();
 
-    // 1. Register + login
     await request(httpServer).post('/auth/register').send({
       email: 'replay-test@example.com',
       username: 'replay-user',
@@ -359,19 +354,16 @@ describe('AuthController POST /auth/logout (e2e)', () => {
 
     const token = loginRes.body.token;
 
-    // 2. Logout — server says "logged out" but does nothing
     await request(httpServer)
       .post('/auth/logout')
       .set('Authorization', `Bearer ${token}`)
       .expect(201);
 
-    // 3. Token replay — the same JWT STILL WORKS after logout
     const meRes = await request(httpServer)
       .get('/auth/me')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
 
-    // The token was NOT invalidated — full profile still accessible
     expect(meRes.body).toEqual(
       expect.objectContaining({
         id: expect.any(String),
@@ -392,59 +384,51 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    const dataSource = app.get(DataSource);
+    await dataSource.synchronize(true);
+  });
+
+  afterEach(async () => {
+    await app.close();
   });
 
   /**
    * BRUTE-FORCE TEST — CWE-307
-   *
-   * Sends 10 rapid login attempts with wrong passwords. All return 401.
-   * None are blocked, throttled, or rate-limited. Proves the server allows
-   * unlimited authentication attempts at full speed.
-   *
-   * In a secure system (v2.0.0), nginx rate limiting would block after
-   * 5 requests/minute, and application-level throttling would return 429.
+   * 10 rapid wrong-password attempts, all return 401, none blocked.
    */
   it('allows unlimited rapid login attempts — CWE-307 brute force', async () => {
     const httpServer = app.getHttpServer();
 
-    // Register a target user
     await request(httpServer).post('/auth/register').send({
       email: 'brute-target@example.com',
       username: 'brute-target',
       password: 'correct-password',
     });
 
-    // Send 10 sequential wrong-password attempts
     for (let i = 0; i < 10; i++) {
       const res = await request(httpServer)
         .post('/auth/login')
         .send({ email: 'brute-target@example.com', password: `wrong-${i}` })
         .expect(401);
 
-      // Every single attempt returns 401 — none blocked or rate-limited
       expect(res.body.message).toContain('Incorrect password');
     }
   });
 
   /**
    * NO ACCOUNT LOCKOUT — CWE-307
-   *
-   * After 10 failed login attempts, login with the correct password still
-   * succeeds. The account is never locked, suspended, or flagged. This
-   * combined with the brute-force test above proves that an attacker can
-   * attempt unlimited passwords with no consequence.
+   * After 10 failures, correct password still works.
    */
   it('account is never locked after failed attempts — CWE-307 no lockout', async () => {
     const httpServer = app.getHttpServer();
 
-    // Register a target user
     await request(httpServer).post('/auth/register').send({
       email: 'lockout-target@example.com',
       username: 'lockout-target',
       password: 'real-password',
     });
 
-    // 10 wrong-password attempts
     for (let i = 0; i < 10; i++) {
       await request(httpServer)
         .post('/auth/login')
@@ -452,7 +436,6 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
         .expect(401);
     }
 
-    // Correct password STILL works after 10 failures — no lockout
     const loginRes = await request(httpServer)
       .post('/auth/login')
       .send({ email: 'lockout-target@example.com', password: 'real-password' })
@@ -463,15 +446,11 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
 
   /**
    * WEAK PASSWORD ACCEPTED — CWE-521
-   *
-   * Registers with password "a" (single character) and then logs in with
-   * it. Both succeed. Proves there are no password requirements — no
-   * minimum length, no complexity rules, no strength validation.
+   * Password "a" accepted for both register and login.
    */
   it('accepts single-character password — CWE-521 weak password', async () => {
     const httpServer = app.getHttpServer();
 
-    // Register with password "a" — should succeed (no requirements)
     const registerRes = await request(httpServer)
       .post('/auth/register')
       .send({
@@ -483,7 +462,6 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
 
     expect(registerRes.body.token).toMatch(JWT_REGEX);
 
-    // Login with password "a" — also succeeds
     const loginRes = await request(httpServer)
       .post('/auth/login')
       .send({ email: 'weak-pw@example.com', password: 'a' })
@@ -494,22 +472,11 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
 
   /**
    * USER ENUMERATION VIA DISTINCT ERRORS — CWE-204
-   *
-   * Demonstrates the full enumeration attack: an attacker can determine
-   * whether an email is registered by comparing error messages.
-   *
-   * Step 1: Login with unregistered email → "No user with that email"
-   * Step 2: Register that email
-   * Step 3: Login with wrong password → "Incorrect password"
-   *
-   * The different messages for the same endpoint reveal registration status.
-   * In a secure system (v2.0.0), both cases return "Authentication failed."
    */
   it('distinct error messages reveal email registration status — CWE-204 enumeration', async () => {
     const httpServer = app.getHttpServer();
     const targetEmail = 'enum-test@example.com';
 
-    // Step 1: email not registered → distinct "no user" message
     const notRegistered = await request(httpServer)
       .post('/auth/login')
       .send({ email: targetEmail, password: 'anything' })
@@ -517,14 +484,12 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
 
     expect(notRegistered.body.message).toContain('No user with that email');
 
-    // Step 2: register the email
     await request(httpServer).post('/auth/register').send({
       email: targetEmail,
       username: 'enum-user',
       password: 'secret',
     });
 
-    // Step 3: email now registered, wrong password → different message
     const wrongPassword = await request(httpServer)
       .post('/auth/login')
       .send({ email: targetEmail, password: 'wrong' })
@@ -532,8 +497,6 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
 
     expect(wrongPassword.body.message).toContain('Incorrect password');
 
-    // The two messages are DIFFERENT — enumeration confirmed
     expect(notRegistered.body.message).not.toEqual(wrongPassword.body.message);
   });
 });
-

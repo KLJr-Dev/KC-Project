@@ -1,70 +1,79 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { SharingEntity } from './entities/sharing.entity';
 import { SharingResponseDto } from './dto/sharing-response.dto';
 import { CreateSharingDto } from './dto/create-sharing.dto';
 import { UpdateSharingDto } from './dto/update-sharing.dto';
 
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.2.0 — Database Introduction (Local)
  *
- * Sharing service. In-memory mock only; no persistence. All methods exist to
- * satisfy controller routes and return placeholder data. Real public links
- * and expiry (v0.3.4) come later.
+ * Sharing service. Data is now persisted in PostgreSQL via TypeORM.
+ * No real public links or expiry logic — placeholder behaviour.
+ * Real sharing (v0.3.4) comes later.
  *
- * --- NestJS convention: Service = business logic & data access ---
- * Same as admin/users: controller delegates here. Later we'll add DB-backed
- * share records; controller stays unchanged.
+ * All methods are async (return Promises) because repository operations
+ * hit the database.
  */
 @Injectable()
 export class SharingService {
-  /** v0.0.6 — in-memory stub; not persisted. Resets on process restart. */
-  private mockShares: SharingResponseDto[] = [
-    {
-      id: '1',
-      fileId: '1',
-      public: true,
-      createdAt: '2025-01-01T00:00:00Z',
-      expiresAt: undefined,
-    },
-  ];
+  constructor(
+    @InjectRepository(SharingEntity)
+    private readonly shareRepo: Repository<SharingEntity>,
+  ) {}
 
-  /** v0.0.6 — stub for POST /sharing/create. Appends to mock list. */
-  create(dto: CreateSharingDto): SharingResponseDto {
-    const id = String(this.mockShares.length + 1);
-    const created: SharingResponseDto = {
+  /** Map a SharingEntity to a SharingResponseDto. */
+  private toResponse(entity: SharingEntity): SharingResponseDto {
+    const dto = new SharingResponseDto();
+    dto.id = entity.id;
+    dto.fileId = entity.fileId;
+    dto.public = entity.public;
+    dto.createdAt = entity.createdAt;
+    dto.expiresAt = entity.expiresAt;
+    return dto;
+  }
+
+  /** POST /sharing — persist share record to database. */
+  async create(dto: CreateSharingDto): Promise<SharingResponseDto> {
+    const count = await this.shareRepo.count();
+    const id = String(count + 1);
+    const entity = this.shareRepo.create({
       id,
-      fileId: dto.fileId,
-      public: dto.public,
+      fileId: dto.fileId ?? '',
+      public: dto.public ?? false,
       createdAt: new Date().toISOString(),
-      expiresAt: dto.expiresAt,
-    };
-    this.mockShares.push(created);
-    return created;
+      expiresAt: dto.expiresAt ?? '',
+    });
+    const saved = await this.shareRepo.save(entity);
+    return this.toResponse(saved);
   }
 
-  /** v0.0.6 — stub for GET /sharing/read. Returns copy to avoid external mutation. */
-  read(): SharingResponseDto[] {
-    return [...this.mockShares];
+  /** GET /sharing — return all share records. */
+  async read(): Promise<SharingResponseDto[]> {
+    const entities = await this.shareRepo.find();
+    return entities.map((e) => this.toResponse(e));
   }
 
-  /** v0.0.6 — stub for GET /sharing/get/:id. Null = not found; controller maps to 404. */
-  getById(id: string): SharingResponseDto | null {
-    return this.mockShares.find((s) => s.id === id) ?? null;
+  /** GET /sharing/:id — return single share or null. */
+  async getById(id: string): Promise<SharingResponseDto | null> {
+    const entity = await this.shareRepo.findOne({ where: { id } });
+    return entity ? this.toResponse(entity) : null;
   }
 
-  /** v0.0.6 — stub for PUT /sharing/update/:id. Mutates in place; null if id missing. */
-  update(id: string, dto: UpdateSharingDto): SharingResponseDto | null {
-    const share = this.mockShares.find((s) => s.id === id);
-    if (!share) return null;
-    if (dto.public !== undefined) share.public = dto.public;
-    if (dto.expiresAt !== undefined) share.expiresAt = dto.expiresAt;
-    return share;
+  /** PUT /sharing/:id — update share record, return DTO or null. */
+  async update(id: string, dto: UpdateSharingDto): Promise<SharingResponseDto | null> {
+    const entity = await this.shareRepo.findOne({ where: { id } });
+    if (!entity) return null;
+    if (dto.public !== undefined) entity.public = dto.public;
+    if (dto.expiresAt !== undefined) entity.expiresAt = dto.expiresAt;
+    const saved = await this.shareRepo.save(entity);
+    return this.toResponse(saved);
   }
 
-  /** v0.0.6 — stub for DELETE /sharing/delete/:id. Returns true if removed, false if unknown id. */
-  delete(id: string): boolean {
-    const idx = this.mockShares.findIndex((s) => s.id === id);
-    if (idx === -1) return false;
-    this.mockShares.splice(idx, 1);
-    return true;
+  /** DELETE /sharing/:id — remove record, return success boolean. */
+  async delete(id: string): Promise<boolean> {
+    const result = await this.shareRepo.delete(id);
+    return (result.affected ?? 0) > 0;
   }
 }
