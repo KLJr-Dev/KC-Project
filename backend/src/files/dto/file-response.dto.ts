@@ -1,18 +1,17 @@
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.2.2 — Identifier Trust Failures
  *
- * Response shape for upload (POST /files/upload) and download metadata
- * (GET /files/download/:id). Stub only; no real storage. Used so clients
- * know what to expect: id, filename, size, uploadedAt. Actual file bytes
- * come in v0.3.x; here we return metadata only.
+ * Response shape for file metadata. Includes ownerId (who uploaded it),
+ * but no endpoint checks that the requesting user matches ownerId.
  *
- * --- Why metadata-only response for download in v0.0.6? ---
- * Real download would stream file content. For API shape we only define
- * the response type. We use the same DTO for "upload success" and "download
- * info" so the file resource has one consistent shape.
+ * VULN (v0.2.2): ownerId is exposed in the response but never enforced.
+ *       Any authenticated user can see who owns a file, and still
+ *       access or delete it regardless.
+ *       CWE-639 | A01:2021
  */
 export class FileResponseDto {
   id!: string;
+  ownerId?: string;
   filename!: string;
   size?: number;
   uploadedAt!: string;
