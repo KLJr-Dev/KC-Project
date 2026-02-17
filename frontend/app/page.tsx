@@ -80,21 +80,21 @@ export default function HomePage() {
         <div className="flex flex-col justify-between rounded-md border border-border p-6">
           <div className="space-y-3">
             <h2 className="text-sm font-medium text-muted">Current Version</h2>
-            <p className="text-lg font-semibold text-foreground">v0.1.1 - Registration Endpoint</p>
+            <p className="text-lg font-semibold text-foreground">v0.2.0 - Database Introduction</p>
             <p className="text-sm text-muted">
-              User creation with minimal validation. Identity and authentication surface is being
-              introduced. No persistence, no real token generation yet.
+              All data persisted in PostgreSQL via TypeORM. Identity surface complete. Credentials,
+              users, and metadata survive restarts. Intentionally insecure defaults.
             </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
             <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
-              In-memory store
+              PostgreSQL 16
             </span>
             <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
-              Stub tokens
+              Real JWTs
             </span>
             <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
-              No persistence
+              Persistent data
             </span>
           </div>
         </div>

@@ -181,7 +181,7 @@ Each feature lives in its own folder and follows the same internal structure.
 users/
 ├── users.module.ts        # Module definition
 ├── users.controller.ts    # RESTful HTTP routes (POST, GET, PUT, DELETE on /users)
-├── users.service.ts       # Business logic (mock in-memory for v0.0.6)
+├── users.service.ts       # Business logic (TypeORM repository)
 └── dto/                   # Request/response contracts
     ├── create-user.dto.ts
     ├── update-user.dto.ts
@@ -252,15 +252,17 @@ dto/
 
 ---
 
-## Current version context (v0.1.0)
+## Current version context (v0.2.0)
 
-**v0.1.0 — User Model Introduced** is complete.
+**v0.2.0 — Database Introduction** is complete.
 
-- **users module:** `User` entity defined at `users/entities/user.entity.ts` with `id`, `email`, `username`, `password`, `createdAt`. `UsersService` stores `User[]` internally and maps to `UserResponseDto` at the boundary (password stripped). Password stored in plaintext (intentionally insecure — hashing introduced at v0.1.2).
-- **admin, auth, files, sharing:** Routes defined, DTOs defined, services return mock/placeholder data. No changes from v0.0.8.
+- **All modules:** Services backed by TypeORM repositories, data persisted in PostgreSQL. All methods async.
+- **users module:** `User` entity with TypeORM decorators at `users/entities/user.entity.ts`. `UsersService` uses `Repository<User>` and maps to `UserResponseDto` at the boundary (password stripped). Password stored in plaintext in PostgreSQL (CWE-256).
+- **auth module:** Registration, login, profile, logout. Real HS256 JWTs (hardcoded secret, no expiry). JwtAuthGuard on `/auth/me` and `/auth/logout`.
+- **files, sharing, admin:** Entities defined, services use TypeORM repositories, placeholder behaviour.
 - **OpenAPI/Swagger** spec auto-generated from DTOs via `@nestjs/swagger` CLI plugin. Swagger UI at `/api/docs`, JSON spec at `/api/docs-json`.
 - **TypeScript** `strict: true` enabled. Response DTO required fields use definite assignment (`!:`).
 - **Prettier** config shared at repo root (`.prettierrc`). `format` / `format:check` scripts available.
-- No persistence
-- No authentication enforcement
+- PostgreSQL persistence via TypeORM (`synchronize: true`, hardcoded credentials)
+- Authentication via JWTs (intentionally weak)
 - No authorization enforcement
