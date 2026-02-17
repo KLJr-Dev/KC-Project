@@ -143,26 +143,26 @@ This version stabilises collaboration before complexity increases.
 
 Goal: Introduce identity with minimal security guarantees.
 
-### v0.1.0 — User Model Introduced
+### v0.1.0 — User Model Introduced ✅
 
 - `User` entity with sequential string IDs (CWE-330)
 - `UsersService` with in-memory array store
 - CRUD endpoints on `/users` (unprotected)
 
-### v0.1.1 — Registration Endpoint
+### v0.1.1 — Registration Endpoint ✅
 
 - `POST /auth/register` — create user + issue stub token
 - Plaintext password storage (CWE-256)
 - Leaky duplicate error includes email (CWE-209)
 - Frontend auth page with Register tab, `AuthContext` + localStorage persistence
 
-### v0.1.2 — Login Endpoint
+### v0.1.2 — Login Endpoint ✅
 
 - `POST /auth/login` — plaintext password comparison (CWE-256)
 - Distinct error messages enable user enumeration (CWE-204)
 - Frontend Sign In tab wired to auth context
 
-### v0.1.3 — Session Concept
+### v0.1.3 — Session Concept ✅
 
 - Real JWTs (HS256, hardcoded `'kc-secret'`, no expiration) replace stub tokens
 - `JwtAuthGuard` + `@CurrentUser()` decorator introduced
@@ -173,7 +173,7 @@ Goal: Introduce identity with minimal security guarantees.
 - e2e tests for JWT format + `/auth/me` coverage
 - Swagger bumped to 0.1.3
 
-### v0.1.4 — Logout & Token Misuse
+### v0.1.4 — Logout & Token Misuse ✅
 
 - `POST /auth/logout` behind `JwtAuthGuard` — intentionally does nothing server-side
 - `AuthService.logout()` returns cosmetic success message, no deny-list / session table / revocation
