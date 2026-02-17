@@ -1,5 +1,5 @@
 /**
- * v0.1.3 — Session Concept
+ * v0.1.4 — Logout & Token Misuse
  *
  * CWE-615 WARNING: This component is client-side rendered ('use client').
  * All comments, the authMe() call, the username display logic, and the
@@ -14,7 +14,7 @@
  *   - Auth state: "Sign In" link (unauthenticated) or "username | Logout" (authenticated)
  *   - Theme toggle (light/dark)
  *
- * --- Auth integration (v0.1.3) ---
+ * --- Auth integration (v0.1.4) ---
  * When isAuthenticated is true, the component calls authMe() on mount via
  * useEffect to fetch the current user's profile from GET /auth/me. This
  * proves the JWT session works end-to-end: the token from localStorage is
@@ -25,12 +25,16 @@
  * the component gracefully falls back to showing just "Logout" without a
  * username — no error is surfaced to the user.
  *
+ * --- Logout behaviour (v0.1.4) ---
+ * Clicking "Logout" triggers AuthContext.logout(), which:
+ *   1. Fires POST /auth/logout (fire-and-forget — backend does nothing)
+ *   2. Clears React state + localStorage
+ * The JWT is NOT revoked. Any copy of the token remains valid indefinitely.
+ * VULN: CWE-613 (Insufficient Session Expiration) | A07:2021
+ *
  * Note: The authenticated username, user ID, and full API response are
  * visible in the browser's Network tab. The username is also rendered in
  * the DOM (inspectable) and visible in React DevTools' component state.
- * This is normal for any web app, but combined with the other v0.1.3
- * weaknesses (localStorage token, no TLS), it confirms to an attacker
- * that the session is active and which user is logged in.
  */
 'use client';
 
