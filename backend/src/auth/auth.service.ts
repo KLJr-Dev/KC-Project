@@ -13,7 +13,7 @@ import { UsersService } from '../users/users.service';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 
 /**
- * v0.1.4 — Logout & Token Misuse
+ * v0.1.5 — Authentication Edge Cases
  *
  * Core authentication business logic. Handles:
  *   - register()    → create user + issue JWT          (POST /auth/register)
@@ -58,6 +58,25 @@ import { UserResponseDto } from '../users/dto/user-response.dto';
  *       CWE-613 (Insufficient Session Expiration) | A07:2021
  *       Remediation (v2.0.0): DELETE refresh token from database on logout,
  *       combined with short-lived access tokens that expire in 15 minutes.
+ *
+ * VULN (v0.1.5): No rate limiting on register() or login(). An attacker can
+ *       send unlimited requests per second — brute-forcing passwords, stuffing
+ *       credentials, or mass-registering accounts. No account lockout after
+ *       failed login attempts — 1000 wrong passwords, then the correct one
+ *       still works.
+ *       CWE-307 (Improper Restriction of Excessive Authentication Attempts) | A07:2021
+ *       Remediation (v2.0.0): nginx rate limiting (limit_req_zone, 5 req/min
+ *       per IP on /auth/*) + @nestjs/throttler as application-level backup.
+ *       Account lockout after 5 failed attempts with exponential backoff.
+ *
+ * VULN (v0.1.5): No password requirements. register() accepts any non-empty
+ *       string as a password — "a", "1", " " all succeed. No minimum length,
+ *       no complexity rules, no strength meter. Combined with no rate limiting,
+ *       weak passwords are trivially brute-forced.
+ *       CWE-521 (Weak Password Requirements) | A07:2021
+ *       Remediation (v2.0.0): Minimum 12 characters, at least 1 uppercase,
+ *       1 lowercase, 1 digit, 1 special character. Validated server-side via
+ *       class-validator decorators + ValidationPipe.
  */
 @Injectable()
 export class AuthService {
