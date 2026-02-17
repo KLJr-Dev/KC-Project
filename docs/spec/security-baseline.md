@@ -1,0 +1,118 @@
+# Security Control Baseline
+
+Target security controls for v2.0.0 -- the "done" checklist for a hardening cycle. Every v1.N.x pentest works toward satisfying these controls. When all controls are implemented and verified, the version qualifies as v2.N.0.
+
+This document defines **what "secure" looks like** for KC-Project. Each control references the CWE it remediates and the v1.0.0 weakness it replaces.
+
+---
+
+## Authentication Controls
+
+| Control | Implementation | Remediates |
+|---------|---------------|------------|
+| Strong password hashing | bcrypt with cost factor 12+ | CWE-256 (plaintext/weak storage) |
+| Asymmetric token signing | RS256 (private key signs, public key verifies) | CWE-347 (weak symmetric secret) |
+| Short-lived access tokens | 15-minute TTL on access JWTs | CWE-613 (no expiration) |
+| Refresh token rotation | New refresh token on each use, old one invalidated | CWE-613 (token replay) |
+| Server-side token tracking | `refresh_tokens` table in database, deleted on logout | CWE-613 (no revocation) |
+| Generic error messages | All auth failures return "Authentication failed" | CWE-204 (user enumeration) |
+| Password strength validation | Minimum length, complexity requirements | CWE-521 (weak passwords) |
+
+## Session Management Controls
+
+| Control | Implementation | Remediates |
+|---------|---------------|------------|
+| httpOnly refresh cookie | `Set-Cookie: httpOnly; secure; sameSite=strict` | CWE-922 (localStorage XSS exposure) |
+| Access token in memory only | Short-lived token held in JavaScript variable, not persisted | CWE-922 (persistent storage) |
+| Session revocation on logout | Delete all refresh tokens for user from database | CWE-613 (cosmetic logout) |
+| Idle timeout | Refresh token expires after 7 days of inactivity | CWE-613 (infinite sessions) |
+
+## Authorisation Controls
+
+| Control | Implementation | Remediates |
+|---------|---------------|------------|
+| Server-side RBAC | Role read from database `users.role` column, never from client | CWE-285 (client role claims) |
+| Guards on every protected route | `@UseGuards(JwtAuthGuard, RolesGuard)` on all non-public endpoints | CWE-602 (frontend-only guards) |
+| Ownership validation on resources | `WHERE id = $1 AND owner_id = $2` on every data access query | CWE-639 (IDOR) |
+| Least privilege enforcement | Guards check `role >= required` before proceeding | CWE-269 (privilege escalation) |
+| Admin endpoint protection | All `/admin` routes require `admin` role, return 403 for regular users | CWE-639 (cross-role access) |
+
+## Input Validation Controls
+
+| Control | Implementation | Remediates |
+|---------|---------------|------------|
+| Parameterised queries | TypeORM/Knex with query parameters, zero string concatenation | CWE-89 (SQL injection) |
+| Input length limits | Maximum lengths on all text fields (email, username, password, filenames) | CWE-20 (improper input validation) |
+| Email format validation | Server-side regex + uniqueness check | CWE-20 (improper input validation) |
+| Generic error responses | Global exception filter strips stack traces and SQL details | CWE-209 (error information leakage) |
+
+## File Handling Controls
+
+| Control | Implementation | Remediates |
+|---------|---------------|------------|
+| MIME type validation | Validate via file magic bytes (file header), not client Content-Type | CWE-434 (MIME confusion) |
+| Path canonicalisation | `path.resolve()` + verify result starts with base upload directory | CWE-22 (path traversal) |
+| Upload size limits | Multer `limits: { fileSize: 10 * 1024 * 1024 }` (10 MB) | CWE-400 (resource exhaustion) |
+| File ownership checks | `files.owner_id = currentUser.id` on read, download, and delete | CWE-639 (IDOR on files) |
+| Filename sanitisation | Strip path separators, special characters, and null bytes from uploaded filenames | CWE-22 (path injection via filename) |
+
+## Transport Controls
+
+| Control | Implementation | Remediates |
+|---------|---------------|------------|
+| TLS termination | nginx terminates TLS 1.3 on port 443 | CWE-319 (plaintext transport) |
+| HSTS header | `Strict-Transport-Security: max-age=31536000; includeSubDomains` | CWE-319 (protocol downgrade) |
+| Secure cookies | `secure` flag on all cookies (only sent over HTTPS) | CWE-614 (sensitive cookie without secure flag) |
+| No plaintext ports | Only port 443 exposed externally. No HTTP (80), no direct backend/DB ports | CWE-319 (plaintext transport) |
+
+## Infrastructure Controls
+
+| Control | Implementation | Remediates |
+|---------|---------------|------------|
+| Non-root containers | `USER 1001:1001` in Dockerfiles, `user:` in docker-compose | CWE-250 (running as root) |
+| Read-only filesystems | `read_only: true` in docker-compose (except explicit volume mounts) | CWE-732 (incorrect permissions) |
+| Docker secrets | `POSTGRES_PASSWORD_FILE=/run/secrets/db_password` instead of env vars | CWE-798 (hardcoded credentials) |
+| Internal Docker network | `networks: internal` with `internal: true` (no external gateway) for DB | CWE-668 (exposed services) |
+| Resource limits | `deploy.resources.limits` for CPU and memory per container | CWE-770 (resource exhaustion) |
+| Health checks | Liveness probes on all services | Operational resilience |
+| Minimal base images | Alpine-based images, no unnecessary packages | CWE-1104 (unmaintained components) |
+
+## Security Headers
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `Content-Security-Policy` | `default-src 'self'` | Prevent XSS via inline scripts and external resources |
+| `X-Frame-Options` | `DENY` | Prevent clickjacking |
+| `X-Content-Type-Options` | `nosniff` | Prevent MIME sniffing |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Limit referrer leakage |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disable unnecessary browser APIs |
+
+All headers set by nginx (not the application) to ensure consistent enforcement.
+
+## Logging and Monitoring Controls
+
+| Control | Implementation | Remediates |
+|---------|---------------|------------|
+| Structured logging | Pino or Winston with JSON output | CWE-778 (insufficient logging) |
+| Sensitive field redaction | Password, token, and credential fields stripped from logs | CWE-532 (sensitive data in logs) |
+| Auth event audit trail | Log all login attempts (success/failure), registrations, logouts, role changes | CWE-778 (insufficient logging) |
+| Request ID correlation | Unique ID per request, propagated through all log entries | Debugging and incident response |
+
+## Rate Limiting Controls
+
+| Control | Implementation | Remediates |
+|---------|---------------|------------|
+| Auth endpoint rate limiting | nginx `limit_req_zone` on `/auth/*` (5 requests/minute per IP) | CWE-307 (brute force) |
+| Application-level throttling | `@nestjs/throttler` as a secondary layer | CWE-307 (brute force) |
+| Global request limiting | nginx connection limits to prevent general DoS | CWE-400 (resource exhaustion) |
+
+---
+
+## Baseline Compliance Check
+
+When hardening a v1.N.0 to produce v2.N.0, verify every control in this document. A version qualifies as v2.N.0 when:
+
+1. Every control above is implemented
+2. Every CWE from the corresponding v1.N.0 threat model is addressed
+3. The pentest findings from v1.N.x are all resolved
+4. The remediation is documented with before/after evidence

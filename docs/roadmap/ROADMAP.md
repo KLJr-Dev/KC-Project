@@ -22,13 +22,27 @@ KC-Project follows semantic-style incremental versioning, where minor versions r
 
 ## Version Semantics
 
+### Build Phase (v0.x)
+
 - v0.0.x — Project foundation, shape, and contracts
 - v0.1.x — Identity & authentication surface
 - v0.2.x — Persistence & database surface
 - v0.3.x — File handling surface
 - v0.4.x — Authorization & administrative surface
 - v0.5.x — Deployment & containerisation surface
-- v1.0.0 — Fully deployed intentionally vulnerable baseline
+- v0.6.x — Runtime, configuration & observability surface
+
+### Expansion Cycle (v1.x / v2.x)
+
+- v1.0.0 — Insecure MVP (~15 CWEs across 6 attack surfaces)
+- v1.0.x — Structured pentesting, discovery, incremental patches
+- v2.0.0 — Secure parallel to v1.0.0 (all CWEs remediated)
+- v1.1.0 — Fork v2.0.0, introduce ~10 new CWEs (next insecure iteration)
+- v1.1.x — Pentest cycle for v1.1.0
+- v2.1.0 — Secure parallel to v1.1.0
+- ...repeat indefinitely
+
+See [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) and [version-timeline.md](../diagrams/version-timeline.md) for the full expansion cycle model.
 
 ## Stability Rule
 
@@ -146,11 +160,17 @@ Goal: Introduce identity with minimal security guarantees.
 - Login logic added
 - Plaintext or weakly handled passwords
 
-### v0.1.3 — Session Concept
+### v0.1.3 — Session Concept ✅
 
-- Sessions or JWT introduced
-- Tokens stored client-side
-- No expiration enforcement
+- Real JWTs (HS256, `'kc-secret'`, no expiration) replace stub tokens
+- `JwtAuthGuard` + `@CurrentUser()` decorator introduced
+- `GET /auth/me` — first protected endpoint, returns user profile
+- Frontend `api.ts` sends `Authorization: Bearer` header automatically via `getHeaders()`
+- Header component displays authenticated username via `authMe()` on mount
+- Comprehensive inline documentation with CWE + OWASP vulnerability annotations on all files
+- CWE-615 tracked: frontend comments visible in browser bundle (CSR)
+- e2e tests updated for JWT format + `/auth/me` coverage
+- Swagger bumped to 0.1.3
 
 ### v0.1.4 — Logout & Token Misuse
 
@@ -337,25 +357,47 @@ Goal: Make the system feel like a real target.
 - Crash loops
 - Partial outages
 
-## v1.0.0 — Intentionally Vulnerable Baseline
+## v1.0.0 — Insecure MVP
 
-Goal: Freeze a realistic, insecure reference system.
+Goal: Freeze a realistic, insecure reference system with ~15 documented CWEs across 6 attack surfaces.
 
 ### v1.0.0 Criteria
 
-- Full functionality implemented
+- Full functionality implemented (all 5 domains operational)
 - Deployed on Ubuntu VM
 - Containerised frontend, backend, database
-- Vulnerabilities documented and reproducible
+- ~15 intentional vulnerabilities documented with CWE + OWASP Top 10 classification
 - Ready for structured penetration testing
 
-This version is the control baseline and is never hardened.
+This version is the first insecure baseline. It enters the expansion cycle: pentest (v1.0.x), harden (v2.0.0), then fork and expand (v1.1.0).
 
-## Post v1.0.0 (Explicitly Out of Scope)
+## Post v1.0.0 — Expansion Cycle
 
-- Security hardening (v2.x)
-- External identity providers
-- WAF / IDS / SIEM
-- Performance tuning
-- Scalability engineering
-- Compliance certifications
+After v1.0.0, the project follows a perpetual insecure/secure loop (see [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md)):
+
+```
+v1.0.0 (insecure MVP)
+  → v1.0.x (pentest + patch)
+  → v2.0.0 (secure parallel — all v1.0.0 CWEs remediated)
+  → v1.1.0 (fork v2.0.0, add ~10 new CWEs)
+  → v1.1.x (pentest + patch)
+  → v2.1.0 (secure parallel)
+  → ...repeat
+```
+
+### What the expansion cycle introduces
+
+Each new v1.N.0 adds vulnerability surfaces not present in the previous cycle:
+
+- **v1.1.0 (speculative):** XSS (CWE-79), CSRF (CWE-352), SSRF (CWE-918), insecure deserialization (CWE-502)
+- **v1.2.0 (speculative):** Race conditions (CWE-362), cache poisoning (CWE-349), JWT algorithm confusion (CWE-327)
+- **v1.3.0 (speculative):** Supply chain attacks, CI/CD exploitation, cloud misconfigurations
+
+### Explicitly out of scope for all versions
+
+- External identity providers (OAuth, SAML, OIDC)
+- Compliance certifications (SOC 2, ISO 27001, PCI)
+- Performance tuning and scalability engineering
+- Mobile clients
+
+See [scope.md](../spec/scope.md) for the full in-scope / out-of-scope breakdown.
