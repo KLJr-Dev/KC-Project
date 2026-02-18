@@ -160,6 +160,7 @@ DELETE /sharing/:id        Delete share
 
 POST   /admin              Create admin item
 GET    /admin              List admin items
+GET    /admin/crash-test   Deliberate crash (v0.2.4)
 GET    /admin/:id          Get admin item by id
 PUT    /admin/:id          Update admin item
 DELETE /admin/:id          Delete admin item
@@ -253,22 +254,22 @@ dto/
 
 ---
 
-## Current version context (v0.2.3)
+## Current version context (v0.2.5)
 
-**v0.2.3 — Enumeration Surface** is complete.
+**v0.2.5 — Persistence Refactoring** is complete. The v0.2.x persistence surface is closed.
 
 - **All modules:** Services backed by TypeORM repositories, data persisted in PostgreSQL. All methods async. All resource controllers protected by JwtAuthGuard (authentication required).
 - **users module:** `User` entity. `UsersService` uses `Repository<User>`. Password stored in plaintext (CWE-256). Any authenticated user can read/modify/delete any user's profile (CWE-639, CWE-862). `GET /users` returns full table dump (CWE-200, CWE-400).
 - **auth module:** Registration, login, profile, logout. Real HS256 JWTs (hardcoded secret, no expiry). AuthModule exports JwtModule so resource modules can use JwtAuthGuard.
-- **files module:** `FileEntity` with `ownerId` column. ownerId populated from JWT on upload but never checked on read/delete (CWE-639). `GET /files` list-all endpoint added in v0.2.3 — unbounded full table dump (CWE-200, CWE-400).
+- **files module:** `FileEntity` with `ownerId` and `description` columns. `description` added via migration in v0.2.5. Unbounded `GET /files` list-all endpoint (CWE-200, CWE-400).
 - **sharing module:** `SharingEntity` with `ownerId` column. Same IDOR vulnerability as files. Unbounded list endpoint.
-- **admin module:** Any authenticated user can access admin endpoints. No role check (CWE-862). Unbounded list endpoint.
-- **Enumeration surface (v0.2.3):** All 4 list endpoints unbounded. Sequential IDs allow 200/404 existence probing (CWE-203). Swagger spec publicly accessible (CWE-200). X-Powered-By header reveals Express (CWE-200).
-- **Verbose DB errors (v0.2.1):** Raw TypeORM `QueryFailedError` logged to stdout. CWE-209.
-- **OpenAPI/Swagger** at `/api/docs` (v0.2.3) — publicly accessible without authentication.
+- **admin module:** Any authenticated user can access admin endpoints including `GET /admin/crash-test` (v0.2.4). No role check (CWE-862). Unbounded list endpoint.
+- **Error leakage (v0.2.4):** Crash-test endpoint, no ValidationPipe, NestJS 404 signature leaked. CWE-209 expanded, A10:2025 (ADR-023).
+- **Migrations (v0.2.5):** `synchronize: true` replaced with TypeORM migrations + `migrationsRun: true` (ADR-022). CWE-1188 partially remediated.
+- **OpenAPI/Swagger** at `/api/docs` (v0.2.5) — publicly accessible without authentication.
 - **OWASP Top 10:2025:** All references migrated from 2021 to 2025 (ADR-021).
 - **TypeScript** `strict: true`. **Prettier** shared config.
-- PostgreSQL persistence via TypeORM (`synchronize: true`, hardcoded credentials)
+- PostgreSQL persistence via TypeORM (migrations, hardcoded credentials)
 - Authentication via JWTs — enforced on all endpoints
 - **No authorization enforcement** — authentication without authorization (CWE-862)
-- 29 e2e tests, 28 CWE entries
+- 33 e2e tests, 29 CWE entries

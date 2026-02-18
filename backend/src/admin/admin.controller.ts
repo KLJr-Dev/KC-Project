@@ -5,7 +5,7 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 /**
- * v0.2.3 — Enumeration Surface
+ * v0.2.4 — Error & Metadata Leakage
  *
  * Admin controller. RESTful resource at /admin. All handlers are now
  * async because the service hits PostgreSQL via TypeORM.
@@ -19,6 +19,15 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
  * VULN (v0.2.3): GET /admin returns every record unbounded — no
  *       pagination, no limit. CWE-200 | A01:2025,
  *       CWE-400 (Uncontrolled Resource Consumption) | A06:2025, CWE-203 | A01:2025
+ *
+ * VULN (v0.2.4): GET /admin/crash-test deliberately throws an unhandled
+ *       Error. NestJS default ExceptionsHandler returns a generic
+ *       {"statusCode":500,"message":"Internal server error"} to the client
+ *       but logs the full stack trace (including file paths and line
+ *       numbers) to stdout. Demonstrates A10:2025 (Mishandling of
+ *       Exceptional Conditions) — no global exception filter, no
+ *       sanitisation, no graceful recovery.
+ *       CWE-209 (Error Message Info Leak) | A10:2025
  */
 @Controller('admin')
 @UseGuards(JwtAuthGuard)
@@ -35,6 +44,15 @@ export class AdminController {
   @Get()
   async read() {
     return this.adminService.read();
+  }
+
+  /**
+   * GET /admin/crash-test — deliberately throws an unhandled Error.
+   * Must be declared before @Get(':id') to avoid route collision.
+   */
+  @Get('crash-test')
+  async crashTest() {
+    throw new Error('Intentional crash for leakage testing');
   }
 
   /** GET /admin/:id — single admin item or 404. */

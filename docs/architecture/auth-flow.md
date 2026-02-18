@@ -418,3 +418,8 @@ Intentional weaknesses introduced at each v0.1.x version:
 | v0.2.3 | Uncontrolled resource consumption | CWE-400 | No pagination, no query limits, no rate limiting on list endpoints. |
 | v0.2.3 | Swagger spec publicly accessible | CWE-200 | /api/docs and /api/docs-json require no authentication — full API reconnaissance. |
 | v0.2.3 | X-Powered-By header leaks framework | CWE-200 | Express sends `X-Powered-By: Express` by default — not disabled. |
+| v0.2.4 | Runtime error stack trace leakage | CWE-209 | Unhandled exceptions log full stack traces (file paths, line numbers) to stdout. Crash-test endpoint demonstrates this. A10:2025. |
+| v0.2.4 | No ValidationPipe — malformed input accepted | CWE-209 | Wrong types in request bodies pass through to services unchecked. A10:2025. |
+| v0.2.4 | NestJS 404 error shape leakage | CWE-200 | Non-existent routes return `{"statusCode":404,"message":"Cannot GET /..."}` — reveals NestJS error format. |
+| v0.2.4 | SQL logging with plaintext passwords | CWE-532 | TypeORM `logging: true` prints INSERT with plaintext password values to stdout. |
+| v0.2.5 | Auto-run migrations (migrationsRun) | CWE-1188 | Partial remediation: synchronize:true replaced, but any migration file auto-executes on start. |

@@ -103,8 +103,8 @@ High-level view: which STRIDE categories apply to which surfaces.
 | **Spoofing** | JWT forgery, enumeration, brute-force | IDOR | -- | MIME spoofing | Role claim spoofing | Default credentials |
 | **Tampering** | Token payload modification | Client IDs, IDOR writes | SQL injection | Path traversal, IDOR | Self role modification | Direct DB access, container escape |
 | **Repudiation** | No auth event logging | No change logs | No query logs | No file access logs | No admin action logs | Unstructured logs |
-| **Info Disclosure** | JWT payload, error messages, localStorage | Sequential IDs, IDOR reads | SQL errors | File IDOR, share tokens, traversal reads | Admin data to users | Ports, logs, plaintext traffic |
-| **DoS** | Unlimited auth attempts | No query limits | Heavy queries | Oversized uploads | -- | No resource limits |
+| **Info Disclosure** | JWT payload, error messages, localStorage | Sequential IDs, IDOR reads, stack traces in logs (A10:2025) | SQL errors, SQL logging (CWE-532) | File IDOR, share tokens, traversal reads | Admin data to users, crash-test endpoint | Ports, logs, plaintext traffic, X-Powered-By, Swagger public |
+| **DoS** | Unlimited auth attempts | No query limits, unbounded list endpoints (CWE-400) | Heavy queries | Oversized uploads | -- | No resource limits |
 | **EoP** | Token replay, no expiry | Ownership bypass | -- | Cross-user file access | FE-only guards, self-promote | Root containers |
 
 ---
