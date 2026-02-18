@@ -349,25 +349,25 @@ sequenceDiagram
 
 | Weakness | CWE | OWASP Top 10 | Introduced |
 |----------|-----|-------------|------------|
-| Plaintext password storage | CWE-256 | A07:2025 Identification and Authentication Failures | v0.1.1 |
-| Plaintext password comparison | CWE-256 | A07:2025 Identification and Authentication Failures | v0.1.2 |
-| Leaky duplicate error (email in message) | CWE-209 | A07:2025 Identification and Authentication Failures | v0.1.1 |
-| Distinct auth errors enable enumeration | CWE-204 | A07:2025 Identification and Authentication Failures | v0.1.2 |
+| Plaintext password storage | CWE-256 | A07:2025 Authentication Failures | v0.1.1 |
+| Plaintext password comparison | CWE-256 | A07:2025 Authentication Failures | v0.1.2 |
+| Leaky duplicate error (email in message) | CWE-209 | A07:2025 Authentication Failures | v0.1.1 |
+| Distinct auth errors enable enumeration | CWE-204 | A07:2025 Authentication Failures | v0.1.2 |
 | Sequential predictable user IDs | CWE-330 | A01:2025 Broken Access Control | v0.1.0 |
 | Weak JWT secret (hardcoded `'kc-secret'`) | CWE-798 | A04:2025 Cryptographic Failures | v0.1.3 |
 | JWT signed with weak HS256 algorithm | CWE-347 | A04:2025 Cryptographic Failures | v0.1.3 |
-| No token expiration (no `exp` claim) | CWE-613 | A07:2025 Identification and Authentication Failures | v0.1.3 |
-| Guard does not check user still exists | CWE-613 | A07:2025 Identification and Authentication Failures | v0.1.3 |
-| Token stored in localStorage (XSS-accessible) | CWE-922 | A07:2025 Identification and Authentication Failures | v0.1.1 |
+| No token expiration (no `exp` claim) | CWE-613 | A07:2025 Authentication Failures | v0.1.3 |
+| Guard does not check user still exists | CWE-613 | A07:2025 Authentication Failures | v0.1.3 |
+| Token stored in localStorage (XSS-accessible) | CWE-922 | A07:2025 Authentication Failures | v0.1.1 |
 | Missing authorization on /auth/me | CWE-862 | A01:2025 Broken Access Control | v0.1.3 |
 | Permissive CORS (all origins) | CWE-942 | A02:2025 Security Misconfiguration | v0.0.5 |
 | Cleartext transport (HTTP, no TLS) | CWE-319 | A04:2025 Cryptographic Failures | v0.0.5 |
 | Source code comments in CSR bundle | CWE-615 | A02:2025 Security Misconfiguration | v0.1.3 |
-| Cosmetic logout (no server-side invalidation) | CWE-613 | A07:2025 Identification and Authentication Failures | v0.1.4 |
-| Token replay after logout | CWE-613 | A07:2025 Identification and Authentication Failures | v0.1.4 |
-| No rate limiting on auth endpoints | CWE-307 | A07:2025 Identification and Authentication Failures | v0.1.5 |
-| No account lockout after failed attempts | CWE-307 | A07:2025 Identification and Authentication Failures | v0.1.5 |
-| Weak password requirements (no min length/complexity) | CWE-521 | A07:2025 Identification and Authentication Failures | v0.1.5 |
+| Cosmetic logout (no server-side invalidation) | CWE-613 | A07:2025 Authentication Failures | v0.1.4 |
+| Token replay after logout | CWE-613 | A07:2025 Authentication Failures | v0.1.4 |
+| No rate limiting on auth endpoints | CWE-307 | A07:2025 Authentication Failures | v0.1.5 |
+| No account lockout after failed attempts | CWE-307 | A07:2025 Authentication Failures | v0.1.5 |
+| Weak password requirements (no min length/complexity) | CWE-521 | A07:2025 Authentication Failures | v0.1.5 |
 | IDOR — any authenticated user can access any resource by ID | CWE-639 | A01:2025 Broken Access Control | v0.2.2 |
 | Missing authorization on all resource endpoints | CWE-862 | A01:2025 Broken Access Control | v0.2.2 |
 | Unbounded list endpoints — full table dumps | CWE-200 | A01:2025 Broken Access Control | v0.2.3 |
