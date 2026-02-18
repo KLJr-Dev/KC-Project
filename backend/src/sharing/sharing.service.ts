@@ -19,7 +19,7 @@ import { UpdateSharingDto } from './dto/update-sharing.dto';
  * VULN (v0.2.2): ownerId is stored at creation time but never checked on
  *       read, update, or delete. Any authenticated user can access or
  *       modify any sharing record by guessing/knowing its sequential ID.
- *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2021
+ *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
  *       Remediation (v2.0.0): WHERE owner_id = $1 on every query.
  */
 @Injectable()

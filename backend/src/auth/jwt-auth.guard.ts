@@ -39,7 +39,7 @@ import { JwtPayload } from './jwt-payload.interface';
  *       If a user is deleted after being issued a JWT, their token remains
  *       valid and passes this guard. The guard only verifies the cryptographic
  *       signature, not whether the subject (sub) maps to a real user.
- *       CWE-613 (Insufficient Session Expiration) | A07:2021
+ *       CWE-613 (Insufficient Session Expiration) | A07:2025
  *       Remediation (v2.0.0): After verify(), query the database to confirm
  *       the user exists and is not banned/deactivated.
  *
@@ -47,7 +47,7 @@ import { JwtPayload } from './jwt-payload.interface';
  *       there is no way to invalidate it server-side. Client-side logout
  *       (clearing localStorage) does not affect the token's validity.
  *       An attacker who has stolen a token can use it indefinitely.
- *       CWE-613 (Insufficient Session Expiration) | A07:2021
+ *       CWE-613 (Insufficient Session Expiration) | A07:2025
  *       Remediation (v2.0.0): Maintain a refresh_tokens table in the database.
  *       On logout, delete the refresh token. Use short-lived access tokens
  *       (15 min) so stolen access tokens expire quickly.
@@ -57,13 +57,13 @@ import { JwtPayload } from './jwt-payload.interface';
  *       symmetric algorithm (HS256), so the signing key and verification
  *       key are identical. Anyone who discovers the secret can both forge
  *       and verify tokens.
- *       CWE-798 (Use of Hard-coded Credentials) | A02:2021
+ *       CWE-798 (Use of Hard-coded Credentials) | A04:2025
  *       Remediation (v2.0.0): RS256 asymmetric keys. The private key signs
  *       (kept in a secret store), the public key verifies (can be distributed).
  *
  * VULN: No audience (aud) or issuer (iss) claim validation. Any token signed
  *       with the same secret is accepted, regardless of intended audience.
- *       CWE-347 (Improper Verification of Cryptographic Signature) | A02:2021
+ *       CWE-347 (Improper Verification of Cryptographic Signature) | A04:2025
  *       Remediation (v2.0.0): Set and validate iss and aud claims.
  */
 @Injectable()

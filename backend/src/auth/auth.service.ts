@@ -27,22 +27,22 @@ import { UserResponseDto } from '../users/dto/user-response.dto';
  * --- Intentional vulnerabilities (carried from v0.1.x, now persistent) ---
  *
  * VULN (v0.1.1): Passwords stored as plaintext in the database.
- *       CWE-256 (Plaintext Storage of a Password) | A07:2021
+ *       CWE-256 (Plaintext Storage of a Password) | A07:2025
  *
  * VULN (v0.1.2): Passwords compared as plaintext (=== operator).
- *       CWE-256 | A07:2021
+ *       CWE-256 | A07:2025
  *
  * VULN (v0.1.2): Distinct error messages enable user enumeration.
- *       CWE-204 (Observable Response Discrepancy) | A07:2021
+ *       CWE-204 (Observable Response Discrepancy) | A07:2025
  *
  * VULN (v0.1.3): JWTs signed with hardcoded weak secret, no expiration.
- *       CWE-347 | A02:2021, CWE-613 | A07:2021
+ *       CWE-347 | A04:2025, CWE-613 | A07:2025
  *
  * VULN (v0.1.4): logout() does nothing server-side. Token replay possible.
- *       CWE-613 | A07:2021
+ *       CWE-613 | A07:2025
  *
  * VULN (v0.1.5): No rate limiting, no account lockout, weak passwords accepted.
- *       CWE-307 | A07:2021, CWE-521 | A07:2021
+ *       CWE-307 | A07:2025, CWE-521 | A07:2025
  */
 @Injectable()
 export class AuthService {
@@ -147,7 +147,7 @@ export class AuthService {
    * POST /auth/logout — Intentionally does NOT invalidate the JWT.
    *
    * VULN: No server-side session tracking or token revocation.
-   *       CWE-613 (Insufficient Session Expiration) | A07:2021
+   *       CWE-613 (Insufficient Session Expiration) | A07:2025
    */
   logout(): { message: string } {
     return {

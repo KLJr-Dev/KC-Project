@@ -5,7 +5,7 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 /**
- * v0.2.2 — Identifier Trust Failures
+ * v0.2.3 — Enumeration Surface
  *
  * Admin controller. RESTful resource at /admin. All handlers are now
  * async because the service hits PostgreSQL via TypeORM.
@@ -13,9 +13,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
  * VULN (v0.2.2): JwtAuthGuard enforces authentication but any
  *       authenticated user (not just admins) can access all admin
  *       endpoints. No role or privilege check exists.
- *       CWE-862 (Missing Authorization) | A01:2021
- *       CWE-639 | A01:2021
- *       Remediation (v2.0.0): RBAC — check user.role === 'admin'.
+ *       CWE-862 (Missing Authorization) | A01:2025
+ *       CWE-639 | A01:2025
+ *
+ * VULN (v0.2.3): GET /admin returns every record unbounded — no
+ *       pagination, no limit. CWE-200 | A01:2025,
+ *       CWE-400 (Uncontrolled Resource Consumption) | A06:2025, CWE-203 | A01:2025
  */
 @Controller('admin')
 @UseGuards(JwtAuthGuard)

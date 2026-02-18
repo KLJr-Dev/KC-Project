@@ -18,8 +18,8 @@
  *       backend), and username has no length limit. The only validation is
  *       the manual `if (!email || !username || !password)` check in
  *       AuthService.register(), which only checks for falsy values.
- *       CWE-521 (Weak Password Requirements) | A07:2021
- *       CWE-20 (Improper Input Validation) | A03:2021
+ *       CWE-521 (Weak Password Requirements) | A07:2025
+ *       CWE-20 (Improper Input Validation) | A05:2025
  *       Remediation (v2.0.0): Add class-validator decorators (@IsEmail,
  *       @MinLength(12), @Matches for complexity), enable ValidationPipe
  *       globally in main.ts.
