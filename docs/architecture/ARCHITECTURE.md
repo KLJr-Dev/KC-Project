@@ -1,6 +1,6 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v0.2.3** (enumeration surface + OWASP 2025 migration).
+This document describes the system architecture as of **v0.2.5** (persistence surface complete — migrations, error leakage, all v0.2.x closed).
 
 ---
 
@@ -248,16 +248,18 @@ graph TD
 
 The frontend is an **untrusted client**. This is a stated architectural principle, partially enforced as of v0.2.2.
 
-As of v0.2.2:
+As of v0.2.5:
 - **Authentication exists but is intentionally weak** — real HS256 JWTs with hardcoded secret (`'kc-secret'`), no expiration (CWE-347, CWE-613)
 - **JwtAuthGuard protects ALL endpoints** — auth, users, files, sharing, admin (v0.2.2)
 - **No authorization** — authentication without authorization. Any authenticated user can access any resource by ID (CWE-639 IDOR, CWE-862 missing authorization). ownerId recorded on files/shares but never enforced.
 - **Passwords are plaintext** — stored and compared without hashing, persisted in PostgreSQL (CWE-256)
 - **CORS allows all origins** — intentionally permissive (CWE-942)
-- **Basic input validation** — required field checks and duplicate email detection on registration
+- **No input validation** — no ValidationPipe, malformed input passes through unchecked (CWE-209, A10:2025)
 - **No rate limiting** — unlimited auth attempts (CWE-307)
 - **DB credentials hardcoded** — in source code (CWE-798)
-- **All data persisted** — PostgreSQL via TypeORM, survives restarts
+- **All data persisted** — PostgreSQL via TypeORM migrations (replaced synchronize:true in v0.2.5)
+- **Crash-test endpoint** — `GET /admin/crash-test` deliberately throws unhandled Error (CWE-209, A10:2025)
+- **No global exception filter** — stack traces leak to stdout (ADR-023)
 
 These weaknesses are intentional. The security surface grows incrementally per the roadmap. See [auth-flow.md](./auth-flow.md) for a detailed security surface table. Enforcement matures through v0.4.x (authorization).
 
@@ -293,3 +295,6 @@ These weaknesses are intentional. The security surface grows incrementally per t
 - Environment configuration (credentials still hardcoded)
 - Swagger auth protection — spec is publicly accessible (CWE-200)
 - Response header hardening — X-Powered-By not disabled (CWE-200)
+- Global exception filter / error sanitisation — stack traces leak to logs (A10:2025, ADR-023)
+- Input validation pipeline — no ValidationPipe registered (CWE-209)
+- Migration review gate — migrationsRun:true auto-executes any migration file (CWE-1188 partial)

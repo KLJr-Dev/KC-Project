@@ -1,19 +1,19 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Describes the v0.2.3 PostgreSQL schema (current), the v1.0.0 target schema, and the v2.0.0 hardened schema.
+Entity definitions and relationships for KC-Project. Describes the v0.2.5 PostgreSQL schema (current, managed via TypeORM migrations), the v1.0.0 target schema, and the v2.0.0 hardened schema.
 
 ---
 
-## Current State (v0.2.2) -- PostgreSQL
+## Current State (v0.2.5) -- PostgreSQL
 
-PostgreSQL 16 via Docker Compose. TypeORM with `synchronize: true` auto-creates tables from entity decorators. See [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
+PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize: true` in v0.2.5, see [ADR-022](../decisions/ADR-022-typeorm-migrations.md)). See also [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
 
 ### Tables
 
 | Table | Entity Class | Notes |
 |-------|-------------|-------|
 | `user` | `User` | Auth + identity. Plaintext password column (CWE-256). |
-| `file_entity` | `FileEntity` | Metadata only — no real file I/O yet. `ownerId` column added in v0.2.2 (stored, never enforced). |
+| `file_entity` | `FileEntity` | Metadata only — no real file I/O yet. `ownerId` (v0.2.2), `description` (v0.2.5 via migration). |
 | `sharing_entity` | `SharingEntity` | No FK to files. `ownerId` column added in v0.2.2 (stored, never enforced). |
 | `admin_item` | `AdminItem` | Placeholder admin records. |
 
@@ -39,7 +39,7 @@ class User {
 }
 ```
 
-### FileEntity (v0.2.2)
+### FileEntity (v0.2.5)
 
 ```typescript
 @Entity()
@@ -50,6 +50,8 @@ class FileEntity {
   ownerId: string;       // User ID from JWT — stored but never checked (CWE-639)
   @Column()
   filename: string;
+  @Column({ nullable: true })
+  description?: string;  // Added via migration in v0.2.5
   @Column({ type: 'int', default: 0 })
   size: number;
   @Column()
@@ -184,6 +186,10 @@ erDiagram
 | Unbounded list endpoints | CWE-200 | A01:2025 | All | GET endpoints return all records to any authenticated user — no pagination, no ownership filter. Full table dumps. |
 | Existence oracle (200/404) | CWE-203 | A01:2025 | All | Sequential IDs + 200/404 status codes allow resource existence probing. |
 | Uncontrolled resource consumption | CWE-400 | A06:2025 | All | No pagination, no rate limiting, no query limits on list endpoints. |
+| Runtime error info leak (v0.2.4) | CWE-209 | A10:2025 | All | Unhandled exceptions log full stack traces with file paths and DB details to stdout. Crash-test endpoint demonstrates this. |
+| No input validation (v0.2.4) | CWE-209 | A10:2025 | All | No ValidationPipe — malformed input passes to services unchecked. |
+| SQL logging with sensitive data | CWE-532 | A09:2025 | All | TypeORM `logging: true` prints INSERT with plaintext passwords. |
+| Auto-run migrations (v0.2.5) | CWE-1188 | A02:2025 | All | `migrationsRun: true` — any migration file in the repo executes on app start. Partial remediation of synchronize:true. |
 
 ---
 

@@ -40,6 +40,7 @@ export class FilesService {
     dto.id = entity.id;
     dto.ownerId = entity.ownerId;
     dto.filename = entity.filename;
+    dto.description = entity.description;
     dto.size = entity.size;
     dto.uploadedAt = entity.uploadedAt;
     return dto;

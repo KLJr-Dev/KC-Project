@@ -253,16 +253,34 @@ Goal: Make data persistent and mistakes permanent.
 - Swagger bumped to 0.2.3, `--runInBand` added to e2e runner for DB isolation
 - Total e2e tests: 29, Total CWE entries: 28
 
-### v0.2.4 — Error & Metadata Leakage
+### v0.2.4 — Error & Metadata Leakage ✅
 
-- Stack traces returned
-- SQL errors exposed
+- Added `GET /admin/crash-test` endpoint — deliberate unhandled Error, demonstrates NestJS default exception handling
+- VULN annotations for missing ValidationPipe (malformed input passes through unchecked)
+- Expanded CWE-209 beyond DB errors to cover all runtime exceptions, TypeErrors, and NestJS 404 shape
+- First use of A10:2025 (Mishandling of Exceptional Conditions)
+- ADR-023: Error Handling Philosophy (insecure by design)
+- 4 new e2e tests in `leakage.e2e-spec.ts` (crash-test 500, malformed body, NestJS 404 signature, SQL logging)
+- CWE-209 expanded (runtime errors, malformed input), A10:2025 first use
+- CWEs carried forward: all v0.2.3 CWEs
+- Total e2e tests: 33, Total CWE entries: ~29
 
-### v0.2.5 — Persistence Refactoring
+### v0.2.5 — Persistence Refactoring ✅
 
-- Schema changes
-- Migrations introduced
-- Backwards compatibility issues
+- Replaced `synchronize: true` with explicit TypeORM migrations (ADR-022)
+- Created `data-source.ts` for TypeORM CLI
+- Generated InitialSchema migration (4 tables) and AddFileDescription migration (demo)
+- Added `description` column to FileEntity via migration workflow
+- `migrationsRun: true` auto-executes pending migrations on app start
+- Migration scripts: `migration:generate`, `migration:run`, `migration:revert`
+- CWE-1188 partially remediated (synchronize → migrations, but migrationsRun still auto-executes)
+- E2e tests unaffected — `dataSource.synchronize(true)` still used for test isolation
+- Swagger bumped to 0.2.5, persistence surface complete
+- Total e2e tests: 33, Total CWE entries: ~29
+
+#### v0.2.x Persistence Surface Summary
+
+The v0.2.x series introduced PostgreSQL persistence, migrated all in-memory data to TypeORM repositories, and systematically expanded the attack surface across 6 versions: database introduction (v0.2.0), persisted authentication (v0.2.1), identifier trust failures / IDOR (v0.2.2), enumeration surface (v0.2.3), error and metadata leakage (v0.2.4), and persistence refactoring / migrations (v0.2.5). The surface is now closed with 29 CWEs, 33 e2e tests, and all OWASP references migrated to Top 10:2025.
 
 ## v0.3.x — File Handling Surface
 
