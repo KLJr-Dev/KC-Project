@@ -6,7 +6,7 @@ import { FileResponseDto } from './dto/file-response.dto';
 import { UploadFileDto } from './dto/upload-file.dto';
 
 /**
- * v0.2.2 — Identifier Trust Failures
+ * v0.2.3 — Enumeration Surface
  *
  * Files service. Data is now persisted in PostgreSQL via TypeORM.
  * No real file I/O — metadata only. Real file handling comes in v0.3.x.
@@ -17,8 +17,15 @@ import { UploadFileDto } from './dto/upload-file.dto';
  * VULN (v0.2.2): ownerId is stored at upload time but never checked on
  *       getById() or delete(). Any authenticated user can read or delete
  *       any file by guessing/knowing its sequential ID.
- *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2021
+ *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
  *       Remediation (v2.0.0): WHERE owner_id = $1 on every query.
+ *
+ * VULN (v0.2.3): findAll() returns every file record to any authenticated
+ *       user with no pagination, filtering, or ownership scoping. A single
+ *       GET /files request dumps the entire table including all ownerIds.
+ *       CWE-200 (Exposure of Sensitive Information) | A01:2025
+ *       CWE-400 (Uncontrolled Resource Consumption) | A06:2025
+ *       Remediation (v2.0.0): Paginated results, WHERE owner_id = $1.
  */
 @Injectable()
 export class FilesService {
@@ -51,6 +58,12 @@ export class FilesService {
     });
     const saved = await this.fileRepo.save(entity);
     return this.toResponse(saved);
+  }
+
+  /** GET /files — return all file records, unbounded. */
+  async findAll(): Promise<FileResponseDto[]> {
+    const entities = await this.fileRepo.find();
+    return entities.map((e) => this.toResponse(e));
   }
 
   /** GET /files/:id — return file metadata or null. */

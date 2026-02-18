@@ -7,7 +7,7 @@
  * VULN (v0.2.2): ownerId is exposed in the response but never enforced.
  *       Any authenticated user can see who owns a file, and still
  *       access or delete it regardless.
- *       CWE-639 | A01:2021
+ *       CWE-639 | A01:2025
  */
 export class FileResponseDto {
   id!: string;

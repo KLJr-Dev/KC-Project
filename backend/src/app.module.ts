@@ -10,26 +10,26 @@ import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
 
 /**
- * v0.2.2 — Identifier Trust Failures
+ * v0.2.3 — Enumeration Surface
  *
  * Root application module. Composes feature modules and configures the
  * PostgreSQL connection via TypeORM.
  *
  * VULN: Database credentials are hardcoded directly in source code.
  *       Anyone who reads the repo knows the superuser password.
- *       CWE-798 (Use of Hard-coded Credentials) | A07:2021
+ *       CWE-798 (Use of Hard-coded Credentials) | A07:2025
  *       Remediation (v2.0.0): Load from environment variables or
  *       Docker secrets, never commit credentials to source.
  *
  * VULN: synchronize: true auto-creates and alters tables from entity
  *       metadata on every application start. In production this can
  *       cause data loss or schema corruption.
- *       CWE-1188 (Insecure Default Initialization of Resource) | A05:2021
+ *       CWE-1188 (Insecure Default Initialization of Resource) | A02:2025
  *       Remediation (v2.0.0): synchronize: false, use TypeORM migrations.
  *
  * VULN: logging: true prints all SQL statements to stdout, including
  *       queries containing plaintext passwords and user data.
- *       CWE-532 (Insertion of Sensitive Information into Log File) | A09:2021
+ *       CWE-532 (Insertion of Sensitive Information into Log File) | A09:2025
  *       Remediation (v2.0.0): Disable query logging or redact sensitive fields.
  *
  * VULN (v0.2.1): No global exception filter. When TypeORM throws a
@@ -38,7 +38,7 @@ import { AdminModule } from './admin/admin.module';
  *       table names, constraint names, and full SQL with parameters — is
  *       logged to stdout (CWE-532). The 500 confirms a DB failure to the
  *       attacker, and no graceful recovery or retry logic exists.
- *       CWE-209 (Generation of Error Message Containing Sensitive Information) | A05:2021
+ *       CWE-209 (Generation of Error Message Containing Sensitive Information) | A02:2025
  *       Remediation (v2.0.0): Add a global ExceptionFilter that catches
  *       TypeORM errors, logs a sanitised message, and returns a user-friendly error.
  */

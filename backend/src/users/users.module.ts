@@ -15,7 +15,7 @@ import { AuthModule } from '../auth/auth.module';
  * VULN (v0.2.2): JwtAuthGuard protects all routes (authentication) but no
  *       authorization or ownership checks exist. Any authenticated user can
  *       read, modify, or delete any other user's data.
- *       CWE-862 (Missing Authorization) | A01:2021
+ *       CWE-862 (Missing Authorization) | A01:2025
  */
 @Module({
   imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule)],

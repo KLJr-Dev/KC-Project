@@ -15,16 +15,16 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.2.2)
+## Current Status (v0.2.3)
 
-Identifier trust failures — authentication enforced on all resource endpoints, but zero authorization or ownership checks.
+Enumeration surface — all list endpoints are unbounded full-table dumps, sequential IDs enable existence probing, Swagger/headers leak implementation details. OWASP Top 10:2025 migration complete.
 
-- **Backend** (NestJS) — Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). JwtAuthGuard on ALL resource endpoints (users, files, sharing, admin). `ownerId` tracked on files and shares but never enforced — any authenticated user can read/modify/delete any resource (IDOR). No rate limiting, no account lockout, no password requirements. Passwords plaintext. Swagger at `/api/docs` (v0.2.2).
-- **Database** (PostgreSQL 16) — Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), `synchronize: true`, SQL logging enabled. 4 tables with ownerId on file_entity and sharing_entity (no FK constraints). No unique constraints — intentionally weak schema.
+- **Backend** (NestJS) — Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). JwtAuthGuard on ALL resource endpoints. `ownerId` tracked but never enforced (IDOR). `GET /files` list-all endpoint added. All 4 list endpoints unbounded — no pagination, no limit, no ownership filter. Swagger UI + JSON spec publicly accessible without auth. `X-Powered-By: Express` header not disabled. 200/404 existence oracle on single-resource lookups. Passwords plaintext. Swagger at `/api/docs` (v0.2.3).
+- **Database** (PostgreSQL 16) — Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), `synchronize: true`, SQL logging enabled. 4 tables with ownerId on file_entity and sharing_entity (no FK constraints).
 - **Frontend** (Next.js) — Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, automatic Bearer header on all API calls. Theme toggle (light/dark), app shell. Types auto-generated from OpenAPI spec.
-- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (23 tests, all running against real PG)
-- **Documentation** — ADRs 001-020, formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary
-- 25 CWE entries across v0.1.0–v0.2.2 (v0.2.2 adds CWE-639 IDOR, CWE-862 missing authorization)
+- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (29 tests, all running against real PG with `--runInBand`)
+- **Documentation** — ADRs 001-021 (ADR-021: OWASP 2025 Migration), formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary. All OWASP references now use Top 10:2025.
+- 28 CWE entries across v0.1.0–v0.2.3 (v0.2.3 adds CWE-200 info exposure, CWE-203 observable discrepancy, CWE-400 unbounded queries)
 
 ### Run locally
 
