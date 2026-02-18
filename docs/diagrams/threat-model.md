@@ -64,13 +64,13 @@ Full inventory of v1.0.0 weaknesses with classification, surface, and version tr
 
 | # | Weakness | CWE | OWASP Top 10 | Surface | Introduced | Remediated |
 |---|----------|-----|-------------|---------|------------|------------|
-| 1 | Plaintext/weak password storage | CWE-256 | A07:2025 Identification and Authentication Failures | Identity | v0.1.1 | v2.0.0 |
+| 1 | Plaintext/weak password storage | CWE-256 | A07:2025 Authentication Failures | Identity | v0.1.1 | v2.0.0 |
 | 2 | Weak JWT secret (HS256, hardcoded) | CWE-347 | A04:2025 Cryptographic Failures | Identity | v0.1.3 | v2.0.0 |
-| 3 | No token expiration | CWE-613 | A07:2025 Identification and Authentication Failures | Identity | v0.1.3 | v2.0.0 |
-| 4 | No session revocation | CWE-613 | A07:2025 Identification and Authentication Failures | Identity | v0.1.4 | v2.0.0 |
-| 5 | User enumeration via distinct errors | CWE-204 | A07:2025 Identification and Authentication Failures | Identity | v0.1.2 | v2.0.0 |
-| 6 | No rate limiting on auth endpoints | CWE-307 | A07:2025 Identification and Authentication Failures | Identity | v0.1.5 | v2.0.0 |
-| 7 | Token stored in localStorage | CWE-922 | A07:2025 Identification and Authentication Failures | Identity | v0.1.1 | v2.0.0 |
+| 3 | No token expiration | CWE-613 | A07:2025 Authentication Failures | Identity | v0.1.3 | v2.0.0 |
+| 4 | No session revocation | CWE-613 | A07:2025 Authentication Failures | Identity | v0.1.4 | v2.0.0 |
+| 5 | User enumeration via distinct errors | CWE-204 | A07:2025 Authentication Failures | Identity | v0.1.2 | v2.0.0 |
+| 6 | No rate limiting on auth endpoints | CWE-307 | A07:2025 Authentication Failures | Identity | v0.1.5 | v2.0.0 |
+| 7 | Token stored in localStorage | CWE-922 | A07:2025 Authentication Failures | Identity | v0.1.1 | v2.0.0 |
 | 8 | Sequential predictable user IDs | CWE-330 | A01:2025 Broken Access Control | Data | v0.1.0 | v2.0.0 |
 | 9 | IDOR across users (ownership not checked) | CWE-639 | A01:2025 Broken Access Control | Data | v0.2.2 | v2.0.0 |
 | 10 | Client-supplied IDs trusted | CWE-639 | A01:2025 Broken Access Control | Data | v0.2.2 | v2.0.0 |
@@ -85,10 +85,10 @@ Full inventory of v1.0.0 weaknesses with classification, surface, and version tr
 | 19 | Frontend-only admin guards | CWE-602 | A06:2025 Insecure Design | Authorization | v0.4.2 | v2.0.0 |
 | 20 | Admin endpoints callable by regular users | CWE-639 | A01:2025 Broken Access Control | Authorization | v0.4.4 | v2.0.0 |
 | 21 | Root containers | CWE-250 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.0 | v2.0.0 |
-| 22 | Default database credentials | CWE-798 | A07:2025 Identification and Authentication Failures | Infrastructure | v0.2.0 | v2.0.0 |
+| 22 | Default database credentials | CWE-798 | A07:2025 Authentication Failures | Infrastructure | v0.2.0 | v2.0.0 |
 | 23 | All ports exposed to internet | CWE-668 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.0 | v2.0.0 |
 | 24 | No TLS (HTTP plaintext) | CWE-319 | A04:2025 Cryptographic Failures | Infrastructure | v0.5.0 | v2.0.0 |
-| 25 | Sensitive data in logs | CWE-532 | A09:2025 Security Logging and Monitoring Failures | Infrastructure | v0.6.2 | v2.0.0 |
+| 25 | Sensitive data in logs | CWE-532 | A09:2025 Security Logging and Alerting Failures | Infrastructure | v0.6.2 | v2.0.0 |
 | 26 | No network segmentation | CWE-668 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.2 | v2.0.0 |
 
 ---
@@ -104,8 +104,8 @@ How the v1.0.0 attack surface maps to the OWASP Top 10 (2025):
 | A05:2025 Injection | 1 | SQL injection |
 | A06:2025 Insecure Design | 3 | MIME confusion, no upload size limit, frontend-only guards |
 | A02:2025 Security Misconfiguration | 4 | SQL error leakage, root containers, all ports exposed, no network segmentation |
-| A07:2025 Identification and Authentication Failures | 7 | Plaintext passwords, no expiry, no revocation, user enumeration, no rate limiting, localStorage tokens, default DB credentials |
-| A09:2025 Security Logging and Monitoring Failures | 1 | Sensitive data in logs |
+| A07:2025 Authentication Failures | 7 | Plaintext passwords, no expiry, no revocation, user enumeration, no rate limiting, localStorage tokens, default DB credentials |
+| A09:2025 Security Logging and Alerting Failures | 1 | Sensitive data in logs |
 
 ---
 

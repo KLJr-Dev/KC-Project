@@ -48,7 +48,7 @@ import { UsersModule } from '../users/users.module';
  * VULN: No signOptions.expiresIn is set, so JWTs have no `exp` claim and
  *       remain valid forever once issued. A stolen token grants indefinite
  *       access even if the user changes their password or is deleted.
- *       CWE-613 (Insufficient Session Expiration) | A07:2025 Identification and Authentication Failures
+ *       CWE-613 (Insufficient Session Expiration) | A07:2025 Authentication Failures
  *       Remediation (v2.0.0): 15-minute access token TTL with refresh token rotation.
  */
 @Module({

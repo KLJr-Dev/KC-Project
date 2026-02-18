@@ -50,7 +50,7 @@ Not everything moves server-side — interactive components (forms, theme toggle
 
 | Weakness | CWE | OWASP Top 10 |
 |----------|-----|-------------|
-| Auth tokens visible in browser storage | CWE-922 | A07:2025 Identification and Authentication Failures |
+| Auth tokens visible in browser storage | CWE-922 | A07:2025 Authentication Failures |
 | API responses visible in network tab | CWE-200 | A01:2025 Broken Access Control |
 | Client-side route guards (bypassable) | CWE-602 | A06:2025 Insecure Design |
 | Application state inspectable via DevTools | CWE-200 | A01:2025 Broken Access Control |

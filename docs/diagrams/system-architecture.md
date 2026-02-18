@@ -82,13 +82,13 @@ flowchart TD
 |----------|-----|-------------|
 | All ports exposed to internet | CWE-668 | A02:2025 Security Misconfiguration |
 | No TLS (plaintext HTTP) | CWE-319 | A04:2025 Cryptographic Failures |
-| Default database credentials | CWE-798 | A07:2025 Identification and Authentication Failures |
+| Default database credentials | CWE-798 | A07:2025 Authentication Failures |
 | Containers run as root | CWE-250 | A02:2025 Security Misconfiguration |
 | No network segmentation | CWE-668 | A02:2025 Security Misconfiguration |
 | Volumes world-readable | CWE-732 | A01:2025 Broken Access Control |
 | No resource limits on containers | CWE-770 | A02:2025 Security Misconfiguration |
 | No health checks | -- | Operational fragility |
-| Sensitive data in logs | CWE-532 | A09:2025 Security Logging and Monitoring Failures |
+| Sensitive data in logs | CWE-532 | A09:2025 Security Logging and Alerting Failures |
 
 ---
 

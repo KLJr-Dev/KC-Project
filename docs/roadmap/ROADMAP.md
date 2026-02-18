@@ -239,7 +239,7 @@ Goal: Make data persistent and mistakes permanent.
 - CWEs carried forward: all v0.2.1 CWEs (CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613, CWE-798, CWE-1188, CWE-1393, CWE-532)
 - Swagger bumped to 0.2.2
 
-### v0.2.3 — Enumeration Surface ✅
+### v0.2.3 — Enumeration Surface
 
 - Added `GET /files` list-all endpoint (findAll) — full table dump to any authenticated user
 - All 4 list endpoints (`GET /users`, `GET /files`, `GET /sharing`, `GET /admin`) are unbounded — no pagination, no limit, no ownership filter

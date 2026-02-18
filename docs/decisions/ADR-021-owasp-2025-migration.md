@@ -18,16 +18,16 @@ Migrate all OWASP Top 10 references from 2021 to 2025 as part of v0.2.3. This is
 
 | 2021 | 2025 | Notes |
 |------|------|-------|
-| A01:2025 Broken Access Control | A01:2025 Broken Access Control | Same position. SSRF (A01:2025) folded in. |
-| A04:2025 Cryptographic Failures | A04:2025 Cryptographic Failures | Dropped from #2 to #4. |
-| A05:2025 Injection | A05:2025 Injection | Dropped from #3 to #5. |
-| A06:2025 Insecure Design | A06:2025 Insecure Design | Dropped from #4 to #6. |
-| A02:2025 Security Misconfiguration | A02:2025 Security Misconfiguration | Rose from #5 to #2. |
-| A03:2025 Vulnerable and Outdated Components | A03:2025 Software Supply Chain Failures | Renamed and expanded. |
-| A07:2025 Identification and Authentication Failures | A07:2025 Authentication Failures | Name shortened. |
-| A08:2025 Software and Data Integrity Failures | A08:2025 Software or Data Integrity Failures | Minor name change. |
-| A09:2025 Security Logging and Monitoring Failures | A09:2025 Security Logging and Alerting Failures | "Monitoring" to "Alerting". |
-| A01:2025 Server-Side Request Forgery | Folded into A01:2025 | No longer a standalone category. |
+| A01:2021 Broken Access Control | A01:2025 Broken Access Control | Same position. SSRF (A10:2021) folded in. |
+| A02:2021 Cryptographic Failures | A04:2025 Cryptographic Failures | Dropped from #2 to #4. |
+| A03:2021 Injection | A05:2025 Injection | Dropped from #3 to #5. |
+| A04:2021 Insecure Design | A06:2025 Insecure Design | Dropped from #4 to #6. |
+| A05:2021 Security Misconfiguration | A02:2025 Security Misconfiguration | Rose from #5 to #2. |
+| A06:2021 Vulnerable and Outdated Components | A03:2025 Software Supply Chain Failures | Renamed and expanded. |
+| A07:2021 Identification and Authentication Failures | A07:2025 Authentication Failures | Name shortened. |
+| A08:2021 Software and Data Integrity Failures | A08:2025 Software or Data Integrity Failures | Minor name change. |
+| A09:2021 Security Logging and Monitoring Failures | A09:2025 Security Logging and Alerting Failures | "Monitoring" to "Alerting". |
+| A10:2021 Server-Side Request Forgery | Folded into A01:2025 | No longer a standalone category. |
 | NEW | A03:2025 Software Supply Chain Failures | #1 in community survey. |
 | NEW | A10:2025 Mishandling of Exceptional Conditions | Error handling and logical errors. |
 
