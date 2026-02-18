@@ -108,6 +108,22 @@ All headers set by nginx (not the application) to ensure consistent enforcement.
 
 ---
 
+## v0.2.x Remediation Targets
+
+Weaknesses introduced during v0.2.x that the v2.0.0 security baseline must address:
+
+| Weakness | CWE | OWASP | v2.0.0 Remediation |
+|----------|-----|-------|-------------------|
+| Unbounded list endpoints (full table dumps) | CWE-200 | A01:2025 | Pagination with cursor-based or offset/limit params, ownership filtering |
+| Uncontrolled resource consumption | CWE-400 | A06:2025 | Query limits, pagination, rate limiting on list endpoints |
+| Existence oracle (200/404 + sequential IDs) | CWE-203 | A01:2025 | Constant-time responses, UUIDs instead of sequential IDs, 403 instead of 404 |
+| Runtime exception stack trace leakage | CWE-209 | A10:2025 | Global ExceptionFilter that strips stack traces, logs sanitised messages |
+| No input validation (no ValidationPipe) | CWE-209 | A10:2025 | Global ValidationPipe with whitelist + forbidNonWhitelisted |
+| SQL logging with plaintext data | CWE-532 | A09:2025 | Disable TypeORM query logging or redact sensitive fields |
+| Auto-run migrations (migrationsRun) | CWE-1188 | A02:2025 | Manual migration execution, migration review gate in CI |
+
+---
+
 ## Baseline Compliance Check
 
 When hardening a v1.N.0 to produce v2.N.0, verify every control in this document. A version qualifies as v2.N.0 when:

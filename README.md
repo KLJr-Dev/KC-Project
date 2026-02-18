@@ -15,16 +15,16 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.2.3)
+## Current Status (v0.2.5)
 
-Enumeration surface — all list endpoints are unbounded full-table dumps, sequential IDs enable existence probing, Swagger/headers leak implementation details. OWASP Top 10:2025 migration complete.
+Persistence surface complete — TypeORM migrations replace synchronize:true, error/metadata leakage documented and tested, all v0.2.x attack surfaces closed.
 
-- **Backend** (NestJS) — Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). JwtAuthGuard on ALL resource endpoints. `ownerId` tracked but never enforced (IDOR). `GET /files` list-all endpoint added. All 4 list endpoints unbounded — no pagination, no limit, no ownership filter. Swagger UI + JSON spec publicly accessible without auth. `X-Powered-By: Express` header not disabled. 200/404 existence oracle on single-resource lookups. Passwords plaintext. Swagger at `/api/docs` (v0.2.3).
-- **Database** (PostgreSQL 16) — Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), `synchronize: true`, SQL logging enabled. 4 tables with ownerId on file_entity and sharing_entity (no FK constraints).
+- **Backend** (NestJS) — Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). JwtAuthGuard on ALL resource endpoints. `ownerId` tracked but never enforced (IDOR). All list endpoints unbounded. Swagger + X-Powered-By publicly accessible. Crash-test endpoint demonstrates unhandled exception leakage. No ValidationPipe — malformed input passes through. Passwords plaintext. Swagger at `/api/docs` (v0.2.5).
+- **Database** (PostgreSQL 16) — Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), TypeORM migrations with `migrationsRun: true` (replaced `synchronize: true` in v0.2.5), SQL logging enabled. 4 tables + `description` column on file_entity added via migration.
 - **Frontend** (Next.js) — Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, automatic Bearer header on all API calls. Theme toggle (light/dark), app shell. Types auto-generated from OpenAPI spec.
-- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (29 tests, all running against real PG with `--runInBand`)
-- **Documentation** — ADRs 001-021 (ADR-021: OWASP 2025 Migration), formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary. All OWASP references now use Top 10:2025.
-- 28 CWE entries across v0.1.0–v0.2.3 (v0.2.3 adds CWE-200 info exposure, CWE-203 observable discrepancy, CWE-400 unbounded queries)
+- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (33 tests, all running against real PG with `--runInBand`). Migration scripts: `migration:generate`, `migration:run`, `migration:revert`.
+- **Documentation** — ADRs 001-023 (022: TypeORM Migrations, 023: Error Handling Philosophy), formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary. All OWASP references use Top 10:2025.
+- 29 CWE entries across v0.1.0–v0.2.5. Persistence surface closed.
 
 ### Run locally
 

@@ -13,6 +13,7 @@ export class FileResponseDto {
   id!: string;
   ownerId?: string;
   filename!: string;
+  description?: string;
   size?: number;
   uploadedAt!: string;
 }

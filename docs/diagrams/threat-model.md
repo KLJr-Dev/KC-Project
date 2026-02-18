@@ -90,6 +90,11 @@ Full inventory of v1.0.0 weaknesses with classification, surface, and version tr
 | 24 | No TLS (HTTP plaintext) | CWE-319 | A04:2025 Cryptographic Failures | Infrastructure | v0.5.0 | v2.0.0 |
 | 25 | Sensitive data in logs | CWE-532 | A09:2025 Security Logging and Alerting Failures | Infrastructure | v0.6.2 | v2.0.0 |
 | 26 | No network segmentation | CWE-668 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.2 | v2.0.0 |
+| 27 | Unbounded list endpoints (full table dumps) | CWE-200 | A01:2025 Broken Access Control | Data | v0.2.3 | v2.0.0 |
+| 28 | Existence oracle (200/404 + sequential IDs) | CWE-203 | A01:2025 Broken Access Control | Data | v0.2.3 | v2.0.0 |
+| 29 | Uncontrolled resource consumption (no pagination) | CWE-400 | A06:2025 Insecure Design | Data | v0.2.3 | v2.0.0 |
+| 30 | Runtime exception stack trace leakage | CWE-209 | A10:2025 Mishandling of Exceptional Conditions | Data | v0.2.4 | v2.0.0 |
+| 31 | No ValidationPipe — malformed input accepted | CWE-209 | A10:2025 Mishandling of Exceptional Conditions | Data | v0.2.4 | v2.0.0 |
 
 ---
 
