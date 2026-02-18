@@ -1,6 +1,6 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v0.2.5** (persistence surface complete — migrations, error leakage, all v0.2.x closed).
+This document describes the system architecture as of **v0.3.5** (file handling surface complete -- multipart uploads, filesystem storage, download/streaming, public sharing).
 
 ---
 
@@ -27,6 +27,7 @@ flowchart LR
 - **Database** — PostgreSQL 16 in Docker (`infra/compose.yml`). Hardcoded credentials, TypeORM migrations with `migrationsRun: true` (replaced `synchronize: true` in v0.2.5), SQL logging. See [ADR-019](../decisions/ADR-019-typeorm-orm.md), [ADR-020](../decisions/ADR-020-docker-db-only.md), [ADR-022](../decisions/ADR-022-typeorm-migrations.md).
 - **Communication** — Plain HTTP REST. JSON request/response bodies. No WebSockets, no GraphQL, no tRPC.
 - **Persistence** — All data persisted in PostgreSQL via TypeORM. Survives process restarts.
+- **File Storage** — Uploaded files stored on local filesystem in `backend/uploads/` via Multer `diskStorage`. Client-supplied filenames used as disk filenames with no sanitisation. See [ADR-024](../decisions/ADR-024-file-storage-strategy.md).
 
 ---
 
@@ -62,11 +63,13 @@ graph TD
     UsersModule --> UsersController["UsersController\n🔒 JwtAuthGuard\nCRUD /users"]
     UsersModule --> UsersService["UsersService\nRepository - User\n(plaintext passwords in PG)"]
 
-    FilesModule --> FilesController["FilesController\n🔒 JwtAuthGuard\nPOST /files (ownerId from JWT)\nGET-DELETE /files/:id"]
-    FilesModule --> FilesService["FilesService\nRepository - FileEntity\n(ownerId stored, never checked)"]
+    FilesModule --> FilesController["FilesController\n🔒 JwtAuthGuard\nPOST /files (multipart upload)\nGET /files/:id/download\nDELETE /files/:id (disk + DB)"]
+    FilesModule --> FilesService["FilesService\nRepository - FileEntity\nMulter diskStorage\n(ownerId stored, never checked)"]
+    FilesModule -.->|"exports FilesService (v0.3.4)"| SharingModule
 
-    SharingModule --> SharingController["SharingController\n🔒 JwtAuthGuard\nCRUD /sharing (ownerId from JWT)"]
-    SharingModule --> SharingService["SharingService\nRepository - SharingEntity\n(ownerId stored, never checked)"]
+    SharingModule --> SharingController["SharingController\nPer-method JwtAuthGuard\nCRUD /sharing\nGET /sharing/public/:token (NO auth)"]
+    SharingModule --> SharingService["SharingService\nRepository - SharingEntity\npredictable publicToken"]
+    SharingModule -.->|"imports (FilesService)"| FilesModule
 
     AdminModule --> AdminController["AdminController\n🔒 JwtAuthGuard\nCRUD /admin"]
     AdminModule --> AdminService["AdminService\nRepository - AdminItem"]
@@ -76,7 +79,7 @@ graph TD
 
 Every module follows the same internal structure:
 
-- **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic. As of v0.2.2, all resource controllers use `@UseGuards(JwtAuthGuard)` at the class level — authentication is enforced but no authorization/ownership checks exist (CWE-862).
+- **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic. As of v0.2.2, most resource controllers use `@UseGuards(JwtAuthGuard)` at the class level -- authentication is enforced but no authorization/ownership checks exist (CWE-862). Exception: SharingController uses per-method guards (v0.3.4) because `GET /sharing/public/:token` is unauthenticated.
 - **Service** — Business logic and data access via TypeORM repositories (PostgreSQL). Singleton per module via DI.
 - **DTOs** — Request shapes (Create/Update) and response shapes. Classes (not interfaces) so NestJS can instantiate them and the Swagger plugin can introspect them.
 
@@ -136,13 +139,19 @@ Resources follow standard REST conventions — the HTTP method carries the verb:
 
 Applied to: `/users`, `/files`, `/sharing`, `/admin`
 
+Additional routes:
+
+- `GET /files/:id/download` -- Stream file from disk (v0.3.2)
+- `GET /sharing/public/:token` -- Unauthenticated file download via share token (v0.3.4)
+- `GET /admin/crash-test` -- Deliberate unhandled error (v0.2.4)
+
 ### Action endpoints
 
 Non-CRUD operations use verb paths:
 
-- `POST /auth/register` — Register a new user
-- `POST /auth/login` — Authenticate
-- `GET /ping` — Infrastructure reachability check
+- `POST /auth/register` -- Register a new user
+- `POST /auth/login` -- Authenticate
+- `GET /ping` -- Infrastructure reachability check
 
 ### OpenAPI spec
 
@@ -205,14 +214,14 @@ As of v0.2.2, JwtAuthGuard protects **all** endpoints (auth, users, files, shari
 
 ## Module Dependencies
 
-As of v0.2.2, `AuthModule` imports `UsersModule` and **exports `JwtModule`**. All four resource modules (Users, Files, Sharing, Admin) import `AuthModule` to gain access to `JwtAuthGuard`.
+As of v0.3.4, `AuthModule` imports `UsersModule` and **exports `JwtModule`**. All four resource modules import `AuthModule` for `JwtAuthGuard`. `SharingModule` also imports `FilesModule` for public file streaming. `FilesModule` exports `FilesService`.
 
 ```mermaid
 graph TD
     AppModule["AppModule"]
     UsersModule["UsersModule"]
     AuthModule["AuthModule\nexports: JwtModule"]
-    FilesModule["FilesModule"]
+    FilesModule["FilesModule\nexports: FilesService"]
     SharingModule["SharingModule"]
     AdminModule["AdminModule"]
 
@@ -226,21 +235,22 @@ graph TD
     UsersModule -.->|"imports (JwtAuthGuard)"| AuthModule
     FilesModule -.->|"imports (JwtAuthGuard)"| AuthModule
     SharingModule -.->|"imports (JwtAuthGuard)"| AuthModule
+    SharingModule -.->|"imports (FilesService, v0.3.4)"| FilesModule
     AdminModule -.->|"imports (JwtAuthGuard)"| AuthModule
 ```
 
 **Current cross-module dependencies:**
 
-- `AuthModule -> UsersModule` — `AuthService` uses `UsersService.findByEmail()`, `UsersService.findEntityByEmail()`, and `UsersService.create()` for registration and login. Passwords are stored and compared as plaintext (intentional).
-- `UsersModule -> AuthModule` (v0.2.2) — `forwardRef` circular import for JwtAuthGuard on UsersController.
-- `FilesModule -> AuthModule` (v0.2.2) — JwtAuthGuard on FilesController.
-- `SharingModule -> AuthModule` (v0.2.2) — JwtAuthGuard on SharingController.
-- `AdminModule -> AuthModule` (v0.2.2) — JwtAuthGuard on AdminController.
+- `AuthModule -> UsersModule` -- `AuthService` uses `UsersService.findByEmail()`, `UsersService.findEntityByEmail()`, and `UsersService.create()` for registration and login. Passwords are stored and compared as plaintext (intentional).
+- `UsersModule -> AuthModule` (v0.2.2) -- `forwardRef` circular import for JwtAuthGuard on UsersController.
+- `FilesModule -> AuthModule` (v0.2.2) -- JwtAuthGuard on FilesController.
+- `SharingModule -> AuthModule` (v0.2.2) -- JwtAuthGuard on SharingController (per-method since v0.3.4).
+- `SharingModule -> FilesModule` (v0.3.4) -- `FilesService` used to stream files for public share downloads.
+- `AdminModule -> AuthModule` (v0.2.2) -- JwtAuthGuard on AdminController.
 
 **Future dependencies (not yet implemented):**
 
-- **v0.3.x** — SharingModule will depend on FilesModule (to reference file records)
-- **v0.4.x** — AdminModule will depend on UsersModule (to manage roles)
+- **v0.4.x** -- AdminModule will depend on UsersModule (to manage roles)
 
 ---
 
@@ -248,18 +258,20 @@ graph TD
 
 The frontend is an **untrusted client**. This is a stated architectural principle, partially enforced as of v0.2.2.
 
-As of v0.2.5:
-- **Authentication exists but is intentionally weak** — real HS256 JWTs with hardcoded secret (`'kc-secret'`), no expiration (CWE-347, CWE-613)
-- **JwtAuthGuard protects ALL endpoints** — auth, users, files, sharing, admin (v0.2.2)
-- **No authorization** — authentication without authorization. Any authenticated user can access any resource by ID (CWE-639 IDOR, CWE-862 missing authorization). ownerId recorded on files/shares but never enforced.
-- **Passwords are plaintext** — stored and compared without hashing, persisted in PostgreSQL (CWE-256)
-- **CORS allows all origins** — intentionally permissive (CWE-942)
-- **No input validation** — no ValidationPipe, malformed input passes through unchecked (CWE-209, A10:2025)
-- **No rate limiting** — unlimited auth attempts (CWE-307)
-- **DB credentials hardcoded** — in source code (CWE-798)
-- **All data persisted** — PostgreSQL via TypeORM migrations (replaced synchronize:true in v0.2.5)
-- **Crash-test endpoint** — `GET /admin/crash-test` deliberately throws unhandled Error (CWE-209, A10:2025)
-- **No global exception filter** — stack traces leak to stdout (ADR-023)
+As of v0.3.5:
+- **Authentication exists but is intentionally weak** -- real HS256 JWTs with hardcoded secret (`'kc-secret'`), no expiration (CWE-347, CWE-613)
+- **JwtAuthGuard protects most endpoints** -- auth, users, files, sharing CRUD, admin (v0.2.2). Exception: `GET /sharing/public/:token` is unauthenticated (v0.3.4, CWE-285).
+- **No authorization** -- authentication without authorization. Any authenticated user can access any resource by ID (CWE-639 IDOR, CWE-862 missing authorization). ownerId recorded on files/shares but never enforced.
+- **Passwords are plaintext** -- stored and compared without hashing, persisted in PostgreSQL (CWE-256)
+- **File uploads unsanitised** -- client-supplied filenames used as disk filenames (CWE-22), client MIME type trusted (CWE-434), no upload size limit (CWE-400). Storage path exposed in API responses (CWE-200).
+- **Public shares use predictable tokens** -- sequential "share-N" tokens (CWE-330), expiry not enforced (CWE-613)
+- **CORS allows all origins** -- intentionally permissive (CWE-942)
+- **No input validation** -- no ValidationPipe, malformed input passes through unchecked (CWE-209, A10:2025)
+- **No rate limiting** -- unlimited auth attempts (CWE-307)
+- **DB credentials hardcoded** -- in source code (CWE-798)
+- **All data persisted** -- PostgreSQL via TypeORM migrations (replaced synchronize:true in v0.2.5)
+- **Crash-test endpoint** -- `GET /admin/crash-test` deliberately throws unhandled Error (CWE-209, A10:2025)
+- **No global exception filter** -- stack traces leak to stdout (ADR-023)
 
 These weaknesses are intentional. The security surface grows incrementally per the roadmap. See [auth-flow.md](./auth-flow.md) for a detailed security surface table. Enforcement matures through v0.4.x (authorization).
 
@@ -286,9 +298,9 @@ These weaknesses are intentional. The security surface grows incrementally per t
 
 ## What This Architecture Does Not Include (Yet)
 
-- Authorization / ownership enforcement — ownerId exists but is never checked (v0.4.x)
-- Pagination / query limits — all list endpoints are unbounded (CWE-400)
-- File storage — real file I/O (v0.3.x)
+- Authorization / ownership enforcement -- ownerId exists but is never checked (v0.4.x)
+- Pagination / query limits -- all list endpoints are unbounded (CWE-400)
+- File upload sanitisation -- filenames, MIME types, and size limits are not validated (v0.3.x intentional)
 - RBAC / role-based access (v0.4.x)
 - App containers / deployment (v0.5.x) — only PG is containerised
 - CI/CD pipelines

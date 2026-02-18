@@ -143,26 +143,26 @@ This version stabilises collaboration before complexity increases.
 
 Goal: Introduce identity with minimal security guarantees.
 
-### v0.1.0 — User Model Introduced ✅
+### v0.1.0 — User Model Introduced
 
 - `User` entity with sequential string IDs (CWE-330)
 - `UsersService` with in-memory array store
 - CRUD endpoints on `/users` (unprotected)
 
-### v0.1.1 — Registration Endpoint ✅
+### v0.1.1 — Registration Endpoint
 
 - `POST /auth/register` — create user + issue stub token
 - Plaintext password storage (CWE-256)
 - Leaky duplicate error includes email (CWE-209)
 - Frontend auth page with Register tab, `AuthContext` + localStorage persistence
 
-### v0.1.2 — Login Endpoint ✅
+### v0.1.2 — Login Endpoint
 
 - `POST /auth/login` — plaintext password comparison (CWE-256)
 - Distinct error messages enable user enumeration (CWE-204)
 - Frontend Sign In tab wired to auth context
 
-### v0.1.3 — Session Concept ✅
+### v0.1.3 — Session Concept
 
 - Real JWTs (HS256, hardcoded `'kc-secret'`, no expiration) replace stub tokens
 - `JwtAuthGuard` + `@CurrentUser()` decorator introduced
@@ -173,7 +173,7 @@ Goal: Introduce identity with minimal security guarantees.
 - e2e tests for JWT format + `/auth/me` coverage
 - Swagger bumped to 0.1.3
 
-### v0.1.4 — Logout & Token Misuse ✅
+### v0.1.4 — Logout & Token Misuse
 
 - `POST /auth/logout` behind `JwtAuthGuard` — intentionally does nothing server-side
 - `AuthService.logout()` returns cosmetic success message, no deny-list / session table / revocation
@@ -185,7 +185,7 @@ Goal: Introduce identity with minimal security guarantees.
 - Swagger bumped to 0.1.4
 - Auth flow docs + diagrams updated with logout sequence and token replay sequence
 
-### v0.1.5 — Authentication Edge Cases ✅
+### v0.1.5 — Authentication Edge Cases
 
 - No rate limiting on auth endpoints (CWE-307) — unlimited login/register attempts, brute-force viable
 - No account lockout after failed logins (CWE-307) — correct password works after any number of failures
@@ -284,41 +284,62 @@ The v0.2.x series introduced PostgreSQL persistence, migrated all in-memory data
 
 ## v0.3.x — File Handling Surface
 
-Goal: Introduce high-risk file functionality.
+Goal: Introduce high-risk file functionality with real filesystem I/O.
 
-### v0.3.0 — File Upload
+### v0.3.0 — File Upload (Real Multipart)
 
-- Upload endpoint
-- Local filesystem storage
-- Filenames partially trusted
+- `@types/multer` installed, Multer `diskStorage` configured to write to `./uploads/`
+- `POST /files` reworked from JSON body to multipart via `FileInterceptor`
+- Client-supplied `originalname` used as disk filename with no sanitisation (CWE-22)
+- Client-supplied `Content-Type` stored as `mimetype` with no magic-byte validation (CWE-434)
+- No `limits.fileSize` on Multer -- unbounded upload size (CWE-400)
+- `mimetype` and `storagePath` columns added to `file_entity` via TypeORM migration
+- `storagePath` (absolute filesystem path) exposed in API responses (CWE-200)
+- ADR-024: File Storage Strategy
+- CWEs introduced: CWE-22 (Path Traversal), CWE-434 (Unrestricted Upload), CWE-400 (No Size Limit)
 
 ### v0.3.1 — File Metadata
 
-- File records in DB
-- Weak ownership links
+- `storagePath` exposed in `FileResponseDto` -- server directory structure visible to any authenticated user
+- `mimetype` exposed in responses -- client-controlled, no validation
+- CWE-200 expanded (file system path disclosure)
+- CWEs carried forward: all v0.2.5 + v0.3.0 CWEs
 
 ### v0.3.2 — File Download
 
-- Direct file access
-- ID-based retrieval
-- No access checks
+- `GET /files/:id/download` streams file from `storagePath` on disk
+- No ownership check -- any authenticated user can download any file (CWE-639)
+- No path validation on `storagePath` before `res.sendFile()` (CWE-22)
+- `Content-Type` set from stored `mimetype` (client-controlled, CWE-434)
+- `Content-Disposition` includes original filename
 
-### v0.3.3 — File Deletion
+### v0.3.3 — File Deletion (Filesystem)
 
-- Delete endpoint
-- IDOR vulnerabilities
+- `DELETE /files/:id` now also removes file from disk via `fs.unlink(storagePath)`
+- No ownership check before deletion (CWE-639)
+- No path validation before `unlink` -- if `storagePath` points outside `uploads/`, that file gets deleted (CWE-22)
+- Orphaned files remain on disk if service layer throws after Multer writes
 
 ### v0.3.4 — Public File Sharing
 
-- Public links
-- No expiry
-- Predictable identifiers
+- `publicToken` column added to `SharingEntity` via TypeORM migration
+- When share created with `public: true`, generates sequential token (`"share-1"`, `"share-2"`) -- trivially guessable (CWE-330)
+- `GET /sharing/public/:token` -- unauthenticated endpoint, anyone with a valid token can download shared file (CWE-285)
+- `expiresAt` stored but never checked -- expired shares remain accessible (CWE-613)
+- `FilesModule` exports `FilesService`; `SharingModule` imports `FilesModule` for file streaming
+- `SharingController` moved from class-level `@UseGuards(JwtAuthGuard)` to per-method guards (public endpoint is unauthenticated)
+- CWEs introduced: CWE-330 (Predictable Share Tokens), CWE-613 (No Expiry Enforcement), CWE-285 (Missing Access Control)
 
 ### v0.3.5 — File Handling Edge Cases
 
-- MIME confusion
-- Path traversal potential
-- Oversized uploads
+- New `files.e2e-spec.ts` with 12 tests covering: multipart upload, upload without auth, MIME confusion (CWE-434), path traversal (CWE-22), oversized upload (CWE-400), file download, IDOR on download (CWE-639), filesystem deletion, public share token access (CWE-285/CWE-330), expired share access (CWE-613), invalid token 404
+- Updated `idor.e2e-spec.ts`, `enumeration.e2e-spec.ts`, `leakage.e2e-spec.ts` to use multipart uploads (JSON body to `POST /files` no longer works)
+- Swagger bumped to 0.3.5, file handling surface complete
+- Total e2e tests: 44, Total CWE entries: ~35
+
+#### v0.3.x File Handling Surface Summary
+
+The v0.3.x series introduced real file I/O: multipart uploads via Multer, local filesystem storage, streaming downloads, filesystem deletion, and public sharing via predictable tokens. Six new CWEs were introduced across the file handling surface (CWE-22, CWE-200, CWE-285, CWE-330, CWE-400, CWE-434) plus CWE-613 on sharing expiry. All file operations lack ownership checks, carrying forward CWE-639 from v0.2.2. The surface is now closed with ~35 CWEs, 44 e2e tests, and ADR-024 documenting the storage strategy.
 
 ## v0.4.x — Authorization & Administrative Surface
 

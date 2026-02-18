@@ -36,7 +36,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** v0.0.6 — POST /auth/register. Body parsed into RegisterDto. */
+        /** POST /auth/register — Public. No rate limiting (CWE-307). */
         post: operations["AuthController_register"];
         delete?: never;
         options?: never;
@@ -53,8 +53,45 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** v0.0.6 — POST /auth/login. Body parsed into LoginDto. */
+        /** POST /auth/login — Public. No rate limiting, no lockout (CWE-307). */
         post: operations["AuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /auth/me — Protected. Returns user profile from DB. */
+        get: operations["AuthController_getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /auth/logout — Protected. Intentionally does nothing server-side.
+         *     VULN: CWE-613 — token remains valid after logout.
+         */
+        post: operations["AuthController_logout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -100,9 +137,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** GET /files -- return all file records, unbounded. No pagination. */
+        get: operations["FilesController_findAll"];
         put?: never;
-        /** v0.0.6 — POST /files. Body parsed into UploadFileDto; no file bytes processed. */
+        /**
+         * POST /files -- multipart file upload.
+         *     VULN: client filename used as disk filename (CWE-22).
+         *     VULN: no file size limit (CWE-400).
+         *     VULN: mimetype from client header (CWE-434).
+         */
         post: operations["FilesController_upload"];
         delete?: never;
         options?: never;
@@ -117,12 +160,62 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** v0.0.6 — GET /files/:id. Returns file metadata stub only; no stream. */
+        /** GET /files/:id -- return file metadata or 404. */
+        get: operations["FilesController_getById"];
+        put?: never;
+        post?: never;
+        /**
+         * DELETE /files/:id -- remove file record AND file from disk.
+         *     VULN: no ownership check (CWE-639).
+         *     VULN: no path validation before fs.unlink (CWE-22).
+         */
+        delete: operations["FilesController_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /files/:id/download -- stream file from disk.
+         *     VULN: no ownership check (CWE-639).
+         *     VULN: no path validation on storagePath (CWE-22).
+         *     VULN: Content-Type from client-supplied mimetype (CWE-434).
+         */
         get: operations["FilesController_download"];
         put?: never;
         post?: never;
-        /** v0.0.6 — DELETE /files/:id. 404 if id not found. */
-        delete: operations["FilesController_delete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sharing/public/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /sharing/public/:token -- unauthenticated file download.
+         *     VULN: no auth required (CWE-285), sequential tokens (CWE-330),
+         *     expiry not checked (CWE-613).
+         *
+         *     IMPORTANT: This route must be declared before :id routes to avoid
+         *     "public" being captured as an id parameter.
+         */
+        get: operations["SharingController_publicDownload"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -135,10 +228,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** v0.0.6 — GET /sharing. */
+        /** GET /sharing -- list all share records. */
         get: operations["SharingController_read"];
         put?: never;
-        /** v0.0.6 — POST /sharing. Body parsed into CreateSharingDto. */
+        /** POST /sharing -- create share record. ownerId from JWT. */
         post: operations["SharingController_create"];
         delete?: never;
         options?: never;
@@ -153,12 +246,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** v0.0.6 — GET /sharing/:id. 404 if id not in mock list. */
+        /** GET /sharing/:id -- single share or 404. */
         get: operations["SharingController_getById"];
-        /** v0.0.6 — PUT /sharing/:id. 404 if id not found. */
+        /** PUT /sharing/:id -- update share or 404. */
         put: operations["SharingController_update"];
         post?: never;
-        /** v0.0.6 — DELETE /sharing/:id. 404 if id not found. */
+        /** DELETE /sharing/:id -- remove share or 404. */
         delete: operations["SharingController_delete"];
         options?: never;
         head?: never;
@@ -172,11 +265,31 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** v0.0.6 — GET /admin. Returns list; 200 always for stub. */
+        /** GET /admin — list all admin items. */
         get: operations["AdminController_read"];
         put?: never;
-        /** v0.0.6 — POST /admin. Body parsed into CreateAdminDto by Nest. */
+        /** POST /admin — create admin item. */
         post: operations["AdminController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/crash-test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /admin/crash-test — deliberately throws an unhandled Error.
+         *     Must be declared before @Get(':id') to avoid route collision.
+         */
+        get: operations["AdminController_crashTest"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -190,12 +303,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** v0.0.6 — GET /admin/:id. 404 if id not in mock list. */
+        /** GET /admin/:id — single admin item or 404. */
         get: operations["AdminController_getById"];
-        /** v0.0.6 — PUT /admin/:id. 404 if id not found. */
+        /** PUT /admin/:id — update admin item or 404. */
         put: operations["AdminController_update"];
         post?: never;
-        /** v0.0.6 — DELETE /admin/:id. 404 if id not found. */
+        /** DELETE /admin/:id — remove admin item or 404. */
         delete: operations["AdminController_delete"];
         options?: never;
         head?: never;
@@ -207,9 +320,9 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         RegisterDto: {
-            email?: string;
-            password?: string;
-            username?: string;
+            email: string;
+            password: string;
+            username: string;
         };
         AuthResponseDto: {
             token: string;
@@ -217,19 +330,20 @@ export interface components {
             message?: string;
         };
         LoginDto: {
-            email?: string;
-            password?: string;
-        };
-        CreateUserDto: {
-            email?: string;
-            username?: string;
-            password?: string;
+            email: string;
+            password: string;
         };
         UserResponseDto: {
             id: string;
             email?: string;
             username?: string;
             createdAt: string;
+            updatedAt: string;
+        };
+        CreateUserDto: {
+            email?: string;
+            username?: string;
+            password?: string;
         };
         UpdateUserDto: {
             email?: string;
@@ -237,11 +351,15 @@ export interface components {
             password?: string;
         };
         UploadFileDto: {
-            filename?: string;
+            description?: string;
         };
         FileResponseDto: {
             id: string;
+            ownerId?: string;
             filename: string;
+            mimetype?: string;
+            storagePath?: string;
+            description?: string;
             size?: number;
             uploadedAt: string;
         };
@@ -252,7 +370,9 @@ export interface components {
         };
         SharingResponseDto: {
             id: string;
+            ownerId?: string;
             fileId?: string;
+            publicToken?: string;
             public?: boolean;
             createdAt: string;
             expiresAt?: string;
@@ -344,6 +464,42 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AuthResponseDto"];
                 };
+            };
+        };
+    };
+    AuthController_getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -454,6 +610,25 @@ export interface operations {
             };
         };
     };
+    FilesController_findAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileResponseDto"][];
+                };
+            };
+        };
+    };
     FilesController_upload: {
         parameters: {
             query?: never;
@@ -477,7 +652,7 @@ export interface operations {
             };
         };
     };
-    FilesController_download: {
+    FilesController_getById: {
         parameters: {
             query?: never;
             header?: never;
@@ -504,6 +679,44 @@ export interface operations {
             header?: never;
             path: {
                 id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FilesController_download: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SharingController_publicDownload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
             };
             cookie?: never;
         };
@@ -663,6 +876,23 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdminResponseDto"];
                 };
+            };
+        };
+    };
+    AdminController_crashTest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

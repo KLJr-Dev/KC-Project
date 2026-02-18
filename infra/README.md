@@ -4,9 +4,9 @@ Deployment and infrastructure definitions for **KC-Project**.
 
 ---
 
-## Current Status (v0.2.5)
+## Current Status (v0.3.5)
 
-**PostgreSQL only.** The database runs in a Docker container; the backend and frontend still run natively (`npm run start:dev`). Full app containerisation is deferred to v0.5.x per the [roadmap](../docs/roadmap/ROADMAP.md). See [ADR-020](../docs/decisions/ADR-020-docker-db-only.md).
+**PostgreSQL only.** The database runs in a Docker container; the backend and frontend still run natively (`npm run start:dev`). Uploaded files are stored on the local filesystem in `backend/uploads/`. Full app containerisation is deferred to v0.5.x per the [roadmap](../docs/roadmap/ROADMAP.md). See [ADR-020](../docs/decisions/ADR-020-docker-db-only.md) and [ADR-024](../docs/decisions/ADR-024-file-storage-strategy.md).
 
 ### Quick Start
 
