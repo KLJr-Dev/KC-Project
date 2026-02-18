@@ -16,7 +16,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
  * ID generation: Sequential string from `count + 1`. This can produce
  * duplicates after deletions — same intentional weakness from ADR-008,
  * now persisted permanently.
- * CWE-330 (Use of Insufficiently Random Values) | A02:2021
+ * CWE-330 (Use of Insufficiently Random Values) | A04:2025
  *
  * VULN: Passwords stored as plaintext in the password column (CWE-256).
  * VULN: No unique constraint on email — duplicate check is application-level only.
@@ -27,7 +27,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
  *       INSERT SQL with parameters — is logged to stdout via TypeORM's
  *       `logging: true` (CWE-532). The 500 itself confirms to an attacker
  *       that a database-level constraint was violated.
- *       CWE-209 (Generation of Error Message Containing Sensitive Information) | A05:2021
+ *       CWE-209 (Generation of Error Message Containing Sensitive Information) | A02:2025
  *       Remediation (v2.0.0): Global exception filter that catches
  *       QueryFailedError, logs a sanitised message, and returns a
  *       user-friendly error without database internals.

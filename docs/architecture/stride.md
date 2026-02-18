@@ -19,78 +19,78 @@ STRIDE was developed by Microsoft and categorises threats into six types:
 
 | STRIDE | Threat | CWE | OWASP |
 |--------|--------|-----|-------|
-| **Spoofing** | Forge JWTs using weak hardcoded secret | CWE-347 | A02:2021 |
-| **Spoofing** | Enumerate valid users via distinct error messages | CWE-204 | A07:2021 |
-| **Spoofing** | Brute-force credentials with no rate limiting | CWE-307 | A07:2021 |
-| **Tampering** | Modify JWT payload (change `sub` to another user ID) | CWE-347 | A02:2021 |
-| **Repudiation** | No audit log of login attempts, registrations, or logouts | CWE-778 | A09:2021 |
-| **Info Disclosure** | JWT payload is base64-encoded, readable by anyone | CWE-319 | A02:2021 |
-| **Info Disclosure** | Distinct error messages reveal which emails are registered | CWE-204 | A07:2021 |
-| **Info Disclosure** | Tokens stored in localStorage, accessible to any JS on the page | CWE-922 | A07:2021 |
-| **DoS** | Unlimited login attempts allow credential stuffing at scale | CWE-307 | A07:2021 |
-| **EoP** | Replay token after logout (no server-side revocation) | CWE-613 | A07:2021 |
-| **EoP** | Tokens never expire -- stolen token grants indefinite access | CWE-613 | A07:2021 |
+| **Spoofing** | Forge JWTs using weak hardcoded secret | CWE-347 | A04:2025 |
+| **Spoofing** | Enumerate valid users via distinct error messages | CWE-204 | A07:2025 |
+| **Spoofing** | Brute-force credentials with no rate limiting | CWE-307 | A07:2025 |
+| **Tampering** | Modify JWT payload (change `sub` to another user ID) | CWE-347 | A04:2025 |
+| **Repudiation** | No audit log of login attempts, registrations, or logouts | CWE-778 | A09:2025 |
+| **Info Disclosure** | JWT payload is base64-encoded, readable by anyone | CWE-319 | A04:2025 |
+| **Info Disclosure** | Distinct error messages reveal which emails are registered | CWE-204 | A07:2025 |
+| **Info Disclosure** | Tokens stored in localStorage, accessible to any JS on the page | CWE-922 | A07:2025 |
+| **DoS** | Unlimited login attempts allow credential stuffing at scale | CWE-307 | A07:2025 |
+| **EoP** | Replay token after logout (no server-side revocation) | CWE-613 | A07:2025 |
+| **EoP** | Tokens never expire -- stolen token grants indefinite access | CWE-613 | A07:2025 |
 
 ### Data Surface
 
 | STRIDE | Threat | CWE | OWASP |
 |--------|--------|-----|-------|
-| **Spoofing** | Access another user's data by guessing sequential IDs | CWE-639 | A01:2021 |
-| **Tampering** | Modify other users' resources via IDOR (no ownership check) | CWE-639 | A01:2021 |
-| **Tampering** | Client-supplied IDs accepted without validation | CWE-639 | A01:2021 |
-| **Repudiation** | No data change audit log (who modified what, when) | CWE-778 | A09:2021 |
-| **Info Disclosure** | Sequential IDs reveal total count and allow enumeration | CWE-330 | A01:2021 |
-| **Info Disclosure** | IDOR allows reading data belonging to other users | CWE-639 | A01:2021 |
-| **DoS** | No query limits or pagination -- request all records | CWE-400 | A05:2021 |
+| **Spoofing** | Access another user's data by guessing sequential IDs | CWE-639 | A01:2025 |
+| **Tampering** | Modify other users' resources via IDOR (no ownership check) | CWE-639 | A01:2025 |
+| **Tampering** | Client-supplied IDs accepted without validation | CWE-639 | A01:2025 |
+| **Repudiation** | No data change audit log (who modified what, when) | CWE-778 | A09:2025 |
+| **Info Disclosure** | Sequential IDs reveal total count and allow enumeration | CWE-330 | A01:2025 |
+| **Info Disclosure** | IDOR allows reading data belonging to other users | CWE-639 | A01:2025 |
+| **DoS** | No query limits or pagination -- request all records | CWE-400 | A02:2025 |
 
 ### Injection Surface
 
 | STRIDE | Threat | CWE | OWASP |
 |--------|--------|-----|-------|
-| **Tampering** | SQL injection to modify or delete data | CWE-89 | A03:2021 |
-| **Info Disclosure** | SQL injection to extract data from other tables | CWE-89 | A03:2021 |
-| **Info Disclosure** | Raw SQL error messages returned to client | CWE-209 | A05:2021 |
-| **DoS** | Resource-heavy SQL queries via injection | CWE-89 | A03:2021 |
+| **Tampering** | SQL injection to modify or delete data | CWE-89 | A05:2025 |
+| **Info Disclosure** | SQL injection to extract data from other tables | CWE-89 | A05:2025 |
+| **Info Disclosure** | Raw SQL error messages returned to client | CWE-209 | A02:2025 |
+| **DoS** | Resource-heavy SQL queries via injection | CWE-89 | A05:2025 |
 
 ### File Surface
 
 | STRIDE | Threat | CWE | OWASP |
 |--------|--------|-----|-------|
-| **Spoofing** | Upload file with misleading MIME type (e.g. executable as image) | CWE-434 | A04:2021 |
-| **Tampering** | Path traversal to overwrite files outside upload directory | CWE-22 | A01:2021 |
-| **Tampering** | Modify file metadata belonging to other users (IDOR) | CWE-639 | A01:2021 |
-| **Repudiation** | No file access log (who downloaded/deleted what) | CWE-778 | A09:2021 |
-| **Info Disclosure** | Access files owned by other users via sequential file IDs | CWE-639 | A01:2021 |
-| **Info Disclosure** | Path traversal to read arbitrary server files | CWE-22 | A01:2021 |
-| **Info Disclosure** | Predictable sharing tokens allow access to shared files | CWE-330 | A01:2021 |
-| **DoS** | Upload extremely large files (no size limit) | CWE-400 | A04:2021 |
-| **EoP** | Access admin-only files without admin role | CWE-639 | A01:2021 |
+| **Spoofing** | Upload file with misleading MIME type (e.g. executable as image) | CWE-434 | A06:2025 |
+| **Tampering** | Path traversal to overwrite files outside upload directory | CWE-22 | A01:2025 |
+| **Tampering** | Modify file metadata belonging to other users (IDOR) | CWE-639 | A01:2025 |
+| **Repudiation** | No file access log (who downloaded/deleted what) | CWE-778 | A09:2025 |
+| **Info Disclosure** | Access files owned by other users via sequential file IDs | CWE-639 | A01:2025 |
+| **Info Disclosure** | Path traversal to read arbitrary server files | CWE-22 | A01:2025 |
+| **Info Disclosure** | Predictable sharing tokens allow access to shared files | CWE-330 | A01:2025 |
+| **DoS** | Upload extremely large files (no size limit) | CWE-400 | A06:2025 |
+| **EoP** | Access admin-only files without admin role | CWE-639 | A01:2025 |
 
 ### Authorisation Surface
 
 | STRIDE | Threat | CWE | OWASP |
 |--------|--------|-----|-------|
-| **Spoofing** | Spoof role claim (backend trusts client-supplied role) | CWE-285 | A01:2021 |
-| **Tampering** | Modify own role via API (no server-side validation) | CWE-269 | A01:2021 |
-| **Repudiation** | No audit log of admin actions (role changes, user management) | CWE-778 | A09:2021 |
-| **Info Disclosure** | Admin endpoints return data to non-admin users | CWE-639 | A01:2021 |
-| **EoP** | Regular user calls admin endpoints (no backend guard) | CWE-602 | A04:2021 |
-| **EoP** | Frontend hides admin UI but backend doesn't enforce | CWE-602 | A04:2021 |
-| **EoP** | Self-promote to admin via role modification endpoint | CWE-269 | A01:2021 |
+| **Spoofing** | Spoof role claim (backend trusts client-supplied role) | CWE-285 | A01:2025 |
+| **Tampering** | Modify own role via API (no server-side validation) | CWE-269 | A01:2025 |
+| **Repudiation** | No audit log of admin actions (role changes, user management) | CWE-778 | A09:2025 |
+| **Info Disclosure** | Admin endpoints return data to non-admin users | CWE-639 | A01:2025 |
+| **EoP** | Regular user calls admin endpoints (no backend guard) | CWE-602 | A06:2025 |
+| **EoP** | Frontend hides admin UI but backend doesn't enforce | CWE-602 | A06:2025 |
+| **EoP** | Self-promote to admin via role modification endpoint | CWE-269 | A01:2025 |
 
 ### Infrastructure Surface
 
 | STRIDE | Threat | CWE | OWASP |
 |--------|--------|-----|-------|
-| **Spoofing** | Connect to database with default credentials (postgres/postgres) | CWE-798 | A07:2021 |
-| **Tampering** | Modify database directly via exposed port 5432 | CWE-668 | A05:2021 |
-| **Tampering** | Container escape from root container to host | CWE-250 | A05:2021 |
-| **Repudiation** | Logs contain sensitive data but lack structure for forensics | CWE-532 | A09:2021 |
-| **Info Disclosure** | All ports exposed, services discoverable via port scan | CWE-668 | A05:2021 |
-| **Info Disclosure** | Sensitive data (passwords, tokens) in application logs | CWE-532 | A09:2021 |
-| **Info Disclosure** | No TLS -- network traffic readable in plaintext | CWE-319 | A02:2021 |
-| **DoS** | No container resource limits -- exhaust host CPU/memory | CWE-770 | A05:2021 |
-| **EoP** | Root containers allow privilege escalation on host | CWE-250 | A05:2021 |
+| **Spoofing** | Connect to database with default credentials (postgres/postgres) | CWE-798 | A07:2025 |
+| **Tampering** | Modify database directly via exposed port 5432 | CWE-668 | A02:2025 |
+| **Tampering** | Container escape from root container to host | CWE-250 | A02:2025 |
+| **Repudiation** | Logs contain sensitive data but lack structure for forensics | CWE-532 | A09:2025 |
+| **Info Disclosure** | All ports exposed, services discoverable via port scan | CWE-668 | A02:2025 |
+| **Info Disclosure** | Sensitive data (passwords, tokens) in application logs | CWE-532 | A09:2025 |
+| **Info Disclosure** | No TLS -- network traffic readable in plaintext | CWE-319 | A04:2025 |
+| **DoS** | No container resource limits -- exhaust host CPU/memory | CWE-770 | A02:2025 |
+| **EoP** | Root containers allow privilege escalation on host | CWE-250 | A02:2025 |
 
 ---
 

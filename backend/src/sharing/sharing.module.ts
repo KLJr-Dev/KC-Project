@@ -13,7 +13,7 @@ import { AuthModule } from '../auth/auth.module';
  *
  * VULN (v0.2.2): ownerId is recorded on share creation but never checked
  *       on read/update/delete. Any authenticated user can access any share.
- *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2021
+ *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
  */
 @Module({
   imports: [TypeOrmModule.forFeature([SharingEntity]), AuthModule],

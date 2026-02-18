@@ -9,8 +9,8 @@
 #   docker compose -f infra/compose.yml down -v     Stop PG + delete data
 #
 # VULN: Default superuser with trivial password, port exposed to host.
-#       CWE-1393 (Use of Default Credentials) | A07:2021
-#       CWE-798  (Use of Hard-coded Credentials) | A07:2021
+#       CWE-1393 (Use of Default Credentials) | A07:2025
+#       CWE-798  (Use of Hard-coded Credentials) | A07:2025
 #       Remediation (v2.0.0): Strong password from Docker secrets,
 #       no host port binding, dedicated non-superuser for the app.
 

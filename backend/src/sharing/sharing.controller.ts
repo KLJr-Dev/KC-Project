@@ -7,7 +7,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 
 /**
- * v0.2.2 — Identifier Trust Failures
+ * v0.2.3 — Enumeration Surface
  *
  * Sharing controller. RESTful resource at /sharing. All handlers are now
  * async because the service hits PostgreSQL via TypeORM.
@@ -16,7 +16,11 @@ import type { JwtPayload } from '../auth/jwt-payload.interface';
  *       checks exist. ownerId is recorded on creation but never verified
  *       on read, update, or delete. Any authenticated user can access
  *       any sharing record.
- *       CWE-639 | A01:2021, CWE-862 | A01:2021
+ *       CWE-639 | A01:2025, CWE-862 | A01:2025
+ *
+ * VULN (v0.2.3): GET /sharing returns every record unbounded — no
+ *       pagination, no ownership filter. CWE-200 | A01:2025,
+ *       CWE-400 (Uncontrolled Resource Consumption) | A06:2025, CWE-203 | A01:2025
  */
 @Controller('sharing')
 @UseGuards(JwtAuthGuard)
