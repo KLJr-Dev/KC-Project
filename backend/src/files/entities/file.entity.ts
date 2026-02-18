@@ -1,14 +1,15 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
 
 /**
- * v0.2.2 — Identifier Trust Failures
+ * v0.2.5 -- Persistence Refactoring
  *
  * File metadata entity mapped to the "file_entity" table in PostgreSQL.
- * No actual file bytes are stored — this records upload metadata only.
+ * No actual file bytes are stored -- this records upload metadata only.
  * Real file I/O (local filesystem storage, streaming) comes in v0.3.x.
  *
- * Fields mirror the FileResponseDto shape from v0.0.6. Sequential string
- * IDs are manually assigned (CWE-330).
+ * Fields mirror the FileResponseDto shape. Sequential string IDs are
+ * manually assigned (CWE-330). description column added via migration
+ * in v0.2.5.
  *
  * VULN (v0.2.2): ownerId is stored at creation time but never checked on
  *       read or delete operations. Any authenticated user who knows (or
