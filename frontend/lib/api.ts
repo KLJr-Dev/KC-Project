@@ -103,6 +103,28 @@ function getHeaders(): Record<string, string> {
 }
 
 /**
+ * Build auth-only headers (Authorization only, no Content-Type).
+ *
+ * Used for multipart/form-data requests where the browser must set the
+ * Content-Type boundary itself. Reuses the same JWT lookup as getHeaders().
+ */
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('kc_auth');
+      if (raw) {
+        const { token } = JSON.parse(raw) as { token?: string };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+      }
+    } catch {
+      // Ignore corrupted localStorage entries
+    }
+  }
+  return headers;
+}
+
+/**
  * Core request helper. All API functions delegate to this.
  *
  * - Builds headers via getHeaders() (Content-Type + optional Bearer token)
@@ -203,16 +225,72 @@ export const authLogout = () =>
   request<{ message: string }>('/auth/logout', { method: 'POST' });
 
 // ── Files ────────────────────────────────────────────────────────────
-// File management endpoints. Currently stub routes on the backend.
+// File management endpoints. Backed by real Multer multipart uploads
+// on the backend (v0.3.x).
+//
+// VULN (v0.3.0): The backend trusts the client-supplied filename and
+// Content-Type from the multipart upload. This wrapper intentionally
+// does not sanitise them.
 
-export const filesUpload = (dto: UploadFileRequest) => post<FileResponse>('/files', dto);
+/**
+ * Multipart upload helper for POST /files.
+ *
+ * Sends the given File under the "file" field and optional description
+ * as plain text. No client-side validation beyond presence of the File.
+ */
+export async function filesUploadMultipart(
+  file: File,
+  description?: string,
+): Promise<FileResponse> {
+  const form = new FormData();
+  form.append('file', file);
+  if (description) {
+    form.append('description', description);
+  }
+
+  const res = await fetch(`${API_BASE}/files`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: form,
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`${res.status} ${res.statusText}: ${body}`);
+  }
+
+  return res.json() as Promise<FileResponse>;
+}
 
 export const filesGetById = (id: string) => request<FileResponse>(`/files/${id}`);
 
+export const filesList = () => request<FileResponse[]>('/files');
+
 export const filesDelete = (id: string) => del<DeleteResponse>(`/files/${id}`);
 
+/**
+ * Download helper for GET /files/:id/download.
+ *
+ * Returns a Blob so callers can create an object URL and trigger a download
+ * while still sending the Authorization header (JwtAuthGuard on backend).
+ */
+export async function filesDownload(id: string): Promise<Blob> {
+  const res = await fetch(`${API_BASE}/files/${id}/download`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`${res.status} ${res.statusText}: ${body}`);
+  }
+
+  return res.blob();
+}
+
 // ── Sharing ──────────────────────────────────────────────────────────
-// File sharing endpoints. Currently stub routes on the backend.
+// File sharing endpoints. Backed by real DB rows and predictable
+// public tokens in v0.3.4.
 
 export const sharingCreate = (dto: CreateSharing) => post<SharingResponse>('/sharing', dto);
 
@@ -224,6 +302,13 @@ export const sharingUpdate = (id: string, dto: UpdateSharing) =>
   put<SharingResponse>(`/sharing/${id}`, dto);
 
 export const sharingDelete = (id: string) => del<DeleteResponse>(`/sharing/${id}`);
+
+/**
+ * Convenience helper: absolute URL for GET /sharing/public/:token.
+ *
+ * This endpoint is intentionally unauthenticated on the backend.
+ */
+export const sharingPublicUrl = (token: string) => `${API_BASE}/sharing/public/${token}`;
 
 // ── Admin ────────────────────────────────────────────────────────────
 // Administrative endpoints. Currently stub routes on the backend.

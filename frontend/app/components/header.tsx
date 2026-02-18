@@ -76,6 +76,9 @@ export default function Header() {
           <Link href="/" className="text-sm text-muted transition-colors hover:text-foreground">
             Home
           </Link>
+          <Link href="/files" className="text-sm text-muted transition-colors hover:text-foreground">
+            Files
+          </Link>
           {isAuthenticated ? (
             <div className="flex items-center gap-3">
               {username && (

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { sharingCreate, sharingList } from '../../lib/api';
+import { sharingCreate, sharingList, sharingPublicUrl } from '../../lib/api';
 import type { SharingResponse } from '../../lib/types';
 
 export default function SharingPage() {
@@ -105,6 +105,7 @@ export default function SharingPage() {
                 <th className="py-2 pr-4 font-medium text-zinc-500">ID</th>
                 <th className="py-2 pr-4 font-medium text-zinc-500">File ID</th>
                 <th className="py-2 pr-4 font-medium text-zinc-500">Public</th>
+                <th className="py-2 pr-4 font-medium text-zinc-500">Public Token</th>
                 <th className="py-2 pr-4 font-medium text-zinc-500">Expires</th>
                 <th className="py-2 font-medium text-zinc-500">Created</th>
               </tr>
@@ -122,6 +123,20 @@ export default function SharingPage() {
                   </td>
                   <td className="py-2 pr-4 font-mono">{s.fileId ?? '—'}</td>
                   <td className="py-2 pr-4 font-mono">{s.public ? 'yes' : 'no'}</td>
+                  <td className="py-2 pr-4">
+                    {s.public && s.publicToken ? (
+                      <a
+                        href={sharingPublicUrl(s.publicToken)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 underline break-all dark:text-blue-400"
+                      >
+                        {s.publicToken}
+                      </a>
+                    ) : (
+                      <span className="font-mono text-zinc-400">—</span>
+                    )}
+                  </td>
                   <td className="py-2 pr-4 font-mono text-zinc-400">{s.expiresAt ?? '—'}</td>
                   <td className="py-2 font-mono text-zinc-400">{s.createdAt}</td>
                 </tr>
