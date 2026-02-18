@@ -37,6 +37,10 @@ graph TD
     NoFileOwnership["No file ownership checks\nCWE-639\nA01:2025"]
     OversizedUpload["No upload size limit\nCWE-400\nA06:2025"]
     PredictableFileIDs["Predictable file identifiers\nCWE-330\nA01:2025"]
+    PredictableShareTokens["Predictable share tokens\nCWE-330\nA01:2025"]
+    UnauthPublic["Unauthenticated public endpoint\nCWE-285\nA01:2025"]
+    NoExpiry["Share expiry not enforced\nCWE-613\nA07:2025"]
+    PathDisclosure["Filesystem path in API\nCWE-200\nA01:2025"]
   end
 
   subgraph authz ["Authorization Surface"]
@@ -76,10 +80,14 @@ Full inventory of v1.0.0 weaknesses with classification, surface, and version tr
 | 10 | Client-supplied IDs trusted | CWE-639 | A01:2025 Broken Access Control | Data | v0.2.2 | v2.0.0 |
 | 11 | SQL injection | CWE-89 | A05:2025 Injection | Injection | v0.2.1 | v2.0.0 |
 | 12 | SQL error messages exposed to client | CWE-209 | A02:2025 Security Misconfiguration | Injection | v0.2.4 | v2.0.0 |
-| 13 | Path traversal in file access | CWE-22 | A01:2025 Broken Access Control | File | v0.3.5 | v2.0.0 |
-| 14 | MIME type confusion on upload | CWE-434 | A06:2025 Insecure Design | File | v0.3.5 | v2.0.0 |
+| 13 | Path traversal in file access | CWE-22 | A01:2025 Broken Access Control | File | v0.3.0 | v2.0.0 |
+| 14 | MIME type confusion on upload | CWE-434 | A06:2025 Insecure Design | File | v0.3.0 | v2.0.0 |
 | 15 | No file ownership checks | CWE-639 | A01:2025 Broken Access Control | File | v0.3.2 | v2.0.0 |
-| 16 | No upload size limit | CWE-400 | A06:2025 Insecure Design | File | v0.3.5 | v2.0.0 |
+| 16 | No upload size limit | CWE-400 | A06:2025 Insecure Design | File | v0.3.0 | v2.0.0 |
+| 32 | Predictable share tokens | CWE-330 | A01:2025 Broken Access Control | File | v0.3.4 | v2.0.0 |
+| 33 | Unauthenticated public endpoint | CWE-285 | A01:2025 Broken Access Control | File | v0.3.4 | v2.0.0 |
+| 34 | Share expiry not enforced | CWE-613 | A07:2025 Authentication Failures | File | v0.3.4 | v2.0.0 |
+| 35 | Filesystem path disclosure in API | CWE-200 | A01:2025 Broken Access Control | File | v0.3.0 | v2.0.0 |
 | 17 | Client role claims trusted by backend | CWE-285 | A01:2025 Broken Access Control | Authorization | v0.4.2 | v2.0.0 |
 | 18 | Privilege escalation paths | CWE-269 | A01:2025 Broken Access Control | Authorization | v0.4.3 | v2.0.0 |
 | 19 | Frontend-only admin guards | CWE-602 | A06:2025 Insecure Design | Authorization | v0.4.2 | v2.0.0 |

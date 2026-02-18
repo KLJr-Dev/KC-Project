@@ -423,3 +423,12 @@ Intentional weaknesses introduced at each v0.1.x version:
 | v0.2.4 | NestJS 404 error shape leakage | CWE-200 | Non-existent routes return `{"statusCode":404,"message":"Cannot GET /..."}` — reveals NestJS error format. |
 | v0.2.4 | SQL logging with plaintext passwords | CWE-532 | TypeORM `logging: true` prints INSERT with plaintext password values to stdout. |
 | v0.2.5 | Auto-run migrations (migrationsRun) | CWE-1188 | Partial remediation: synchronize:true replaced, but any migration file auto-executes on start. |
+| v0.3.0 | Path traversal in file uploads | CWE-22 | Client-supplied filename used as disk filename with no sanitisation. |
+| v0.3.0 | MIME type confusion | CWE-434 | Client Content-Type stored without magic-byte validation. |
+| v0.3.0 | No upload size limit | CWE-400 | Multer has no limits.fileSize. Disk exhaustion possible. |
+| v0.3.0 | Filesystem path disclosure | CWE-200 | storagePath (absolute disk path) exposed in API responses. |
+| v0.3.2 | No ownership check on download | CWE-639 | Any authenticated user can download any file by ID. |
+| v0.3.3 | No path validation before unlink | CWE-22 | DELETE uses storagePath with no validation before fs.unlink. |
+| v0.3.4 | Predictable share tokens | CWE-330 | Sequential "share-N" tokens, trivially guessable. |
+| v0.3.4 | Unauthenticated public endpoint | CWE-285 | GET /sharing/public/:token requires no auth. |
+| v0.3.4 | Share expiry not enforced | CWE-613 | expiresAt stored but never checked on access. |
