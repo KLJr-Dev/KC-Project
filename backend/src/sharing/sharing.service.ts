@@ -7,20 +7,21 @@ import { CreateSharingDto } from './dto/create-sharing.dto';
 import { UpdateSharingDto } from './dto/update-sharing.dto';
 
 /**
- * v0.2.2 — Identifier Trust Failures
+ * v0.3.4 -- Public File Sharing
  *
- * Sharing service. Data is now persisted in PostgreSQL via TypeORM.
- * No real public links or expiry logic — placeholder behaviour.
- * Real sharing (v0.3.4) comes later.
+ * Sharing service. Persists share records in PostgreSQL via TypeORM.
+ * When a share is created with public=true, a predictable publicToken
+ * ("share-1", "share-2") is generated.
  *
- * All methods are async (return Promises) because repository operations
- * hit the database.
+ * VULN (v0.2.2): ownerId stored but never checked on read/update/delete.
+ *       CWE-639 | A01:2025
  *
- * VULN (v0.2.2): ownerId is stored at creation time but never checked on
- *       read, update, or delete. Any authenticated user can access or
- *       modify any sharing record by guessing/knowing its sequential ID.
- *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
- *       Remediation (v2.0.0): WHERE owner_id = $1 on every query.
+ * VULN (v0.3.4): publicToken is sequential and trivially guessable.
+ *       CWE-330 (Use of Insufficiently Random Values) | A01:2025
+ *       Remediation (v2.0.0): crypto.randomBytes(32).toString('hex').
+ *
+ * VULN (v0.3.4): expiresAt is stored but never enforced on access.
+ *       CWE-613 (Insufficient Session Expiration) | A07:2025
  */
 @Injectable()
 export class SharingService {
@@ -29,27 +30,29 @@ export class SharingService {
     private readonly shareRepo: Repository<SharingEntity>,
   ) {}
 
-  /** Map a SharingEntity to a SharingResponseDto. */
   private toResponse(entity: SharingEntity): SharingResponseDto {
     const dto = new SharingResponseDto();
     dto.id = entity.id;
     dto.ownerId = entity.ownerId;
     dto.fileId = entity.fileId;
+    dto.publicToken = entity.publicToken;
     dto.public = entity.public;
     dto.createdAt = entity.createdAt;
     dto.expiresAt = entity.expiresAt;
     return dto;
   }
 
-  /** POST /sharing — persist share record to database. */
+  /** POST /sharing -- persist share record. Generates predictable publicToken if public=true. */
   async create(dto: CreateSharingDto, ownerId: string): Promise<SharingResponseDto> {
     const count = await this.shareRepo.count();
     const id = String(count + 1);
+
     const entity = this.shareRepo.create({
       id,
-      ownerId, // VULN: stored but never checked on read/update/delete (CWE-639)
+      ownerId,
       fileId: dto.fileId ?? '',
       public: dto.public ?? false,
+      publicToken: dto.public ? `share-${id}` : undefined,
       createdAt: new Date().toISOString(),
       expiresAt: dto.expiresAt ?? '',
     });
@@ -57,19 +60,19 @@ export class SharingService {
     return this.toResponse(saved);
   }
 
-  /** GET /sharing — return all share records. */
+  /** GET /sharing -- return all share records. */
   async read(): Promise<SharingResponseDto[]> {
     const entities = await this.shareRepo.find();
     return entities.map((e) => this.toResponse(e));
   }
 
-  /** GET /sharing/:id — return single share or null. */
+  /** GET /sharing/:id -- return single share or null. */
   async getById(id: string): Promise<SharingResponseDto | null> {
     const entity = await this.shareRepo.findOne({ where: { id } });
     return entity ? this.toResponse(entity) : null;
   }
 
-  /** PUT /sharing/:id — update share record, return DTO or null. */
+  /** PUT /sharing/:id -- update share record, return DTO or null. */
   async update(id: string, dto: UpdateSharingDto): Promise<SharingResponseDto | null> {
     const entity = await this.shareRepo.findOne({ where: { id } });
     if (!entity) return null;
@@ -79,9 +82,18 @@ export class SharingService {
     return this.toResponse(saved);
   }
 
-  /** DELETE /sharing/:id — remove record, return success boolean. */
+  /** DELETE /sharing/:id -- remove record, return success boolean. */
   async delete(id: string): Promise<boolean> {
     const result = await this.shareRepo.delete(id);
     return (result.affected ?? 0) > 0;
+  }
+
+  /** Look up a sharing record by its publicToken. Returns raw entity for download. */
+  async findByPublicToken(
+    token: string,
+  ): Promise<{ fileId: string; expiresAt: string } | null> {
+    const entity = await this.shareRepo.findOne({ where: { publicToken: token } });
+    if (!entity) return null;
+    return { fileId: entity.fileId, expiresAt: entity.expiresAt };
   }
 }
