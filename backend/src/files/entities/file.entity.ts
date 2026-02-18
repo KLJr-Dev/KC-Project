@@ -35,6 +35,9 @@ export class FileEntity {
   @Column({ type: 'int', default: 0 })
   size!: number;
 
+  @Column({ nullable: true })
+  description?: string;
+
   @Column()
   uploadedAt!: string;
 }

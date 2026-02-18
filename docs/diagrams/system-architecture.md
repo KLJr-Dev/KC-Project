@@ -23,8 +23,8 @@ flowchart LR
 ### What exists
 
 - **Frontend** -- Next.js 16, App Router, React 19, Tailwind CSS 4. Client components call backend via fetch. Auth state persisted to localStorage. Bearer token sent on all API calls.
-- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated and **publicly accessible without auth** (CWE-200). `X-Powered-By: Express` header not disabled (CWE-200). Real HS256 JWTs (hardcoded secret, no expiry). **All resource endpoints protected by JwtAuthGuard** — authentication enforced but no authorization/ownership checks. ownerId tracked but never enforced (CWE-639, CWE-862). All list endpoints unbounded — full table dumps, no pagination (CWE-200, CWE-400). Sequential IDs enable 200/404 existence probing (CWE-203).
-- **Database** -- PostgreSQL 16 in Docker (`infra/compose.yml`). TypeORM with `synchronize: true`. 4 tables: user, file_entity (with ownerId), sharing_entity (with ownerId), admin_item. Hardcoded credentials (CWE-798).
+- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated and **publicly accessible without auth** (CWE-200). `X-Powered-By: Express` header not disabled (CWE-200). Real HS256 JWTs (hardcoded secret, no expiry). **All resource endpoints protected by JwtAuthGuard** — authentication enforced but no authorization/ownership checks. ownerId tracked but never enforced (CWE-639, CWE-862). All list endpoints unbounded. `GET /admin/crash-test` demonstrates unhandled exception leakage (CWE-209, A10:2025). No ValidationPipe. NestJS 404 error shape exposed.
+- **Database** -- PostgreSQL 16 in Docker (`infra/compose.yml`). TypeORM with migrations (`migrationsRun: true`, replaced `synchronize: true` in v0.2.5). 4 tables + `description` column on file_entity added via migration. Hardcoded credentials (CWE-798). SQL logging with plaintext passwords (CWE-532).
 - **Communication** -- Plain HTTP, JSON bodies, Bearer token in Authorization header.
 - **Storage** -- TypeORM repositories backed by PostgreSQL. Data persists across restarts.
 
@@ -34,10 +34,13 @@ flowchart LR
 - Pagination / query limits (all list endpoints are unbounded)
 - Swagger auth protection (spec is publicly accessible)
 - Response header hardening (X-Powered-By not disabled)
+- Global exception filter / error sanitisation (stack traces leak to logs, A10:2025)
+- Input validation pipeline (no ValidationPipe, CWE-209)
+- Migration review gate (migrationsRun:true auto-executes)
 - File storage (real file I/O)
 - App containers (frontend/backend still run natively)
 - Reverse proxy, TLS, network segmentation
-- Input validation, rate limiting
+- Rate limiting
 
 ---
 

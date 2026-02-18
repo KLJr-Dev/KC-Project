@@ -345,7 +345,33 @@ sequenceDiagram
   Note right of Attacker: Attacker knows: Express/NestJS backend
 ```
 
-### Current weaknesses (v0.1.x — v0.2.3)
+### Error Leakage Attack (v0.2.4) -- CWE-209, A10:2025
+
+```mermaid
+sequenceDiagram
+  participant Attacker
+  participant API as NestJS API
+  participant Logs as Server stdout
+
+  Note over Attacker, Logs: Step 1 — Trigger unhandled exception
+  Attacker->>API: GET /admin/crash-test (with JWT)
+  API->>Logs: [ERROR] Error: Intentional crash...<br/>at AdminController.crashTest (admin.controller.ts:XX)
+  API-->>Attacker: {"statusCode":500,"message":"Internal server error"}
+  Note right of Attacker: Generic 500, but full stack trace in logs
+
+  Note over Attacker, Logs: Step 2 — Malformed input
+  Attacker->>API: POST /files { "filename": 12345 }
+  API->>Logs: [ERROR] TypeError or raw SQL error with details
+  API-->>Attacker: 201 or 500 (no input validation)
+  Note right of Attacker: No ValidationPipe — wrong types accepted
+
+  Note over Attacker, Logs: Step 3 — NestJS error fingerprint
+  Attacker->>API: GET /nonexistent
+  API-->>Attacker: {"statusCode":404,"message":"Cannot GET /nonexistent","error":"Not Found"}
+  Note right of Attacker: NestJS-specific error shape
+```
+
+### Current weaknesses (v0.1.x — v0.2.5)
 
 | Weakness | CWE | OWASP Top 10 | Introduced |
 |----------|-----|-------------|------------|
@@ -375,6 +401,11 @@ sequenceDiagram
 | Uncontrolled resource consumption (no pagination) | CWE-400 | A06:2025 Insecure Design | v0.2.3 |
 | Swagger spec publicly accessible | CWE-200 | A02:2025 Security Misconfiguration | v0.2.3 |
 | X-Powered-By header leaks framework identity | CWE-200 | A02:2025 Security Misconfiguration | v0.2.3 |
+| Runtime exception stack trace leakage (crash-test) | CWE-209 | A10:2025 Mishandling of Exceptional Conditions | v0.2.4 |
+| No ValidationPipe — malformed input accepted | CWE-209 | A10:2025 Mishandling of Exceptional Conditions | v0.2.4 |
+| NestJS 404 error shape leakage | CWE-200 | A02:2025 Security Misconfiguration | v0.2.4 |
+| SQL logging with plaintext passwords | CWE-532 | A09:2025 Security Logging and Alerting Failures | v0.2.4 |
+| Auto-run migrations (migrationsRun:true) | CWE-1188 | A02:2025 Security Misconfiguration | v0.2.5 |
 
 ---
 
