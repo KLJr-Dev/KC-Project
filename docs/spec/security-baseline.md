@@ -124,6 +124,23 @@ Weaknesses introduced during v0.2.x that the v2.0.0 security baseline must addre
 
 ---
 
+## v0.3.x Remediation Targets
+
+Weaknesses introduced during v0.3.x (file handling surface) that the v2.0.0 security baseline must address:
+
+| Weakness | CWE | OWASP | v2.0.0 Remediation |
+|----------|-----|-------|-------------------|
+| Path traversal in file upload/download/delete | CWE-22 | A01:2025 | `path.resolve()` + base dir validation, filename sanitisation |
+| MIME type confusion (client Content-Type trusted) | CWE-434 | A06:2025 | Magic-byte validation via `file-type` package |
+| No upload size limit | CWE-400 | A06:2025 | Multer `limits: { fileSize: 10MB }` |
+| Filesystem path disclosure in API responses | CWE-200 | A01:2025 | Strip `storagePath` from response DTOs |
+| No file ownership checks on download/delete | CWE-639 | A01:2025 | `WHERE owner_id = $1` on every file operation |
+| Predictable share tokens ("share-N") | CWE-330 | A01:2025 | `crypto.randomBytes(32).toString('hex')` |
+| Unauthenticated public endpoint | CWE-285 | A01:2025 | Rate limiting, CAPTCHA, or auth requirement on public shares |
+| Share expiry not enforced | CWE-613 | A07:2025 | Check `expiresAt` on every public access, reject if expired |
+
+---
+
 ## Baseline Compliance Check
 
 When hardening a v1.N.0 to produce v2.N.0, verify every control in this document. A version qualifies as v2.N.0 when:

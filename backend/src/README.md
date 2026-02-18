@@ -138,7 +138,7 @@ REST (Representational State Transfer) treats every domain concept as a **resour
 
 **Non-resource routes** like `/auth/register`, `/auth/login`, and `/ping` are intentionally action-based. They represent operations, not CRUD on a resource, so they keep a verb in the path. This is standard practice — REST applies to resources, not to every endpoint.
 
-### Full route map (v0.0.6)
+### Full route map (v0.3.5)
 
 ```
 POST   /users              Create user
@@ -147,13 +147,15 @@ GET    /users/:id          Get user by id
 PUT    /users/:id          Update user
 DELETE /users/:id          Delete user
 
-POST   /files              Upload file (metadata stub)
+POST   /files              Upload file (multipart, v0.3.0)
 GET    /files              List all files (v0.2.3)
 GET    /files/:id          Get file metadata
-DELETE /files/:id          Delete file
+GET    /files/:id/download Stream file from disk (v0.3.2)
+DELETE /files/:id          Delete file + remove from disk (v0.3.3)
 
-POST   /sharing            Create share
+POST   /sharing            Create share (generates publicToken if public=true)
 GET    /sharing            List shares
+GET    /sharing/public/:token  Unauthenticated file download (v0.3.4)
 GET    /sharing/:id        Get share by id
 PUT    /sharing/:id        Update share
 DELETE /sharing/:id        Delete share
@@ -254,22 +256,18 @@ dto/
 
 ---
 
-## Current version context (v0.2.5)
+## Current version context (v0.3.5)
 
-**v0.2.5 — Persistence Refactoring** is complete. The v0.2.x persistence surface is closed.
+**v0.3.5 -- File Handling Surface** is complete. The v0.3.x file handling surface is closed.
 
-- **All modules:** Services backed by TypeORM repositories, data persisted in PostgreSQL. All methods async. All resource controllers protected by JwtAuthGuard (authentication required).
-- **users module:** `User` entity. `UsersService` uses `Repository<User>`. Password stored in plaintext (CWE-256). Any authenticated user can read/modify/delete any user's profile (CWE-639, CWE-862). `GET /users` returns full table dump (CWE-200, CWE-400).
-- **auth module:** Registration, login, profile, logout. Real HS256 JWTs (hardcoded secret, no expiry). AuthModule exports JwtModule so resource modules can use JwtAuthGuard.
-- **files module:** `FileEntity` with `ownerId` and `description` columns. `description` added via migration in v0.2.5. Unbounded `GET /files` list-all endpoint (CWE-200, CWE-400).
-- **sharing module:** `SharingEntity` with `ownerId` column. Same IDOR vulnerability as files. Unbounded list endpoint.
-- **admin module:** Any authenticated user can access admin endpoints including `GET /admin/crash-test` (v0.2.4). No role check (CWE-862). Unbounded list endpoint.
-- **Error leakage (v0.2.4):** Crash-test endpoint, no ValidationPipe, NestJS 404 signature leaked. CWE-209 expanded, A10:2025 (ADR-023).
-- **Migrations (v0.2.5):** `synchronize: true` replaced with TypeORM migrations + `migrationsRun: true` (ADR-022). CWE-1188 partially remediated.
-- **OpenAPI/Swagger** at `/api/docs` (v0.2.5) — publicly accessible without authentication.
-- **OWASP Top 10:2025:** All references migrated from 2021 to 2025 (ADR-021).
-- **TypeScript** `strict: true`. **Prettier** shared config.
-- PostgreSQL persistence via TypeORM (migrations, hardcoded credentials)
-- Authentication via JWTs — enforced on all endpoints
-- **No authorization enforcement** — authentication without authorization (CWE-862)
-- 33 e2e tests, 29 CWE entries
+- **All modules:** Services backed by TypeORM repositories, data persisted in PostgreSQL. All methods async.
+- **users module:** `User` entity with plaintext passwords (CWE-256). Any authenticated user can CRUD any profile (CWE-639, CWE-862).
+- **auth module:** Real HS256 JWTs (hardcoded secret, no expiry). AuthModule exports JwtModule.
+- **files module:** Real multipart uploads via Multer `diskStorage`. Client filenames used as disk filenames (CWE-22). Client MIME type trusted (CWE-434). No size limit (CWE-400). `storagePath` exposed in API (CWE-200). Download endpoint streams from disk (CWE-22/CWE-639). Delete removes from disk and DB (CWE-22).
+- **sharing module:** `publicToken` generated sequentially (CWE-330). `GET /sharing/public/:token` unauthenticated (CWE-285). `expiresAt` not enforced (CWE-613).
+- **admin module:** Any authenticated user can access admin endpoints (CWE-862). Crash-test endpoint (v0.2.4).
+- **Migrations:** TypeORM with `migrationsRun: true`. InitialSchema, AddFileDescription, AddFileUploadColumns, AddPublicTokenColumn.
+- **OpenAPI/Swagger** at `/api/docs` (v0.3.5) -- publicly accessible without authentication.
+- **OWASP Top 10:2025:** All references use 2025 (ADR-021).
+- **No authorization enforcement** -- authentication without authorization (CWE-862)
+- 44 e2e tests across 6 suites, ~35 CWE entries
