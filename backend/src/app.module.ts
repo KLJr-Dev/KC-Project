@@ -10,7 +10,7 @@ import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
 
 /**
- * v0.2.4 — Error & Metadata Leakage
+ * v0.2.5 — Persistence Refactoring
  *
  * Root application module. Composes feature modules and configures the
  * PostgreSQL connection via TypeORM.
@@ -21,11 +21,13 @@ import { AdminModule } from './admin/admin.module';
  *       Remediation (v2.0.0): Load from environment variables or
  *       Docker secrets, never commit credentials to source.
  *
- * VULN: synchronize: true auto-creates and alters tables from entity
- *       metadata on every application start. In production this can
- *       cause data loss or schema corruption.
+ * VULN (v0.2.5 partial remediation): synchronize: true replaced with
+ *       explicit TypeORM migrations + migrationsRun: true. Migrations
+ *       are better than auto-sync, but migrationsRun: true means any
+ *       migration file injected into the repo executes automatically
+ *       on app start — still a design weakness.
  *       CWE-1188 (Insecure Default Initialization of Resource) | A02:2025
- *       Remediation (v2.0.0): synchronize: false, use TypeORM migrations.
+ *       Remediation (v2.0.0): Manual migration execution, migration review gate.
  *
  * VULN: logging: true prints all SQL statements to stdout, including
  *       queries containing plaintext passwords and user data.
@@ -53,7 +55,9 @@ import { AdminModule } from './admin/admin.module';
       password: 'postgres', // VULN: hardcoded credentials (CWE-798)
       database: 'kc_dev',
       autoLoadEntities: true,
-      synchronize: true, // VULN: auto-alters schema in place (CWE-1188)
+      synchronize: false, // v0.2.5: replaced with migrations (was true, CWE-1188 partial fix)
+      migrations: [__dirname + '/migrations/*{.ts,.js}'],
+      migrationsRun: true, // VULN: auto-runs migrations on start (CWE-1188 still partial)
       logging: true, // VULN: logs all SQL including sensitive data (CWE-532)
     }),
     AuthModule,
