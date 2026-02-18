@@ -1,25 +1,23 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
 
 /**
- * v0.2.2 — Identifier Trust Failures
+ * v0.3.4 -- Public File Sharing
  *
  * Sharing record entity mapped to the "sharing_entity" table in PostgreSQL.
- * Represents a share link for a file. No foreign key to the files table —
- * intentionally weak referential integrity.
+ * Represents a share link for a file. No foreign key to the files table.
  *
- * Fields mirror the SharingResponseDto shape from v0.0.6. Sequential string
- * IDs are manually assigned (CWE-330).
+ * VULN: fileId has no FK constraint. CWE-1188 | A02:2025
+ * VULN (v0.2.2): ownerId never checked. CWE-639 | A01:2025
  *
- * VULN: fileId is a plain string column with no foreign key constraint.
- *       A sharing record can reference a non-existent or deleted file.
- *       CWE-1188 (Insecure Default Initialization of Resource) | A02:2025
- *       Remediation (v2.0.0): Foreign key constraint on fileId → files.id.
+ * VULN (v0.3.4): publicToken is sequential ("share-1", "share-2", ...).
+ *       Trivially guessable -- enumerate all shared files.
+ *       CWE-330 (Predictable Values) | A01:2025
+ *       Remediation (v2.0.0): crypto.randomBytes(32).toString('hex').
  *
- * VULN (v0.2.2): ownerId is stored at creation time but never checked on
- *       read, update, or delete operations. Any authenticated user can
- *       access or modify another user's sharing record.
- *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
- *       Remediation (v2.0.0): WHERE owner_id = $1 on every query.
+ * VULN (v0.3.4): expiresAt is stored but never checked on access.
+ *       Expired shares remain accessible indefinitely.
+ *       CWE-613 (Insufficient Session Expiration) | A07:2025
+ *       Remediation (v2.0.0): Check expiresAt on every public access.
  */
 @Entity()
 export class SharingEntity {
@@ -31,6 +29,9 @@ export class SharingEntity {
 
   @Column({ nullable: true })
   fileId!: string;
+
+  @Column({ nullable: true })
+  publicToken?: string;
 
   @Column({ default: false })
   public!: boolean;

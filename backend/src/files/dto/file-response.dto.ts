@@ -1,18 +1,20 @@
 /**
- * v0.2.2 — Identifier Trust Failures
+ * v0.3.0 -- File Upload
  *
- * Response shape for file metadata. Includes ownerId (who uploaded it),
- * but no endpoint checks that the requesting user matches ownerId.
+ * Response shape for file metadata. Now includes mimetype and storagePath
+ * from real Multer uploads.
  *
- * VULN (v0.2.2): ownerId is exposed in the response but never enforced.
- *       Any authenticated user can see who owns a file, and still
- *       access or delete it regardless.
- *       CWE-639 | A01:2025
+ * VULN (v0.2.2): ownerId exposed but never enforced. CWE-639 | A01:2025
+ *
+ * VULN (v0.3.0): storagePath exposes the server filesystem path to any
+ *       authenticated user. CWE-200 | A01:2025
  */
 export class FileResponseDto {
   id!: string;
   ownerId?: string;
   filename!: string;
+  mimetype?: string;
+  storagePath?: string;
   description?: string;
   size?: number;
   uploadedAt!: string;

@@ -4,20 +4,21 @@ import { SharingController } from './sharing.controller';
 import { SharingService } from './sharing.service';
 import { SharingEntity } from './entities/sharing.entity';
 import { AuthModule } from '../auth/auth.module';
+import { FilesModule } from '../files/files.module';
 
 /**
- * v0.2.2 — Identifier Trust Failures
+ * v0.3.4 -- Public File Sharing
  *
  * Sharing module. Registers /sharing/* routes and service backed by PostgreSQL.
- * AuthModule imported to provide JwtService for JwtAuthGuard on controller.
+ * FilesModule imported so the public endpoint can stream files.
  *
- * VULN (v0.2.2): ownerId is recorded on share creation but never checked
- *       on read/update/delete. Any authenticated user can access any share.
- *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
+ * VULN (v0.2.2): ownerId never checked. CWE-639 | A01:2025
+ * VULN (v0.3.4): unauthenticated GET /sharing/public/:token. CWE-285 | A01:2025
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([SharingEntity]), AuthModule],
+  imports: [TypeOrmModule.forFeature([SharingEntity]), AuthModule, FilesModule],
   controllers: [SharingController],
   providers: [SharingService],
+  exports: [SharingService],
 })
 export class SharingModule {}
