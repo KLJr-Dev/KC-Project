@@ -1,6 +1,6 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Describes the v0.2.2 PostgreSQL schema (current), the v1.0.0 target schema, and the v2.0.0 hardened schema.
+Entity definitions and relationships for KC-Project. Describes the v0.2.3 PostgreSQL schema (current), the v1.0.0 target schema, and the v2.0.0 hardened schema.
 
 ---
 
@@ -168,19 +168,22 @@ erDiagram
 
 | Weakness | CWE | OWASP | Affected Entity | Detail |
 |----------|-----|-------|-----------------|--------|
-| Sequential integer IDs | CWE-330 | A01:2021 | All | IDs are predictable: 1, 2, 3... Enables enumeration. |
-| No unique constraint on email | CWE-289 | A07:2021 | users | Duplicate check is in application code only. Race condition possible. |
-| Weak/plaintext password storage | CWE-256 | A07:2021 | users | `password_hash` may contain plaintext or weak hash. |
-| No ownership enforcement at DB level | CWE-639 | A01:2021 | files, shares | FK exists but application doesn't always filter by owner. |
-| Client-supplied filename stored directly | CWE-22 | A01:2021 | files | No path sanitisation on `filename` or `storage_path`. |
-| Client-supplied MIME type trusted | CWE-434 | A04:2021 | files | `mimetype` comes from request, not validated against file content. |
-| No upload size limit | CWE-400 | A04:2021 | files | `size` recorded but not enforced. |
-| Predictable sharing tokens | CWE-330 | A01:2021 | shares | `public_token` is sequential or easily guessable. |
-| No share expiry enforcement | CWE-613 | A07:2021 | shares | `expires_at` can be NULL, and the app doesn't check it. |
-| SQL error messages exposed | CWE-209 | A05:2021 | All | Raw database errors returned to client. |
-| ownerId stored but never enforced | CWE-639 | A01:2021 | file_entity, sharing_entity | ownerId column populated on creation but no WHERE clause checks it on read/update/delete. Any authenticated user can access any resource (IDOR). |
-| No FK on ownerId | CWE-1188 | A05:2021 | file_entity, sharing_entity | ownerId references user by convention, no DB constraint. Can reference deleted users. |
-| Authentication without authorization | CWE-862 | A01:2021 | All | JwtAuthGuard on all controllers but no ownership or role checks. |
+| Sequential integer IDs | CWE-330 | A01:2025 | All | IDs are predictable: 1, 2, 3... Enables enumeration. |
+| No unique constraint on email | CWE-289 | A07:2025 | users | Duplicate check is in application code only. Race condition possible. |
+| Weak/plaintext password storage | CWE-256 | A07:2025 | users | `password_hash` may contain plaintext or weak hash. |
+| No ownership enforcement at DB level | CWE-639 | A01:2025 | files, shares | FK exists but application doesn't always filter by owner. |
+| Client-supplied filename stored directly | CWE-22 | A01:2025 | files | No path sanitisation on `filename` or `storage_path`. |
+| Client-supplied MIME type trusted | CWE-434 | A06:2025 | files | `mimetype` comes from request, not validated against file content. |
+| No upload size limit | CWE-400 | A06:2025 | files | `size` recorded but not enforced. |
+| Predictable sharing tokens | CWE-330 | A01:2025 | shares | `public_token` is sequential or easily guessable. |
+| No share expiry enforcement | CWE-613 | A07:2025 | shares | `expires_at` can be NULL, and the app doesn't check it. |
+| SQL error messages exposed | CWE-209 | A02:2025 | All | Raw database errors returned to client. |
+| ownerId stored but never enforced | CWE-639 | A01:2025 | file_entity, sharing_entity | ownerId column populated on creation but no WHERE clause checks it on read/update/delete. Any authenticated user can access any resource (IDOR). |
+| No FK on ownerId | CWE-1188 | A02:2025 | file_entity, sharing_entity | ownerId references user by convention, no DB constraint. Can reference deleted users. |
+| Authentication without authorization | CWE-862 | A01:2025 | All | JwtAuthGuard on all controllers but no ownership or role checks. |
+| Unbounded list endpoints | CWE-200 | A01:2025 | All | GET endpoints return all records to any authenticated user — no pagination, no ownership filter. Full table dumps. |
+| Existence oracle (200/404) | CWE-203 | A01:2025 | All | Sequential IDs + 200/404 status codes allow resource existence probing. |
+| Uncontrolled resource consumption | CWE-400 | A06:2025 | All | No pagination, no rate limiting, no query limits on list endpoints. |
 
 ---
 

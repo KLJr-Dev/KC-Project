@@ -311,31 +311,70 @@ sequenceDiagram
   Note over UserA, PG: IDOR: User B accessed User A's resource without authorization
 ```
 
-### Current weaknesses (v0.1.x — v0.2.2)
+### Enumeration Attack (v0.2.3) -- CWE-200, CWE-203, CWE-330
+
+```mermaid
+sequenceDiagram
+  participant Attacker as Attacker (Authenticated)
+  participant API as NestJS API
+  participant DB as PostgreSQL
+
+  Note over Attacker, DB: Step 1 — ID probing via 200/404 oracle
+  Attacker->>API: GET /users/1 + Bearer JWT
+  API-->>Attacker: 200 OK (user exists)
+  Attacker->>API: GET /users/2 + Bearer JWT
+  API-->>Attacker: 200 OK (user exists)
+  Attacker->>API: GET /users/3 + Bearer JWT
+  API-->>Attacker: 404 Not Found (no user)
+  Note right of Attacker: Attacker now knows exactly 2 users exist
+
+  Note over Attacker, DB: Step 2 — Full table dump via unbounded list
+  Attacker->>API: GET /users + Bearer JWT
+  API->>DB: SELECT * FROM "user"
+  Note right of DB: No WHERE, no LIMIT, no pagination
+  DB-->>API: All user records
+  API-->>Attacker: 200 OK — complete user list with emails, usernames
+
+  Note over Attacker, DB: Step 3 — API reconnaissance via public Swagger
+  Attacker->>API: GET /api/docs-json (no auth required)
+  API-->>Attacker: 200 OK — full OpenAPI spec (routes, DTOs, params)
+
+  Note over Attacker, DB: Step 4 — Framework fingerprinting
+  Attacker->>API: GET /ping
+  API-->>Attacker: 200 OK + X-Powered-By: Express
+  Note right of Attacker: Attacker knows: Express/NestJS backend
+```
+
+### Current weaknesses (v0.1.x — v0.2.3)
 
 | Weakness | CWE | OWASP Top 10 | Introduced |
 |----------|-----|-------------|------------|
-| Plaintext password storage | CWE-256 | A07:2021 Identification and Authentication Failures | v0.1.1 |
-| Plaintext password comparison | CWE-256 | A07:2021 Identification and Authentication Failures | v0.1.2 |
-| Leaky duplicate error (email in message) | CWE-209 | A07:2021 Identification and Authentication Failures | v0.1.1 |
-| Distinct auth errors enable enumeration | CWE-204 | A07:2021 Identification and Authentication Failures | v0.1.2 |
-| Sequential predictable user IDs | CWE-330 | A01:2021 Broken Access Control | v0.1.0 |
-| Weak JWT secret (hardcoded `'kc-secret'`) | CWE-798 | A02:2021 Cryptographic Failures | v0.1.3 |
-| JWT signed with weak HS256 algorithm | CWE-347 | A02:2021 Cryptographic Failures | v0.1.3 |
-| No token expiration (no `exp` claim) | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.3 |
-| Guard does not check user still exists | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.3 |
-| Token stored in localStorage (XSS-accessible) | CWE-922 | A07:2021 Identification and Authentication Failures | v0.1.1 |
-| Missing authorization on /auth/me | CWE-862 | A01:2021 Broken Access Control | v0.1.3 |
-| Permissive CORS (all origins) | CWE-942 | A05:2021 Security Misconfiguration | v0.0.5 |
-| Cleartext transport (HTTP, no TLS) | CWE-319 | A02:2021 Cryptographic Failures | v0.0.5 |
-| Source code comments in CSR bundle | CWE-615 | A05:2021 Security Misconfiguration | v0.1.3 |
-| Cosmetic logout (no server-side invalidation) | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.4 |
-| Token replay after logout | CWE-613 | A07:2021 Identification and Authentication Failures | v0.1.4 |
-| No rate limiting on auth endpoints | CWE-307 | A07:2021 Identification and Authentication Failures | v0.1.5 |
-| No account lockout after failed attempts | CWE-307 | A07:2021 Identification and Authentication Failures | v0.1.5 |
-| Weak password requirements (no min length/complexity) | CWE-521 | A07:2021 Identification and Authentication Failures | v0.1.5 |
-| IDOR — any authenticated user can access any resource by ID | CWE-639 | A01:2021 Broken Access Control | v0.2.2 |
-| Missing authorization on all resource endpoints | CWE-862 | A01:2021 Broken Access Control | v0.2.2 |
+| Plaintext password storage | CWE-256 | A07:2025 Authentication Failures | v0.1.1 |
+| Plaintext password comparison | CWE-256 | A07:2025 Authentication Failures | v0.1.2 |
+| Leaky duplicate error (email in message) | CWE-209 | A07:2025 Authentication Failures | v0.1.1 |
+| Distinct auth errors enable enumeration | CWE-204 | A07:2025 Authentication Failures | v0.1.2 |
+| Sequential predictable user IDs | CWE-330 | A01:2025 Broken Access Control | v0.1.0 |
+| Weak JWT secret (hardcoded `'kc-secret'`) | CWE-798 | A04:2025 Cryptographic Failures | v0.1.3 |
+| JWT signed with weak HS256 algorithm | CWE-347 | A04:2025 Cryptographic Failures | v0.1.3 |
+| No token expiration (no `exp` claim) | CWE-613 | A07:2025 Authentication Failures | v0.1.3 |
+| Guard does not check user still exists | CWE-613 | A07:2025 Authentication Failures | v0.1.3 |
+| Token stored in localStorage (XSS-accessible) | CWE-922 | A07:2025 Authentication Failures | v0.1.1 |
+| Missing authorization on /auth/me | CWE-862 | A01:2025 Broken Access Control | v0.1.3 |
+| Permissive CORS (all origins) | CWE-942 | A02:2025 Security Misconfiguration | v0.0.5 |
+| Cleartext transport (HTTP, no TLS) | CWE-319 | A04:2025 Cryptographic Failures | v0.0.5 |
+| Source code comments in CSR bundle | CWE-615 | A02:2025 Security Misconfiguration | v0.1.3 |
+| Cosmetic logout (no server-side invalidation) | CWE-613 | A07:2025 Authentication Failures | v0.1.4 |
+| Token replay after logout | CWE-613 | A07:2025 Authentication Failures | v0.1.4 |
+| No rate limiting on auth endpoints | CWE-307 | A07:2025 Authentication Failures | v0.1.5 |
+| No account lockout after failed attempts | CWE-307 | A07:2025 Authentication Failures | v0.1.5 |
+| Weak password requirements (no min length/complexity) | CWE-521 | A07:2025 Authentication Failures | v0.1.5 |
+| IDOR — any authenticated user can access any resource by ID | CWE-639 | A01:2025 Broken Access Control | v0.2.2 |
+| Missing authorization on all resource endpoints | CWE-862 | A01:2025 Broken Access Control | v0.2.2 |
+| Unbounded list endpoints — full table dumps | CWE-200 | A01:2025 Broken Access Control | v0.2.3 |
+| Existence oracle via 200/404 + sequential IDs | CWE-203 | A01:2025 Broken Access Control | v0.2.3 |
+| Uncontrolled resource consumption (no pagination) | CWE-400 | A06:2025 Insecure Design | v0.2.3 |
+| Swagger spec publicly accessible | CWE-200 | A02:2025 Security Misconfiguration | v0.2.3 |
+| X-Powered-By header leaks framework identity | CWE-200 | A02:2025 Security Misconfiguration | v0.2.3 |
 
 ---
 
@@ -403,26 +442,26 @@ sequenceDiagram
 | Property | v1.0.0 Value | Weakness |
 |----------|-------------|----------|
 | Algorithm | HS256 | Symmetric -- anyone with the secret can forge tokens |
-| Secret | Hardcoded string (e.g. `"kc-secret"`) | CWE-798 / A02:2021 |
-| Expiration | None | CWE-613 / A07:2021 |
+| Secret | Hardcoded string (e.g. `"kc-secret"`) | CWE-798 / A04:2025 |
+| Expiration | None | CWE-613 / A07:2025 |
 | Payload | `{ sub: userId }` | Minimal, but userId is sequential |
-| Storage | localStorage | CWE-922 / A07:2021 -- accessible to XSS |
-| Revocation | None (no server-side tracking) | CWE-613 / A07:2021 |
-| Transport | HTTP (no TLS) | CWE-319 / A02:2021 |
+| Storage | localStorage | CWE-922 / A07:2025 -- accessible to XSS |
+| Revocation | None (no server-side tracking) | CWE-613 / A07:2025 |
+| Transport | HTTP (no TLS) | CWE-319 / A04:2025 |
 
 ### v1.0.0 Auth Weaknesses
 
 | Weakness | CWE | OWASP Top 10 | Detail |
 |----------|-----|-------------|--------|
-| Weak/plaintext password storage | CWE-256 | A07:2021 | Passwords stored with weak hash or plaintext in PostgreSQL |
-| Weak JWT secret | CWE-347 | A02:2021 Cryptographic Failures | Hardcoded symmetric secret, trivially brute-forced |
-| No token expiration | CWE-613 | A07:2021 | JWT has no `exp` claim -- valid forever |
-| No session revocation | CWE-613 | A07:2021 | No deny-list, no session table -- logout is cosmetic |
-| localStorage token storage | CWE-922 | A07:2021 | Any XSS payload can steal the JWT |
-| Distinct error messages | CWE-204 | A07:2021 | "No user with that email" vs "Incorrect password" |
-| No rate limiting | CWE-307 | A07:2021 | Unlimited login attempts, brute-force viable |
-| Plaintext transport | CWE-319 | A02:2021 | No TLS -- credentials and tokens sent in cleartext |
-| Sequential user IDs in JWT | CWE-330 | A01:2021 Broken Access Control | `sub` claim is predictable ("1", "2", "3"...) |
+| Weak/plaintext password storage | CWE-256 | A07:2025 | Passwords stored with weak hash or plaintext in PostgreSQL |
+| Weak JWT secret | CWE-347 | A04:2025 Cryptographic Failures | Hardcoded symmetric secret, trivially brute-forced |
+| No token expiration | CWE-613 | A07:2025 | JWT has no `exp` claim -- valid forever |
+| No session revocation | CWE-613 | A07:2025 | No deny-list, no session table -- logout is cosmetic |
+| localStorage token storage | CWE-922 | A07:2025 | Any XSS payload can steal the JWT |
+| Distinct error messages | CWE-204 | A07:2025 | "No user with that email" vs "Incorrect password" |
+| No rate limiting | CWE-307 | A07:2025 | Unlimited login attempts, brute-force viable |
+| Plaintext transport | CWE-319 | A04:2025 | No TLS -- credentials and tokens sent in cleartext |
+| Sequential user IDs in JWT | CWE-330 | A01:2025 Broken Access Control | `sub` claim is predictable ("1", "2", "3"...) |
 
 ---
 
@@ -507,13 +546,13 @@ sequenceDiagram
 
 | v1.0.0 Weakness | v2.0.0 Control | CWE | OWASP |
 |------------------|---------------|-----|-------|
-| Plaintext/weak password storage | bcrypt cost 12 | CWE-256 | A07:2021 |
-| Weak JWT secret (HS256, hardcoded) | RS256 asymmetric keys, rotated | CWE-347 | A02:2021 |
-| No token expiration | 15-minute access token TTL | CWE-613 | A07:2021 |
-| No session revocation | Refresh token table, deleted on logout | CWE-613 | A07:2021 |
-| localStorage token storage | httpOnly secure sameSite cookie for refresh; short-lived access token in memory | CWE-922 | A07:2021 |
-| Distinct error messages | Generic "Authentication failed" for all cases | CWE-204 | A07:2021 |
-| No rate limiting | nginx rate limiting + per-IP throttle on /auth/* | CWE-307 | A07:2021 |
-| Plaintext transport (HTTP) | TLS termination at nginx, HSTS header | CWE-319 | A02:2021 |
-| Sequential user IDs | UUIDs (v4) for all identifiers | CWE-330 | A01:2021 |
-| No input validation on auth | Length limits, password strength, email format | CWE-20 | A03:2021 |
+| Plaintext/weak password storage | bcrypt cost 12 | CWE-256 | A07:2025 |
+| Weak JWT secret (HS256, hardcoded) | RS256 asymmetric keys, rotated | CWE-347 | A04:2025 |
+| No token expiration | 15-minute access token TTL | CWE-613 | A07:2025 |
+| No session revocation | Refresh token table, deleted on logout | CWE-613 | A07:2025 |
+| localStorage token storage | httpOnly secure sameSite cookie for refresh; short-lived access token in memory | CWE-922 | A07:2025 |
+| Distinct error messages | Generic "Authentication failed" for all cases | CWE-204 | A07:2025 |
+| No rate limiting | nginx rate limiting + per-IP throttle on /auth/* | CWE-307 | A07:2025 |
+| Plaintext transport (HTTP) | TLS termination at nginx, HSTS header | CWE-319 | A04:2025 |
+| Sequential user IDs | UUIDs (v4) for all identifiers | CWE-330 | A01:2025 |
+| No input validation on auth | Length limits, password strength, email format | CWE-20 | A05:2025 |

@@ -46,11 +46,11 @@ Server-side sessions were rejected because they require a storage backend (memor
 
 | Weakness | CWE | OWASP Top 10 |
 |----------|-----|-------------|
-| Weak hardcoded secret | CWE-347 | A02:2021 Cryptographic Failures |
-| No token expiration | CWE-613 | A07:2021 Identification and Authentication Failures |
-| No server-side revocation | CWE-613 | A07:2021 Identification and Authentication Failures |
-| Symmetric algorithm (forgery if secret known) | CWE-347 | A02:2021 Cryptographic Failures |
-| Payload readable (base64, not encrypted) | CWE-319 | A02:2021 Cryptographic Failures |
+| Weak hardcoded secret | CWE-347 | A04:2025 Cryptographic Failures |
+| No token expiration | CWE-613 | A07:2025 Authentication Failures |
+| No server-side revocation | CWE-613 | A07:2025 Authentication Failures |
+| Symmetric algorithm (forgery if secret known) | CWE-347 | A04:2025 Cryptographic Failures |
+| Payload readable (base64, not encrypted) | CWE-319 | A04:2025 Cryptographic Failures |
 
 ## v2.0.0 Remediation
 

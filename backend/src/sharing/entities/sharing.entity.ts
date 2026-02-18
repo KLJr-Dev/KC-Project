@@ -12,13 +12,13 @@ import { Entity, PrimaryColumn, Column } from 'typeorm';
  *
  * VULN: fileId is a plain string column with no foreign key constraint.
  *       A sharing record can reference a non-existent or deleted file.
- *       CWE-1188 (Insecure Default Initialization of Resource) | A05:2021
+ *       CWE-1188 (Insecure Default Initialization of Resource) | A02:2025
  *       Remediation (v2.0.0): Foreign key constraint on fileId → files.id.
  *
  * VULN (v0.2.2): ownerId is stored at creation time but never checked on
  *       read, update, or delete operations. Any authenticated user can
  *       access or modify another user's sharing record.
- *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2021
+ *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
  *       Remediation (v2.0.0): WHERE owner_id = $1 on every query.
  */
 @Entity()

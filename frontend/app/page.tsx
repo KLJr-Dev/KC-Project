@@ -80,21 +80,24 @@ export default function HomePage() {
         <div className="flex flex-col justify-between rounded-md border border-border p-6">
           <div className="space-y-3">
             <h2 className="text-sm font-medium text-muted">Current Version</h2>
-            <p className="text-lg font-semibold text-foreground">v0.2.2 - Identifier Trust Failures</p>
+            <p className="text-lg font-semibold text-foreground">v0.2.3 - Enumeration Surface</p>
             <p className="text-sm text-muted">
-              All resource endpoints require authentication but enforce no authorization. Any
-              authenticated user can read, modify, or delete any other user&apos;s data.
+              All list endpoints dump full tables. Sequential IDs enable existence probing.
+              Swagger spec and framework headers publicly accessible. OWASP Top 10:2025 migration.
             </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
             <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
-              Auth on all endpoints
+              Unbounded queries
             </span>
             <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
-              No ownership checks
+              ID probing
             </span>
             <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
-              IDOR
+              Public Swagger
+            </span>
+            <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
+              OWASP 2025
             </span>
           </div>
         </div>

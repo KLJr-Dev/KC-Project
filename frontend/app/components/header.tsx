@@ -5,7 +5,7 @@
  * All comments, the authMe() call, the username display logic, and the
  * auth state check are shipped to the browser. Visible in DevTools Sources
  * tab and React DevTools component inspector.
- * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A05:2021
+ * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A02:2025
  *
  * --- Purpose ---
  * Global navigation header rendered on every page. Displays:
@@ -30,7 +30,7 @@
  *   1. Fires POST /auth/logout (fire-and-forget — backend does nothing)
  *   2. Clears React state + localStorage
  * The JWT is NOT revoked. Any copy of the token remains valid indefinitely.
- * VULN: CWE-613 (Insufficient Session Expiration) | A07:2021
+ * VULN: CWE-613 (Insufficient Session Expiration) | A07:2025
  *
  * Note: The authenticated username, user ID, and full API response are
  * visible in the browser's Network tab. The username is also rendered in

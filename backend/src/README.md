@@ -148,6 +148,7 @@ PUT    /users/:id          Update user
 DELETE /users/:id          Delete user
 
 POST   /files              Upload file (metadata stub)
+GET    /files              List all files (v0.2.3)
 GET    /files/:id          Get file metadata
 DELETE /files/:id          Delete file
 
@@ -252,19 +253,22 @@ dto/
 
 ---
 
-## Current version context (v0.2.2)
+## Current version context (v0.2.3)
 
-**v0.2.2 — Identifier Trust Failures** is complete.
+**v0.2.3 — Enumeration Surface** is complete.
 
 - **All modules:** Services backed by TypeORM repositories, data persisted in PostgreSQL. All methods async. All resource controllers protected by JwtAuthGuard (authentication required).
-- **users module:** `User` entity. `UsersService` uses `Repository<User>`. Password stored in plaintext (CWE-256). Any authenticated user can read/modify/delete any user's profile (CWE-639, CWE-862).
+- **users module:** `User` entity. `UsersService` uses `Repository<User>`. Password stored in plaintext (CWE-256). Any authenticated user can read/modify/delete any user's profile (CWE-639, CWE-862). `GET /users` returns full table dump (CWE-200, CWE-400).
 - **auth module:** Registration, login, profile, logout. Real HS256 JWTs (hardcoded secret, no expiry). AuthModule exports JwtModule so resource modules can use JwtAuthGuard.
-- **files module:** `FileEntity` with `ownerId` column. ownerId populated from JWT on upload but never checked on read/delete. Any authenticated user can access any file (CWE-639).
-- **sharing module:** `SharingEntity` with `ownerId` column. Same IDOR vulnerability as files.
-- **admin module:** Any authenticated user can access admin endpoints. No role check (CWE-862).
+- **files module:** `FileEntity` with `ownerId` column. ownerId populated from JWT on upload but never checked on read/delete (CWE-639). `GET /files` list-all endpoint added in v0.2.3 — unbounded full table dump (CWE-200, CWE-400).
+- **sharing module:** `SharingEntity` with `ownerId` column. Same IDOR vulnerability as files. Unbounded list endpoint.
+- **admin module:** Any authenticated user can access admin endpoints. No role check (CWE-862). Unbounded list endpoint.
+- **Enumeration surface (v0.2.3):** All 4 list endpoints unbounded. Sequential IDs allow 200/404 existence probing (CWE-203). Swagger spec publicly accessible (CWE-200). X-Powered-By header reveals Express (CWE-200).
 - **Verbose DB errors (v0.2.1):** Raw TypeORM `QueryFailedError` logged to stdout. CWE-209.
-- **OpenAPI/Swagger** at `/api/docs` (v0.2.2).
+- **OpenAPI/Swagger** at `/api/docs` (v0.2.3) — publicly accessible without authentication.
+- **OWASP Top 10:2025:** All references migrated from 2021 to 2025 (ADR-021).
 - **TypeScript** `strict: true`. **Prettier** shared config.
 - PostgreSQL persistence via TypeORM (`synchronize: true`, hardcoded credentials)
 - Authentication via JWTs — enforced on all endpoints
 - **No authorization enforcement** — authentication without authorization (CWE-862)
+- 29 e2e tests, 28 CWE entries

@@ -75,18 +75,18 @@ volumes:
 
 | Misconfiguration | CWE | OWASP | Impact |
 |------------------|-----|-------|--------|
-| All services bind 0.0.0.0 | CWE-668 | A05:2021 | Any internet host can reach frontend, backend, and database |
-| PostgreSQL port exposed (5432) | CWE-668 | A05:2021 | Direct SQL access from internet with default credentials |
-| Default DB credentials (postgres/postgres) | CWE-798 | A07:2021 | Trivial database takeover |
-| Containers run as root | CWE-250 | A05:2021 | Container escape leads to host root access |
-| No resource limits (CPU/memory) | CWE-770 | A05:2021 | DoS via resource exhaustion |
+| All services bind 0.0.0.0 | CWE-668 | A02:2025 | Any internet host can reach frontend, backend, and database |
+| PostgreSQL port exposed (5432) | CWE-668 | A02:2025 | Direct SQL access from internet with default credentials |
+| Default DB credentials (postgres/postgres) | CWE-798 | A07:2025 | Trivial database takeover |
+| Containers run as root | CWE-250 | A02:2025 | Container escape leads to host root access |
+| No resource limits (CPU/memory) | CWE-770 | A02:2025 | DoS via resource exhaustion |
 | No health checks | -- | -- | Silent failures, zombie containers |
-| JWT secret in environment variable (plaintext) | CWE-798 | A05:2021 | Secret visible in `docker inspect`, process env |
-| Upload volume host-mounted, world-readable | CWE-732 | A01:2021 | Any container or host process can read uploaded files |
-| No TLS anywhere | CWE-319 | A02:2021 | Credentials, tokens, data all in plaintext on the wire |
-| Default bridge network | CWE-668 | A05:2021 | All containers can communicate freely, no isolation |
-| No logging configuration | CWE-778 | A09:2021 | No audit trail, silent compromise |
-| Verbose error responses | CWE-209 | A05:2021 | Stack traces and SQL errors reach the client |
+| JWT secret in environment variable (plaintext) | CWE-798 | A02:2025 | Secret visible in `docker inspect`, process env |
+| Upload volume host-mounted, world-readable | CWE-732 | A01:2025 | Any container or host process can read uploaded files |
+| No TLS anywhere | CWE-319 | A04:2025 | Credentials, tokens, data all in plaintext on the wire |
+| Default bridge network | CWE-668 | A02:2025 | All containers can communicate freely, no isolation |
+| No logging configuration | CWE-778 | A09:2025 | No audit trail, silent compromise |
+| Verbose error responses | CWE-209 | A02:2025 | Stack traces and SQL errors reach the client |
 
 ### Network View
 
@@ -327,15 +327,15 @@ The attacker can only reach nginx on port 443. Backend, database, and frontend a
 
 | Area | v1.0.0 (insecure) | v2.0.0 (hardened) | CWE / OWASP |
 |------|-------------------|-------------------|-------------|
-| External access | Ports 3000, 4000, 5432 all exposed | Only port 443 (nginx) | CWE-668 / A05:2021 |
-| Reverse proxy | None | nginx with TLS, rate limiting, security headers | CWE-16 / A05:2021 |
-| TLS | None (HTTP plaintext) | TLS 1.3 at nginx, HSTS | CWE-319 / A02:2021 |
+| External access | Ports 3000, 4000, 5432 all exposed | Only port 443 (nginx) | CWE-668 / A02:2025 |
+| Reverse proxy | None | nginx with TLS, rate limiting, security headers | CWE-16 / A02:2025 |
+| TLS | None (HTTP plaintext) | TLS 1.3 at nginx, HSTS | CWE-319 / A04:2025 |
 | DB access | Exposed on 5432, default credentials | Internal only, Docker secrets, strong password | CWE-798, CWE-668 / A05, A07 |
-| Container user | root | Non-root (UID 1001) | CWE-250 / A05:2021 |
-| Filesystem | Read-write | Read-only (except explicit volumes) | CWE-732 / A01:2021 |
-| Resource limits | None | CPU + memory limits per service | CWE-770 / A05:2021 |
+| Container user | root | Non-root (UID 1001) | CWE-250 / A02:2025 |
+| Filesystem | Read-write | Read-only (except explicit volumes) | CWE-732 / A01:2025 |
+| Resource limits | None | CPU + memory limits per service | CWE-770 / A02:2025 |
 | Health checks | None | Liveness probes on all services | Operational resilience |
-| Secrets management | Environment variables (plaintext) | Docker secrets (file-mounted) | CWE-798 / A05:2021 |
-| Network | Default bridge (all can talk) | Custom internal + public networks, DB isolated | CWE-668 / A05:2021 |
-| Logging | Verbose, sensitive data exposed | Structured, sensitive fields redacted | CWE-532 / A09:2021 |
-| Upload volume | Host-mounted, world-readable | Named volume, scoped, size-limited | CWE-732 / A01:2021 |
+| Secrets management | Environment variables (plaintext) | Docker secrets (file-mounted) | CWE-798 / A02:2025 |
+| Network | Default bridge (all can talk) | Custom internal + public networks, DB isolated | CWE-668 / A02:2025 |
+| Logging | Verbose, sensitive data exposed | Structured, sensitive fields redacted | CWE-532 / A09:2025 |
+| Upload volume | Host-mounted, world-readable | Named volume, scoped, size-limited | CWE-732 / A01:2025 |

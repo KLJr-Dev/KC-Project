@@ -1,6 +1,6 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v0.2.2** (identifier trust failures).
+This document describes the system architecture as of **v0.2.3** (enumeration surface + OWASP 2025 migration).
 
 ---
 
@@ -285,8 +285,11 @@ These weaknesses are intentional. The security surface grows incrementally per t
 ## What This Architecture Does Not Include (Yet)
 
 - Authorization / ownership enforcement — ownerId exists but is never checked (v0.4.x)
+- Pagination / query limits — all list endpoints are unbounded (CWE-400)
 - File storage — real file I/O (v0.3.x)
 - RBAC / role-based access (v0.4.x)
 - App containers / deployment (v0.5.x) — only PG is containerised
 - CI/CD pipelines
 - Environment configuration (credentials still hardcoded)
+- Swagger auth protection — spec is publicly accessible (CWE-200)
+- Response header hardening — X-Powered-By not disabled (CWE-200)

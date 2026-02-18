@@ -13,8 +13,8 @@ import { AppModule } from '../src/app.module';
  * that authentication (JwtAuthGuard) is enforced but authorization
  * (ownership checks) is entirely absent.
  *
- * CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2021
- * CWE-862 (Missing Authorization) | A01:2021
+ * CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
+ * CWE-862 (Missing Authorization) | A01:2025
  *
  * Requires: docker compose -f infra/compose.yml up -d
  */
