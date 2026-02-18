@@ -10,7 +10,7 @@ import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
 
 /**
- * v0.2.3 — Enumeration Surface
+ * v0.2.4 — Error & Metadata Leakage
  *
  * Root application module. Composes feature modules and configures the
  * PostgreSQL connection via TypeORM.
@@ -32,15 +32,16 @@ import { AdminModule } from './admin/admin.module';
  *       CWE-532 (Insertion of Sensitive Information into Log File) | A09:2025
  *       Remediation (v2.0.0): Disable query logging or redact sensitive fields.
  *
- * VULN (v0.2.1): No global exception filter. When TypeORM throws a
- *       QueryFailedError (e.g. duplicate PK, constraint violation), the
- *       request crashes with a generic 500. The raw error — including PG
- *       table names, constraint names, and full SQL with parameters — is
- *       logged to stdout (CWE-532). The 500 confirms a DB failure to the
- *       attacker, and no graceful recovery or retry logic exists.
- *       CWE-209 (Generation of Error Message Containing Sensitive Information) | A02:2025
- *       Remediation (v2.0.0): Add a global ExceptionFilter that catches
- *       TypeORM errors, logs a sanitised message, and returns a user-friendly error.
+ * VULN (v0.2.1 expanded v0.2.4): No global exception filter. ALL
+ *       unhandled exceptions — TypeORM QueryFailedError, plain Error,
+ *       TypeError from malformed input — are caught by NestJS default
+ *       ExceptionsHandler which returns generic 500 to the client but
+ *       logs the full stack trace (file paths, line numbers, PG table
+ *       names, constraint names, SQL with parameters) to stdout.
+ *       CWE-209 (Error Message Info Leak) | A02:2025, A10:2025
+ *       CWE-532 (Sensitive Info in Logs) | A09:2025
+ *       Remediation (v2.0.0): Global ExceptionFilter that catches all
+ *       errors, logs sanitised messages, and returns user-friendly responses.
  */
 @Module({
   imports: [

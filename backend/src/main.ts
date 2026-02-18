@@ -3,7 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 /**
- * v0.2.3 — Enumeration Surface
+ * v0.2.4 — Error & Metadata Leakage
  *
  * Application entry point. Creates the NestJS app, configures CORS and
  * Swagger, and starts listening on port 4000 (or PORT env var).
@@ -23,6 +23,14 @@ import { AppModule } from './app.module';
  *       CWE-200 (Exposure of Sensitive Information) | A02:2025
  *       Remediation (v2.0.0): Disable Swagger in production or protect
  *       behind authentication.
+ *
+ * VULN (v0.2.4): No ValidationPipe is registered. Malformed request
+ *       bodies (wrong types, missing fields) pass through to services
+ *       unchecked and may cause TypeErrors with stack traces in logs.
+ *       app.useGlobalPipes(new ValidationPipe()) is intentionally omitted.
+ *       CWE-209 (Error Message Info Leak) | A10:2025
+ *       Remediation (v2.0.0): Global ValidationPipe with whitelist and
+ *       forbidNonWhitelisted options.
  */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -43,9 +51,9 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('KC-Project API')
     .setDescription(
-      'v0.2.3 — Enumeration Surface: GET /files list-all, unbounded queries, Swagger public, X-Powered-By, ID probing (CWE-200, CWE-203, CWE-400). OWASP Top 10:2025 migration (ADR-021)',
+      'v0.2.4 — Error & Metadata Leakage: crash-test endpoint, no ValidationPipe, NestJS error shape leaked, SQL logging with plaintext data (CWE-209, CWE-532, A10:2025)',
     )
-    .setVersion('0.2.3')
+    .setVersion('0.2.4')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
