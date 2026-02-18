@@ -4,9 +4,9 @@ System topology at three lifecycle stages. Each diagram shows how the components
 
 ---
 
-## Current State (v0.2.x)
+## Current State (v0.3.x)
 
-Three processes: frontend and backend run natively on the developer's machine, PostgreSQL runs in a Docker container. Data persists across restarts.
+Three processes: frontend and backend run natively on the developer's machine, PostgreSQL runs in a Docker container. Data persists across restarts. Files stored on local filesystem.
 
 ```mermaid
 flowchart LR
@@ -23,10 +23,10 @@ flowchart LR
 ### What exists
 
 - **Frontend** -- Next.js 16, App Router, React 19, Tailwind CSS 4. Client components call backend via fetch. Auth state persisted to localStorage. Bearer token sent on all API calls.
-- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated and **publicly accessible without auth** (CWE-200). `X-Powered-By: Express` header not disabled (CWE-200). Real HS256 JWTs (hardcoded secret, no expiry). **All resource endpoints protected by JwtAuthGuard** — authentication enforced but no authorization/ownership checks. ownerId tracked but never enforced (CWE-639, CWE-862). All list endpoints unbounded. `GET /admin/crash-test` demonstrates unhandled exception leakage (CWE-209, A10:2025). No ValidationPipe. NestJS 404 error shape exposed.
-- **Database** -- PostgreSQL 16 in Docker (`infra/compose.yml`). TypeORM with migrations (`migrationsRun: true`, replaced `synchronize: true` in v0.2.5). 4 tables + `description` column on file_entity added via migration. Hardcoded credentials (CWE-798). SQL logging with plaintext passwords (CWE-532).
-- **Communication** -- Plain HTTP, JSON bodies, Bearer token in Authorization header.
-- **Storage** -- TypeORM repositories backed by PostgreSQL. Data persists across restarts.
+- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated and **publicly accessible without auth** (CWE-200). `X-Powered-By: Express` header not disabled (CWE-200). Real HS256 JWTs (hardcoded secret, no expiry). Most resource endpoints protected by JwtAuthGuard -- authentication enforced but no authorization/ownership checks. Exception: `GET /sharing/public/:token` is unauthenticated (CWE-285). ownerId tracked but never enforced (CWE-639, CWE-862). All list endpoints unbounded. Multipart file uploads via Multer (CWE-22, CWE-434, CWE-400). File download/streaming and filesystem deletion. `GET /admin/crash-test` demonstrates unhandled exception leakage (CWE-209, A10:2025). No ValidationPipe.
+- **Database** -- PostgreSQL 16 in Docker (`infra/compose.yml`). TypeORM with migrations (`migrationsRun: true`, replaced `synchronize: true` in v0.2.5). 4 tables + `mimetype`/`storagePath`/`publicToken` columns added via migrations. Hardcoded credentials (CWE-798). SQL logging with plaintext passwords (CWE-532).
+- **Communication** -- Plain HTTP, JSON bodies (or multipart for file upload), Bearer token in Authorization header.
+- **Storage** -- TypeORM repositories backed by PostgreSQL. File data on local filesystem in `backend/uploads/` via Multer `diskStorage` (see ADR-024). Data persists across restarts.
 
 ### What does not exist yet
 
@@ -37,7 +37,7 @@ flowchart LR
 - Global exception filter / error sanitisation (stack traces leak to logs, A10:2025)
 - Input validation pipeline (no ValidationPipe, CWE-209)
 - Migration review gate (migrationsRun:true auto-executes)
-- File storage (real file I/O)
+- File upload sanitisation (filenames, MIME, size limits -- all intentionally absent)
 - App containers (frontend/backend still run natively)
 - Reverse proxy, TLS, network segmentation
 - Rate limiting

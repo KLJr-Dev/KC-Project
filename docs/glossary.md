@@ -36,7 +36,9 @@ Quick reference for terminology used across KC-Project documentation and codebas
 | **DI** | Dependency Injection. A design pattern where dependencies are provided to a class rather than created inside it. NestJS uses constructor injection. | [ADR-001](decisions/ADR-001-nestjs-backend.md) |
 | **Guard** | A NestJS construct that determines whether a request should be handled by a route. Used for authentication and authorisation checks. | [ADR-012](decisions/ADR-012-jwt-over-sessions.md) |
 | **Pipe** | A NestJS construct that transforms or validates input data before it reaches a handler. Not yet used in the project. | -- |
-| **Interceptor** | A NestJS construct that wraps route handlers to add extra logic (logging, transformation, caching). Not yet used in the project. | -- |
+| **Interceptor** | A NestJS construct that wraps route handlers to add extra logic (logging, transformation, caching). `FileInterceptor` used for multipart uploads (v0.3.0). | [ADR-024](decisions/ADR-024-file-storage-strategy.md) |
+| **Multer** | Express middleware for handling `multipart/form-data` (file uploads). Bundled with `@nestjs/platform-express`. `diskStorage` used for local filesystem writes. | [ADR-024](decisions/ADR-024-file-storage-strategy.md) |
+| **diskStorage** | A Multer storage engine that writes uploaded files directly to disk. KC-Project uses it with the client-supplied filename (no sanitisation). | [ADR-024](decisions/ADR-024-file-storage-strategy.md) |
 | **Module** | A NestJS organisational unit that groups related controllers, services, and providers. KC-Project has 5 domain modules + AppModule. | [ADR-007](decisions/ADR-007-five-domain-split.md) |
 | **RSC** | React Server Components. A Next.js feature where components render on the server by default. KC-Project uses `'use client'` on all pages instead. | [ADR-011](decisions/ADR-011-client-side-rendering.md) |
 | **BFF** | Backend For Frontend. A pattern where the frontend's server (e.g. Next.js) proxies API calls, hiding the real backend from the browser. Not used in v1.0.0. | [ADR-011](decisions/ADR-011-client-side-rendering.md) |

@@ -3,7 +3,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
+import { join } from 'path';
+import { writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 import { AppModule } from '../src/app.module';
+
+const TEST_FIXTURES = join(process.cwd(), 'test', 'fixtures');
+
+function ensureFixtures() {
+  if (!existsSync(TEST_FIXTURES)) mkdirSync(TEST_FIXTURES, { recursive: true });
+  writeFileSync(join(TEST_FIXTURES, 'idor-test.txt'), 'idor test content');
+}
 
 /**
  * v0.2.2 — Identifier Trust Failures
@@ -39,6 +48,14 @@ async function registerAndLogin(
 describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
   let app: INestApplication<App>;
 
+  beforeAll(() => {
+    ensureFixtures();
+  });
+
+  afterAll(() => {
+    if (existsSync(TEST_FIXTURES)) rmSync(TEST_FIXTURES, { recursive: true });
+  });
+
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -67,11 +84,11 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
     const userA = await registerAndLogin(httpServer, 'a@example.com', 'user-a', 'pass-a');
     const userB = await registerAndLogin(httpServer, 'b@example.com', 'user-b', 'pass-b');
 
-    // User A uploads a file
+    // User A uploads a file via multipart
     const uploadRes = await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${userA.token}`)
-      .send({ filename: 'secret-doc.txt' })
+      .attach('file', join(TEST_FIXTURES, 'idor-test.txt'))
       .expect(201);
 
     const fileId = uploadRes.body.id;
@@ -85,7 +102,7 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
 
     expect(readRes.body.id).toBe(fileId);
     expect(readRes.body.ownerId).toBe(userA.userId);
-    expect(readRes.body.filename).toBe('secret-doc.txt');
+    expect(readRes.body.filename).toBe('idor-test.txt');
   });
 
   /**
@@ -97,11 +114,11 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
     const userA = await registerAndLogin(httpServer, 'a@example.com', 'user-a', 'pass-a');
     const userB = await registerAndLogin(httpServer, 'b@example.com', 'user-b', 'pass-b');
 
-    // User A uploads a file
+    // User A uploads a file via multipart
     const uploadRes = await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${userA.token}`)
-      .send({ filename: 'private.pdf' })
+      .attach('file', join(TEST_FIXTURES, 'idor-test.txt'))
       .expect(201);
 
     const fileId = uploadRes.body.id;

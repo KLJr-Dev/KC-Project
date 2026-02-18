@@ -15,16 +15,17 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.2.5)
+## Current Status (v0.3.5)
 
-Persistence surface complete — TypeORM migrations replace synchronize:true, error/metadata leakage documented and tested, all v0.2.x attack surfaces closed.
+File handling surface complete -- multipart uploads via Multer, filesystem storage, streaming downloads, filesystem deletion, public sharing via predictable tokens. All file handling CWEs introduced.
 
-- **Backend** (NestJS) — Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). JwtAuthGuard on ALL resource endpoints. `ownerId` tracked but never enforced (IDOR). All list endpoints unbounded. Swagger + X-Powered-By publicly accessible. Crash-test endpoint demonstrates unhandled exception leakage. No ValidationPipe — malformed input passes through. Passwords plaintext. Swagger at `/api/docs` (v0.2.5).
-- **Database** (PostgreSQL 16) — Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), TypeORM migrations with `migrationsRun: true` (replaced `synchronize: true` in v0.2.5), SQL logging enabled. 4 tables + `description` column on file_entity added via migration.
-- **Frontend** (Next.js) — Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, automatic Bearer header on all API calls. Theme toggle (light/dark), app shell. Types auto-generated from OpenAPI spec.
-- **Tooling** — shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (33 tests, all running against real PG with `--runInBand`). Migration scripts: `migration:generate`, `migration:run`, `migration:revert`.
-- **Documentation** — ADRs 001-023 (022: TypeORM Migrations, 023: Error Handling Philosophy), formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary. All OWASP references use Top 10:2025.
-- 29 CWE entries across v0.1.0–v0.2.5. Persistence surface closed.
+- **Backend** (NestJS) -- Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). JwtAuthGuard on most resource endpoints (exception: unauthenticated `GET /sharing/public/:token`). `ownerId` tracked but never enforced (IDOR). Multipart file uploads via Multer `diskStorage` -- client filename as disk filename (CWE-22), client Content-Type trusted (CWE-434), no size limit (CWE-400). File download/streaming, filesystem deletion. Predictable share tokens (CWE-330). All list endpoints unbounded. Swagger + X-Powered-By publicly accessible. No ValidationPipe. Passwords plaintext. Swagger at `/api/docs` (v0.3.5).
+- **Database** (PostgreSQL 16) -- Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), TypeORM migrations with `migrationsRun: true`. 4 tables + `mimetype`/`storagePath`/`publicToken` columns added via migrations.
+- **File Storage** -- Local filesystem in `backend/uploads/` via Multer. Client-supplied filenames, no sanitisation. Storage path exposed in API (CWE-200). See ADR-024.
+- **Frontend** (Next.js) -- Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence, automatic Bearer header on all API calls. Theme toggle (light/dark), app shell. Types auto-generated from OpenAPI spec.
+- **Tooling** -- shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (44 tests across 6 suites, all running against real PG with `--runInBand`). Migration scripts: `migration:generate`, `migration:run`, `migration:revert`.
+- **Documentation** -- ADRs 001-024 (024: File Storage Strategy), formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary. All OWASP references use Top 10:2025.
+- ~35 CWE entries across v0.1.0-v0.3.5. File handling surface closed.
 
 ### Run locally
 

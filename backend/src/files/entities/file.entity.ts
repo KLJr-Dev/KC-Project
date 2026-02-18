@@ -1,15 +1,12 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
 
 /**
- * v0.2.5 -- Persistence Refactoring
+ * v0.3.0 -- File Upload
  *
- * File metadata entity mapped to the "file_entity" table in PostgreSQL.
- * No actual file bytes are stored -- this records upload metadata only.
- * Real file I/O (local filesystem storage, streaming) comes in v0.3.x.
- *
- * Fields mirror the FileResponseDto shape. Sequential string IDs are
- * manually assigned (CWE-330). description column added via migration
- * in v0.2.5.
+ * File entity mapped to the "file_entity" table in PostgreSQL.
+ * Now stores real file metadata from Multer multipart uploads:
+ * mimetype (client-supplied), storagePath (absolute disk path),
+ * and actual file size.
  *
  * VULN (v0.2.2): ownerId is stored at creation time but never checked on
  *       read or delete operations. Any authenticated user who knows (or
@@ -17,10 +14,19 @@ import { Entity, PrimaryColumn, Column } from 'typeorm';
  *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
  *       Remediation (v2.0.0): WHERE owner_id = $1 on every query.
  *
- * VULN (v0.2.2): ownerId has no foreign key constraint to the user table.
- *       A file can reference a non-existent or deleted user.
- *       CWE-1188 (Insecure Default Initialization of Resource) | A02:2025
- *       Remediation (v2.0.0): FK constraint on ownerId → users.id.
+ * VULN (v0.3.0): mimetype is the raw Content-Type from the client request.
+ *       No magic-byte validation -- a .html file can claim image/png.
+ *       CWE-434 (Unrestricted Upload of File with Dangerous Type) | A06:2025
+ *       Remediation (v2.0.0): Validate via file magic bytes, not client header.
+ *
+ * VULN (v0.3.0): storagePath is the absolute filesystem path where the file
+ *       was written. Exposed in API responses, revealing server directory
+ *       structure. Client-supplied filename used as disk filename with no
+ *       sanitisation -- path traversal possible (../../../etc/passwd).
+ *       CWE-22 (Path Traversal) | A01:2025
+ *       CWE-200 (Exposure of Sensitive Information) | A01:2025
+ *       Remediation (v2.0.0): Canonicalise paths, chroot to uploads dir,
+ *       strip storagePath from API responses.
  */
 @Entity()
 export class FileEntity {
@@ -32,6 +38,12 @@ export class FileEntity {
 
   @Column()
   filename!: string;
+
+  @Column({ nullable: true })
+  mimetype?: string;
+
+  @Column({ nullable: true })
+  storagePath?: string;
 
   @Column({ type: 'int', default: 0 })
   size!: number;

@@ -79,14 +79,16 @@ describe('Error & Metadata Leakage (v0.2.4)', () => {
     const httpServer = app.getHttpServer();
     const user = await registerAndLogin(httpServer, 'a@test.com', 'user-a', 'pass');
 
-    // Send number where string is expected — no ValidationPipe to reject it
+    // Send JSON body instead of multipart -- no ValidationPipe to reject it.
+    // With FileInterceptor expecting multipart, a JSON body means no file
+    // is present. The service crashes accessing file.originalname.
     const res = await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${user.token}`)
       .send({ filename: 12345 });
 
     // Without ValidationPipe, the request is not rejected with 400.
-    // It either succeeds (TypeORM coerces) or causes a 500 with stack trace in logs.
+    // It either succeeds or causes a 500 with stack trace in logs.
     expect([201, 500]).toContain(res.status);
   });
 

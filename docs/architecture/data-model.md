@@ -1,20 +1,20 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Describes the v0.2.5 PostgreSQL schema (current, managed via TypeORM migrations), the v1.0.0 target schema, and the v2.0.0 hardened schema.
+Entity definitions and relationships for KC-Project. Describes the v0.3.5 PostgreSQL schema (current, managed via TypeORM migrations), the v1.0.0 target schema, and the v2.0.0 hardened schema.
 
 ---
 
-## Current State (v0.2.5) -- PostgreSQL
+## Current State (v0.3.5) -- PostgreSQL
 
-PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize: true` in v0.2.5, see [ADR-022](../decisions/ADR-022-typeorm-migrations.md)). See also [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
+PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize: true` in v0.2.5, see [ADR-022](../decisions/ADR-022-typeorm-migrations.md)). File storage on local filesystem via Multer (see [ADR-024](../decisions/ADR-024-file-storage-strategy.md)). See also [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
 
 ### Tables
 
 | Table | Entity Class | Notes |
 |-------|-------------|-------|
 | `user` | `User` | Auth + identity. Plaintext password column (CWE-256). |
-| `file_entity` | `FileEntity` | Metadata only — no real file I/O yet. `ownerId` (v0.2.2), `description` (v0.2.5 via migration). |
-| `sharing_entity` | `SharingEntity` | No FK to files. `ownerId` column added in v0.2.2 (stored, never enforced). |
+| `file_entity` | `FileEntity` | Real file metadata from Multer uploads. `mimetype` + `storagePath` (v0.3.0), `description` (v0.2.5). Files stored on disk. |
+| `sharing_entity` | `SharingEntity` | No FK to files. `publicToken` (v0.3.4) for unauthenticated access. `ownerId` (v0.2.2, never enforced). |
 | `admin_item` | `AdminItem` | Placeholder admin records. |
 
 All tables use `@PrimaryColumn()` with manually assigned sequential string IDs (`"1"`, `"2"`, ...) — intentionally predictable (CWE-330). No unique constraints, no foreign keys, no indices beyond primary keys. Schema weaknesses are intentional per [ADR-006](../decisions/ADR-006-insecure-by-design.md).
@@ -39,43 +39,49 @@ class User {
 }
 ```
 
-### FileEntity (v0.2.5)
+### FileEntity (v0.3.0)
 
 ```typescript
 @Entity()
 class FileEntity {
   @PrimaryColumn()
-  id: string;            // Sequential string
+  id: string;              // Sequential string
   @Column({ nullable: true })
-  ownerId: string;       // User ID from JWT — stored but never checked (CWE-639)
+  ownerId: string;         // User ID from JWT -- stored but never checked (CWE-639)
   @Column()
-  filename: string;
+  filename: string;        // Client-supplied originalname, no sanitisation (CWE-22)
   @Column({ nullable: true })
-  description?: string;  // Added via migration in v0.2.5
+  mimetype?: string;       // Client-supplied Content-Type, no validation (CWE-434)
+  @Column({ nullable: true })
+  storagePath?: string;    // Absolute disk path, exposed in API (CWE-200)
+  @Column({ nullable: true })
+  description?: string;    // Added via migration in v0.2.5
   @Column({ type: 'int', default: 0 })
-  size: number;
+  size: number;            // Actual file size from Multer, no limit (CWE-400)
   @Column()
-  uploadedAt: string;    // ISO 8601
+  uploadedAt: string;      // ISO 8601
 }
 ```
 
-### SharingEntity (v0.2.2)
+### SharingEntity (v0.3.4)
 
 ```typescript
 @Entity()
 class SharingEntity {
   @PrimaryColumn()
-  id: string;            // Sequential string
+  id: string;              // Sequential string
   @Column({ nullable: true })
-  ownerId: string;       // User ID from JWT — stored but never checked (CWE-639)
+  ownerId: string;         // User ID from JWT -- stored but never checked (CWE-639)
   @Column({ nullable: true })
-  fileId: string;        // No FK constraint (CWE-1188)
+  fileId: string;          // No FK constraint (CWE-1188)
+  @Column({ nullable: true })
+  publicToken?: string;    // Sequential "share-N" -- predictable (CWE-330)
   @Column({ default: false })
   public: boolean;
   @Column()
   createdAt: string;
   @Column({ nullable: true })
-  expiresAt: string;
+  expiresAt: string;       // Stored but never checked on access (CWE-613)
 }
 ```
 
