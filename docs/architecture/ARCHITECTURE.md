@@ -24,7 +24,7 @@ flowchart LR
 
 - **Frontend** — Next.js 16 with App Router, Tailwind CSS, React 19. Runs on port 3000. All pages are client components (`'use client'`) that call the backend via fetch. Bearer token in Authorization header.
 - **Backend** — NestJS 11 on Express. Runs on port 4000. Modular architecture with controllers, services, and DTOs. CORS enabled (intentionally permissive). TypeORM repositories backed by PostgreSQL.
-- **Database** — PostgreSQL 16 in Docker (`infra/compose.yml`). Hardcoded credentials, `synchronize: true`, SQL logging. See [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
+- **Database** — PostgreSQL 16 in Docker (`infra/compose.yml`). Hardcoded credentials, TypeORM migrations with `migrationsRun: true` (replaced `synchronize: true` in v0.2.5), SQL logging. See [ADR-019](../decisions/ADR-019-typeorm-orm.md), [ADR-020](../decisions/ADR-020-docker-db-only.md), [ADR-022](../decisions/ADR-022-typeorm-migrations.md).
 - **Communication** — Plain HTTP REST. JSON request/response bodies. No WebSockets, no GraphQL, no tRPC.
 - **Persistence** — All data persisted in PostgreSQL via TypeORM. Survives process restarts.
 
