@@ -253,7 +253,7 @@ Goal: Make data persistent and mistakes permanent.
 - Swagger bumped to 0.2.3, `--runInBand` added to e2e runner for DB isolation
 - Total e2e tests: 29, Total CWE entries: 28
 
-### v0.2.4 — Error & Metadata Leakage
+### v0.2.4 — Error & Metadata Leakage ✅
 
 - Added `GET /admin/crash-test` endpoint — deliberate unhandled Error, demonstrates NestJS default exception handling
 - VULN annotations for missing ValidationPipe (malformed input passes through unchecked)
@@ -265,7 +265,7 @@ Goal: Make data persistent and mistakes permanent.
 - CWEs carried forward: all v0.2.3 CWEs
 - Total e2e tests: 33, Total CWE entries: ~29
 
-### v0.2.5 — Persistence Refactoring
+### v0.2.5 — Persistence Refactoring ✅
 
 - Replaced `synchronize: true` with explicit TypeORM migrations (ADR-022)
 - Created `data-source.ts` for TypeORM CLI
