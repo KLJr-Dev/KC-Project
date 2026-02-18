@@ -7,7 +7,7 @@
  * tab). In v1.0.0+ this constitutes information disclosure to attackers who can
  * read the full API surface, auth header logic, and vulnerability annotations
  * directly from the bundled JavaScript.
- * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A05:2021
+ * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A02:2025
  * Remediation (v2.0.0): Strip comments via terser (comments: false), disable
  * source maps in production, move sensitive docs to server-side only.
  *
@@ -58,7 +58,7 @@ import type {
  *
  * VULN: No TLS — all requests (including those carrying JWT tokens and
  * plaintext passwords in POST bodies) are sent over plain HTTP.
- * CWE-319 (Cleartext Transmission of Sensitive Information) | A02:2021
+ * CWE-319 (Cleartext Transmission of Sensitive Information) | A04:2025
  * Remediation (v2.0.0): HTTPS via nginx TLS termination, HSTS header.
  */
 const API_BASE = 'http://localhost:4000';
@@ -72,7 +72,7 @@ const API_BASE = 'http://localhost:4000';
  * VULN: Token is read directly from localStorage. Any XSS payload running
  * in the same origin can call localStorage.getItem('kc_auth') and steal
  * the JWT. There is no integrity check on the stored value.
- * CWE-922 (Insecure Storage of Sensitive Information) | A07:2021
+ * CWE-922 (Insecure Storage of Sensitive Information) | A07:2025
  * Remediation (v2.0.0): Store refresh token in httpOnly secure cookie
  * (inaccessible to JS). Keep short-lived access token in memory only.
  *
@@ -81,7 +81,7 @@ const API_BASE = 'http://localhost:4000';
  * reject it, but the client doesn't know until the 401 comes back.
  *
  * VULN: Token is sent over plain HTTP (see API_BASE above).
- * CWE-319 | A02:2021
+ * CWE-319 | A04:2025
  */
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
@@ -195,7 +195,7 @@ export const authMe = () => request<UserResponse>('/auth/me');
  * in the future, the client would still need to clear local state anyway.
  *
  * VULN: Cosmetic logout — server confirms "logged out" but the JWT lives on.
- *       CWE-613 (Insufficient Session Expiration) | A07:2021
+ *       CWE-613 (Insufficient Session Expiration) | A07:2025
  *       Remediation (v2.0.0): POST /auth/logout deletes refresh token from DB.
  *       Frontend clears httpOnly cookie via Set-Cookie maxAge=0 from backend.
  */

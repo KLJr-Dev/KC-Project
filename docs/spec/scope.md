@@ -63,7 +63,7 @@ Security controls such as input validation, access control enforcement, and audi
 
 ### CORS permissive by design
 
-The backend enables CORS with no restrictions (`app.enableCors()` with no origin whitelist). This is an intentional weakness (CWE-942 / A05:2021 Security Misconfiguration) that allows any origin to make API requests — including attacker-controlled domains in a real deployment. Remediated in v2.0.0 with strict origin whitelisting.
+The backend enables CORS with no restrictions (`app.enableCors()` with no origin whitelist). This is an intentional weakness (CWE-942 / A02:2025 Security Misconfiguration) that allows any origin to make API requests — including attacker-controlled domains in a real deployment. Remediated in v2.0.0 with strict origin whitelisting.
 
 ### Engineering validity
 

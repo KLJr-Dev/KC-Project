@@ -23,7 +23,7 @@ flowchart LR
 ### What exists
 
 - **Frontend** -- Next.js 16, App Router, React 19, Tailwind CSS 4. Client components call backend via fetch. Auth state persisted to localStorage. Bearer token sent on all API calls.
-- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated. Real HS256 JWTs (hardcoded secret, no expiry). **All resource endpoints protected by JwtAuthGuard (v0.2.2)** — authentication enforced but no authorization/ownership checks. ownerId tracked on files and shares but never enforced (CWE-639, CWE-862).
+- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated and **publicly accessible without auth** (CWE-200). `X-Powered-By: Express` header not disabled (CWE-200). Real HS256 JWTs (hardcoded secret, no expiry). **All resource endpoints protected by JwtAuthGuard** — authentication enforced but no authorization/ownership checks. ownerId tracked but never enforced (CWE-639, CWE-862). All list endpoints unbounded — full table dumps, no pagination (CWE-200, CWE-400). Sequential IDs enable 200/404 existence probing (CWE-203).
 - **Database** -- PostgreSQL 16 in Docker (`infra/compose.yml`). TypeORM with `synchronize: true`. 4 tables: user, file_entity (with ownerId), sharing_entity (with ownerId), admin_item. Hardcoded credentials (CWE-798).
 - **Communication** -- Plain HTTP, JSON bodies, Bearer token in Authorization header.
 - **Storage** -- TypeORM repositories backed by PostgreSQL. Data persists across restarts.
@@ -31,6 +31,9 @@ flowchart LR
 ### What does not exist yet
 
 - Authorization / ownership checks (ownerId exists but is never enforced)
+- Pagination / query limits (all list endpoints are unbounded)
+- Swagger auth protection (spec is publicly accessible)
+- Response header hardening (X-Powered-By not disabled)
 - File storage (real file I/O)
 - App containers (frontend/backend still run natively)
 - Reverse proxy, TLS, network segmentation
@@ -77,15 +80,15 @@ flowchart TD
 
 | Weakness | CWE | OWASP Top 10 |
 |----------|-----|-------------|
-| All ports exposed to internet | CWE-668 | A05:2021 Security Misconfiguration |
-| No TLS (plaintext HTTP) | CWE-319 | A02:2021 Cryptographic Failures |
-| Default database credentials | CWE-798 | A07:2021 Identification and Authentication Failures |
-| Containers run as root | CWE-250 | A05:2021 Security Misconfiguration |
-| No network segmentation | CWE-668 | A05:2021 Security Misconfiguration |
-| Volumes world-readable | CWE-732 | A01:2021 Broken Access Control |
-| No resource limits on containers | CWE-770 | A05:2021 Security Misconfiguration |
+| All ports exposed to internet | CWE-668 | A02:2025 Security Misconfiguration |
+| No TLS (plaintext HTTP) | CWE-319 | A04:2025 Cryptographic Failures |
+| Default database credentials | CWE-798 | A07:2025 Identification and Authentication Failures |
+| Containers run as root | CWE-250 | A02:2025 Security Misconfiguration |
+| No network segmentation | CWE-668 | A02:2025 Security Misconfiguration |
+| Volumes world-readable | CWE-732 | A01:2025 Broken Access Control |
+| No resource limits on containers | CWE-770 | A02:2025 Security Misconfiguration |
 | No health checks | -- | Operational fragility |
-| Sensitive data in logs | CWE-532 | A09:2021 Security Logging and Monitoring Failures |
+| Sensitive data in logs | CWE-532 | A09:2025 Security Logging and Monitoring Failures |
 
 ---
 
@@ -118,15 +121,15 @@ flowchart TD
 
 | v1.0.0 (insecure) | v2.0.0 (hardened) | Remediation |
 |--------------------|-------------------|-------------|
-| All ports exposed (3000, 4000, 5432) | Only port 443 exposed via nginx | CWE-668 / A05:2021 |
-| HTTP plaintext | HTTPS with TLS termination at nginx | CWE-319 / A02:2021 |
-| No reverse proxy | nginx with rate limiting + security headers | CWE-16 / A05:2021 |
-| Default DB credentials (postgres/postgres) | Strong credentials via Docker secrets | CWE-798 / A07:2021 |
-| Root containers | Non-root users, read-only filesystems | CWE-250 / A05:2021 |
-| Default bridge network | Custom internal network, no host ports for DB | CWE-668 / A05:2021 |
-| World-readable volumes | Scoped paths, validated filenames | CWE-732 / A01:2021 |
-| No resource limits | CPU/memory limits per container | CWE-770 / A05:2021 |
-| Verbose logs with sensitive data | Structured logging, sensitive fields redacted | CWE-532 / A09:2021 |
+| All ports exposed (3000, 4000, 5432) | Only port 443 exposed via nginx | CWE-668 / A02:2025 |
+| HTTP plaintext | HTTPS with TLS termination at nginx | CWE-319 / A04:2025 |
+| No reverse proxy | nginx with rate limiting + security headers | CWE-16 / A02:2025 |
+| Default DB credentials (postgres/postgres) | Strong credentials via Docker secrets | CWE-798 / A07:2025 |
+| Root containers | Non-root users, read-only filesystems | CWE-250 / A02:2025 |
+| Default bridge network | Custom internal network, no host ports for DB | CWE-668 / A02:2025 |
+| World-readable volumes | Scoped paths, validated filenames | CWE-732 / A01:2025 |
+| No resource limits | CPU/memory limits per container | CWE-770 / A02:2025 |
+| Verbose logs with sensitive data | Structured logging, sensitive fields redacted | CWE-532 / A09:2025 |
 | No health checks | Liveness and readiness probes | Operational resilience |
 
 ---

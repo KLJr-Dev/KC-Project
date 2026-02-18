@@ -13,7 +13,7 @@ import { AuthModule } from '../auth/auth.module';
  *
  * VULN (v0.2.2): Any authenticated user can access admin endpoints.
  *       No role or privilege check exists.
- *       CWE-862 (Missing Authorization) | A01:2021
+ *       CWE-862 (Missing Authorization) | A01:2025
  */
 @Module({
   imports: [TypeOrmModule.forFeature([AdminItem]), AuthModule],

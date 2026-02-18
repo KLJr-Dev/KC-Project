@@ -179,7 +179,7 @@ Goal: Introduce identity with minimal security guarantees.
 - `AuthService.logout()` returns cosmetic success message, no deny-list / session table / revocation
 - Frontend `authLogout()` called fire-and-forget from `AuthContext.logout()` before clearing localStorage
 - Token replay proven: same JWT works on `GET /auth/me` after logout (CWE-613 e2e test)
-- Comprehensive inline docs with CWE-613 | A07:2021 annotations on all touched files
+- Comprehensive inline docs with CWE-613 | A07:2025 annotations on all touched files
 - CWE-615 tracked: frontend VULN comments visible in browser bundle (CSR)
 - 3 new e2e tests (401 no token, 201 with token, token replay after logout)
 - Swagger bumped to 0.1.4
@@ -239,11 +239,19 @@ Goal: Make data persistent and mistakes permanent.
 - CWEs carried forward: all v0.2.1 CWEs (CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613, CWE-798, CWE-1188, CWE-1393, CWE-532)
 - Swagger bumped to 0.2.2
 
-### v0.2.3 — Enumeration Surface
+### v0.2.3 — Enumeration Surface ✅
 
-- Sequential IDs
-- Predictable queries
-- User discovery possible
+- Added `GET /files` list-all endpoint (findAll) — full table dump to any authenticated user
+- All 4 list endpoints (`GET /users`, `GET /files`, `GET /sharing`, `GET /admin`) are unbounded — no pagination, no limit, no ownership filter
+- Swagger UI + JSON spec publicly accessible at `/api/docs` and `/api/docs-json` without authentication
+- `X-Powered-By: Express` header reveals backend framework — intentionally not disabled
+- 200 vs 404 existence oracle on single-resource endpoints with sequential IDs
+- 6 new e2e tests in `enumeration.e2e-spec.ts` (ID probing, list dumps, Swagger spec, X-Powered-By, timing oracle)
+- **OWASP Top 10:2025 Migration** (ADR-021): all `A0X:2021` references migrated to `A0X:2025` across ~38 files (~290 occurrences)
+- CWEs introduced: CWE-200 (Exposure of Sensitive Information), CWE-203 (Observable Discrepancy), CWE-400 (Uncontrolled Resource Consumption)
+- CWEs carried forward: all v0.2.2 CWEs (CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613, CWE-639, CWE-798, CWE-862, CWE-942, CWE-1188, CWE-1393, CWE-532)
+- Swagger bumped to 0.2.3, `--runInBand` added to e2e runner for DB isolation
+- Total e2e tests: 29, Total CWE entries: 28
 
 ### v0.2.4 — Error & Metadata Leakage
 
