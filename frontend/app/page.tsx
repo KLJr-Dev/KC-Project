@@ -80,10 +80,10 @@ export default function HomePage() {
         <div className="flex flex-col justify-between rounded-md border border-border p-6">
           <div className="space-y-3">
             <h2 className="text-sm font-medium text-muted">Current Version</h2>
-            <p className="text-lg font-semibold text-foreground">v0.2.5 - Persistence Surface Complete</p>
+            <p className="text-lg font-semibold text-foreground">v0.3.5 - File Handling Surface Complete</p>
             <p className="text-sm text-muted">
-              TypeORM migrations replace synchronize:true. Error/metadata leakage documented.
-              Crash-test endpoint, no ValidationPipe. 29 CWEs, 33 e2e tests.
+              Multipart uploads via Multer, filesystem storage, streaming downloads,
+              public sharing via predictable tokens. ~35 CWEs, 44 e2e tests.
             </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
