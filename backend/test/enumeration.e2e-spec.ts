@@ -4,7 +4,18 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
+import { join } from 'path';
+import { writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 import { AppModule } from '../src/app.module';
+
+const TEST_FIXTURES = join(process.cwd(), 'test', 'fixtures');
+
+function ensureFixtures() {
+  if (!existsSync(TEST_FIXTURES)) mkdirSync(TEST_FIXTURES, { recursive: true });
+  writeFileSync(join(TEST_FIXTURES, 'enum-a.txt'), 'a');
+  writeFileSync(join(TEST_FIXTURES, 'enum-b.txt'), 'b');
+  writeFileSync(join(TEST_FIXTURES, 'enum-c.txt'), 'c');
+}
 
 /**
  * v0.2.3 — Enumeration Surface
@@ -38,6 +49,14 @@ async function registerAndLogin(
 
 describe('Enumeration Surface (v0.2.3)', () => {
   let app: INestApplication<App>;
+
+  beforeAll(() => {
+    ensureFixtures();
+  });
+
+  afterAll(() => {
+    if (existsSync(TEST_FIXTURES)) rmSync(TEST_FIXTURES, { recursive: true });
+  });
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -127,23 +146,23 @@ describe('Enumeration Surface (v0.2.3)', () => {
     const userA = await registerAndLogin(httpServer, 'a@test.com', 'user-a', 'pass');
     const userB = await registerAndLogin(httpServer, 'b@test.com', 'user-b', 'pass');
 
-    // User A uploads 2 files
+    // User A uploads 2 files via multipart
     await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${userA.token}`)
-      .send({ filename: 'a-secret.txt' })
+      .attach('file', join(TEST_FIXTURES, 'enum-a.txt'))
       .expect(201);
     await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${userA.token}`)
-      .send({ filename: 'a-report.pdf' })
+      .attach('file', join(TEST_FIXTURES, 'enum-b.txt'))
       .expect(201);
 
-    // User B uploads 1 file
+    // User B uploads 1 file via multipart
     await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${userB.token}`)
-      .send({ filename: 'b-notes.md' })
+      .attach('file', join(TEST_FIXTURES, 'enum-c.txt'))
       .expect(201);
 
     // User B gets ALL files — including A's
