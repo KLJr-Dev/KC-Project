@@ -413,3 +413,8 @@ Intentional weaknesses introduced at each v0.1.x version:
 | v0.1.5 | Weak password requirements | CWE-521 | No minimum length or complexity — "a" is a valid password |
 | v0.2.2 | IDOR — any authenticated user can access any resource by ID | CWE-639 | ownerId stored but never checked on read/update/delete. Sequential IDs make enumeration trivial. |
 | v0.2.2 | Missing authorization on all resource endpoints | CWE-862 | JwtAuthGuard on all controllers but no ownership or role checks. Admin endpoints accessible to any user. |
+| v0.2.3 | Unbounded list endpoints — full table dumps | CWE-200 | GET /users, /files, /sharing, /admin return all records to any authenticated user. No pagination or ownership filter. |
+| v0.2.3 | Existence oracle via 200/404 + sequential IDs | CWE-203 | GET /users/:id returns 200 or 404 — combined with sequential IDs, enables full enumeration. |
+| v0.2.3 | Uncontrolled resource consumption | CWE-400 | No pagination, no query limits, no rate limiting on list endpoints. |
+| v0.2.3 | Swagger spec publicly accessible | CWE-200 | /api/docs and /api/docs-json require no authentication — full API reconnaissance. |
+| v0.2.3 | X-Powered-By header leaks framework | CWE-200 | Express sends `X-Powered-By: Express` by default — not disabled. |

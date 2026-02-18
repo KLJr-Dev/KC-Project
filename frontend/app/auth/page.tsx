@@ -4,7 +4,7 @@
  * CWE-615 WARNING: This page is client-side rendered ('use client'). All
  * comments, form handling logic, API endpoint names, validation patterns,
  * and auth flow details are shipped to the browser and visible in DevTools.
- * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A05:2021
+ * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A02:2025
  *
  * --- Purpose ---
  * Combined register/login page with tab switching. Renders two forms that
@@ -31,14 +31,14 @@
  *       A user can register with "a" as their password. The backend also
  *       has no requirements (CWE-521), so there is zero password strength
  *       enforcement anywhere in the stack.
- *       CWE-521 (Weak Password Requirements) | A07:2021
+ *       CWE-521 (Weak Password Requirements) | A07:2025
  *       Remediation (v2.0.0): Client-side strength meter (UX only) +
  *       server-side validation via class-validator (@MinLength(12), etc.)
  *
  * Form data in Network tab: The full request payload { email, username,
  * password } is visible in the browser's Network tab as a JSON body. In
  * v0.1.x (plain HTTP), this is also readable by any network observer.
- * CWE-319 (Cleartext Transmission) | A02:2021
+ * CWE-319 (Cleartext Transmission) | A04:2025
  *
  * Auth response handling: On successful register/login, the response
  * (including the JWT) is passed to AuthContext.login() which stores it
