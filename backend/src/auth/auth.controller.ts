@@ -21,6 +21,10 @@ import type { JwtPayload } from './jwt-payload.interface';
  *
  * All v0.1.x vulnerabilities carried forward (CWE-307, CWE-521, CWE-204,
  * CWE-256, CWE-347, CWE-613, CWE-798, CWE-862).
+ *
+ * v0.4.0: GET /auth/me now returns role field in response. Endpoint is still
+ * protected by JwtAuthGuard (checks token presence), but role is taken from JWT
+ * payload without server-side database re-validation (CWE-639).
  */
 @Controller('auth')
 export class AuthController {
@@ -38,7 +42,7 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  /** GET /auth/me — Protected. Returns user profile from DB. */
+  /** GET /auth/me — Protected. Returns user profile from DB including role (v0.4.0). */
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@CurrentUser() user: JwtPayload) {

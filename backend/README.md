@@ -11,20 +11,23 @@ later hardened according to the project roadmap.
 
 ## Current Status
 
-**Version:** v0.2.0 (Database Introduction)
+**Version:** v0.4.0 (RBAC Introduction)
 
 - NestJS 11 application with five domain modules (users, auth, files, sharing, admin)
 - PostgreSQL 16 via Docker Compose (`infra/compose.yml`) — TypeORM repositories
-- `synchronize: true` auto-creates tables on boot (intentionally insecure — CWE-1188)
+- TypeORM migrations with `migrationsRun: true` (replaced `synchronize: true` in v0.2.5)
 - Hardcoded DB credentials in source (CWE-798), SQL logging enabled (CWE-532)
 - Registration, login, protected profile (`GET /auth/me`), cosmetic logout (`POST /auth/logout`)
 - Real HS256 JWTs (hardcoded secret, no expiration — CWE-347, CWE-613)
+- Role enum ('user'|'admin') in User entity, stored in JWT payload, default 'user' (v0.4.0)
+- Role exposed in API responses, no server-side authorization enforcement (CWE-639, CWE-862)
 - No rate limiting, no account lockout, no password requirements (CWE-307, CWE-521)
 - Passwords stored/compared as plaintext in PostgreSQL (CWE-256)
 - Sequential string IDs on all entities (CWE-330)
-- OpenAPI/Swagger spec auto-generated via `@nestjs/swagger` CLI plugin (v0.2.0)
+- Multipart file uploads via Multer, filesystem storage, public sharing (v0.3.x)
+- OpenAPI/Swagger spec auto-generated via `@nestjs/swagger` CLI plugin (v0.4.0)
 - TypeScript `strict: true`, Prettier enforced (shared root config)
-- E2e tests (18) run against real PostgreSQL, unit tests (7) with mocked repos
+- E2e tests (47) run against real PostgreSQL, unit tests (7) with mocked repos
 
 ---
 

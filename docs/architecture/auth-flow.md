@@ -133,9 +133,9 @@ Real JWTs replace stub tokens. Tokens are signed with HS256 using a hardcoded we
 
 - **Algorithm**: HS256 (symmetric — same key signs and verifies)
 - **Secret**: `'kc-secret'` (hardcoded in `JwtModule.register()`)
-- **Payload**: `{ sub: userId }` — minimal, no role/scope/email
+- **Payload**: `{ sub: userId, role: 'user' | 'admin' }` — includes role as of v0.4.0, but role is never re-validated (CWE-639)
 - **Expiration**: none (`exp` claim is absent — tokens live forever)
-- **Storage**: `localStorage` under key `kc_auth` (XSS-accessible)
+- **Storage**: `localStorage` under key `kc_auth` (XSS-accessible, includes role as of v0.4.0)
 
 ### Token Flow
 
@@ -155,8 +155,8 @@ sequenceDiagram
     Browser->>API: authRegister() or authLogin()
     API->>Controller: POST /auth/register or /auth/login
     Controller->>AuthSvc: register(dto) or login(dto)
-    AuthSvc->>JWT: sign({ sub: userId })
-    JWT-->>AuthSvc: eyJhbG... (real JWT)
+    AuthSvc->>JWT: sign({ sub: userId, role: user.role })
+    JWT-->>AuthSvc: eyJhbG... (real JWT with role)
     AuthSvc-->>Controller: AuthResponseDto { token: JWT, userId }
     Controller-->>API: 201 JSON
     API-->>Browser: AuthResponse
@@ -170,7 +170,7 @@ sequenceDiagram
     API->>Controller: GET /auth/me + Authorization: Bearer JWT
     Controller->>Guard: canActivate()
     Guard->>JWT: verify(token)
-    JWT-->>Guard: { sub: userId, iat }
+    JWT-->>Guard: { sub: userId, role: 'user'|'admin', iat }
     Guard-->>Controller: request.user = payload
     Controller->>AuthSvc: getProfile(user.sub)
     AuthSvc->>UsersSvc: findById(userId)
