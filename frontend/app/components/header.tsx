@@ -11,8 +11,9 @@
  * Global navigation header rendered on every page. Displays:
  *   - "KC" logo link (home)
  *   - "Home" nav link
- *   - Auth state: "Sign In" link (unauthenticated) or "username | Logout" (authenticated)
+ *   - Auth state: "Sign In" link (unauthenticated) or "username [role] | Logout" (authenticated)
  *   - Theme toggle (light/dark)
+ *   - Admin link (v0.4.0, hidden for non-admins)
  *
  * --- Auth integration (v0.1.4) ---
  * When isAuthenticated is true, the component calls authMe() on mount via
@@ -25,6 +26,15 @@
  * the component gracefully falls back to showing just "Logout" without a
  * username — no error is surfaced to the user.
  *
+ * --- v0.4.0: Role display ---
+ * The user's role is now displayed in the header if they are authenticated.
+ * The role is read from AuthContext (stored in localStorage and JWT payload).
+ * An Admin link is shown conditionally: only visible if isAdmin is true.
+ * VULN (v0.4.0): Role shown in the UI is from client-side state only (CWE-639).
+ *       An attacker could modify localStorage to show "admin" UI, but
+ *       the backend won't grant admin access without a properly signed JWT
+ *       with role=admin claim (which requires knowing the JWT secret).
+ *
  * --- Logout behaviour (v0.1.4) ---
  * Clicking "Logout" triggers AuthContext.logout(), which:
  *   1. Fires POST /auth/logout (fire-and-forget — backend does nothing)
@@ -32,7 +42,7 @@
  * The JWT is NOT revoked. Any copy of the token remains valid indefinitely.
  * VULN: CWE-613 (Insufficient Session Expiration) | A07:2025
  *
- * Note: The authenticated username, user ID, and full API response are
+ * Note: The authenticated username, user ID, full API response, and role are
  * visible in the browser's Network tab. The username is also rendered in
  * the DOM (inspectable) and visible in React DevTools' component state.
  */
@@ -45,7 +55,7 @@ import { useTheme } from '../../lib/theme-context';
 import { authMe } from '../../lib/api';
 
 export default function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, isAdmin, role } = useAuth();
   const { resolved, toggleTheme } = useTheme();
   const [username, setUsername] = useState<string | null>(null);
 
@@ -79,10 +89,17 @@ export default function Header() {
           <Link href="/files" className="text-sm text-muted transition-colors hover:text-foreground">
             Files
           </Link>
+          {isAuthenticated && isAdmin && (
+            <Link href="/admin" className="text-sm text-muted transition-colors hover:text-foreground">
+              Admin
+            </Link>
+          )}
           {isAuthenticated ? (
             <div className="flex items-center gap-3">
               {username && (
-                <span className="text-sm text-foreground">{username}</span>
+                <span className="text-sm text-foreground">
+                  {username} {role && <span className="text-xs text-muted">({role})</span>}
+                </span>
               )}
               <button
                 type="button"

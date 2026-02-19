@@ -60,11 +60,13 @@ import { authLogout } from './api';
 interface AuthState {
   token: string | null;
   userId: string | null;
+  role?: 'user' | 'admin'; // v0.4.0: user privilege level
 }
 
 /** Full context value exposed to consumers via useAuth(). */
 interface AuthContextValue extends AuthState {
   isAuthenticated: boolean;
+  isAdmin: boolean; // v0.4.0: convenience check for role === 'admin'
   login: (response: AuthResponse) => void;
   logout: () => void;
 }
@@ -104,19 +106,28 @@ const AuthContext = createContext<AuthContextValue | null>(null);
  * update React state AND localStorage to keep them in sync.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AuthState>({ token: null, userId: null });
+  const [state, setState] = useState<AuthState>({ token: null, userId: null, role: undefined });
 
   useEffect(() => {
     setState(loadFromStorage());
   }, []);
 
   /**
-   * Store the auth response (token + userId) from a successful register or
+   * Store the auth response (token + userId + role) from a successful register or
    * login call. Updates both React state and localStorage.
-   * VULN: Writes token to localStorage in plaintext (CWE-922)
+   * VULN: Writes token + role to localStorage in plaintext (CWE-922)
+   * VULN (v0.4.0): Role stored in client state and localStorage, trusted without
+   *       server-side validation (CWE-639). An attacker can modify localStorage
+   *       role from 'user' to 'admin' to show admin UI (but backend won't allow
+   *       admin actions without proper JWT role claim, which requires knowing
+   *       the JWT secret).
    */
   const login = useCallback((response: AuthResponse) => {
-    const next: AuthState = { token: response.token, userId: response.userId };
+    const next: AuthState = { 
+      token: response.token, 
+      userId: response.userId,
+      role: (response as any).role ?? 'user', // v0.4.0: include role from response
+    };
     setState(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); // VULN: CWE-922
   }, []);
@@ -138,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     // Fire-and-forget: tell the backend we're "logging out" (it does nothing)
     authLogout().catch(() => {}); // VULN: no-op on backend (CWE-613)
-    setState({ token: null, userId: null });
+    setState({ token: null, userId: null, role: undefined });
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
@@ -147,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...state,
       // VULN: only checks token presence, not validity (CWE-345)
       isAuthenticated: !!state.token,
+      isAdmin: state.role === 'admin', // v0.4.0: convenience flag (NOTE: trusts client-side role, not validated server-side yet)
       login,
       logout,
     }),
