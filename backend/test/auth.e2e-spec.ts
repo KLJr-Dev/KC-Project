@@ -586,3 +586,137 @@ describe('Verbose DB Errors (v0.2.1)', () => {
     expect(response.body.message).toBe('Internal server error');
   });
 });
+
+/**
+ * v0.4.0 — Roles Introduced
+ *
+ * Tests for role-based authorization surface. All new users default to
+ * 'user' role. The role is stored in the database and included in the JWT
+ * payload. GET /auth/me returns the role in the response.
+ *
+ * VULN (v0.4.0): The role is stored in the JWT and trusted without
+ *       server-side validation during v0.4.0-v0.4.2. An attacker who
+ *       knows the JWT secret can forge a JWT with 'admin' role.
+ *       CWE-639 (Client-Controlled Authorization) | A07:2025
+ */
+describe('AuthController /auth/me role (v0.4.0 e2e)', () => {
+  let app: INestApplication<App>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+
+    const dataSource = app.get(DataSource);
+    await dataSource.synchronize(true);
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  /**
+   * Test 1: New user is created with 'user' role.
+   * GET /auth/me returns the role in the response.
+   */
+  it('should return role in GET /auth/me response (v0.4.0)', async () => {
+    const httpServer = app.getHttpServer();
+
+    // Register a new user
+    const regResponse = await request(httpServer)
+      .post('/auth/register')
+      .send({
+        email: 'role-test@example.com',
+        username: 'role-test',
+        password: 'password123',
+      })
+      .expect(201);
+
+    const token = regResponse.body.token;
+
+    // Call GET /auth/me to retrieve the profile
+    const meResponse = await request(httpServer)
+      .get('/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    // Verify role is returned
+    expect(meResponse.body.role).toBe('user');
+    expect(meResponse.body.id).toBeDefined();
+    expect(meResponse.body.email).toBe('role-test@example.com');
+  });
+
+  /**
+   * Test 2: JWT payload includes role claim.
+   * Decode the JWT to verify the role is in the payload.
+   */
+  it('should include role in JWT payload (v0.4.0)', async () => {
+    const httpServer = app.getHttpServer();
+
+    // Register a new user
+    const regResponse = await request(httpServer)
+      .post('/auth/register')
+      .send({
+        email: 'jwt-role-test@example.com',
+        username: 'jwt-role-test',
+        password: 'password123',
+      })
+      .expect(201);
+
+    const token = regResponse.body.token;
+
+    // Decode JWT payload manually (v0.4.0 uses unencrypted header.payload.signature)
+    const parts = token.split('.');
+    expect(parts.length).toBe(3);
+
+    // Decode payload (base64url to JSON)
+    const payload = JSON.parse(
+      Buffer.from(parts[1], 'base64url').toString('utf8'),
+    );
+
+    // Verify role is in the JWT payload
+    expect(payload.role).toBe('user');
+    expect(payload.sub).toBeDefined();
+  });
+
+  /**
+   * Test 3: Login also returns role in JWT payload.
+   */
+  it('should include role in JWT after login (v0.4.0)', async () => {
+    const httpServer = app.getHttpServer();
+
+    // Register
+    await request(httpServer)
+      .post('/auth/register')
+      .send({
+        email: 'login-role-test@example.com',
+        username: 'login-role-test',
+        password: 'password123',
+      })
+      .expect(201);
+
+    // Login
+    const loginResponse = await request(httpServer)
+      .post('/auth/login')
+      .send({
+        email: 'login-role-test@example.com',
+        password: 'password123',
+      })
+      .expect(201);
+
+    const token = loginResponse.body.token;
+
+    // Decode JWT and verify role is included
+    const parts = token.split('.');
+    const payload = JSON.parse(
+      Buffer.from(parts[1], 'base64url').toString('utf8'),
+    );
+
+    expect(payload.role).toBe('user');
+    expect(payload.sub).toBeDefined();
+  });
+});
+
