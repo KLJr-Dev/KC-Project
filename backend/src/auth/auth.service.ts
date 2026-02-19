@@ -43,6 +43,11 @@ import { UserResponseDto } from '../users/dto/user-response.dto';
  *
  * VULN (v0.1.5): No rate limiting, no account lockout, weak passwords accepted.
  *       CWE-307 | A07:2025, CWE-521 | A07:2025
+ *
+ * VULN (v0.4.0): Role claim included in JWT payload and trusted without
+ *       server-side re-validation (CWE-639). An attacker knowing the weak
+ *       JWT secret ('kc-secret') can forge a JWT with 'admin' role.
+ *       Remediation (v2.4.0): Guards re-validate role from the database.
  */
 @Injectable()
 export class AuthService {
@@ -56,6 +61,8 @@ export class AuthService {
    *
    * Now persists the user to PostgreSQL. Plaintext password is written
    * directly to the database column (CWE-256).
+   *
+   * v0.4.0: JWT payload includes role claim (CWE-639).
    */
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
     const { email, username, password } = dto;
@@ -81,12 +88,13 @@ export class AuthService {
     });
 
     // VULN: JWT signed with weak hardcoded secret, no expiry (CWE-347, CWE-613)
-    const token = this.jwtService.sign({ sub: created.id });
+    // VULN (v0.4.0): role included in JWT payload, trusted without re-validation (CWE-639)
+    const token = this.jwtService.sign({ sub: created.id, role: created.role });
 
     return {
       token,
       userId: created.id,
-      message: 'Registration success (v0.2.0)',
+      message: 'Registration success (v0.4.0)',
     };
   }
 
@@ -94,6 +102,8 @@ export class AuthService {
    * POST /auth/login — Verify credentials and issue a JWT.
    *
    * Reads plaintext password from PostgreSQL and compares with ===.
+   *
+   * v0.4.0: JWT payload includes role claim (CWE-639).
    */
   async login(dto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = dto;
@@ -121,12 +131,13 @@ export class AuthService {
     }
 
     // VULN: JWT signed with weak hardcoded secret, no expiry (CWE-347, CWE-613)
-    const token = this.jwtService.sign({ sub: user.id });
+    // VULN (v0.4.0): role included in JWT payload, trusted without re-validation (CWE-639)
+    const token = this.jwtService.sign({ sub: user.id, role: user.role });
 
     return {
       token,
       userId: user.id,
-      message: 'Login success (v0.2.0)',
+      message: 'Login success (v0.4.0)',
     };
   }
 

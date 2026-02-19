@@ -16,8 +16,15 @@ import { Entity, PrimaryColumn, Column } from 'typeorm';
  *  - password:  Stored in plaintext in the database column (intentionally
  *               insecure — hashing deferred to v2.0.0).
  *               CWE-256 (Plaintext Storage of a Password) | A07:2025
+ *  - role:      User privilege level, stored in DB (added v0.4.0).
+ *               Enum: 'user' | 'admin' (extended to include 'moderator' in v0.4.3).
  *  - createdAt: ISO 8601 timestamp string
  *  - updatedAt: ISO 8601 timestamp string
+ *
+ * VULN (v0.4.0): role column exists but is NOT validated server-side during
+ *       v0.4.0–v0.4.2. The role is stored in the JWT payload and trusted
+ *       without re-validation from the database.
+ *       CWE-639 (Client-Controlled Authorization) | A07:2025
  *
  * VULN: No unique constraint on email. Duplicate emails can be inserted
  *       if the application-level check is bypassed. No DB-level protection.
@@ -42,6 +49,9 @@ export class User {
 
   @Column()
   password!: string;
+
+  @Column({ type: 'enum', enum: ['user', 'admin'], default: 'user' })
+  role!: 'user' | 'admin';
 
   @Column()
   createdAt!: string;

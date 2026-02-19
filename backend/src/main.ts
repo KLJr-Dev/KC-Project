@@ -3,12 +3,18 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 /**
- * v0.3.5 -- File Handling Surface
+ * v0.4.0 -- Authorization & Administrative Surface
  *
  * Application entry point. Creates the NestJS app, configures CORS and
  * Swagger, and starts listening on port 4000 (or PORT env var).
  *
  * Requires: docker compose -f infra/compose.yml up -d (PostgreSQL)
+ *
+ * v0.4.0: Role column added to User entity. All new users default to 'user' role.
+ * Role is included in JWT payload and exposed via GET /auth/me (not re-validated).
+ * No authorization guards yet — endpoints not protected by role (introduced v0.4.2).
+ * CWE-639 (Client-Controlled Authorization) | A07:2025
+ * CWE-862 (Missing Authorization Checks) | A01:2025
  *
  * VULN (v0.2.3): Express sends X-Powered-By: Express header by default.
  *       Reveals the backend framework to any client. app.disable('x-powered-by')
@@ -51,9 +57,9 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('KC-Project API')
     .setDescription(
-      'v0.3.5 -- File Handling Surface: Multipart uploads, file download/streaming, filesystem deletion, public sharing via predictable tokens. All file handling CWEs introduced.',
+      'v0.4.0 -- Authorization & Administrative Surface: Role-based access control introduced. Roles stored in DB and JWT payload. No authorization guards yet (v0.4.0). CWE-639, CWE-862 vulnerabilities intentional.',
     )
-    .setVersion('0.3.5')
+    .setVersion('0.4.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

@@ -45,6 +45,7 @@ export class UsersService {
     dto.id = user.id;
     dto.email = user.email;
     dto.username = user.username;
+    dto.role = user.role; // v0.4.0: include role in response
     dto.createdAt = user.createdAt;
     dto.updatedAt = user.updatedAt;
     return dto;
@@ -69,6 +70,7 @@ export class UsersService {
       email: dto.email ?? '',
       username: dto.username ?? '',
       password: dto.password ?? '',
+      role: 'user', // v0.4.0: default all new users to 'user' role
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
