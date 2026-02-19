@@ -337,8 +337,9 @@ export interface components {
             id: string;
             email?: string;
             username?: string;
+            role?: 'user' | 'admin'; // v0.4.0: user privilege level
             createdAt: string;
-            updatedAt: string;
+            updatedAt?: string; // v0.4.0: added updatedAt field
         };
         CreateUserDto: {
             email?: string;

@@ -1,6 +1,6 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v0.3.5** (file handling surface complete -- multipart uploads, filesystem storage, download/streaming, public sharing).
+This document describes the system architecture as of **v0.4.0** (RBAC surface introduced -- User/Admin roles added, stored in JWT payload, no authorization enforcement yet).
 
 ---
 
@@ -79,7 +79,7 @@ graph TD
 
 Every module follows the same internal structure:
 
-- **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic. As of v0.2.2, most resource controllers use `@UseGuards(JwtAuthGuard)` at the class level -- authentication is enforced but no authorization/ownership checks exist (CWE-862). Exception: SharingController uses per-method guards (v0.3.4) because `GET /sharing/public/:token` is unauthenticated.
+- **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic. As of v0.2.2, most resource controllers use `@UseGuards(JwtAuthGuard)` at the class level -- authentication is enforced but no authorization/ownership checks exist (CWE-862). As of v0.4.0, role is stored in JWT payload but not validated -- any authenticated user can access any endpoint regardless of role (CWE-639). Exception: SharingController uses per-method guards (v0.3.4) because `GET /sharing/public/:token` is unauthenticated.
 - **Service** — Business logic and data access via TypeORM repositories (PostgreSQL). Singleton per module via DI.
 - **DTOs** — Request shapes (Create/Update) and response shapes. Classes (not interfaces) so NestJS can instantiate them and the Swagger plugin can introspect them.
 
