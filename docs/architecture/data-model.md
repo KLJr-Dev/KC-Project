@@ -1,10 +1,10 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Describes the v0.3.5 PostgreSQL schema (current, managed via TypeORM migrations), the v1.0.0 target schema, and the v2.0.0 hardened schema.
+Entity definitions and relationships for KC-Project. Describes the v0.4.0 PostgreSQL schema (current, managed via TypeORM migrations), the v1.0.0 target schema, and the v2.0.0 hardened schema.
 
 ---
 
-## Current State (v0.3.5) -- PostgreSQL
+## Current State (v0.4.0) -- PostgreSQL
 
 PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize: true` in v0.2.5, see [ADR-022](../decisions/ADR-022-typeorm-migrations.md)). File storage on local filesystem via Multer (see [ADR-024](../decisions/ADR-024-file-storage-strategy.md)). See also [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
 
@@ -19,7 +19,7 @@ PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize
 
 All tables use `@PrimaryColumn()` with manually assigned sequential string IDs (`"1"`, `"2"`, ...) — intentionally predictable (CWE-330). No unique constraints, no foreign keys, no indices beyond primary keys. Schema weaknesses are intentional per [ADR-006](../decisions/ADR-006-insecure-by-design.md).
 
-### User Entity (v0.2.0)
+### User Entity (v0.4.0)
 
 ```typescript
 @Entity()
@@ -32,6 +32,8 @@ class User {
   username: string;
   @Column()
   password: string;    // Plaintext in DB (CWE-256)
+  @Column({ type: 'enum', enum: ['user', 'admin'], default: 'user' })
+  role: 'user' | 'admin';  // v0.4.0 -- stored in JWT payload, never re-validated (CWE-639)
   @Column()
   createdAt: string;   // ISO 8601
   @Column()

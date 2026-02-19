@@ -26,6 +26,13 @@ Each ADR follows a standard format: **Status**, **Context**, **Decision**, **Con
 | [016](ADR-016-monorepo.md) | Monorepo structure | Accepted | v0.0.1 |
 | [017](ADR-017-no-cicd-yet.md) | No CI/CD yet (deferred) | Accepted | v0.0.8 |
 | [018](ADR-018-swagger-cli-plugin.md) | Swagger CLI plugin over manual decorators | Accepted | v0.0.8 |
+| [019](ADR-019-typeorm-orm.md) | TypeORM as ORM | Accepted | v0.2.0 |
+| [020](ADR-020-docker-db-only.md) | Docker for database only (not application) | Accepted | v0.2.0 |
+| [021](ADR-021-owasp-2025-migration.md) | Migrate to OWASP Top 10:2025 | Accepted | v0.2.3 |
+| [022](ADR-022-typeorm-migrations.md) | TypeORM migrations | Accepted | v0.2.5 |
+| [023](ADR-023-error-handling-philosophy.md) | Error handling philosophy (insecure by design) | Accepted | v0.2.4 |
+| [024](ADR-024-file-storage-strategy.md) | File storage strategy | Accepted | v0.3.0 |
+| [025](ADR-025-rbac-strategy.md) | RBAC strategy (progressive multi-role system) | Accepted | v0.4.0 |
 
 ## Adding a New ADR
 
