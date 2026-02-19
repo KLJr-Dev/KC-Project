@@ -23,9 +23,9 @@ RBAC surface introduced -- User and Admin roles added to User entity, role store
 - **Database** (PostgreSQL 16) -- Docker Compose in `infra/compose.yml`. Hardcoded credentials (`postgres`/`postgres`), TypeORM migrations with `migrationsRun: true`. 4 tables + role column (user_role_enum) added via migration. All users default to 'user' role.
 - **File Storage** -- Local filesystem in `backend/uploads/` via Multer. Client-supplied filenames, no sanitisation. Storage path exposed in API (CWE-200). See ADR-024.
 - **Frontend** (Next.js) -- Tabbed auth page (Register / Sign In), reusable UI components, auth context with localStorage persistence (now includes role), automatic Bearer header on all API calls. Role displayed in header. Admin page with client-side role check (bypassable via localStorage modification, CWE-639). Theme toggle (light/dark), app shell. Types auto-generated from OpenAPI spec.
-- **Tooling** -- shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (44 tests across 6 suites, all running against real PG with `--runInBand`). Migration scripts: `migration:generate`, `migration:run`, `migration:revert`.
-- **Documentation** -- ADRs 001-024 (024: File Storage Strategy), formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary. All OWASP references use Top 10:2025.
-- ~35 CWE entries across v0.1.0-v0.3.5. File handling surface closed.
+- **Tooling** -- shared Prettier config, ESLint with Prettier on both projects, TypeScript `strict: true` on both, e2e tests via supertest (47 tests across 6 suites, all running against real PG with `--runInBand`). Migration scripts: `migration:generate`, `migration:run`, `migration:revert`.
+- **Documentation** -- ADRs 001-025 (025: RBAC Strategy), formal spec, architecture diagrams, STRIDE threat model, auth flow docs, glossary. All OWASP references use Top 10:2025.
+- ~36 CWE entries across v0.1.0-v0.4.0. RBAC surface introduced.
 
 ### Run locally
 

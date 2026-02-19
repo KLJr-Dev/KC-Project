@@ -346,6 +346,11 @@ export interface components {
             username?: string;
             password?: string;
         };
+        UpdateUserDto: {
+            email?: string;
+            username?: string;
+            password?: string;
+        };
         UploadFileDto: {
             description?: string;
         };
