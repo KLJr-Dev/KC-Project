@@ -1,17 +1,42 @@
+/**
+ * v0.4.0 — Roles Introduced
+ *
+ * Admin dashboard placeholder. In v0.4.0, this page is visible only if
+ * isAdmin is true (checked client-side via AuthContext). The Admin link
+ * appears in the header for users with role=admin.
+ *
+ * VULN (v0.4.0): The UI visibility check (isAdmin) is client-side only
+ *       (CWE-639). An attacker can modify localStorage to fake role=admin
+ *       and see this page. However, the backend endpoints are not yet
+ *       protected in v0.4.0 (no guards), so this is purely cosmetic.
+ *       Backend authorization guards are introduced in v0.4.2.
+ */
 'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../lib/auth-context';
 import { adminCreate, adminList } from '../../lib/api';
 import type { AdminResponse } from '../../lib/types';
 
 export default function AdminPage() {
+  const { isAuthenticated, isAdmin } = useAuth();
+  const router = useRouter();
   const [items, setItems] = useState<AdminResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const [label, setLabel] = useState('');
   const [role, setRole] = useState('');
   const [createResult, setCreateResult] = useState<string | null>(null);
+
+  // v0.4.0: Client-side role check — redirect non-admins to home
+  // VULN (CWE-639): This check can be bypassed by modifying localStorage
+  useEffect(() => {
+    if (!isAuthenticated || !isAdmin) {
+      router.push('/');
+    }
+  }, [isAuthenticated, isAdmin, router]);
 
   const load = () => {
     setError(null);
