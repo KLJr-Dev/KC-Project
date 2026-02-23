@@ -1,6 +1,6 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v0.4.0** (RBAC surface introduced -- User/Admin roles added, stored in JWT payload, no authorization enforcement yet).
+This document describes the system architecture as of **v0.4.5** (Authorization surface with ternary RBAC, escalation chains, and intentional missing authorization checks on some endpoints).
 
 ---
 
@@ -71,17 +71,19 @@ graph TD
     SharingModule --> SharingService["SharingService\nRepository - SharingEntity\npredictable publicToken"]
     SharingModule -.->|"imports (FilesService)"| FilesModule
 
-    AdminModule --> AdminController["AdminController\n🔒 JwtAuthGuard\nCRUD /admin"]
-    AdminModule --> AdminService["AdminService\nRepository - AdminItem"]
+    AdminModule --> AdminController["AdminController\n🔒 JwtAuthGuard\nGET /admin/users (requires @HasRole)\nPUT /admin/users/:id/role (requires @HasRole)\nPUT /admin/users/:id/role/escalate (requires @HasRole)\nDELETE /admin/users/:id (NO @HasRole!)\nGET /admin/audit-logs (requires @HasRole)"]
+    AdminModule --> AdminService["AdminService\nRepository - User\n(role changes stored, not audited)\n(escalation cascade model)\n(delete without guard)"]
 ```
 
 ### Per-module pattern
 
 Every module follows the same internal structure:
 
-- **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic. As of v0.2.2, most resource controllers use `@UseGuards(JwtAuthGuard)` at the class level -- authentication is enforced but no authorization/ownership checks exist (CWE-862). As of v0.4.0, role is stored in JWT payload but not validated -- any authenticated user can access any endpoint regardless of role (CWE-639). Exception: SharingController uses per-method guards (v0.3.4) because `GET /sharing/public/:token` is unauthenticated.
-- **Service** — Business logic and data access via TypeORM repositories (PostgreSQL). Singleton per module via DI.
-- **DTOs** — Request shapes (Create/Update) and response shapes. Classes (not interfaces) so NestJS can instantiate them and the Swagger plugin can introspect them.
+- **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic. As of v0.2.2, most resource controllers use `@UseGuards(JwtAuthGuard)` at the class level -- authentication is enforced but no authorization/ownership checks exist (CWE-862). As of v0.4.0, a `role` column is added to User and role claim is stored in JWT payload, but is trusted without DB re-validation (CWE-639). As of v0.4.3, a third role (`'moderator'`) is introduced with ambiguous hierarchy (CWE-841). **Inconsistent guard application**: AdminController has `@HasRole()` on most endpoints but DELETE endpoint intentionally missing it (v0.4.5, CWE-862). Exception: SharingController uses per-method guards (v0.3.4) because `GET /sharing/public/:token` is unauthenticated.
+
+- **Service** — Business logic and data access via TypeORM repositories (PostgreSQL). Singleton per module via DI. As of v0.4.0, AdminService implements role changes. As of v0.4.4, escalation logic allows moderator-to-moderator promotion (CWE-269). As of v0.4.4, audit logs are placeholder (CWE-532).
+
+- **DTOs** — Request shapes (Create/Update) and response shapes. Classes (not interfaces) so NestJS can instantiate them and the Swagger plugin can introspect them. As of v0.4.3, role DTO field extended to include `'moderator'` option.
 
 ---
 
@@ -208,7 +210,7 @@ sequenceDiagram
     Page-->>Browser: Re-render with data or error
 ```
 
-As of v0.2.2, JwtAuthGuard protects **all** endpoints (auth, users, files, sharing, admin). Authentication is enforced everywhere, but no authorization or ownership checks exist — any authenticated user can access any resource (CWE-639, CWE-862). No middleware, no validation pipe. Basic field validation exists in `AuthService` (throws 400/401/409). All data access goes through TypeORM repositories to PostgreSQL.
+As of v0.2.2, JwtAuthGuard protects **all** endpoints (auth, users, files, sharing, admin). Authentication is enforced everywhere, but as of v0.4.0, authorization checks have been added via `@HasRole()` guard. However, **inconsistent enforcement**: role is trusted directly from JWT payload without DB re-validation (CWE-639); role hierarchy is ambiguous for ternary roles (CWE-841); and some endpoints (e.g., DELETE /admin/users/:id) are missing the authorization guard entirely (CWE-862). As of v0.4.4, escalation chains allow moderators to promote other users to moderator indefinitely (CWE-269). No middleware for general validation, no global exception filter for error sanitisation.
 
 ---
 
@@ -298,10 +300,14 @@ These weaknesses are intentional. The security surface grows incrementally per t
 
 ## What This Architecture Does Not Include (Yet)
 
-- Authorization / ownership enforcement -- ownerId exists but is never checked (v0.4.x)
+- **Database-backed authorization** -- Role stored in JWT and trusted without re-validation (CWE-639, v0.4.0–v0.4.5)
+- **Consistent authorization guards** -- Some admin endpoints have `@HasRole()`, others don't (CWE-862, v0.4.5)
+- **Explicit role hierarchy** -- Three roles (user/moderator/admin) with no defined precedence constants (CWE-841, v0.4.3–v0.4.5)
+- **Role escalation limits** -- Moderators can promote other users to moderator indefinitely (CWE-269, v0.4.4)
+- **Ownership enforcement** -- ownerId exists on files/shares but is never checked (CWE-639, v0.3.x)
+- **Audit trail for authorization changes** -- Role changes logged to stdout only (CWE-532, v0.4.x)
 - Pagination / query limits -- all list endpoints are unbounded (CWE-400)
 - File upload sanitisation -- filenames, MIME types, and size limits are not validated (v0.3.x intentional)
-- RBAC / role-based access (v0.4.x)
 - App containers / deployment (v0.5.x) — only PG is containerised
 - CI/CD pipelines
 - Environment configuration (credentials still hardcoded)
