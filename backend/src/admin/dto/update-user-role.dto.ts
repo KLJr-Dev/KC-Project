@@ -8,6 +8,6 @@ import { ApiProperty } from '@nestjs/swagger';
  * However, no audit trail is kept, and role changes take effect immediately (v0.4.4 adds logging).
  */
 export class UpdateUserRoleDto {
-  @ApiProperty({ example: 'admin', enum: ['user', 'admin'] })
-  role: 'user' | 'admin' = 'user';
+  @ApiProperty({ example: 'admin', enum: ['user', 'moderator', 'admin'] })
+  role: 'user' | 'moderator' | 'admin' = 'user';
 }

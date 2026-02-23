@@ -43,7 +43,7 @@ export class AdminService {
    */
   async updateUserRole(
     userId: string,
-    newRole: 'user' | 'admin',
+    newRole: 'user' | 'moderator' | 'admin',
   ): Promise<UserListItemDto> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
@@ -60,6 +60,67 @@ export class AdminService {
     );
 
     return this.mapUserToDto(user);
+  }
+
+  /**
+   * Escalate a user's role (moderator can promote user → moderator)
+   * CWE-269: Improper Access Control via Role Escalation
+   * CWE-639: JWT role trusted without DB re-validation
+   * CWE-862: No additional checks on which user can be promoted
+   * CWE-841: Role hierarchy ambiguity (moderator="moderator" but no explicit rank)
+   *
+   * Design Flaw: Allows cascade.
+   * - Moderator A promotes User → Moderator B
+   * - Moderator B immediately can promote User → Moderator C
+   * - Exponential escalation possible
+   *
+   * @param userId - User to promote
+   * @param currentUserRole - Caller's role (from JWT, untrusted)
+   * @throws NotFoundException if user not found
+   * @throws ForbiddenException if currentUserRole is not 'moderator' or 'admin'
+   */
+  async escalateUserRole(
+    userId: string,
+    currentUserRole: 'user' | 'moderator' | 'admin',
+  ): Promise<UserListItemDto> {
+    // CWE-269: Weak escalation check — just verifies caller is elevated, not admin
+    if (currentUserRole !== 'moderator' && currentUserRole !== 'admin') {
+      throw new Error('Only moderators and admins can escalate roles');
+    }
+
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`User with id "${userId}" not found`);
+    }
+
+    // CWE-269: Allow moderator→moderator escalation (cascade)
+    // A moderator can promote any user to moderator
+    if (user.role === 'user') {
+      user.role = 'moderator';
+      await this.usersRepository.save(user);
+
+      // CWE-532: No audit trail — just console log, lost on restart
+      console.log(
+        `[ADMIN] Escalation: user="${userId}" elevated to moderator by role="${currentUserRole}" (CWE-269, CWE-532)`,
+      );
+    }
+
+    return this.mapUserToDto(user);
+  }
+
+  /**
+   * Get audit logs (placeholder for v0.4.4)
+   * CWE-532: No persistent audit trail implemented
+   * Future: Should store all role changes, approvals, etc.
+   *
+   * @returns Empty array (placeholder)
+   */
+  async getAuditLogs(): Promise<Array<any>> {
+    // TODO: Implement persistent audit log table
+    // For now, return empty array as placeholder
+    console.log('[AUDIT] getAuditLogs() called — no persistence yet (CWE-532)');
+    return [];
   }
 
   /**
