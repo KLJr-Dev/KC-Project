@@ -106,4 +106,24 @@ export class FilesService {
     const result = await this.fileRepo.delete(id);
     return (result.affected ?? 0) > 0;
   }
+
+  /**
+   * PUT /files/:id/approve -- Update file approval status.
+   * v0.4.3: Moderators and admins can approve/reject files.
+   * VULN (v0.4.3): No ownership check. Any moderator can approve ANY file.
+   *       This demonstrates CWE-862 (Missing Authorization) combined with
+   *       CWE-639 (forged moderator JWT role).
+   *       Remediation (v2.0.0): Check file.ownerId or implement approval consent.
+   */
+  async approveFile(
+    fileId: string,
+    status: 'approved' | 'rejected',
+  ): Promise<FileResponseDto | null> {
+    const entity = await this.fileRepo.findOne({ where: { id: fileId } });
+    if (!entity) return null;
+
+    entity.approvalStatus = status;
+    const updated = await this.fileRepo.save(entity);
+    return this.toResponse(updated);
+  }
 }

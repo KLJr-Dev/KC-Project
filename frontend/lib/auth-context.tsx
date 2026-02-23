@@ -90,9 +90,25 @@ function loadFromStorage(): AuthState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { token: null, userId: null };
     const parsed = JSON.parse(raw) as AuthState;
-    return { token: parsed.token ?? null, userId: parsed.userId ?? null };
+    return {
+      token: parsed.token ?? null,
+      userId: parsed.userId ?? null,
+      role: parsed.role,
+    };
   } catch {
     return { token: null, userId: null };
+  }
+}
+
+function parseRoleFromToken(token: string | null): 'user' | 'admin' | undefined {
+  if (!token) return undefined;
+  const parts = token.split('.');
+  if (parts.length !== 3) return undefined;
+  try {
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload?.role === 'admin' ? 'admin' : payload?.role === 'user' ? 'user' : undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -116,17 +132,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Store the auth response (token + userId + role) from a successful register or
    * login call. Updates both React state and localStorage.
    * VULN: Writes token + role to localStorage in plaintext (CWE-922)
-   * VULN (v0.4.0): Role stored in client state and localStorage, trusted without
-   *       server-side validation (CWE-639). An attacker can modify localStorage
-   *       role from 'user' to 'admin' to show admin UI (but backend won't allow
-   *       admin actions without proper JWT role claim, which requires knowing
-   *       the JWT secret).
+   * VULN (v0.4.0-v0.4.2): Role stored in client state and localStorage, trusted 
+   *       without server-side re-validation (CWE-639: Client-Controlled Authorization).
+   *       An attacker who knows the hardcoded JWT secret ('kc-secret') can:
+   *       1. Forge a JWT with role='admin' claim using the secret
+   *       2. Set this JWT in localStorage manually (via DevTools)
+   *       3. Refresh the page → app thinks user is admin (isAdmin=true)
+   *       4. Admin UI becomes visible (this is still UI-only protection)
+   *       5. Calling /admin/* endpoints with the forged JWT will SUCCEED because
+   *          HasRole guard trusts the JWT role claim without re-checking database
+   *       The bug is not in this file; it's in the backend guidance. This frontend
+   *       code correctly parses and stores the role. The CWE-639 root cause is that
+   *       HasRole guard (backend) trusts JWT role without DB re-validation.
    */
   const login = useCallback((response: AuthResponse) => {
-    const next: AuthState = { 
-      token: response.token, 
+    const next: AuthState = {
+      token: response.token,
       userId: response.userId,
-      role: (response as any).role ?? 'user', // v0.4.0: include role from response
+      role: parseRoleFromToken(response.token) ?? 'user',
     };
     setState(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); // VULN: CWE-922

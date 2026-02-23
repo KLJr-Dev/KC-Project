@@ -11,19 +11,24 @@ strong security guarantees in early versions.
 
 ## Current Status
 
-**Version:** v0.0.8 (Foundation Phase)
+**Version:** v0.4.6 (Authorization UI Surface – Ternary Role Support)
 
 - Next.js application scaffolded (App Router, Tailwind CSS)
 - Client-side types **auto-generated from OpenAPI spec** (`lib/types.gen.ts`)
 - Re-export layer with friendly aliases (`lib/types.ts`)
 - Typed API client covers every backend route (`lib/api.ts`)
 - Pages exercise full CRUD for all five backend domains
+- **Ternary role selector component** (user/moderator/admin) in admin UI (v0.4.3)
+- **Role displayed in header** with current user context from localStorage (CWE-639: role stored client-side, modifiable)
+- Role selection **bypassable via localStorage modification**; no server-side validation (CWE-639, v0.4.3–v0.4.6)
 - Backend connectivity verified via `/ping`
 - ESLint configured with Prettier integration
 - Shared Prettier config (root-level `.prettierrc`)
-- No authentication enforcement
+- JWT + role persisted to localStorage (CWE-639)
+- Automatic Bearer header on all API calls
+- Client-side role checks (bypassable); all enforcement expected server-side
 - No form validation
-- No token storage or session handling
+- No input sanitisation
 
 ---
 

@@ -48,6 +48,8 @@ graph TD
     PrivEsc["Privilege escalation paths\nCWE-269\nA01:2025"]
     FEOnlyGuard["Frontend-only admin guards\nCWE-602\nA06:2025"]
     CrossUserAccess["Admin endpoints callable by users\nCWE-639\nA01:2025"]
+    MissingGuards["Missing authorization checks on endpoints\nCWE-862\nA01:2025"]
+    RoleHierarchy["Unclear role hierarchy/ambiguity\nCWE-841\nA07:2025"]
   end
 
   subgraph infra ["Infrastructure Surface"]
@@ -89,15 +91,18 @@ Full inventory of v1.0.0 weaknesses with classification, surface, and version tr
 | 34 | Share expiry not enforced | CWE-613 | A07:2025 Authentication Failures | File | v0.3.4 | v2.0.0 |
 | 35 | Filesystem path disclosure in API | CWE-200 | A01:2025 Broken Access Control | File | v0.3.0 | v2.0.0 |
 | 17 | Client role claims trusted by backend | CWE-285 | A01:2025 Broken Access Control | Authorization | v0.4.2 | v2.0.0 |
-| 18 | Privilege escalation paths | CWE-269 | A01:2025 Broken Access Control | Authorization | v0.4.3 | v2.0.0 |
+| 18 | Privilege escalation paths | CWE-269 | A01:2025 Broken Access Control | Authorization | v0.4.4 | v2.0.0 |
 | 19 | Frontend-only admin guards | CWE-602 | A06:2025 Insecure Design | Authorization | v0.4.2 | v2.0.0 |
 | 20 | Admin endpoints callable by regular users | CWE-639 | A01:2025 Broken Access Control | Authorization | v0.4.4 | v2.0.0 |
-| 21 | Root containers | CWE-250 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.0 | v2.0.0 |
-| 22 | Default database credentials | CWE-798 | A07:2025 Authentication Failures | Infrastructure | v0.2.0 | v2.0.0 |
-| 23 | All ports exposed to internet | CWE-668 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.0 | v2.0.0 |
-| 24 | No TLS (HTTP plaintext) | CWE-319 | A04:2025 Cryptographic Failures | Infrastructure | v0.5.0 | v2.0.0 |
-| 25 | Sensitive data in logs | CWE-532 | A09:2025 Security Logging and Alerting Failures | Infrastructure | v0.6.2 | v2.0.0 |
-| 26 | No network segmentation | CWE-668 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.2 | v2.0.0 |
+| 27 | Missing authorization guards on endpoints | CWE-862 | A01:2025 Broken Access Control | Authorization | v0.4.5 | v2.0.0 |
+| 28 | Role hierarchy ambiguity (ternary roles) | CWE-841 | A07:2025 Authentication Failures | Authorization | v0.4.3 | v2.0.0 |
+| 29 | No audit trail for role changes | CWE-532 | A09:2025 Security Logging and Alerting Failures | Authorization | v0.4.0 | v2.0.0 |
+| 30 | Root containers | CWE-250 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.0 | v2.0.0 |
+| 31 | Default database credentials | CWE-798 | A07:2025 Authentication Failures | Infrastructure | v0.2.0 | v2.0.0 |
+| 32 | All ports exposed to internet | CWE-668 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.0 | v2.0.0 |
+| 33 | No TLS (HTTP plaintext) | CWE-319 | A04:2025 Cryptographic Failures | Infrastructure | v0.5.0 | v2.0.0 |
+| 34 | Sensitive data in logs | CWE-532 | A09:2025 Security Logging and Alerting Failures | Infrastructure | v0.6.2 | v2.0.0 |
+| 35 | No network segmentation | CWE-668 | A02:2025 Security Misconfiguration | Infrastructure | v0.5.2 | v2.0.0 |
 | 27 | Unbounded list endpoints (full table dumps) | CWE-200 | A01:2025 Broken Access Control | Data | v0.2.3 | v2.0.0 |
 | 28 | Existence oracle (200/404 + sequential IDs) | CWE-203 | A01:2025 Broken Access Control | Data | v0.2.3 | v2.0.0 |
 | 29 | Uncontrolled resource consumption (no pagination) | CWE-400 | A06:2025 Insecure Design | Data | v0.2.3 | v2.0.0 |
