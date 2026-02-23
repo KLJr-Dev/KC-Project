@@ -590,11 +590,11 @@ Goal: Improve foundation, add input validation and pagination, standardize error
 
 The v0.8.x series adds input validation, pagination, error standardization, request logging, and performance instrumentation. No new vulnerabilities intentionally introduced; existing weaknesses (predictable IDs, IDOR, weak auth) remain. Foundation is now polished for v1.0.0 freeze.
 
-## v0.9.x — MVP Freeze & Release Preparation
+## v0.9.x — Infrastructure Integration & MVP Freeze
 
-Goal: Lock down feature set, finalize documentation, verify all pieces work together, prepare for v1.0.0 insecure baseline release.
+Goal: Integrate Docker/compose deployment, lock down feature set, finalize documentation, prepare fully deployable v1.0.0 product.
 
-### v0.9.0 — Feature Completeness Verification
+### v0.9.0 — Feature Completeness & Docker Image Build
 
 - Checklist: all FR requirements from SENG spec implemented
   - User registration/login/profile/logout: ✓
@@ -604,53 +604,70 @@ Goal: Lock down feature set, finalize documentation, verify all pieces work toge
   - Public share tokens: ✓
   - Role-based user levels (User/Admin/Moderator): ✓
   - Admin user management: ✓
-- No more features added; surface is frozen
-- Any outstanding bugs deferred to v1.0.1
+- No more features added; feature surface frozen
+- Create `backend/Dockerfile`: Node 20-alpine, COPY app, RUN npm ci, ENV NODE_ENV=production, EXPOSE 3000, CMD = node main.js (actual v0.9.0 version)
+- Create `frontend/Dockerfile`: Node 20-alpine, COPY app, RUN npm ci, RUN npm run build, EXPOSE 3000, CMD = npm start
+- Build images locally, test run: `docker run -e DATABASE_URL=... <image>`
 
-### v0.9.1 — Documentation Freeze
+### v0.9.1 — Docker Compose Orchestration
 
-- Update ARCHITECTURE.md to v0.9.0
+- Create `docker-compose.prod.yml` (differs from existing `infra/compose.yml`):
+  - `postgres`: `postgres:16-alpine`, volumes for data persistence, `POSTGRES_DBNAME=kc_prod`
+  - `backend`: built from `backend/Dockerfile`, depends_on: postgres, env: DATABASE_HOST=postgres, DATABASE_PORT=5432, DATABASE_NAME=kc_prod
+  - `frontend`: built from `frontend/Dockerfile`, depends_on: backend, NEXT_PUBLIC_API_URL=http://backend:3000
+  - `nginx` (reverse proxy): port 80 → frontend:3000, `/api` → backend:3000
+- Add `.dockerignore` to both frontend and backend (node_modules, dist, build, .git)
+- Test compose stack locally: `docker-compose -f docker-compose.prod.yml up`, verify frontend accessible at localhost
+
+### v0.9.2 — VM Provisioning & Networking Setup
+
+- Create Ubuntu VM setup script (`infra/vm-setup.sh`):
+  - Install Docker, Docker Compose
+  - Create `kc` user (non-root), add to docker group
+  - Clone repo to `/opt/kc-project`
+  - Set up environment files (DATABASE credentials, NEXT_PUBLIC_API_URL)
+  - Configure firewall: allow 22 (SSH), 80 (HTTP), 443 (HTTPS)
+- Create `.env.production` template for secrets (DATABASE_PASSWORD, JWT_SECRET)
+- Document: "Deploy to VM: `scp -r . user@vm:/opt/kc-project && ssh user@vm docker-compose -f /opt/kc-project/docker-compose.prod.yml up -d`"
+
+### v0.9.3 — Infrastructure Testing & Reproducibility
+
+- Test scenario: Fresh Ubuntu VM, run `vm-setup.sh`, deploy via docker-compose, register user, upload file, share file, download via public token
+- Generate database migration on fresh container to verify TypeORM works in Docker
+- Test failover: stop postgres, restart, verify data persists
+- Test compose tear-down and re-up: no data loss
+- Document: reproducible deployment checklist
+
+### v0.9.4 — Documentation & API Surface Lock
+
+- Update ARCHITECTURE.md to v0.9.0 (add deployment diagram, Docker + VM layers)
 - Update data-model.md with final schema
-- ADRs finalized (ADR-026-mvp-feature-set.md added)
-- SENG spec reviewed and final (no open questions)
+- ADRs finalized (ADR-026-versioning-expansion-cycle complete)
+- SENG spec reviewed and final
 - Roadmap locked (v1.0.0 ready to proceed)
-- API surface documented and locked in Swagger/OpenAPI
-
-### v0.9.2 — Test Suite Review
-
-- All 47 auth + file + sharing + admin + app tests passing
-- E2e test coverage: >200 tests across all surfaces
-- Regression test suite captures current attack surface (baseline for v2.0.0 remediation validation)
-- No more test additions; coverage frozen
-- All tests pass on clean database restore
-
-### v0.9.3 — Database Schema Finalization
-
-- All migrations reviewed and locked (no schema changes after v0.9.3)
-- Migration test: fresh database from migrations matches entity definitions
-- Indexes and constraints documented (even if intentionally weak)
-- Foreign keys remain absent (intentional design)
-- Schema backwards-compatible for v1.0.x pentest (no data loss on restart)
-
-### v0.9.4 — API Surface Lock
-
-- All endpoint signatures frozen (no new routes, no parameter changes)
-- Request/response DTOs finalized (no field additions in v1.0.x)
-- OpenAPI spec treated as source of truth (changes require v1.1.0 expansion)
-- Swagger UI locked at v0.9.4 (no new docs added)
-- Backend versioning: backend version in Swagger = "0.9.4"
+- API surface frozen (no new routes after v0.9.4)
+- Request/response DTOs finalized
+- Swagger UI locked at v0.9.4
+- Backend versioning: Swagger reports v0.9.4
+- All endpoint signatures frozen (no changes in v1.0.x)
+- Deployment guide documented (docker-compose steps, VM provisioning, secrets management)
 
 ### v0.9.5 — Release Candidate & Smoke Tests
 
 - Tag release candidate: v0.9.5-rc.1
-- Smoke test: full user journey (register → upload file → share → download → admin ops → cleanup)
+- Smoke tests:
+  - **Local dev:** Register → upload → share → download → admin ops
+  - **Docker compose:** Spin up stack locally, run same journey
+  - **VM deployment:** Deploy to test Ubuntu VM, run same journey
+  - **Persistence:** Stop all containers, check `docker volume ls`, restart, verify data present
+  - **API health:** `GET /health`, Swagger `/api/docs`, database connection verified
 - Git history clean: all branches merged, no uncommitted changes
-- Release notes drafted: what's new, known issues (intentional weaknesses to be exploited), v1.0.0 readiness checklist
-- Final merge to main branch after RC approval
+- Release notes drafted: what's new (6 surfaces: auth, files, sharing, admin, v0.9 infra), known issues (intentional CWEs), v1.0.0 readiness checklist
+- Final merge: dev → main after RC approval, tag v1.0.0-dev (pre-release pointing to v0.9.5 commit)
 
-#### v0.9.x MVP Freeze Summary
+#### v0.9.x Infrastructure Integration & MVP Freeze Summary
 
-The v0.9.x series is a freeze phase where feature development stops, documentation is locked, test coverage is verified, and the system is prepared for v1.0.0 release. No new vulnerabilities are introduced; existing weaknesses remain for v1.0.x pentest discovery. This version is a stable, complete, insecure MVP ready for structured security testing and hardening cycles.
+The v0.9.x series integrates Docker and docker-compose deployment infrastructure, freezes all features and APIs, locks documentation, and prepares the system as a fully deployable product ready for v1.0.0 release. v1.0.0 will be insecure, but production-ready: containerized, reproducibly deployable to VM, with persistent database, and comprehensive e2e test coverage. This is the first version that feels like a complete product, not just a prototype.
 
 ---
 
@@ -669,17 +686,21 @@ Goal: Freeze a realistic, insecure reference system with ~15-18 documented CWEs 
 - ✅ ~15-18 intentional vulnerabilities documented with CWE + OWASP Top 10:2025 classification
 - ✅ Architecture and threat model complete (SENG spec finalized)
 - ✅ E2e test suite comprehensive (200+ tests)
-- ✅ Deployed locally with reproducible environment
+- ✅ **Docker containerization:** Frontend, backend, database images; docker-compose orchestration
+- ✅ **VM deployment ready:** Provisioning script, deployment guide, reproducible setup
+- ✅ **Production-like deployment:** Runs on containers, persistent database, networked architecture
 - ✅ Ready for v1.0.x penetration testing and v2.0.0 hardening
 
 ### Version characteristics
 
-- Intentional weaknesses frozen (no fixes until v2.0.0)
-- All attack surfaces open and documented
-- Infrastructure remains local/Docker Compose (no VM deployment yet)
-- Web app complete, fully featured, realistic, and exploitable
+- **Intentional weaknesses frozen** (no fixes until v2.0.0)
+- **All attack surfaces open and documented**
+- **Docker + Docker Compose:** Fully containerized (frontend, backend, database)
+- **VM-deployable:** Reproducible setup script, deployment guide, persistent storage
+- **Web app complete:** Fully featured, realistic, and exploitable
+- **Production-ready architecture:** Reverse proxy, environment-based config, persistent volumes
 
-This version is the first insecure baseline. It enters the expansion cycle: pentest (v1.0.x), harden (v2.0.0), then fork and expand (v1.1.0).
+This version is the first insecure baseline **and the first production-like deployment**. It enters the expansion cycle: pentest (v1.0.x), harden (v2.0.0), then fork and expand (v1.1.0).
 
 ## v1.0.x — Penetration Testing & Incremental Patching
 
@@ -697,66 +718,133 @@ Goal: Implement all security controls and remediate all v1.0.0 weaknesses while 
 
 ### v2.0.0 Scope (mapped to v1.0.0 remediations)
 
+**App Security:**
 - Password hashing: bcrypt cost 12+ (replace plaintext comparison)
-- Token lifecycle: expiry, refresh tokens, revocation (replace hardcoded secret + no expiry)
+- Token lifecycle: expiry (20min access, 7-day refresh), revocation (replace hardcoded secret + no expiry)
 - Authorization enforcement: server-side ownership checks on all resource access (replace IDOR)
-- RBAC: role re-validation on protected endpoints against database state (replace client-controlled role in JWT)
-- Input validation: sanitisation of file paths, file names, user input (replace CWE-22)
+- RBAC: role re-validation against database state, not JWT payload (replace client-controlled role)
+- Input validation: sanitisation of file paths, filenames, user input (replace CWE-22)
+- MIME validation: accept list enforcement, reject client-supplied MIME types (replace CWE-434)
+- Upload size limits: enforced per-file and per-user quotas (replace CWE-400)
 - Pagination & limits: enforced on all list endpoints (replace unbounded list dumps)
 - Error handling: generic error messages, no sensitive data in responses (replace info disclosure)
-- Authentication rate limiting: brute-force protection on login/register (replace CWE-307)
-- Logging/auditing: persist audit events, redact sensitive data (replace ephemeral logging)
-- Transport: TLS deployment, security headers (replace plaintext in dev)
-- Infrastructure: Docker Compose for reproducible dev, explicit secrets management (replace hardcoded credentials)
+- Authentication rate limiting: brute-force protection on login/register
+- Logging/auditing: persist audit events to database, redact sensitive data
+
+**Infrastructure (inherited from v0.9.x / v1.0.0):**
+- Docker Compose remains unchanged (same images, same networking)
+- Persistent database with backups (new automated backup job)
+- Environment-based configuration maintained
 
 ### v2.0.0 Characteristics
 
 - All v1.0.0 CWEs remediated
 - Feature parity with v1.0.0 (same API surface, same business logic)
-- Intent: "what a secure version looks like"
+- Same Docker + VM deployment model as v1.0.0
+- Intent: "what a secure application version looks like" (ops still minimal)
 - Ready for comparison to v1.0.x findings
+- Not production-hardened (see v2.1.0 for ops hardening)
 
-## v2.1.x — Infrastructure Surface (Post-v2.0.0)
+## v1.1.0 — New Insecure Surface (Forked from v2.0.0)
 
-### v2.1.0 — Containerisation & Deployment
+Goal: Fork v2.0.0, add ~10 new CWEs in client-side and advanced attack surfaces.
 
-- Dockerfiles for frontend, backend, database
-- docker-compose orchestration
-- Volume management and persistence
-- Environment variable secrets management (no hardcoded creds)
-- Health checks and graceful shutdown
+- Based on v2.0.0 codebase (all v1.0.0 CWEs fixed)
+- Introduce ~10 new vulnerabilities: XSS (template injection), CSRF (no tokens), SSRF, insecure deserialization, etc.
+- Full functionality and Docker + VM infrastructure preserved
+- Ready for v1.1.x pentest cycle
 
-### v2.1.1–v2.1.4 — Container & VM Hardening
+## v1.1.x — Pentest + Patch v1.1.0
 
-- Container security: non-root user, read-only filesystem, minimal base images
-- Ubuntu VM: system hardening, firewall, SSH keys
-- Reverse proxy: nginx with TLS termination
-- Logging aggregation: centralized logs (no leaked to stdout)
+- Execute penetration testing against v1.1.0, discover new vulnerabilities
+- Document findings, apply minimal patches to critical bugs only
+- Leave exploitable v1.1.0 weaknesses intact (for v2.2.0 hardening)
 
-## Post v2.0.0 — Perpetual Expansion Cycle
+## v2.1.0 — Infrastructure + Ops Hardening
 
-After v2.0.0, the project follows a perpetual insecure/secure loop (see [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md)):
+Goal: Production-grade infrastructure and operational security hardening (applied to v2.0.0 codebase).
+
+**TLS & Networking:**
+- Nginx reverse proxy with TLS termination (self-signed or Let's Encrypt)
+- HSTS, CSP, X-Frame-Options security headers
+- Deny direct access to backend; route through Nginx only
+
+**Secrets Management:**
+- Remove hardcoded credentials from docker-compose
+- Use `.env` files with .gitignore protection (local dev)
+- Document secrets rotation for production (e.g., AWS Secrets Manager pattern)
+- Backend reads JWT_SECRET from environment, not hardcoded
+
+**Container Hardening:**
+- Non-root user in all Dockerfiles (RUN useradd -m app, USER app)
+- Read-only filesystems where possible (--read-only flag)
+- Minimal base images (alpine, not ubuntu)
+- Health checks on all containers (HEALTHCHECK instruction)
+- Resource limits (memory, CPU) in docker-compose
+
+**Logging Aggregation:**
+- Centralized logging: logs to stdout + ELK/Datadog (or local file mount)
+- Redact sensitive data from logs (no passwords, tokens, emails)
+- Log retention policy (90 days, then archive)
+
+**VM Hardening:**
+- System updates and patches (apt update && apt upgrade -y)
+- SSH key-only auth (disable password login, disable root login)
+- Firewall: UFW with explicit allow rules (22, 80, 443 only)
+- Monitoring: basic uptime checks, disk space alerts
+- Automated backups of database volumes
+
+**Documentation:**
+- Deployment runbook: how to provision and harden a new VM
+- Secrets management policy: where secrets live, how they're rotated
+- Incident response: what to do if a container crashes or logs suspicious activity
+- Update process: how to deploy v2.1.1 patches without downtime
+
+### v2.1.0 Characteristics
+
+- Inherits all v2.0.0 app hardening (all v1.0.0 CWEs fixed)
+- Production-grade infrastructure (TLS, secrets, hardened containers, monitoring)
+- Intent: "what a secure and production-ready system looks like"
+- Deployment cost higher (TLS cert, monitoring, monitoring logs)
+- Ready to be the reference deployment
+
+## v2.2.0 — Hardened Parallel Release (v1.1.0 CWEs)
+
+Goal: Remediate all v1.1.0 vulnerabilities (the new 10 CWEs introduced in v1.1.0).
+
+- Based on v2.1.0 codebase (v1.0.0 CWEs fixed + ops hardened)
+- Fix all v1.1.0 CWEs (XSS, CSRF, SSRF, etc.)
+- Infrastructure from v2.1.0 maintained (TLS, secrets hardening, monitoring, etc.)
+- Feature parity with all prior versions
+
+## Post-v2.2.0 — Perpetual Expansion Cycle
+
+After v2.2.0, the project continues the expansion loop (see [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md)):
 
 ```
-v1.0.0 (insecure MVP: 15-18 CWEs)
-  → v1.0.x (pentest + patch)
-  → v2.0.0 (secure parallel — all CWEs remediated)
-  → v1.1.0 (fork v2.0.0, add ~10 new CWEs: XSS, CSRF, SSRF, deserialization)
-  → v1.1.x (pentest + patch)
-  → v2.1.0 (secure parallel, infrastructure hardening)
-  → v1.2.0 (fork v2.1.0, add ~10 new CWEs: race conditions, cache poisoning, algorithm confusion)
-  → v1.2.x (pentest + patch)
-  → v2.2.0 (secure parallel)
-  → ...repeat
+v1.2.0 (fork v2.2.0, add ~10 new CWEs: race conditions, cache poisoning, algorithm confusion)
+  → v1.2.x (pentest + patch v1.2.0)
+  → v2.3.0 (secure parallel, fix all v1.2.0 CWEs)
+  → v1.3.0 (fork v2.3.0, add ~10 new CWEs: supply chain, CI/CD, cloud misconfigs)
+  → v1.3.x (pentest + patch v1.3.0)
+  → v2.4.0 (secure parallel, fix all v1.3.0 CWEs)
+  → ...repeat indefinitely
 ```
+
+
+
 
 ### What the expansion cycle introduces
 
-Each new v1.N.0 adds vulnerability surfaces not present in the previous cycle:
+Each v1.N.0 introduces a new attack surface with ~10 new CWEs:
 
 - **v1.1.0:** Client-side rendering vulnerabilities (XSS via template injection, CSRF token bypass), unvalidated redirects (CWE-918 SSRF), insecure deserialization (CWE-502)
 - **v1.2.0:** Race conditions in file operations (CWE-362 concurrent access), cache poisoning on public shares, JWT algorithm confusion (CWE-327 allow "none")
 - **v1.3.0 (speculative):** Supply chain attacks (malicious npm package injection), CI/CD exploitation (exposed secrets in logs), cloud misconfigurations (S3 bucket ACLs)
+- **v1.4.0 (speculative):** Cryptographic failures (weak ciphers, improper key rotation), unsafe compression (compression oracle attacks), side-channel attacks
+- **v1.5.0+ (speculative):** Advanced privilege escalation, object injection, business logic flaws, protocol implementation bugs, resource exhaustion attacks
+
+Each v1.N.0 is designed as a valid, deployable system that happens to contain this attack surface. After each v1.N.x pentest cycle, v2.N.0 remediates all v1.N.0 CWEs (and inherits hardening from v2.N-1.0 or v2.N-1.1 codebase).
 
 ### Explicitly out of scope for all versions
 
