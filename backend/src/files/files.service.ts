@@ -7,21 +7,49 @@ import { FileResponseDto } from './dto/file-response.dto';
 import { UploadFileDto } from './dto/upload-file.dto';
 
 /**
- * v0.3.3 -- File Deletion (filesystem)
+ * v0.5.0 -- Real Multipart File Upload
  *
  * Files service. Real file I/O via Multer multipart uploads.
  * Files stored on local filesystem in ./uploads/ with client-supplied
- * filenames (no sanitisation).
+ * filenames (no sanitisation). Metadata persisted to file_entity table
+ * with full records for each file: filename, mimetype, storagePath, size,
+ * description, approvalStatus, uploadedAt, ownerId.
  *
- * VULN (v0.2.2): ownerId stored but never checked on read/delete.
- *       CWE-639 | A01:2025
+ * MULTIPART FLOW DETAILS (v0.5.0):
+ * 1. upload() receives Express.Multer.File from FileInterceptor
+ * 2. File already written to disk by Multer at file.path
+ * 3. Service creates FileEntity with:
+ *    - id: sequential count (vulnerable to enumeration)
+ *    - filename: file.originalname (no sanitisation, CWE-22)
+ *    - mimetype: file.mimetype (client-supplied, CWE-434)
+ *    - storagePath: file.path (absolute FS path, CWE-200)
+ *    - size: file.size (from Multer, no quota checks)
+ *    - ownerId: user.sub (stored but never re-checked, CWE-639)
+ *    - approvalStatus: 'pending' (v0.4.3 carryover, no enforcement v0.5.0)
+ * 4. Entity saved to DB, returned as FileResponseDto
+ * 5. storagePath exposed in response (CWE-200)
  *
- * VULN (v0.3.0): storagePath exposed in API responses, revealing
- *       server directory structure. CWE-200 | A01:2025
+ * VULN (v0.2.2 - CWE-639): ownerId stored but never verified on read/delete.
+ *       Any authenticated user can access or delete any file (IDOR).
+ *       CWE-639 | A01:2025, CWE-862 | A01:2025
  *
- * VULN (v0.3.3): delete() removes file from disk using storagePath
- *       with no validation. If storagePath points outside uploads/,
- *       that file gets deleted. CWE-22 | A01:2025
+ * VULN (v0.5.0 - CWE-200): storagePath exposed in FileResponseDto,
+ *       revealing server directory structure to any authenticated user.
+ *       CWE-200 | A01:2025
+ *
+ * VULN (v0.5.0 - CWE-22): delete() removes file from disk using storagePath
+ *       with no path canonicalisation. If storagePath contains "..",
+ *       files outside uploads/ can be deleted.
+ *       CWE-22 | A01:2025
+ *
+ * VULN (v0.5.0 - CWE-22): getFileMeta() returns storagePath for download
+ *       endpoint to use. download() endpoint calls res.sendFile(storagePath)
+ *       with no path validation (trusts DB value).
+ *
+ * VULN (v0.5.0 - CWE-434): mimetype from client header, stored and returned
+ *       on download. Download endpoint sets Content-Type to this value.
+ *
+ * VULN (v0.5.0 - CWE-400): No upload size limits. Unbounded file I/O.
  */
 @Injectable()
 export class FilesService {
@@ -108,18 +136,16 @@ export class FilesService {
   }
 
   /**
-   * PUT /files/:id/approve -- Update file approval status.
-   * v0.4.3: Moderators and admins can approve/reject files.
-   * VULN (v0.4.3): No ownership check. Any moderator can approve ANY file.
-   *       This demonstrates CWE-862 (Missing Authorization) combined with
-   *       CWE-639 (forged moderator JWT role).
-   *       Remediation (v2.0.0): Check file.ownerId or implement approval consent.
+   * PUT /files/:id/approve -- Moderator or admin approves/rejects file (v0.4.3).
+   * VULN (v0.4.3): No ownership check. Any moderator/admin can approve any file.
+   *       Combined with CWE-639 (forged JWT role), unauthorized approval possible.
+   *       CWE-862 (Missing Authorization) | A01:2025
    */
   async approveFile(
-    fileId: string,
-    status: 'approved' | 'rejected',
+    id: string,
+    status: 'pending' | 'approved' | 'rejected',
   ): Promise<FileResponseDto | null> {
-    const entity = await this.fileRepo.findOne({ where: { id: fileId } });
+    const entity = await this.fileRepo.findOne({ where: { id } });
     if (!entity) return null;
 
     entity.approvalStatus = status;
