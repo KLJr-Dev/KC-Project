@@ -124,6 +124,42 @@ export class AdminService {
   }
 
   /**
+   * Delete a user (v0.4.5 — Missing Authorization Example)
+   * CWE-862: Improper Access Control — Missing Authorization Check
+   *
+   * This method demonstrates CWE-862 by:
+   * 1. No role validation (controller doesn't use @HasRole('admin'))
+   * 2. No ownership check (user can delete any other user, not just themselves)
+   * 3. No audit trail of deletion (silent removal, console log lost on restart)
+   * 4. Cascading orphaned file records (FilesEntity left with deleted userId)
+   *
+   * Secure implementations would:
+   * - Require @HasRole('admin') in controller
+   * - Validate caller is not deleting themselves (or require explicit confirmation)
+   * - Record deletion with timestamp and who deleted whom
+   * - Cascade delete or soft-delete file records
+   * - Return 403 if caller is not admin
+   *
+   * @param userId - User ID to delete
+   * @throws NotFoundException if user not found
+   */
+  async deleteUser(userId: string): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`User with id "${userId}" not found`);
+    }
+
+    // Delete the user immediately, no confirmation, no recoverability
+    await this.usersRepository.remove(user);
+
+    // CWE-532: No audit trail — log to console, lost on restart
+    console.log(
+      `[ADMIN] User Deleted: userId="${userId}" email="${user.email}" (CWE-862: No Auth Check, CWE-532: No Audit)`,
+    );
+  }
+
+  /**
    * Helper: Map User entity to DTO
    */
   private mapUserToDto(user: User): UserListItemDto {
