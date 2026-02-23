@@ -17,8 +17,8 @@ export class UserListItemDto {
   @ApiProperty({ example: 'alice' })
   username: string = '';
 
-  @ApiProperty({ example: 'admin', enum: ['user', 'admin'] })
-  role: 'user' | 'admin' = 'user';
+  @ApiProperty({ example: 'admin', enum: ['user', 'moderator', 'admin'] })
+  role: 'user' | 'moderator' | 'admin' = 'user';
 
   @ApiProperty()
   createdAt: string | Date = '';
