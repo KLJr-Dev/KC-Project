@@ -172,6 +172,6 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
     await request(httpServer).get('/users').expect(401);
     await request(httpServer).get('/files/1').expect(401);
     await request(httpServer).get('/sharing').expect(401);
-    await request(httpServer).get('/admin').expect(401);
+    await request(httpServer).get('/admin/users').expect(401);
   });
 });

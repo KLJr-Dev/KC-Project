@@ -1,81 +1,100 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AdminService } from './admin.service';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { HasRoleGuard, HasRole } from '../auth/guards/has-role.guard';
+import { GetAdminUsersResponseDto } from './dto/get-admin-users-response.dto';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 
-/**
- * v0.2.4 — Error & Metadata Leakage
- *
- * Admin controller. RESTful resource at /admin. All handlers are now
- * async because the service hits PostgreSQL via TypeORM.
- *
- * VULN (v0.2.2): JwtAuthGuard enforces authentication but any
- *       authenticated user (not just admins) can access all admin
- *       endpoints. No role or privilege check exists.
- *       CWE-862 (Missing Authorization) | A01:2025
- *       CWE-639 | A01:2025
- *
- * VULN (v0.2.3): GET /admin returns every record unbounded — no
- *       pagination, no limit. CWE-200 | A01:2025,
- *       CWE-400 (Uncontrolled Resource Consumption) | A06:2025, CWE-203 | A01:2025
- *
- * VULN (v0.2.4): GET /admin/crash-test deliberately throws an unhandled
- *       Error. NestJS default ExceptionsHandler returns a generic
- *       {"statusCode":500,"message":"Internal server error"} to the client
- *       but logs the full stack trace (including file paths and line
- *       numbers) to stdout. Demonstrates A10:2025 (Mishandling of
- *       Exceptional Conditions) — no global exception filter, no
- *       sanitisation, no graceful recovery.
- *       CWE-209 (Error Message Info Leak) | A10:2025
- */
+@ApiTags('admin')
 @Controller('admin')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, HasRoleGuard)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  /** POST /admin — create admin item. */
-  @Post()
-  async create(@Body() dto: CreateAdminDto) {
-    return this.adminService.create(dto);
-  }
-
-  /** GET /admin — list all admin items. */
-  @Get()
-  async read() {
-    return this.adminService.read();
+  /**
+   * GET /admin/users — List all users with details
+   *
+   * Guarded by: JwtAuthGuard + HasRoleGuard (requires 'admin' role from metadata)
+   * CWE-639: Role trust from JWT, no DB re-validation
+   * CWE-400: Unbounded list dump, no pagination
+   * CWE-200: All user emails and roles exposed
+   */
+  @Get('users')
+  @HasRole('admin')
+  @ApiOperation({
+    summary: 'List all users (admin only)',
+    description:
+      'Returns all users with their details. Guarded by HasRole(admin), trusts JWT role (CWE-639).',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all users',
+    type: GetAdminUsersResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized (no token)',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden (not admin)',
+  })
+  async getAllUsers(): Promise<GetAdminUsersResponseDto> {
+    // VULN: HasRoleGuard trusts JWT role, doesn't re-check database
+    return this.adminService.getAllUsers();
   }
 
   /**
-   * GET /admin/crash-test — deliberately throws an unhandled Error.
-   * Must be declared before @Get(':id') to avoid route collision.
+   * PUT /admin/users/:id/role — Update a user's role
+   *
+   * Guarded by: JwtAuthGuard + HasRoleGuard (requires 'admin' role from metadata)
+   * CWE-639: Role trust from JWT
+   * CWE-862: No additional checks on which user can be modified
+   * CWE-532: No audit trail (logged to stdout, lost on restart)
    */
-  @Get('crash-test')
-  async crashTest() {
-    throw new Error('Intentional crash for leakage testing');
-  }
-
-  /** GET /admin/:id — single admin item or 404. */
-  @Get(':id')
-  async getById(@Param('id') id: string) {
-    const item = await this.adminService.getById(id);
-    if (!item) throw new NotFoundException();
-    return item;
-  }
-
-  /** PUT /admin/:id — update admin item or 404. */
-  @Put(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateAdminDto) {
-    const item = await this.adminService.update(id, dto);
-    if (!item) throw new NotFoundException();
-    return item;
-  }
-
-  /** DELETE /admin/:id — remove admin item or 404. */
-  @Delete(':id')
-  async delete(@Param('id') id: string) {
-    const ok = await this.adminService.delete(id);
-    if (!ok) throw new NotFoundException();
-    return { deleted: id };
+  @Put('users/:id/role')
+  @HasRole('admin')
+  @ApiOperation({
+    summary: 'Update a user role (admin only)',
+    description:
+      'Change any user role from "user" to "admin" (or vice versa). No audit trail. Changes take effect immediately (CWE-862, CWE-532).',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User role updated',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden (not admin)',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
+  async updateUserRole(
+    @Param('id') userId: string,
+    @Body() dto: UpdateUserRoleDto,
+  ) {
+    // VULN: No additional authorization checks beyond "is admin"
+    // VULN: Admin can modify any user, including other admins
+    // VULN: No rate limiting on role changes
+    return this.adminService.updateUserRole(userId, dto.role);
   }
 }
+

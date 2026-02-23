@@ -1,77 +1,78 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AdminItem } from './entities/admin-item.entity';
-import { AdminResponseDto } from './dto/admin-response.dto';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
+import { User } from '../users/entities/user.entity';
+import { GetAdminUsersResponseDto, UserListItemDto } from './dto/get-admin-users-response.dto';
 
 /**
- * v0.2.0 — Database Introduction (Local)
+ * AdminService — Administrative Business Logic (v0.4.1: User Management)
  *
- * Admin service. Data is now persisted in PostgreSQL via TypeORM.
- * Placeholder admin records — real admin behaviour (roles, user management)
- * comes in v0.4.x.
- *
- * All methods are async (return Promises) because repository operations
- * hit the database.
+ * CWE-400: getAllUsers() returns all users without pagination or limits.
+ * CWE-200: User emails and roles are exposed to any authenticated admin.
+ * CWE-862: No audit trail or confirmation mechanism on role changes.
  */
 @Injectable()
 export class AdminService {
   constructor(
-    @InjectRepository(AdminItem)
-    private readonly adminRepo: Repository<AdminItem>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
-  /** Map an AdminItem entity to an AdminResponseDto. */
-  private toResponse(entity: AdminItem): AdminResponseDto {
-    const dto = new AdminResponseDto();
-    dto.id = entity.id;
-    dto.label = entity.label;
-    dto.role = entity.role;
-    dto.createdAt = entity.createdAt;
-    return dto;
-  }
-
-  /** POST /admin — persist admin item to database. */
-  async create(dto: CreateAdminDto): Promise<AdminResponseDto> {
-    const count = await this.adminRepo.count();
-    const id = String(count + 1);
-    const entity = this.adminRepo.create({
-      id,
-      label: dto.label ?? '',
-      role: dto.role ?? '',
-      createdAt: new Date().toISOString(),
+  /**
+   * Get all users with their details
+   * CWE-400: No pagination, no limit — full table dump
+   * CWE-200: Exposes all user emails and roles
+   */
+  async getAllUsers(): Promise<GetAdminUsersResponseDto> {
+    const users = await this.usersRepository.find({
+      select: ['id', 'email', 'username', 'role', 'createdAt', 'updatedAt'],
+      order: { createdAt: 'ASC' },
     });
-    const saved = await this.adminRepo.save(entity);
-    return this.toResponse(saved);
+
+    return {
+      users: users.map((user) => this.mapUserToDto(user)),
+      count: users.length,
+    };
   }
 
-  /** GET /admin — return all admin items. */
-  async read(): Promise<AdminResponseDto[]> {
-    const entities = await this.adminRepo.find();
-    return entities.map((e) => this.toResponse(e));
+  /**
+   * Update a user's role
+   * CWE-862: No additional authorization checks beyond "is admin"
+   * CWE-639: Role change is permanent immediately; no confirmation or audit
+   * @throws NotFoundException if user not found
+   */
+  async updateUserRole(
+    userId: string,
+    newRole: 'user' | 'admin',
+  ): Promise<UserListItemDto> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`User with id "${userId}" not found`);
+    }
+
+    user.role = newRole;
+    await this.usersRepository.save(user);
+
+    // CWE-532: No audit of role changes — no persistent log of who changed what, when
+    console.log(
+      `[ADMIN] Role Changed: user="${userId}" newRole="${newRole}" (CWE-532: No Persistent Audit)`,
+    );
+
+    return this.mapUserToDto(user);
   }
 
-  /** GET /admin/:id — return single admin item or null. */
-  async getById(id: string): Promise<AdminResponseDto | null> {
-    const entity = await this.adminRepo.findOne({ where: { id } });
-    return entity ? this.toResponse(entity) : null;
-  }
-
-  /** PUT /admin/:id — update admin item, return DTO or null. */
-  async update(id: string, dto: UpdateAdminDto): Promise<AdminResponseDto | null> {
-    const entity = await this.adminRepo.findOne({ where: { id } });
-    if (!entity) return null;
-    if (dto.label !== undefined) entity.label = dto.label;
-    if (dto.role !== undefined) entity.role = dto.role;
-    const saved = await this.adminRepo.save(entity);
-    return this.toResponse(saved);
-  }
-
-  /** DELETE /admin/:id — remove record, return success boolean. */
-  async delete(id: string): Promise<boolean> {
-    const result = await this.adminRepo.delete(id);
-    return (result.affected ?? 0) > 0;
+  /**
+   * Helper: Map User entity to DTO
+   */
+  private mapUserToDto(user: User): UserListItemDto {
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 }
