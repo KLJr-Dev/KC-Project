@@ -323,3 +323,53 @@ export const adminUpdate = (id: string, dto: UpdateAdmin) =>
   put<AdminResponse>(`/admin/${id}`, dto);
 
 export const adminDelete = (id: string) => del<DeleteResponse>(`/admin/${id}`);
+
+// ── Admin Users (v0.4.1) ──────────────────────────────────────────────
+// v0.4.1: User management endpoints (admin-only, weak authorization).
+// CWE-639: Role from JWT trusted, not re-validated from DB.
+// CWE-862: No additional authorization checks.
+// CWE-200: All user emails exposed.
+// CWE-400: Unbounded list.
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  username: string;
+  role: 'user' | 'admin';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GetAdminUsersResponse {
+  users: AdminUser[];
+  count: number;
+}
+
+export interface UpdateUserRoleRequest {
+  role: 'user' | 'admin';
+}
+
+export interface UpdateUserRoleResponse {
+  id: string;
+  email: string;
+  username: string;
+  role: 'user' | 'admin';
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * GET /admin/users — List all users (admin only)
+ * CWE-200: All user emails exposed
+ * CWE-400: Unbounded list dump
+ * CWE-639: Trusts 'admin' role from JWT
+ */
+export const adminListUsers = () => request<GetAdminUsersResponse>('/admin/users');
+
+/**
+ * PUT /admin/users/:id/role — Update a user's role (admin only)
+ * CWE-862: No additional auth checks
+ * CWE-532: No audit trail
+ */
+export const adminUpdateUserRole = (userId: string, role: 'user' | 'admin') =>
+  put<UpdateUserRoleResponse>(`/admin/users/${userId}/role`, { role });
