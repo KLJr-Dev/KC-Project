@@ -377,92 +377,376 @@ Goal: Introduce privilege boundaries and break them.
 - Additional permissions
 - Inconsistent enforcement
 
-## v0.5.x — Containerisation & Deployment Surface
+## v0.5.x — File Handling & Storage Surface
 
-Goal: Introduce deployment realism without fixing bugs.
+Goal: Introduce real file I/O with intentional weaknesses. Complete the file upload/download feature set.
 
-### v0.5.0 — Docker Introduction
+### v0.5.0 — Real Multipart File Upload
 
-- Dockerfiles for frontend/backend
-- docker-compose
-- Same vulnerabilities
+- Multer integration for multipart/form-data
+- Client-supplied filename used as disk filename (CWE-22 Path Traversal)
+- Files written to `backend/uploads/` directory
+- No filename sanitisation
+- File metadata (mimetype, storagePath) stored in database
+- POST /files reworked from JSON body to multipart
 
-### v0.5.1 — Environment Variables
+### v0.5.1 — File Download & Streaming
 
-- Secrets in .env
-- Weak separation between environments
+- GET /files/:id/download streams file from disk
+- res.sendFile() with storagePath from database
+- No ownership check on download (CWE-639 IDOR extended)
+- No path validation before fs.read (CWE-22)
+- Content-Type set from stored mimetype (client-controlled, CWE-434)
 
-### v0.5.2 — Service Networking
+### v0.5.2 — MIME Type & Size Handling
 
-- Container-to-container networking
-- Port exposure
+- Client Content-Type header stored as mimetype (no magic-byte validation, CWE-434)
+- File size tracked from Multer stats
+- No upload size limit enforced (CWE-400 Uncontrolled Resource Consumption)
+- FileResponse includes mimetype and size fields
 
-### v0.5.3 — Volume & Persistence
+### v0.5.3 — File Deletion & Cleanup
 
-- DB volumes
-- File persistence across restarts
+- DELETE /files/:id removes database record AND file from disk
+- fs.unlink() on storagePath with no validation (CWE-22)
+- No ownership check (CWE-639)
+- Orphaned files if service throws after Multer write
 
-### v0.5.4 — Docker Misconfigurations
+### v0.5.4 — File Metadata & Descriptions
 
-- Overprivileged containers
-- Default users
-- Excessive capabilities
+- Add description column to FileEntity via migration
+- Metadata completeness: filename, mimetype, size, storagePath, description, uploadedAt
+- Storage path (absolute filesystem path) exposed in API responses (CWE-200)
 
-## v0.6.x — Runtime, Configuration & Observability Surface
+### v0.5.5 — File Handling Edge Cases
 
-Goal: Make the system feel like a real target.
+- Tests: multipart parsing, upload without auth (401), MIME confusion, path traversal attempts, oversized uploads, file streaming, IDOR on download, filesystem deletion, orphaned file edge cases
+- Swagger bumped to v0.5.5
+- File handling surface closed with 6 new CWEs (CWE-22, CWE-200, CWE-400, CWE-434)
+- E2e tests: +12 new tests specifically for file operations
 
-### v0.6.0 — VM Deployment
+#### v0.5.x File Handling Surface Summary
 
-- Ubuntu VM
-- Dockerised system running
+The v0.5.x series introduces real file I/O via Multer, local filesystem storage, streaming downloads, filesystem deletion, and metadata persistence. Five new CWEs introduced across file operations (CWE-22 path traversal, CWE-200 path disclosure, CWE-400 no size limit, CWE-434 MIME confusion). All file operations lack ownership checks, carrying forward CWE-639. The surface is now closed with integrated file functionality.
 
-### v0.6.1 — Network Exposure
+## v0.6.x — Public Sharing & Expiry Surface
 
-- Public ports
-- Internal assumptions broken
+Goal: Introduce public, unauthenticated access and share lifecycle management.
 
-### v0.6.2 — Logging & Debugging
+### v0.6.0 — Public Share Token Generation
 
-- Verbose logs
-- Sensitive data logged
+- publicToken field added to SharingEntity via migration
+- When SharingEntity.public = true, generate token (sequential: "share-1", "share-2", etc.)
+- Tokens trivially guessable (CWE-330 Predictable Identifiers)
+- Token not validated to be unique before insertion
 
-### v0.6.3 — Configuration Drift
+### v0.6.1 — Unauthenticated Public Access
 
-- Inconsistent configs
-- Manual changes
+- GET /sharing/public/:token endpoint (no JwtAuthGuard)
+- Returns file download if token matches a SharingEntity.publicToken
+- File retrieved via FilesService.download() using SharingEntity.fileId
+- No ownership verification; any token grants access to associated file
 
-### v0.6.4 — Operational Fragility
+### v0.6.2 — Share Expiry Enforcement
 
-- Restart issues
-- Crash loops
-- Partial outages
+- expiresAt field on SharingEntity (ISO timestamp string, nullable)
+- Check expiresAt on both GET /sharing/:id and GET /sharing/public/:token
+- If expiresAt is in the past, enforce: deny access or 410 Gone (intentionally inconsistent)
+- Expired shares may still return data before frontend checks expiry logic
 
-## v1.0.0 — Insecure MVP
+### v0.6.3 — Share Revocation & Lifecycle
 
-Goal: Freeze a realistic, insecure reference system with ~15 documented CWEs across 6 attack surfaces.
+- PUT /sharing/:id allows toggling public flag and updating expiresAt
+- DELETE /sharing/:id removes the share record (file remains in storage)
+- Revoked shares are not trackable (no audit of removal timestamps)
+- No notification to prior accessors that share was revoked
+
+### v0.6.4 — Share Access Logging Basics
+
+- Log (to stdout) when GET /sharing/public/:token is accessed
+- Log includes token, fileId, timestamp
+- Logged to console, not persisted (lost on restart)
+- No rate limiting on token guessing
+
+### v0.6.5 — Share Edge Cases
+
+- Tests: create share with public:true, verify token generated, access via public token, test expiry checks, test revocation, test expired share access, test invalid token 404, test token reuse, test token collision
+- Swagger bumped to v0.6.5
+- Public sharing surface closed with 3 new CWEs (CWE-330 predictable tokens, CWE-613 no expiry enforcement, CWE-285 missing access control)
+- SharingModule exports SharingService to allow FilesModule to call getFileForPublicShare() without circular dependency
+- E2e tests: +8 new tests for public sharing
+
+#### v0.6.x Public Sharing Surface Summary
+
+The v0.6.x series introduces public, unauthenticated file access via predictable share tokens, token guessing attack surface, incomplete expiry enforcement, and share lifecycle management. Three new CWEs introduced (CWE-330 predictable tokens, CWE-613 no expiry enforcement, CWE-285 missing checks). The surface is now closed with full public sharing capability.
+
+
+## v0.7.x — Advanced Admin Features
+
+Goal: Build out administrative API surface with multi-level user management and system visibility.
+
+### v0.7.0 — User Listing & Filtering (Admin)
+
+- GET /admin/users (new endpoint, admin-only guard; not yet implemented in v0.4, placeholder)
+- Returns all users with id, email, username, role, createdAt, updatedAt
+- No pagination; unbounded list (table dump) — intentional CWE-400 extension
+- No filtering or search; raw sequential scan
+- Reveals all user emails and roles to any admin
+
+### v0.7.1 — User Role Modification (Admin)
+
+- PUT /admin/users/:id endpoint to update user.role
+- Admin can change any user from 'user' to 'admin' and vice versa
+- No audit trail; history of role changes not tracked
+- No rate limiting on role change attempts
+- Role change takes effect immediately; no confirmation or delay
+
+### v0.7.2 — User Profile Updates (Admin)
+
+- PUT /admin/users/:id also allows updating email, username, password
+- Admin can reset any user's password without user consent
+- No notification sent to user of changes
+- Changes are effective immediately
+
+### v0.7.3 — System Statistics & Dashboards
+
+- GET /admin/stats returns: user count, file count, share count, storage usage estimate
+- No auth guard checks (relies on JwtAuthGuard only; role not re-validated)
+- Stats computed fresh on each request (no caching)
+- Reveals infrastructure details: table sizes, storage paths
+
+### v0.7.4 — Audit Trail Basics
+
+- SQL logging (from v0.2.3) provides implicit audit of queries
+- Add "admin action" logging: log role changes, user updates to stdout
+- Logged data includes: admin user ID, action type, target user ID, old/new values
+- Not persisted; lost on restart (CWE-532 log information leakage remains)
+
+### v0.7.5 — Admin Surface Completeness
+
+- Tests: admin user listing, role modification via admin endpoint, unauthorized role changes by non-admin (should fail), admin stats endpoint, audit log output verification
+- Swagger bumped to v0.7.5
+- Admin surface expanded with 2 new endpoints (/admin/users, /admin/stats)
+- E2e tests: +6 new tests for admin operations
+- CWE-862 (Missing Authorization) on admin endpoints is intentional in v0.7.x (guards added in v0.4.x but role not re-checked at endpoint level)
+
+#### v0.7.x Admin Surface Summary
+
+The v0.7.x series expands the admin surface with user listing, role modification, password reset, and system statistics endpoints. Administrative functionality is guarded by authentication but not re-validated against DB role state (CWE-639 extended). No audit persistence means admin abuse is not permanently tracked. The admin surface is now operationally complete.
+
+## v0.8.x — App Polish & Refinement
+
+Goal: Improve foundation, add input validation and pagination, standardize error handling before v1.0.0 freeze.
+
+### v0.8.0 — Input Validation Pipeline
+
+- Global ValidationPipe registered in main.ts
+- Request DTO validation for all POST/PUT endpoints
+- Whitelist enforcement: forbidNonWhitelisted = true
+- Class validator decorators on all DTOs (@IsEmail, @IsString, @MinLength, etc.)
+- Malformed requests now return 400 Bad Request with validation errors instead of 500
+
+### v0.8.1 — Pagination & Limits
+
+- Add skip/take query params to all list endpoints (/users, /files, /sharing, /admin/:resource)
+- Default limit: 20 records, max limit: 100
+- Offset-based pagination (not cursor-based)
+- Unbounded list queries no longer possible (CWE-400 partially mitigated intentionally in v0.8, will be hardened in v2.0.0)
+- E2e tests verify pagination works and defaults are applied
+
+### v0.8.2 — Error Response Standardization
+
+- All error responses follow format: `{ statusCode: number, message: string, errors?: object }`
+- 404 Not Found responses include reason ("User not found" vs generic)
+- 400 Bad Request includes validation error details
+- 401 Unauthorized when token missing/invalid
+- 403 Forbidden when role/ownership check fails (v0.4.x guards)
+- No stack traces in HTTP responses; logged to stdout only
+
+### v0.8.3 — Request/Response Logging
+
+- Log all HTTP requests: method, path, status code, response time
+- Log auth events: register, login, logout, token verify fail
+- Log admin actions: role change, user delete, stats access
+- Logging format: timestamp, level, event type, actor (userId), details
+- Sensitive data redacted: passwords, tokens truncated
+
+### v0.8.4 — Performance Baseline Testing
+
+- Measure endpoint response times under load (100 concurrent requests)
+- Identify slow queries (N+1 problems, missing indices)
+- Baseline acceptable response times: auth <50ms, list <200ms, file download <500ms
+- No optimization applied in v0.8; baseline captured for future hardening
+
+### v0.8.5 — Frontend-Backend Alignment
+
+- Regenerate OpenAPI spec and frontend types (types.gen.ts)
+- Verify all endpoints reflected in frontend API wrappers (lib/api.ts)
+- UI error handling updated to parse new error response format
+- Form validation on frontend matches backend validators
+- Swagger UI updated to v0.8.5
+
+#### v0.8.x Refinement Surface Summary
+
+The v0.8.x series adds input validation, pagination, error standardization, request logging, and performance instrumentation. No new vulnerabilities intentionally introduced; existing weaknesses (predictable IDs, IDOR, weak auth) remain. Foundation is now polished for v1.0.0 freeze.
+
+## v0.9.x — MVP Freeze & Release Preparation
+
+Goal: Lock down feature set, finalize documentation, verify all pieces work together, prepare for v1.0.0 insecure baseline release.
+
+### v0.9.0 — Feature Completeness Verification
+
+- Checklist: all FR requirements from SENG spec implemented
+  - User registration/login/profile/logout: ✓
+  - File upload/download/delete: ✓
+  - File metadata (MIME, size, description): ✓
+  - Share creation/deletion/expiry: ✓
+  - Public share tokens: ✓
+  - Role-based user levels (User/Admin/Moderator): ✓
+  - Admin user management: ✓
+- No more features added; surface is frozen
+- Any outstanding bugs deferred to v1.0.1
+
+### v0.9.1 — Documentation Freeze
+
+- Update ARCHITECTURE.md to v0.9.0
+- Update data-model.md with final schema
+- ADRs finalized (ADR-026-mvp-feature-set.md added)
+- SENG spec reviewed and final (no open questions)
+- Roadmap locked (v1.0.0 ready to proceed)
+- API surface documented and locked in Swagger/OpenAPI
+
+### v0.9.2 — Test Suite Review
+
+- All 47 auth + file + sharing + admin + app tests passing
+- E2e test coverage: >200 tests across all surfaces
+- Regression test suite captures current attack surface (baseline for v2.0.0 remediation validation)
+- No more test additions; coverage frozen
+- All tests pass on clean database restore
+
+### v0.9.3 — Database Schema Finalization
+
+- All migrations reviewed and locked (no schema changes after v0.9.3)
+- Migration test: fresh database from migrations matches entity definitions
+- Indexes and constraints documented (even if intentionally weak)
+- Foreign keys remain absent (intentional design)
+- Schema backwards-compatible for v1.0.x pentest (no data loss on restart)
+
+### v0.9.4 — API Surface Lock
+
+- All endpoint signatures frozen (no new routes, no parameter changes)
+- Request/response DTOs finalized (no field additions in v1.0.x)
+- OpenAPI spec treated as source of truth (changes require v1.1.0 expansion)
+- Swagger UI locked at v0.9.4 (no new docs added)
+- Backend versioning: backend version in Swagger = "0.9.4"
+
+### v0.9.5 — Release Candidate & Smoke Tests
+
+- Tag release candidate: v0.9.5-rc.1
+- Smoke test: full user journey (register → upload file → share → download → admin ops → cleanup)
+- Git history clean: all branches merged, no uncommitted changes
+- Release notes drafted: what's new, known issues (intentional weaknesses to be exploited), v1.0.0 readiness checklist
+- Final merge to main branch after RC approval
+
+#### v0.9.x MVP Freeze Summary
+
+The v0.9.x series is a freeze phase where feature development stops, documentation is locked, test coverage is verified, and the system is prepared for v1.0.0 release. No new vulnerabilities are introduced; existing weaknesses remain for v1.0.x pentest discovery. This version is a stable, complete, insecure MVP ready for structured security testing and hardening cycles.
+
+---
+
+## v1.0.0 — Insecure MVP Baseline
+
+Goal: Freeze a realistic, insecure reference system with ~15-18 documented CWEs across 5 attack surfaces.
 
 ### v1.0.0 Criteria
 
-- Full functionality implemented (all 5 domains operational)
-- Deployed on Ubuntu VM
-- Containerised frontend, backend, database
-- ~15 intentional vulnerabilities documented with CWE + OWASP Top 10 classification
-- Ready for structured penetration testing
+- ✅ Full functionality implemented: all 5 domains operational (users, auth, files, sharing, admin)
+- ✅ File upload/download/delete fully working
+- ✅ Public sharing with predictable tokens and missing expiry enforcement
+- ✅ Multi-level RBAC (User/Admin/Moderator) introduced but not enforced server-side
+- ✅ Admin UI and endpoints for user management
+- ✅ PostgreSQL persistence layer complete
+- ✅ ~15-18 intentional vulnerabilities documented with CWE + OWASP Top 10:2025 classification
+- ✅ Architecture and threat model complete (SENG spec finalized)
+- ✅ E2e test suite comprehensive (200+ tests)
+- ✅ Deployed locally with reproducible environment
+- ✅ Ready for v1.0.x penetration testing and v2.0.0 hardening
+
+### Version characteristics
+
+- Intentional weaknesses frozen (no fixes until v2.0.0)
+- All attack surfaces open and documented
+- Infrastructure remains local/Docker Compose (no VM deployment yet)
+- Web app complete, fully featured, realistic, and exploitable
 
 This version is the first insecure baseline. It enters the expansion cycle: pentest (v1.0.x), harden (v2.0.0), then fork and expand (v1.1.0).
 
-## Post v1.0.0 — Expansion Cycle
+## v1.0.x — Penetration Testing & Incremental Patching
 
-After v1.0.0, the project follows a perpetual insecure/secure loop (see [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md)):
+Goal: Discover and document all v1.0.0 weaknesses through structured testing; apply minimal patches as bugs are identified.
+
+- Execute penetration testing against v1.0.0 baseline
+- Document findings with CWE + CVSS + proof-of-concept
+- Apply patches for critical bugs (e.g., RCE) but leave exploitable weaknesses intact
+- Each v1.0.x minor release includes incremental patches + updated threat model
+- Versions: v1.0.1, v1.0.2, v1.0.3, ...
+
+## v2.0.0 — Hardened Parallel Release
+
+Goal: Implement all security controls and remediate all v1.0.0 weaknesses while preserving architecture and functionality.
+
+### v2.0.0 Scope (mapped to v1.0.0 remediations)
+
+- Password hashing: bcrypt cost 12+ (replace plaintext comparison)
+- Token lifecycle: expiry, refresh tokens, revocation (replace hardcoded secret + no expiry)
+- Authorization enforcement: server-side ownership checks on all resource access (replace IDOR)
+- RBAC: role re-validation on protected endpoints against database state (replace client-controlled role in JWT)
+- Input validation: sanitisation of file paths, file names, user input (replace CWE-22)
+- Pagination & limits: enforced on all list endpoints (replace unbounded list dumps)
+- Error handling: generic error messages, no sensitive data in responses (replace info disclosure)
+- Authentication rate limiting: brute-force protection on login/register (replace CWE-307)
+- Logging/auditing: persist audit events, redact sensitive data (replace ephemeral logging)
+- Transport: TLS deployment, security headers (replace plaintext in dev)
+- Infrastructure: Docker Compose for reproducible dev, explicit secrets management (replace hardcoded credentials)
+
+### v2.0.0 Characteristics
+
+- All v1.0.0 CWEs remediated
+- Feature parity with v1.0.0 (same API surface, same business logic)
+- Intent: "what a secure version looks like"
+- Ready for comparison to v1.0.x findings
+
+## v2.1.x — Infrastructure Surface (Post-v2.0.0)
+
+### v2.1.0 — Containerisation & Deployment
+
+- Dockerfiles for frontend, backend, database
+- docker-compose orchestration
+- Volume management and persistence
+- Environment variable secrets management (no hardcoded creds)
+- Health checks and graceful shutdown
+
+### v2.1.1–v2.1.4 — Container & VM Hardening
+
+- Container security: non-root user, read-only filesystem, minimal base images
+- Ubuntu VM: system hardening, firewall, SSH keys
+- Reverse proxy: nginx with TLS termination
+- Logging aggregation: centralized logs (no leaked to stdout)
+
+## Post v2.0.0 — Perpetual Expansion Cycle
+
+After v2.0.0, the project follows a perpetual insecure/secure loop (see [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md)):
 
 ```
-v1.0.0 (insecure MVP)
+v1.0.0 (insecure MVP: 15-18 CWEs)
   → v1.0.x (pentest + patch)
-  → v2.0.0 (secure parallel — all v1.0.0 CWEs remediated)
-  → v1.1.0 (fork v2.0.0, add ~10 new CWEs)
+  → v2.0.0 (secure parallel — all CWEs remediated)
+  → v1.1.0 (fork v2.0.0, add ~10 new CWEs: XSS, CSRF, SSRF, deserialization)
   → v1.1.x (pentest + patch)
-  → v2.1.0 (secure parallel)
+  → v2.1.0 (secure parallel, infrastructure hardening)
+  → v1.2.0 (fork v2.1.0, add ~10 new CWEs: race conditions, cache poisoning, algorithm confusion)
+  → v1.2.x (pentest + patch)
+  → v2.2.0 (secure parallel)
   → ...repeat
 ```
 
@@ -470,9 +754,9 @@ v1.0.0 (insecure MVP)
 
 Each new v1.N.0 adds vulnerability surfaces not present in the previous cycle:
 
-- **v1.1.0 (speculative):** XSS (CWE-79), CSRF (CWE-352), SSRF (CWE-918), insecure deserialization (CWE-502)
-- **v1.2.0 (speculative):** Race conditions (CWE-362), cache poisoning (CWE-349), JWT algorithm confusion (CWE-327)
-- **v1.3.0 (speculative):** Supply chain attacks, CI/CD exploitation, cloud misconfigurations
+- **v1.1.0:** Client-side rendering vulnerabilities (XSS via template injection, CSRF token bypass), unvalidated redirects (CWE-918 SSRF), insecure deserialization (CWE-502)
+- **v1.2.0:** Race conditions in file operations (CWE-362 concurrent access), cache poisoning on public shares, JWT algorithm confusion (CWE-327 allow "none")
+- **v1.3.0 (speculative):** Supply chain attacks (malicious npm package injection), CI/CD exploitation (exposed secrets in logs), cloud misconfigurations (S3 bucket ACLs)
 
 ### Explicitly out of scope for all versions
 
