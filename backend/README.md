@@ -11,7 +11,7 @@ later hardened according to the project roadmap.
 
 ## Current Status
 
-**Version:** v0.4.6 (Authorization Surface – Ternary RBAC with Intentional Gaps)
+**Version:** v0.5.0 (Real Multipart File Upload)
 
 - NestJS 11 application with five domain modules (users, auth, files, sharing, admin)
 - PostgreSQL 16 via Docker Compose (`infra/compose.yml`) — TypeORM repositories
@@ -30,10 +30,22 @@ later hardened according to the project roadmap.
 - No rate limiting, no account lockout, no password requirements (CWE-307, CWE-521)
 - Passwords stored/compared as plaintext in PostgreSQL (CWE-256)
 - Sequential string IDs on all entities (CWE-330)
-- Multipart file uploads via Multer, filesystem storage, public sharing (v0.3.x) — client filename as disk filename (CWE-22), Content-Type trusted (CWE-434), no size limit (CWE-400)
+- **v0.5.0 — Real Multipart File Upload via Multer:**
+  - `POST /files` accepts multipart/form-data with file + optional description
+  - Multer diskStorage configured to write to `./uploads/` directory
+  - Client-supplied `file.originalname` used as disk filename (no sanitisation, **CWE-22 Path Traversal**)
+  - Client-supplied Content-Type stored as `mimetype` (no magic-byte validation, **CWE-434 MIME Confusion**)
+  - No file size limit configured on Multer (**CWE-400 Uncontrolled Resource Consumption**)
+  - File metadata persisted: `filename`, `mimetype`, `storagePath`, `size`, `uploadedAt`, `approvalStatus`
+  - `storagePath` (absolute filesystem path) exposed in FileResponseDto (**CWE-200 Information Disclosure**)
+  - `GET /files/:id/download` streams file from `storagePath` with no path validation (**CWE-22**)
+  - `DELETE /files/:id` removes file from disk via `fs.unlink(storagePath)` with no validation (**CWE-22**)
+  - No ownership checks on any file operation — IDOR fully exploitable (**CWE-639**)
+  - Public sharing with predictable sequential tokens (v0.3.x, v0.6.x planned)
+  - **v0.5.0 e2e tests (12 tests):** multipart parsing, file metadata, IDOR on download/delete, MIME confusion, path traversal, file size limits, file listing, orphaned files
 - OpenAPI/Swagger spec auto-generated via `@nestjs/swagger` CLI plugin
 - TypeScript `strict: true`, Prettier enforced (shared root config)
-- E2e tests (72 total: 50 baseline from earlier versions + 22 RBAC-specific: 7 approval + 4 escalation + 5 inconsistency + 6 other) run against real PostgreSQL, unit tests (7) with mocked repos
+- E2e tests (84 total: 50 baseline + 22 RBAC-specific + 12 file upload) run against real PostgreSQL, unit tests (7) with mocked repos
 
 ---
 
