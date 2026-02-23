@@ -1,15 +1,19 @@
 /**
- * v0.4.0 — Roles Introduced
+ * v0.4.1 — Admin Dashboard
  *
- * Admin dashboard placeholder. In v0.4.0, this page is visible only if
- * isAdmin is true (checked client-side via AuthContext). The Admin link
- * appears in the header for users with role=admin.
+ * Upgraded from v0.4.0: Now includes user management endpoints.
+ * - List all users (/admin/users)
+ * - Modify user roles (/admin/users/:id/role)
  *
- * VULN (v0.4.0): The UI visibility check (isAdmin) is client-side only
- *       (CWE-639). An attacker can modify localStorage to fake role=admin
- *       and see this page. However, the backend endpoints are not yet
- *       protected in v0.4.0 (no guards), so this is purely cosmetic.
- *       Backend authorization guards are introduced in v0.4.2.
+ * VULN (v0.4.1): 
+ *   - Client-side AuthContext check (CWE-639) — can be bypassed
+ *   - All emails exposed (CWE-200)
+ *   - Unbounded user list (CWE-400)
+ *   - No audit trail on role changes (CWE-862)
+ *   - Role from JWT trusted without DB re-validation (CWE-639)
+ *
+ * Backend authorization (v0.4.1): JwtAuthGuard + HasRoleGuard
+ * Backend vulnerabilities: See admin.controller.ts, admin.service.ts
  */
 'use client';
 
@@ -17,18 +21,31 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/auth-context';
-import { adminCreate, adminList } from '../../lib/api';
+import { adminCreate, adminList, adminListUsers } from '../../lib/api';
+import { AdminUserList } from '../components/admin-user-list';
 import type { AdminResponse } from '../../lib/types';
+import type { AdminUser, GetAdminUsersResponse } from '../../lib/api';
 
 export default function AdminPage() {
   const { isAuthenticated, isAdmin } = useAuth();
   const router = useRouter();
-  const [items, setItems] = useState<AdminResponse[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
+  // Old admin item list (v0.4.0)
+  const [items, setItems] = useState<AdminResponse[]>([]);
+
+  // New user management (v0.4.1)
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [userCount, setUserCount] = useState(0);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  // Error/success state
+  const [error, setError] = useState<string | null>(null);
   const [label, setLabel] = useState('');
   const [role, setRole] = useState('');
   const [createResult, setCreateResult] = useState<string | null>(null);
+
+  // Active tab
+  const [activeTab, setActiveTab] = useState<'users' | 'legacy'>('users');
 
   // v0.4.0: Client-side role check — redirect non-admins to home
   // VULN (CWE-639): This check can be bypassed by modifying localStorage
@@ -38,14 +55,33 @@ export default function AdminPage() {
     }
   }, [isAuthenticated, isAdmin, router]);
 
-  const load = () => {
+  // Load old admin items
+  const loadAdminItems = () => {
     setError(null);
     adminList()
       .then(setItems)
       .catch((e) => setError(String(e)));
   };
 
-  useEffect(load, []);
+  // Load new admin users (v0.4.1)
+  const loadAdminUsers = async () => {
+    setUsersLoading(true);
+    setError(null);
+    try {
+      const res: GetAdminUsersResponse = await adminListUsers();
+      setAdminUsers(res.users);
+      setUserCount(res.count);
+    } catch (err) {
+      setError(`Failed to load users: ${String(err)}`);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAdminItems();
+    loadAdminUsers();
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,89 +92,167 @@ export default function AdminPage() {
       setCreateResult(JSON.stringify(res, null, 2));
       setLabel('');
       setRole('');
-      load();
+      loadAdminItems();
     } catch (err) {
       setError(String(err));
     }
   };
 
+  const handleRoleChange = (userId: string, newRole: 'user' | 'admin') => {
+    // Update local state immediately
+    setAdminUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+    );
+    // Optionally reload to confirm with backend
+    setTimeout(() => loadAdminUsers(), 1000);
+  };
+
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Admin</h1>
+      <h1 className="text-2xl font-bold text-black dark:text-zinc-100">Admin Dashboard</h1>
 
       {error && (
-        <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-          {error}
-        </pre>
+        <div className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+          <strong>Error:</strong> {error}
+        </div>
       )}
 
-      {/* Create */}
-      <form onSubmit={handleCreate} className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">POST /admin</h2>
-        <div className="flex flex-wrap gap-2">
-          <input
-            type="text"
-            placeholder="label"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
-          <input
-            type="text"
-            placeholder="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
-          <button
-            type="submit"
-            className="rounded bg-black px-4 py-1.5 text-sm text-white dark:bg-zinc-100 dark:text-black"
-          >
-            Create
-          </button>
-        </div>
-        {createResult && (
-          <pre className="rounded border border-green-300 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-            {createResult}
-          </pre>
-        )}
-      </form>
-
-      {/* List */}
-      <div>
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">GET /admin</h2>
-        {items.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-400">No admin entries.</p>
-        ) : (
-          <table className="mt-2 w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-800">
-                <th className="py-2 pr-4 font-medium text-zinc-500">ID</th>
-                <th className="py-2 pr-4 font-medium text-zinc-500">Label</th>
-                <th className="py-2 pr-4 font-medium text-zinc-500">Role</th>
-                <th className="py-2 font-medium text-zinc-500">Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((a) => (
-                <tr key={a.id} className="border-b border-zinc-100 dark:border-zinc-800/50">
-                  <td className="py-2 pr-4">
-                    <Link
-                      href={`/admin/${a.id}`}
-                      className="text-blue-600 underline dark:text-blue-400"
-                    >
-                      {a.id}
-                    </Link>
-                  </td>
-                  <td className="py-2 pr-4 font-mono">{a.label ?? '—'}</td>
-                  <td className="py-2 pr-4 font-mono">{a.role ?? '—'}</td>
-                  <td className="py-2 font-mono text-zinc-400">{a.createdAt}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      {/* Tab Navigation */}
+      <div className="flex gap-4 border-b border-zinc-200 dark:border-zinc-800">
+        <button
+          onClick={() => setActiveTab('users')}
+          className={`px-4 py-2 font-semibold transition ${
+            activeTab === 'users'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-zinc-500 hover:text-zinc-700'
+          }`}
+        >
+          👥 User Management (v0.4.1)
+        </button>
+        <button
+          onClick={() => setActiveTab('legacy')}
+          className={`px-4 py-2 font-semibold transition ${
+            activeTab === 'legacy'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-zinc-500 hover:text-zinc-700'
+          }`}
+        >
+          📋 Legacy Admin Items (v0.4.0)
+        </button>
       </div>
+
+      {/* User Management Tab (v0.4.1) */}
+      {activeTab === 'users' && (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded p-4 dark:bg-blue-950/30 dark:border-blue-900">
+            <h2 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+              User Management
+            </h2>
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              List all users and modify their roles. <br />
+              <strong>Vulnerabilities:</strong> CWE-639 (JWT role trusted), CWE-862 (missing
+              auth checks), CWE-200 (email exposure), CWE-400 (unbounded list)
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <h3 className="text-md font-semibold text-zinc-700 dark:text-zinc-300">
+                All Users ({userCount})
+              </h3>
+              <button
+                onClick={loadAdminUsers}
+                disabled={usersLoading}
+                className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded transition"
+              >
+                {usersLoading ? 'Loading...' : 'Refresh'}
+              </button>
+            </div>
+            <AdminUserList
+              users={adminUsers}
+              isLoading={usersLoading}
+              onRoleChange={handleRoleChange}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Legacy Admin Items Tab (v0.4.0) */}
+      {activeTab === 'legacy' && (
+        <div className="space-y-8">
+          {/* Create */}
+          <form onSubmit={handleCreate} className="space-y-3">
+            <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              POST /admin (legacy)
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              <input
+                type="text"
+                placeholder="label"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              />
+              <input
+                type="text"
+                placeholder="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              />
+              <button
+                type="submit"
+                className="rounded bg-black px-4 py-1.5 text-sm text-white dark:bg-zinc-100 dark:text-black"
+              >
+                Create
+              </button>
+            </div>
+            {createResult && (
+              <pre className="rounded border border-green-300 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-950 dark:text-green-300">
+                {createResult}
+              </pre>
+            )}
+          </form>
+
+          {/* List */}
+          <div>
+            <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              GET /admin (legacy)
+            </h2>
+            {items.length === 0 ? (
+              <p className="mt-2 text-sm text-zinc-400">No admin entries.</p>
+            ) : (
+              <table className="mt-2 w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-200 dark:border-zinc-800">
+                    <th className="py-2 pr-4 font-medium text-zinc-500">ID</th>
+                    <th className="py-2 pr-4 font-medium text-zinc-500">Label</th>
+                    <th className="py-2 pr-4 font-medium text-zinc-500">Role</th>
+                    <th className="py-2 font-medium text-zinc-500">Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((a) => (
+                    <tr key={a.id} className="border-b border-zinc-100 dark:border-zinc-800/50">
+                      <td className="py-2 pr-4">
+                        <Link
+                          href={`/admin/${a.id}`}
+                          className="text-blue-600 underline dark:text-blue-400"
+                        >
+                          {a.id}
+                        </Link>
+                      </td>
+                      <td className="py-2 pr-4 font-mono">{a.label ?? '—'}</td>
+                      <td className="py-2 pr-4 font-mono">{a.role ?? '—'}</td>
+                      <td className="py-2 font-mono text-zinc-400">{a.createdAt}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
