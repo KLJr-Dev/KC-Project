@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
+  HttpCode,
   Param,
   Put,
   UseGuards,
@@ -171,6 +173,62 @@ export class AdminController {
   })
   async getAuditLogs() {
     return this.adminService.getAuditLogs();
+  }
+
+  /**
+   * DELETE /admin/users/:id — Delete a user (v0.4.5 — MISSING AUTHORIZATION)
+   *
+   * Guarded by: JwtAuthGuard ONLY (NO @HasRole decoration)
+   * CWE-862: Improper Access Control — Missing Authorization Check
+   *
+   * Vulnerability:
+   * - Any authenticated user (not just admin) can delete ANY other user
+   * - No role check on this endpoint (inconsistent with other admin endpoints)
+   * - No ownership validation (can delete anyone, not just self)
+   * - No soft-delete or audit trail (permanent deletion logged to stdout only)
+   * - Orphans file records in FilesEntity (userId no longer exists)
+   *
+   * Comparison with other endpoints (showing inconsistency):
+   * - GET /admin/users — requires @HasRole('admin')
+   * - PUT /admin/users/:id/role — requires @HasRole('admin')
+   * - PUT /admin/users/:id/role/escalate — requires @HasRole(['moderator', 'admin'])
+   * - DELETE /admin/users/:id — @HasRole MISSING (only JwtAuthGuard) ← CWE-862
+   *
+   * This demonstrates CWE-862 in a real codebase: developers forgot to add the guard
+   * on one endpoint, allowing lateral privilege escalation.
+   *
+   * Remediation (v1.0.0 or v2.0.0):
+   * - Add @HasRole('admin') decorator
+   * - Validate caller is not deleting themselves or their superiors
+   * - Implement soft-delete with deletion timestamp
+   * - Log deletion to persistent audit trail with requester identity
+   * - Cascade delete or reassign orphaned file records
+   */
+  @Delete('users/:id')
+  @HttpCode(204)
+  @ApiOperation({
+    summary: 'Delete a user (VULNERABILITY: Missing Authorization)',
+    description:
+      'Delete a user by ID. INTENTIONALLY MISSING @HasRole(admin) — any authenticated user can delete any other user. Demonstrates CWE-862.',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'User deleted successfully (no body returned)',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized (no token)',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
+  async deleteUser(@Param('id') userId: string): Promise<void> {
+    // VULN: No @HasRole check — any auth user can delete any user
+    // VULN: No ownership check — can delete other users, not just self
+    // VULN: No audit trail — deletion logged to stdout, lost on restart
+    // VULN: No soft-delete — permanent removal, no recovery
+    return this.adminService.deleteUser(userId);
   }
 }
 
