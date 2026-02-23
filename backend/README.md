@@ -11,23 +11,29 @@ later hardened according to the project roadmap.
 
 ## Current Status
 
-**Version:** v0.4.0 (RBAC Introduction)
+**Version:** v0.4.6 (Authorization Surface – Ternary RBAC with Intentional Gaps)
 
 - NestJS 11 application with five domain modules (users, auth, files, sharing, admin)
 - PostgreSQL 16 via Docker Compose (`infra/compose.yml`) — TypeORM repositories
-- TypeORM migrations with `migrationsRun: true` (replaced `synchronize: true` in v0.2.5)
+- TypeORM migrations with `migrationsRun: true` (v0.2.5+)
 - Hardcoded DB credentials in source (CWE-798), SQL logging enabled (CWE-532)
 - Registration, login, protected profile (`GET /auth/me`), cosmetic logout (`POST /auth/logout`)
 - Real HS256 JWTs (hardcoded secret, no expiration — CWE-347, CWE-613)
-- Role enum ('user'|'admin') in User entity, stored in JWT payload, default 'user' (v0.4.0)
-- Role exposed in API responses, no server-side authorization enforcement (CWE-639, CWE-862)
+- **Ternary role enum ('user'|'moderator'|'admin')** in User entity, stored in JWT payload, default 'user' (v0.4.3+)
+- JWT role trusted without DB re-validation (CWE-639), exposed in API responses
+- HasRoleGuard on some admin endpoints; **DELETE `/admin/users/:id` missing guard** (CWE-862, v0.4.5)
+- **File approval endpoint** (PUT `/files/:id/approve`) for moderator review (v0.4.3, 7 e2e tests)
+- **Privilege escalation endpoint** (PUT `/admin/users/:id/role/escalate`) — moderators can promote users indefinitely (CWE-269, v0.4.4, 4 e2e tests)
+- **Audit logs placeholder** (GET `/admin/audit-logs`) returns empty array, no persistent trails (CWE-532, v0.4.4)
+- **Authorization inconsistency** (CWE-862) — inconsistent guard placement allows bypass scenarios (v0.4.5, 5 e2e tests)
+- **Role hierarchy ambiguity** (CWE-841) — moderator permissions undefined vs admin, cascading attacks possible (v0.4.3–v0.4.5)
 - No rate limiting, no account lockout, no password requirements (CWE-307, CWE-521)
 - Passwords stored/compared as plaintext in PostgreSQL (CWE-256)
 - Sequential string IDs on all entities (CWE-330)
-- Multipart file uploads via Multer, filesystem storage, public sharing (v0.3.x)
-- OpenAPI/Swagger spec auto-generated via `@nestjs/swagger` CLI plugin (v0.4.0)
+- Multipart file uploads via Multer, filesystem storage, public sharing (v0.3.x) — client filename as disk filename (CWE-22), Content-Type trusted (CWE-434), no size limit (CWE-400)
+- OpenAPI/Swagger spec auto-generated via `@nestjs/swagger` CLI plugin
 - TypeScript `strict: true`, Prettier enforced (shared root config)
-- E2e tests (47) run against real PostgreSQL, unit tests (7) with mocked repos
+- E2e tests (72 total: 50 baseline from earlier versions + 22 RBAC-specific: 7 approval + 4 escalation + 5 inconsistency + 6 other) run against real PostgreSQL, unit tests (7) with mocked repos
 
 ---
 
