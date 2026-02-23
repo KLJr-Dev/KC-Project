@@ -50,8 +50,8 @@ export class User {
   @Column()
   password!: string;
 
-  @Column({ type: 'enum', enum: ['user', 'admin'], default: 'user' })
-  role!: 'user' | 'admin';
+  @Column({ type: 'enum', enum: ['user', 'moderator', 'admin'], default: 'user' })
+  role!: 'user' | 'moderator' | 'admin';
 
   @Column()
   createdAt!: string;
