@@ -381,7 +381,7 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - **Status:** All endpoints implemented, tested, and merged into dev. Admin dashboard verified working with manual role changes. Ready for v0.4.2.
 - **Total e2e tests:** 55 (47 from v0.4.0 + 8 new admin/RBAC tests)
 
-### v0.4.2 — Mixed Trust Boundaries & IDOR (READY TO START)
+### v0.4.2 — Mixed Trust Boundaries & IDOR ✅ COMPLETE
 
 **Scope:**
 - Demonstrate JWT role claim forgery vulnerability (CWE-639) with proof-of-concept
@@ -389,27 +389,35 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - Frontend continues hiding `/admin` link via `isAdmin` context flag (client-side only, bypassable)
 - Backend still trusts JWT role claim directly
 
-**Backend changes:**
-- No new endpoints; exploit existing `HasRole()` guard weakness by demonstrating JWT forging
-- Add inline documentation linking CWE-639 and CWE-862 to specific code patterns
-- Proof-of-concept: e2e test that manually forges JWT with `role: 'admin'` (using hardcoded 'kc-secret'), successfully calls admin endpoint (demonstrates no server-side re-validation)
-- Admin endpoints remain vulnerable to IDOR concepts: `PUT /admin/users/:id/role` has no per-user authorization check (any admin can modify any user, which is correct behavior but still demonstrates IDOR vector)
+**Backend implementation:**
+- Created `backend/test/rbac.e2e-spec.ts` with 6 comprehensive JWT forgery tests
+- Tests demonstrate that forged JWT with `role: 'admin'` claim (using hardcoded 'kc-secret') successfully calls admin endpoints
+- Proof that HasRole guard trusts JWT without server-side DB re-validation (CWE-639 attack vector)
+- No new endpoints required; vulnerability demonstrated through existing admin infrastructure
+- HasRole guard and admin endpoints include CWE-639/CWE-862 documentation comments
 
-**Frontend changes:**
-- `/admin` page remains client-side protected only (admin link hidden for non-admin via `isAdmin` flag)
-- Documentation note: role hiding is UI-only; localStorage can be modified to bypass
+**Frontend implementation:**
+- Enhanced documentation in `auth-context.tsx` explaining JWT role claim forgery attack
+- Enhanced documentation in `admin/page.tsx` explaining how client-side protection is bypassable
+- No new code features; client-side role check remains unchanged (intentionally vulnerable)
+- Documentation clearly shows that localStorage modification + JWT secret knowledge = unauthorized admin access
 
-**E2e test additions:**
-- New test suite `rbac.e2e-spec.ts` with 5 tests:
-  1. Forge JWT with `role: 'admin'` claim and verify admin endpoint access succeeds (CWE-639 PoC)
-  2. Verify unauthorized non-admin access fails even with forged token (guard still validates JwtAuthGuard)
-  3. Role persistence: confirm admin role change persists across login sessions
-  4. Admin UI hiding: non-admin user cannot see `/admin` link (client-side only)
-  5. Unauthorized escalation: verify user-level JWT forgery cannot access admin endpoints (HasRole guard validates)
+**E2e test coverage:**
+- Test suite `rbac.e2e-spec.ts` with 6 tests (1 more than planned):
+  1. ✅ Forge JWT with `role: 'admin'` claim and verify admin endpoint access succeeds (CWE-639 PoC)
+  2. ✅ Verify invalid/malformed JWT rejected at JwtAuthGuard level
+  3. ✅ Admin role change persists across login sessions
+  4. ✅ PUT /admin/users/:id/role trusts forged JWT (CWE-639 + CWE-862)
+  5. ✅ Invalid role value rejected by HasRole guard
+  6. ✅ Admin can modify ANY user role (IDOR-like pattern demonstration)
 
-**Swagger:** Bumped to v0.4.2
-**CWEs:** CWE-639 (Client-Controlled Authorization), CWE-862 (Missing Authorization) fully demonstrated
-**Total e2e tests:** 60 (55 from v0.4.1 + 5 new RBAC/JWT forgery tests)
+**Status:** All endpoints working as designed. CWE-639 and CWE-862 fully exploitable and documented. Backend and frontend merged. Ready for production v0.4.2 release.
+
+**Metrics:**
+- Swagger version: v0.4.2
+- Total e2e tests: 61 (55 from v0.4.1 + 6 new RBAC/JWT forgery tests)
+- CWEs demonstrated: CWE-639 (Client-Controlled Authorization), CWE-862 (Missing Authorization)
+- All 8 test suites passing (100%)
 
 ### v0.4.3 — Ternary Role System (User / Moderator / Admin)
 
