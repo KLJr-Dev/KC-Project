@@ -16,5 +16,5 @@ export class ApproveFileDto {
    * - Can an admin override a moderator rejection?
    * These scenarios are intentionally undefined (CWE-841).
    */
-  status: 'approved' | 'rejected';
+  status: 'approved' | 'rejected' = 'approved';
 }
