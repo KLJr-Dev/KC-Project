@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   Res,
   UseGuards,
   UseInterceptors,
@@ -16,7 +17,9 @@ import { diskStorage } from 'multer';
 import type { Response } from 'express';
 import { FilesService } from './files.service';
 import { UploadFileDto } from './dto/upload-file.dto';
+import { ApproveFileDto } from './dto/approve-file.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { HasRole } from '../auth/guards/has-role.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { join } from 'path';
@@ -122,5 +125,40 @@ export class FilesController {
     const ok = await this.filesService.delete(id);
     if (!ok) throw new NotFoundException();
     return { deleted: id };
+  }
+
+  /**
+   * PUT /files/:id/approve -- Moderator or admin approves/rejects file.
+   * 
+   * v0.4.3: New endpoint for file approval workflow. Open to moderators and admins.
+   * 
+   * VULN (v0.4.3 - CWE-639 Extended): HasRole(['admin', 'moderator']) trusts JWT role
+   *       without database validation. An attacker who forges a JWT with role='moderator'
+   *       (knowing the hardcoded secret 'kc-secret') can approve arbitrary files.
+   *       This endpoint is directly reachable by forged tokens.
+   *       Remediation (v2.0.0): Server-side role re-validation from database on every request.
+   * 
+   * VULN (v0.4.3 - CWE-862): No additional authorization checks. Any moderator/admin
+   *       can approve ANY file, not just files they own or uploaded. Combined with
+   *       CWE-641 (lack of conflict detection), moderator could approve file, admin
+   *       could reject it, triggering race conditions or permission confusion.
+   *       Remediation (v2.0.0): Ownership checks, approval audit trail, re-review required
+   *       for status changes.
+   * 
+   * VULN (v0.4.3 - CWE-841): Role hierarchy is ambiguous. The ternary system
+   *       (user/moderator/admin) does not define if moderator can override admin
+   *       decisions or vice versa. This intentional ambiguity surfaces during pen-testing.
+   *       Remediation (v2.0.0): Explicit role hierarchy constants, documented permission matrix.
+   */
+  @Put(':id/approve')
+  @HasRole(['admin', 'moderator'])
+  async approveFile(
+    @Param('id') id: string,
+    @Body() dto: ApproveFileDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const updated = await this.filesService.approveFile(id, dto.status);
+    if (!updated) throw new NotFoundException();
+    return updated;
   }
 }
