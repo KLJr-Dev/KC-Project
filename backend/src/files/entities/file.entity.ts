@@ -51,6 +51,9 @@ export class FileEntity {
   @Column({ nullable: true })
   description?: string;
 
+  @Column({ type: 'enum', enum: ['pending', 'approved', 'rejected'], default: 'pending' })
+  approvalStatus!: 'pending' | 'approved' | 'rejected';
+
   @Column()
   uploadedAt!: string;
 }
