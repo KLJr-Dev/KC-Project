@@ -343,39 +343,102 @@ The v0.3.x series introduced real file I/O: multipart uploads via Multer, local 
 
 ## v0.4.x — Authorization & Administrative Surface
 
-Goal: Introduce privilege boundaries and break them.
+Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4.2 binary, v0.4.3–v0.4.5 ternary with role confusion).
 
-### v0.4.0 — Roles Introduced
+### v0.4.0 — Roles Introduced (Binary: User / Admin) ✅ IMPLEMENTED
 
-- User/Admin roles
-- Role stored in DB
-- Minimal enforcement
+- `role` enum column added to `User` entity (`'user'` | `'admin'`, default `'user'`)
+- All existing users default to `'user'` role
+- `@Column({ type: 'enum', enum: ['user', 'admin'], default: 'user' })` with TypeORM migration `AddRoleToUser`
+- Role persisted to PostgreSQL, immutable at creation (can only be changed by admin in v0.4.1+)
+- `role` added to `JwtPayload` interface — included in JWT at login/register
+- `role` exposed in API responses: `UserResponseDto`, `GET /auth/me`, `POST /auth/login` (CWE-639)
+- **Frontend:** Role displayed in header next to username; Admin link conditionally shown (client-side check only, bypassable)
+- **Frontend:** `/admin` page with client-side `isAdmin` guard (redirects to `/` if not admin, but guard is bypassable via localStorage modification)
+- **Backend:** No server-side authorization guards yet — all endpoints still reachable by any authenticated user
+- JwtAuthGuard remains the only guard; role claim trusted without re-validation (CWE-639 Client-Controlled Authorization)
+- 3 new e2e tests: verify role in JWT payload, verify role in `/auth/me` response, verify role in login response
+- Swagger bumped to v0.4.0
+- CWEs introduced: CWE-639 (Client-Controlled Authorization), CWE-862 (Missing Authorization)
+- CWEs carried forward: all v0.3.5 CWEs (CWE-256, CWE-330, CWE-204, CWE-209, CWE-307, CWE-347, CWE-521, CWE-613, CWE-639, CWE-798, CWE-862, CWE-942, CWE-1188, CWE-1393, CWE-532, CWE-22, CWE-200, CWE-285, CWE-400, CWE-434)
+- ADR-025 created: RBAC Strategy (progressive multi-role system)
+- **Total e2e tests:** 47 (44 existing + 3 new role tests)
 
-### v0.4.1 — Admin Endpoints
+### v0.4.1 — Admin Endpoints & Weak Guards
 
-- User listing
-- Role modification
-- Weak guards
+- `HasRole()` guard decorator created (checks JWT role claim, not database state)
+- `@UseGuards(JwtAuthGuard, HasRole('admin'))` applied to new admin endpoints
+- `GET /admin/users` — list all users with id, email, username, role, createdAt, updatedAt (no pagination, unbounded table dump, CWE-400)
+- `PUT /admin/users/:id/role` — change any user's role from 'user' to 'admin' (no audit, no confirmation, CWE-862)
+- Both endpoints guarded by `HasRole('admin')` but trust JWT role claim without re-checking database (CWE-639)
+- No rate limiting on role modification
+- Any user with `role: 'admin'` in their JWT (generated at login from database, but could be forged if JWT secret is compromised) can call these endpoints
+- 4 new e2e tests: admin user list, role modification, unauthorized attempts by non-admin (should fail), verify changes reflected in `GET /auth/me`
+- Swagger bumped to v0.4.1
+- CWE-862 expanded (incomplete authorization on admin endpoints)
 
-### v0.4.2 — Mixed Trust Boundaries
+### v0.4.2 — Mixed Trust Boundaries & IDOR
 
-- Frontend hides admin UI
-- Backend trusts client role claims
+- Frontend now hides `/admin` link for non-admin users via `isAdmin` context flag (client-side only)
+- Backend still trusts JWT role claim directly — if user manually sets `role: 'admin'` in localStorage and updates JWT, they can access admin endpoints
+- Proof-of-concept e2e test: manually forge JWT with `role: 'admin'` and call admin endpoint (succeeds) — demonstrates CWE-639
+- No server-side re-validation of role against database
+- E2e test file `rbac.e2e-spec.ts` added with 5 new tests: role persistence, admin UI hiding, JWT forging, HasRole guard bypass, unauthorized access
+- Admin endpoints now also vulnerable to IDOR: `PUT /admin/users/:id/role` has no check that the caller (admin) is allowed to modify user `:id` (they always can, which is correct admin behavior here, but still demonstrates IDOR-like patterns)
+- CWE-639 and CWE-862 fully documented with inline comments
+- Swagger bumped to v0.4.2
+- **Total e2e tests:** 52 (47 from v0.4.0 + 5 new RBAC tests)
 
-### v0.4.3 — Privilege Escalation Paths
+### v0.4.3 — Ternary Role System (User / Moderator / Admin)
 
-- Role confusion
-- Missing checks
+- `role` enum expanded: `'user'` | `'moderator'` | `'admin'`
+- Add `moderator` as a new role with ambiguous permissions:
+  - Moderators can approve/reject user uploads (new concept introduced)
+  - Admins can do everything moderators can do (vertical escalation path)
+  - Ambiguity: Is `moderator` "above" or "below" `admin`? For which operations?
+- Frontend: Role selector in admin page allows changing user role to user/moderator/admin
+- Backend: `HasRole()` guard expanded to accept array `HasRole(['admin', 'moderator'])`
+- New endpoint `PUT /files/:id/approve` — approve or reject uploaded files (accessible to moderator/admin)
+- Weak implementation: `HasRole(['admin', 'moderator'])` trusts JWT role, not database state (CWE-639 extended)
+- Endpoint accidentally allows users to call it if they forge JWT with `role: 'moderator'`
+- Role hierarchy ambiguity: no explicit constants defining role rankings (CWE-841 Improper Restriction of Rendered UI Layers or Frames)
+- 6 new e2e tests: moderator creation, file approval endpoint, role escalation attempts (user → moderator, moderator → admin), role hierarchy confusion
+- Swagger bumped to v0.4.3
 
-### v0.4.4 — Cross-User Access
+### v0.4.4 — Privilege Escalation & Cross-User Escalation
 
-- Admin endpoints callable by users
-- IDOR across roles
+- Introduce endpoint `PUT /admin/users/:id/role/escalate` — allows moderator to escalate other users to moderator (not admin)
+- Moderator cannot promote to admin (guard rejects), but can create more moderators (horizontal escalation)
+- No audit trail of who made role changes or when
+- New endpoint `GET /admin/audit-logs` — returns list of role changes (placeholder, returns empty, no actual logging in v0.4.4)
+- E2e test: moderator escalates user A to moderator, user A uses new moderator role to escalate user B, chain reaction (CWE-269 Improper Access Control)
+- No rate limiting on escalation attempts (brute-force cascade attacks possible)
+- 4 new e2e tests: cross-user escalation, escalation chains, unauthorized escalation, audit log endpoint
+- Swagger bumped to v0.4.4
+- CWE-269 (Improper Access Control) introduced
 
-### v0.4.5 — RBAC Complexity Growth
+### v0.4.5 — RBAC Complexity & Inconsistent Enforcement
 
-- Additional permissions
-- Inconsistent enforcement
+- Some endpoints use `HasRole('admin')` (single role check)
+- Some use `HasRole(['admin', 'moderator'])` (multiple role check)
+- Some endpoints have role checks; others have only `JwtAuthGuard` (inconsistent enforcement)
+- New endpoint `DELETE /admin/users/:id` — only guarded by `JwtAuthGuard`, not by `HasRole('admin')` (authorization missing, CWE-862)
+- User can delete any other user if they can authenticate (no role required)
+- Admin endpoints scattered across controllers (no centralized admin module yet, causing missed guards)
+- Documentation inconsistent: some endpoints document role requirements, others don't
+- 5 new e2e tests: missing guard on delete endpoint, implicit admin-only endpoints, UI/API inconsistency, enforcement gaps
+- Swagger bumped to v0.4.5
+- CWE-862 expanded (multiple endpoints with missing authorization checks)
+- **v0.4.x authorization surface complete:** 6 versions, ~8–10 new CWEs introduced across v0.4.0–v0.4.5
+- Total e2e tests: 70+ (spanning auth, role tests, IDOR, escalation, inconsistency tests)
+
+#### v0.4.x Authorization & Administrative Surface Summary
+
+The v0.4.x series introduces role-based access control in binary (v0.4.0–v0.4.2) and ternary (v0.4.3–v0.4.5) forms, with intentional weaknesses:
+- **Binary (v0.4.0–v0.4.2):** Only User/Admin, client-side role trust, JWT forgery possible
+- **Ternary (v0.4.3–v0.4.5):** User/Moderator/Admin, role confusion, inconsistent guards, escalation chains
+- **Key weaknesses:** CWE-639 (client-controlled authorization), CWE-862 (missing authorization on endpoints), CWE-269 (privilege escalation), CWE-841 (role hierarchy ambiguity)
+- **v0.4.x surface now closed** with 70+ e2e tests and comprehensive permission confusion for v1.0.x pentest cycles.
 
 ## v0.5.x — File Handling & Storage Surface
 
