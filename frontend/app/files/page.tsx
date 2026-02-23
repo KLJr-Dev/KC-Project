@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { filesUpload, filesGetById } from '../../lib/api';
+import { FileList } from './file-list';
 import type { FileResponse } from '../../lib/types';
 
 export default function FilesPage() {
@@ -108,6 +109,9 @@ export default function FilesPage() {
           </div>
         )}
       </div>
+
+      {/* File List with Download */}
+      <FileList />
     </div>
   );
 }
