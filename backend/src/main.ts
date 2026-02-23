@@ -3,40 +3,21 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 /**
- * v0.4.0 -- Authorization & Administrative Surface
+ * v0.4.1 -- Admin Endpoints & Weak Guards
  *
  * Application entry point. Creates the NestJS app, configures CORS and
  * Swagger, and starts listening on port 4000 (or PORT env var).
  *
  * Requires: docker compose -f infra/compose.yml up -d (PostgreSQL)
  *
- * v0.4.0: Role column added to User entity. All new users default to 'user' role.
- * Role is included in JWT payload and exposed via GET /auth/me (not re-validated).
- * No authorization guards yet — endpoints not protected by role (introduced v0.4.2).
- * CWE-639 (Client-Controlled Authorization) | A07:2025
- * CWE-862 (Missing Authorization Checks) | A01:2025
+ * v0.4.1: HasRoleGuard introduced (checks JWT role, trusts claim no DB re-check).
+ * New admin endpoints: GET /admin/users, PUT /admin/users/:id/role
+ * CWE-639 (Client-Controlled Authorization) extended — guard trusts JWT role
+ * CWE-862 (Missing Authorization) extended — admin endpoints rely on weak guards
+ * CWE-400 (Uncontrolled Resource Consumption) — /admin/users returns unbounded list
+ * CWE-200 (Sensitive Info Exposure) — all user emails exposed to any admin
  *
- * VULN (v0.2.3): Express sends X-Powered-By: Express header by default.
- *       Reveals the backend framework to any client. app.disable('x-powered-by')
- *       is intentionally not called.
- *       CWE-200 (Exposure of Sensitive Information) | A02:2025
- *       Remediation (v2.0.0): helmet() middleware or app.disable('x-powered-by').
- *
- * VULN (v0.2.3): Swagger UI and JSON spec are publicly accessible at
- *       /api/docs and /api/docs-json without any authentication. Reveals
- *       every route, DTO shape, parameter type, and response schema to
- *       unauthenticated users — full API reconnaissance.
- *       CWE-200 (Exposure of Sensitive Information) | A02:2025
- *       Remediation (v2.0.0): Disable Swagger in production or protect
- *       behind authentication.
- *
- * VULN (v0.2.4): No ValidationPipe is registered. Malformed request
- *       bodies (wrong types, missing fields) pass through to services
- *       unchecked and may cause TypeErrors with stack traces in logs.
- *       app.useGlobalPipes(new ValidationPipe()) is intentionally omitted.
- *       CWE-209 (Error Message Info Leak) | A10:2025
- *       Remediation (v2.0.0): Global ValidationPipe with whitelist and
- *       forbidNonWhitelisted options.
+ * Earlier VULNs still present: X-Powered-By header, public Swagger, no ValidationPipe, etc.
  */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -57,9 +38,9 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('KC-Project API')
     .setDescription(
-      'v0.4.0 -- Authorization & Administrative Surface: Role-based access control introduced. Roles stored in DB and JWT payload. No authorization guards yet (v0.4.0). CWE-639, CWE-862 vulnerabilities intentional.',
+      'v0.4.1 -- Admin Endpoints & Weak Guards: HasRoleGuard added (trusts JWT role, no DB re-validation). Admin endpoints: GET /admin/users (unbounded list, all emails exposed), PUT /admin/users/:id/role (no audit trail). CWE-639, CWE-862, CWE-400, CWE-200 vulnerabilities intentional.',
     )
-    .setVersion('0.4.0')
+    .setVersion('0.4.1')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

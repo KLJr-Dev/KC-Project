@@ -1,10 +1,14 @@
-# v0.1.x Authentication Flow
+# Authentication & Authorization Flow (v0.1.x – v0.4.x)
 
-This document describes the authentication flows introduced during the v0.1.x identity surface. Each version adds behaviour incrementally. Intentional security weaknesses are documented as they appear.
+This document describes authentication and authorization flows across the v0.1.x identity surface (registration, login, sessions) and v0.4.x authorization surface (binary RBAC, ternary roles, escalation chains, missing authorization checks).
+
+Each version adds behaviour incrementally. Intentional security weaknesses are highlighted and mapped to OWASP/CWE identifiers.
 
 ---
 
-## Registration Flow (v0.1.1)
+## Core Identity Flows (v0.1.x)
+
+### Registration Flow (v0.1.1)
 
 User creation with minimal validation and weak duplicate handling.
 
@@ -387,7 +391,311 @@ Note: `isAuthenticated` only checks that a token string exists — it does NOT v
 
 ---
 
-## Security Surface Summary
+## Authorization Surface (v0.4.x)
+
+Starting v0.4.0, a `role` column is added to `User`. Role claims appear in JWT payloads and are used by `HasRoleGuard` to control access. Intentional authorization weaknesses are stacked across v0.4.0–v0.4.5.
+
+### Binary RBAC (v0.4.0–v0.4.2)
+
+#### Role Model
+
+```
+role: 'user' | 'admin'
+```
+
+- `'user'` — Regular user. Can create/read/update files. Cannot access admin endpoints.
+- `'admin'` — Administrative user. Can list users, change user roles, approve files. No explicit hierarchy defined.
+
+#### HasRole Guard Behaviour
+
+```typescript
+@Get('admin/users')
+@HasRole('admin')
+async getAllUsers() { ... }
+
+@Put('admin/users/:id/role')
+@HasRole('admin')
+async updateUserRole(@Param('id') userId) { ... }
+```
+
+The `@HasRole('admin')` decorator stores required roles in metadata. `HasRoleGuard` retrieves them and compares against `request.user.role` from the JWT payload. If no `@HasRole` metadata exists, access is allowed (implicit public).
+
+#### JWT Role Claim (v0.4.0)
+
+Role is added to JWT payload:
+
+```json
+{
+  "sub": "user-id-here",
+  "role": "user" | "admin",
+  "iat": 1708619400
+}
+```
+
+**No expiration claim** — tokens valid forever. **No DB re-validation** — role is trusted as-is from JWT.
+
+#### Admin Endpoints (v0.4.1)
+
+Two admin endpoints introduced:
+
+1. **GET /admin/users** — List all users with id, email, username, role, createdAt, updatedAt. No pagination. Guarded by `@HasRole('admin')` + `JwtAuthGuard`.
+
+2. **PUT /admin/users/:id/role** — Update a user's role. Only accepts `'user'` and `'admin'`. Guarded by `@HasRole('admin')` + `JwtAuthGuard`.
+
+No audit trail. Changes take effect immediately and persist to database.
+
+#### CWE-639: Client-Controlled Authorization (v0.4.2)
+
+**Vulnerability**: The JWT secret is hardcoded as `'kc-secret'`. An attacker who knows the secret can forge any JWT with any role claim.
+
+##### JWT Forgery Attack Sequence
+
+```mermaid
+sequenceDiagram
+    participant Attacker
+    participant Browser
+    participant DevTools as Browser DevTools
+    participant localStorage as localStorage
+    participant API as lib/api.ts
+    participant Controller as AdminController
+    participant Guard as HasRoleGuard
+    participant JWT as JwtService
+
+    Attacker->>Browser: Open DevTools, Console, read script
+    Attacker->>Attacker: Hardcoded secret 'kc-secret' visible in source code comments
+    Attacker->>Attacker: Create forged JWT: { sub: user-id, role: 'admin' }
+    Attacker->>Attacker: HMAC-SHA256(header.payload, 'kc-secret') to generate signature
+    Attacker->>Browser: Copy forged token to clipboard
+    Attacker->>DevTools: localStorage['kc_auth'] = { token: forged-jwt, userId: ... }
+    Browser->>API: authMe() with forged JWT
+    API->>API: getHeaders() reads forged JWT from localStorage
+    API->>Controller: GET /admin/users + Authorization: Bearer forged-jwt
+    Controller->>Guard: canActivate()
+    Guard->>JWT: verify(forged-jwt, 'kc-secret')
+    JWT-->>Guard: Valid! { sub, role: 'admin' }
+    Guard-->>Controller: Access allowed (role matches @HasRole('admin'))
+    Controller-->>API: Returns all users with roles
+    API-->>Attacker: Attacker gains admin access
+
+    Note over Attacker: Attack succeeds despite no admin account on backend database
+```
+
+This is **CWE-639** (Client-Controlled Authorization): the role claim is trusted without DB re-validation.
+
+#### e2e Test: JWT Forgery (v0.4.2)
+
+The `rbac.e2e-spec.ts` test suite includes `'forge JWT with role=admin and gain access to admin endpoints'`:
+
+1. Create two users: regular user + separate admin
+2. Manually sign a JWT with forged role claim: `{ sub: userId-of-regular-user, role: 'admin' }`
+3. Call GET /admin/users with forged JWT
+4. **Result**: Regular user's forged JWT grants access to admin endpoint
+5. e2e test assertion: `expect(response.status).toBe(200)` — admin endpoint returns data to non-admin
+
+---
+
+### Ternary Roles & Role Hierarchy Ambiguity (v0.4.3)
+
+#### Role Model
+
+```
+role: 'user' | 'moderator' | 'admin'
+```
+
+A third role is introduced: `'moderator'`. This role is intentionally ambiguous in terms of hierarchy and permissions.
+
+**Intended Permissions** (as documented, but not enforced):
+- `'user'` → Can read/write own files, not others
+- `'moderator'` → Can approve/reject user-uploaded files
+- `'admin'` → Can do everything
+
+**Actual Permissions** (enforcement gaps):
+- `@HasRole(['moderator', 'admin'])` treats both roles as equals with no ranking
+- File approval endpoint (`PUT /files/:id/approve`) requires `@HasRole(['moderator', 'admin'])`
+- Admin endpoints inconsistently require `@HasRole('admin')` vs `@HasRole(['moderator', 'admin'])`
+- No explicit precedence: Can moderator override admin decisions? Undefined.
+
+**CWE-841**: This is role hierarchy ambiguity. The system has 3 roles but no explicit constants defining their rank (e.g., `ADMIN_RANK=3 > MODERATOR_RANK=2 > USER_RANK=1`). Permission checks don't validate hierarchy, so a moderator could be elevated to admin via a forged JWT.
+
+#### New Endpoint: PUT /files/:id/approve (v0.4.3)
+
+```
+PUT /files/{fileId}/approve
+{
+  "status": "approved" | "rejected"
+}
+```
+
+Guarded by `@HasRole(['moderator', 'admin'])`. Moderators can approve or reject files. Admins can do the same.
+
+**Vulnerability**: HasRoleGuard trusts JWT role without DB re-validation (CWE-639). A user who forges a moderator JWT can approve files.
+
+#### Role Selector UI (v0.4.3 Frontend)
+
+Update admin page to show ternary role selector dropdown (user/moderator/admin) instead of binary toggle. Users can be promoted to moderator or admin via UI.
+
+---
+
+### Privilege Escalation & Cascading Promotions (v0.4.4)
+
+#### New Endpoint: PUT /admin/users/:id/role/escalate (v0.4.4)
+
+```
+PUT /admin/users/{userId}/role/escalate
+(no request body)
+```
+
+Promotes a user to moderator role (if currently user). Guarded by `@HasRole(['moderator', 'admin'])`.
+
+**Design Flaw** (CWE-269): A moderator can promote any user to moderator. Newly promoted moderators can immediately promote other users.
+
+**Escalation Chain Example**:
+
+1. Admin creates User A (regular user role)
+2. Admin promotes User A → moderator
+3. User A (now moderator) authenticates with new JWT: `{ sub: A, role: 'moderator' }`
+4. User A calls PUT /admin/users/B/role/escalate
+5. User B is promoted → moderator
+6. User B can immediately promote User C
+7. Chain continues indefinitely → exponential moderator creation
+
+Called **CWE-269** (Improper Access Control) in v0.4.x, but the root cause is CWE-639 (role trusted without DB validation) combined with CWE-862 (no additional checks on which user can be promoted).
+
+---
+
+### Missing Authorization on DELETE (v0.4.5)
+
+#### New Endpoint: DELETE /admin/users/:id (v0.4.5)
+
+```
+DELETE /admin/users/{userId}
+(no body, returns 204 No Content)
+```
+
+**Intentional Vulnerability**: Only guarded by `JwtAuthGuard`, **missing** `@HasRole('admin')`.
+
+The `HasRoleGuard` allows access if no `@HasRole` metadata is found on the endpoint. Because `DELETE /admin/users/:id` lacks the decorator, any authenticated user (regular user, moderator, or admin) can call it.
+
+**Exploitation**:
+
+1. Regular user authenticates (any role)
+2. Regular user calls DELETE /admin/users/target-admin-id
+3. Admin user is deleted from database
+4. Files orphaned (file records still reference deleted userId)
+
+This demonstrates **CWE-862** (Improper Access Control — Missing Authorization) at scale. It shows how developers forget to add necessary guards on some endpoints while adding them correctly on others.
+
+#### Authorization Inconsistency Table
+
+Comparing admin endpoints shows the inconsistency:
+
+| Endpoint | Guards | Status |
+|----------|--------|--------|
+| GET /admin/users | `JwtAuthGuard` + `@HasRole('admin')` | ✓ Secure — 403 for non-admin |
+| PUT /admin/users/:id/role | `JwtAuthGuard` + `@HasRole('admin')` | ✓ Secure — 403 for non-admin |
+| PUT /admin/users/:id/role/escalate | `JwtAuthGuard` + `@HasRole(['moderator','admin'])` | ✓ Secure — 403 for user |
+| **DELETE /admin/users/:id** | **Only `JwtAuthGuard`** | **✗ VULNERABLE — Any auth user allowed** |
+
+The DELETE endpoint is unguarded, demonstrating a realistic authorization bypass scenario.
+
+---
+
+### Placeholder: GET /admin/audit-logs (v0.4.4)
+
+```
+GET /admin/audit-logs
+(returns empty array)
+```
+
+Returns empty array. Placeholder for future audit trail implementation. No persistent logging of role changes, escalations, or deletions exists. All admin modifications are logged to stdout only (lost on restart).
+
+**CWE-532**: Insertion of Sensitive Information Into Log Files (or lack thereof — no audit trail at all).
+
+---
+
+## Module Dependencies & Guard Stacking
+
+### Guard Order
+
+Controllers apply guards in order:
+
+```typescript
+@Controller('admin')
+@UseGuards(JwtAuthGuard, HasRoleGuard)
+export class AdminController {
+  @Get('users')
+  @HasRole('admin')
+  async getAllUsers() { ... }
+
+  @Delete('users/:id')
+  // No @HasRole → HasRoleGuard bypassed
+  async deleteUser(@Param('id') userId) { ... }
+}
+```
+
+1. **JwtAuthGuard** — Verifies JWT signature (without checking expiration or user existence)
+2. **HasRoleGuard** — Checks `@HasRole` metadata and compares against JWT role claim
+
+If JwtAuthGuard passes, the request reaches HasRoleGuard. If HasRoleGuard finds no metadata, it allows access.
+
+---
+
+## Security Surface Summary (v0.1.x – v0.4.x)
+
+Intentional weaknesses introduced at each version:
+
+| Version | Weakness | CWE | Detail |
+|---------|----------|-----|--------|
+| v0.1.1 | Plaintext password storage | CWE-256 | Passwords stored as-is in User entity |
+| v0.1.1 | Leaky duplicate error | CWE-209 | 409 message includes the email address |
+| v0.1.1 | Sequential user IDs | CWE-330 | IDs are predictable ("1", "2", "3"...) |
+| v0.1.2 | Plaintext password comparison | CWE-256 | `===` comparison, no hashing |
+| v0.1.2 | Distinct auth errors | CWE-204 | "No user with that email" vs "Incorrect password" |
+| v0.1.3 | Weak JWT secret | CWE-798 | Hardcoded `'kc-secret'`, HS256 symmetric — trivially forged |
+| v0.1.3 | No token expiration | CWE-613 | JWTs have no `exp` claim — valid forever |
+| v0.1.3 | localStorage token storage | CWE-922 | Accessible to XSS, no httpOnly cookie |
+| v0.1.3 | No user-existence check in guard | CWE-613 | Deleted user's JWT still passes verification |
+| v0.1.3 | Missing authorization on /auth/me | CWE-862 | Any valid token gets full profile — no scope/role check |
+| v0.1.3 | Permissive CORS | CWE-942 | `enableCors()` with no options — all origins allowed |
+| v0.1.3 | Cleartext transport | CWE-319 | HTTP only — tokens and passwords sent unencrypted |
+| v0.1.3 | Source code comments in CSR bundle | CWE-615 | Frontend comments (VULN annotations) visible in DevTools |
+| v0.1.4 | Cosmetic logout (no server-side invalidation) | CWE-613 | POST /auth/logout returns success but does not revoke token |
+| v0.1.4 | Token replay after logout | CWE-613 | Same JWT works on /auth/me after logout — proven by e2e test |
+| v0.1.5 | No rate limiting on auth endpoints | CWE-307 | Unlimited login/register attempts — brute-force viable |
+| v0.1.5 | No account lockout | CWE-307 | Correct password works after any number of failed attempts |
+| v0.1.5 | Weak password requirements | CWE-521 | No minimum length or complexity — "a" is a valid password |
+| v0.2.2 | IDOR — any authenticated user can access any resource by ID | CWE-639 | ownerId stored but never checked on read/update/delete |
+| v0.2.2 | Missing authorization on all resource endpoints | CWE-862 | JwtAuthGuard only, no ownership or role checks |
+| v0.2.3 | Unbounded list endpoints — full table dumps | CWE-200 | GET /users, /files, /sharing, /admin return all records |
+| v0.2.3 | Existence oracle — 200/404 with sequential IDs | CWE-203 | GET /users/:id returns 200 or 404 — enables enumeration |
+| v0.2.3 | Uncontrolled resource consumption | CWE-400 | No pagination, no query limits, no rate limiting |
+| v0.2.3 | Swagger spec publicly accessible | CWE-200 | /api/docs and /api/docs-json require no authentication |
+| v0.2.3 | X-Powered-By header leaks framework | CWE-200 | Express sends `X-Powered-By: Express` by default |
+| v0.2.4 | Runtime error stack trace leakage | CWE-209 | Unhandled exceptions log stack traces to stdout |
+| v0.2.4 | No ValidationPipe — malformed input accepted | CWE-209 | Wrong types pass through to services unchecked |
+| v0.2.4 | NestJS 404 error shape leakage | CWE-200 | Routes return `{"statusCode":404,"message":"Cannot GET /..."}` |
+| v0.2.4 | SQL logging with plaintext passwords | CWE-532 | TypeORM `logging: true` prints INSERT with passwords |
+| v0.2.5 | Auto-run migrations | CWE-1188 | Any migration file auto-executes on start |
+| v0.3.0 | Path traversal in file uploads | CWE-22 | Client-supplied filename used as disk filename with no sanitisation |
+| v0.3.0 | MIME type confusion | CWE-434 | Client Content-Type stored without validation |
+| v0.3.0 | No upload size limit | CWE-400 | Multer has no limits.fileSize — disk exhaustion possible |
+| v0.3.0 | Filesystem path disclosure | CWE-200 | storagePath (absolute disk path) exposed in API responses |
+| v0.3.2 | No ownership check on download | CWE-639 | Any authenticated user can download any file by ID |
+| v0.3.3 | No path validation before unlink | CWE-22 | DELETE uses storagePath with no validation before fs.unlink |
+| v0.3.4 | Predictable share tokens | CWE-330 | Sequential "share-N" tokens, trivially guessable |
+| v0.3.4 | Unauthenticated public endpoint | CWE-285 | GET /sharing/public/:token requires no auth |
+| v0.3.4 | Share expiry not enforced | CWE-613 | expiresAt stored but never checked on access |
+| v0.4.0–v0.4.2 | Client-controlled authorization | CWE-639 | JWT role trusted without DB re-validation — forged role claims accepted |
+| v0.4.0–v0.4.2 | Missing authorization on admin endpoints | CWE-862 | HasRole guard only checks JWT, not database |
+| v0.4.3 | Role hierarchy ambiguity | CWE-841 | Three roles (user/moderator/admin) with no explicit ranking |
+| v0.4.3 | Ternary role confusion | CWE-841 | @HasRole(['moderator','admin']) treats roles as equals |
+| v0.4.4 | Privilege escalation via role delegation | CWE-269 | Moderators can promote users to moderators indefinitely |
+| v0.4.4 | Escalation chains (cascading promotions) | CWE-269 | Exponential moderator creation via chain attacks |
+| v0.4.4 | No audit trail for role changes | CWE-532 | Role changes logged to stdout only, lost on restart |
+| v0.4.5 | Missing authorization on DELETE | CWE-862 | DELETE /admin/users/:id has no @HasRole guard — any auth user can delete |
+| v0.4.5 | Authorization inconsistency across endpoints | CWE-862 | Some admin endpoints guarded, others not — designer oversight |
+
+
 
 Intentional weaknesses introduced at each v0.1.x version:
 

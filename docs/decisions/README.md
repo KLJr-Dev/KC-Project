@@ -33,6 +33,7 @@ Each ADR follows a standard format: **Status**, **Context**, **Decision**, **Con
 | [023](ADR-023-error-handling-philosophy.md) | Error handling philosophy (insecure by design) | Accepted | v0.2.4 |
 | [024](ADR-024-file-storage-strategy.md) | File storage strategy | Accepted | v0.3.0 |
 | [025](ADR-025-rbac-strategy.md) | RBAC strategy (progressive multi-role system) | Accepted | v0.4.0 |
+| [026](ADR-026-versioning-expansion-cycle.md) | Versioning & expansion cycle strategy (app-complete-first) | Accepted | v0.4.0 |
 
 ## Adding a New ADR
 

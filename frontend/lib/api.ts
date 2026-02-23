@@ -323,3 +323,55 @@ export const adminUpdate = (id: string, dto: UpdateAdmin) =>
   put<AdminResponse>(`/admin/${id}`, dto);
 
 export const adminDelete = (id: string) => del<DeleteResponse>(`/admin/${id}`);
+
+// ── Admin Users (v0.4.1) ──────────────────────────────────────────────
+// v0.4.1: User management endpoints (admin-only, weak authorization).
+// CWE-639: Role from JWT trusted, not re-validated from DB.
+// CWE-862: No additional authorization checks.
+// CWE-200: All user emails exposed.
+// CWE-400: Unbounded list.
+// v0.4.3: Role now includes 'moderator' for ternary RBAC system.
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  username: string;
+  role: 'user' | 'moderator' | 'admin';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GetAdminUsersResponse {
+  users: AdminUser[];
+  count: number;
+}
+
+export interface UpdateUserRoleRequest {
+  role: 'user' | 'moderator' | 'admin';
+}
+
+export interface UpdateUserRoleResponse {
+  id: string;
+  email: string;
+  username: string;
+  role: 'user' | 'moderator' | 'admin';
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * GET /admin/users — List all users (admin only)
+ * CWE-200: All user emails exposed
+ * CWE-400: Unbounded list dump
+ * CWE-639: Trusts role from JWT (v0.4.3: extended to moderator)
+ */
+export const adminListUsers = () => request<GetAdminUsersResponse>('/admin/users');
+
+/**
+ * PUT /admin/users/:id/role — Update a user's role (admin only)
+ * CWE-862: No additional auth checks
+ * CWE-532: No audit trail
+ * v0.4.3: Can now promote to 'moderator' (has file approval permissions)
+ */
+export const adminUpdateUserRole = (userId: string, role: 'user' | 'moderator' | 'admin') =>
+  put<UpdateUserRoleResponse>(`/admin/users/${userId}/role`, { role });
