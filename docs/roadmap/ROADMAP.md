@@ -345,7 +345,7 @@ The v0.3.x series introduced real file I/O: multipart uploads via Multer, local 
 
 Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4.2 binary, v0.4.3–v0.4.5 ternary with role confusion).
 
-### v0.4.0 — Roles Introduced (Binary: User / Admin) ✅ IMPLEMENTED
+### v0.4.0 — Roles Introduced (Binary: User / Admin)
 
 - `role` enum column added to `User` entity (`'user'` | `'admin'`, default `'user'`)
 - All existing users default to `'user'` role
@@ -364,7 +364,7 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - ADR-025 created: RBAC Strategy (progressive multi-role system)
 - **Total e2e tests:** 47 (44 existing + 3 new role tests)
 
-### v0.4.1 — Admin Endpoints & Weak Guards
+### v0.4.1 — Admin Endpoints & Weak Guards ✅ COMPLETE
 
 - `HasRole()` guard decorator created (checks JWT role claim, not database state)
 - `@UseGuards(JwtAuthGuard, HasRole('admin'))` applied to new admin endpoints
@@ -373,21 +373,43 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - Both endpoints guarded by `HasRole('admin')` but trust JWT role claim without re-checking database (CWE-639)
 - No rate limiting on role modification
 - Any user with `role: 'admin'` in their JWT (generated at login from database, but could be forged if JWT secret is compromised) can call these endpoints
-- 4 new e2e tests: admin user list, role modification, unauthorized attempts by non-admin (should fail), verify changes reflected in `GET /auth/me`
+- AdminUserList and RoleModifier components built on frontend; admin dashboard fully functional
+- Frontend auth-context now correctly parses `role` claim from JWT payload for accurate authorization context
+- 8 new e2e tests: admin user list, role modification, unauthorized attempts by non-admin (should fail), verify changes reflected in `GET /auth/me`, plus additional coverage for role parsing and admin UI
 - Swagger bumped to v0.4.1
 - CWE-862 expanded (incomplete authorization on admin endpoints)
+- **Status:** All endpoints implemented, tested, and merged into dev. Admin dashboard verified working with manual role changes. Ready for v0.4.2.
+- **Total e2e tests:** 55 (47 from v0.4.0 + 8 new admin/RBAC tests)
 
-### v0.4.2 — Mixed Trust Boundaries & IDOR
+### v0.4.2 — Mixed Trust Boundaries & IDOR (READY TO START)
 
-- Frontend now hides `/admin` link for non-admin users via `isAdmin` context flag (client-side only)
-- Backend still trusts JWT role claim directly — if user manually sets `role: 'admin'` in localStorage and updates JWT, they can access admin endpoints
-- Proof-of-concept e2e test: manually forge JWT with `role: 'admin'` and call admin endpoint (succeeds) — demonstrates CWE-639
-- No server-side re-validation of role against database
-- E2e test file `rbac.e2e-spec.ts` added with 5 new tests: role persistence, admin UI hiding, JWT forging, HasRole guard bypass, unauthorized access
-- Admin endpoints now also vulnerable to IDOR: `PUT /admin/users/:id/role` has no check that the caller (admin) is allowed to modify user `:id` (they always can, which is correct admin behavior here, but still demonstrates IDOR-like patterns)
-- CWE-639 and CWE-862 fully documented with inline comments
-- Swagger bumped to v0.4.2
-- **Total e2e tests:** 52 (47 from v0.4.0 + 5 new RBAC tests)
+**Scope:**
+- Demonstrate JWT role claim forgery vulnerability (CWE-639) with proof-of-concept
+- Introduce IDOR-like patterns in admin endpoints
+- Frontend continues hiding `/admin` link via `isAdmin` context flag (client-side only, bypassable)
+- Backend still trusts JWT role claim directly
+
+**Backend changes:**
+- No new endpoints; exploit existing `HasRole()` guard weakness by demonstrating JWT forging
+- Add inline documentation linking CWE-639 and CWE-862 to specific code patterns
+- Proof-of-concept: e2e test that manually forges JWT with `role: 'admin'` (using hardcoded 'kc-secret'), successfully calls admin endpoint (demonstrates no server-side re-validation)
+- Admin endpoints remain vulnerable to IDOR concepts: `PUT /admin/users/:id/role` has no per-user authorization check (any admin can modify any user, which is correct behavior but still demonstrates IDOR vector)
+
+**Frontend changes:**
+- `/admin` page remains client-side protected only (admin link hidden for non-admin via `isAdmin` flag)
+- Documentation note: role hiding is UI-only; localStorage can be modified to bypass
+
+**E2e test additions:**
+- New test suite `rbac.e2e-spec.ts` with 5 tests:
+  1. Forge JWT with `role: 'admin'` claim and verify admin endpoint access succeeds (CWE-639 PoC)
+  2. Verify unauthorized non-admin access fails even with forged token (guard still validates JwtAuthGuard)
+  3. Role persistence: confirm admin role change persists across login sessions
+  4. Admin UI hiding: non-admin user cannot see `/admin` link (client-side only)
+  5. Unauthorized escalation: verify user-level JWT forgery cannot access admin endpoints (HasRole guard validates)
+
+**Swagger:** Bumped to v0.4.2
+**CWEs:** CWE-639 (Client-Controlled Authorization), CWE-862 (Missing Authorization) fully demonstrated
+**Total e2e tests:** 60 (55 from v0.4.1 + 5 new RBAC/JWT forgery tests)
 
 ### v0.4.3 — Ternary Role System (User / Moderator / Admin)
 
@@ -431,6 +453,12 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - CWE-862 expanded (multiple endpoints with missing authorization checks)
 - **v0.4.x authorization surface complete:** 6 versions, ~8–10 new CWEs introduced across v0.4.0–v0.4.5
 - Total e2e tests: 70+ (spanning auth, role tests, IDOR, escalation, inconsistency tests)
+
+### v0.4.6 — Documentation Update
+
+- Add any new ADRs
+- Add any new diagrams, architecture, security, spec docs
+- Update any documentation
 
 #### v0.4.x Authorization & Administrative Surface Summary
 

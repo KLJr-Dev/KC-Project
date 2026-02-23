@@ -90,9 +90,25 @@ function loadFromStorage(): AuthState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { token: null, userId: null };
     const parsed = JSON.parse(raw) as AuthState;
-    return { token: parsed.token ?? null, userId: parsed.userId ?? null };
+    return {
+      token: parsed.token ?? null,
+      userId: parsed.userId ?? null,
+      role: parsed.role,
+    };
   } catch {
     return { token: null, userId: null };
+  }
+}
+
+function parseRoleFromToken(token: string | null): 'user' | 'admin' | undefined {
+  if (!token) return undefined;
+  const parts = token.split('.');
+  if (parts.length !== 3) return undefined;
+  try {
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload?.role === 'admin' ? 'admin' : payload?.role === 'user' ? 'user' : undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -123,10 +139,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    *       the JWT secret).
    */
   const login = useCallback((response: AuthResponse) => {
-    const next: AuthState = { 
-      token: response.token, 
+    const next: AuthState = {
+      token: response.token,
       userId: response.userId,
-      role: (response as any).role ?? 'user', // v0.4.0: include role from response
+      role: parseRoleFromToken(response.token) ?? 'user',
     };
     setState(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); // VULN: CWE-922
