@@ -5,15 +5,26 @@
  * - List all users (/admin/users)
  * - Modify user roles (/admin/users/:id/role)
  *
- * VULN (v0.4.1): 
- *   - Client-side AuthContext check (CWE-639) — can be bypassed
+ * VULN (v0.4.1-v0.4.2): 
+ *   - Client-side AuthContext check (isAdmin flag) — can be bypassed via localStorage
  *   - All emails exposed (CWE-200)
  *   - Unbounded user list (CWE-400)
  *   - No audit trail on role changes (CWE-862)
  *   - Role from JWT trusted without DB re-validation (CWE-639)
  *
- * Backend authorization (v0.4.1): JwtAuthGuard + HasRoleGuard
- * Backend vulnerabilities: See admin.controller.ts, admin.service.ts
+ * v0.4.2 CWE-639 Demonstration:
+ *   The isAdmin check below redirects to '/' if not admin. However:
+ *   1. This check happens client-side after page load has started
+ *   2. A user can bypass it by modifying localStorage to set role='admin'
+ *   3. The JWT payload is visible in DevTools (base64, not encrypted)
+ *   4. If an attacker knows the JWT secret 'kc-secret', they can forge a JWT with role='admin'
+ *   5. Set it in localStorage → refresh → isAdmin becomes true
+ *   6. This page renders, but it's the backend protection that matters:
+ *      If the forged JWT is valid, /admin/* endpoints ACCEPT it (bug in HasRole guard)
+ *   7. This is CWE-639: The backend trusts the JWT role claim without DB re-check
+ *
+ * Backend authorization (v0.4.1-v0.4.2): JwtAuthGuard + HasRole guard
+ * Backend vulnerabilities: See admin.controller.ts, admin.service.ts, has-role.guard.ts
  */
 'use client';
 
