@@ -11,7 +11,7 @@ later hardened according to the project roadmap.
 
 ## Current Status
 
-**Version:** v0.5.0 (Real Multipart File Upload)
+**Version:** v0.5.1 (File Download & Streaming)
 
 - NestJS 11 application with five domain modules (users, auth, files, sharing, admin)
 - PostgreSQL 16 via Docker Compose (`infra/compose.yml`) — TypeORM repositories
@@ -42,10 +42,17 @@ later hardened according to the project roadmap.
   - `DELETE /files/:id` removes file from disk via `fs.unlink(storagePath)` with no validation (**CWE-22**)
   - No ownership checks on any file operation — IDOR fully exploitable (**CWE-639**)
   - Public sharing with predictable sequential tokens (v0.3.x, v0.6.x planned)
-  - **v0.5.0 e2e tests (12 tests):** multipart parsing, file metadata, IDOR on download/delete, MIME confusion, path traversal, file size limits, file listing, orphaned files
+  - **v0.5.0 e2e tests (24 tests):** multipart parsing, file metadata, IDOR on download/delete, MIME confusion, path traversal, file size limits, file listing, orphaned files, approval workflow
+- **v0.5.1 — File Download & Streaming:**
+  - `GET /files/:id/download` endpoint for streaming file content to client
+  - Express `res.sendFile()` for efficient streaming (no memory exhaustion on large files)
+  - Content-Type header set from stored `mimetype` (**CWE-434 MIME Confusion** — no validation)
+  - Content-Disposition header for browser download (filename parameter)
+  - Same vulnerabilities as v0.5.0: CWE-22 (path traversal), CWE-639 (IDOR), CWE-434 (MIME type), CWE-200 (path exposure)
+  - **v0.5.1 e2e tests (12 tests):** basic download, content-disposition, IDOR on download, MIME confusion, 404 handling, unauthenticated access, large file streaming, path traversal, special characters
 - OpenAPI/Swagger spec auto-generated via `@nestjs/swagger` CLI plugin
 - TypeScript `strict: true`, Prettier enforced (shared root config)
-- E2e tests (84 total: 50 baseline + 22 RBAC-specific + 12 file upload) run against real PostgreSQL, unit tests (7) with mocked repos
+- E2e tests (96 total: 50 baseline + 22 RBAC-specific + 36 file operations = 24 upload + 12 download) run against real PostgreSQL, unit tests (7) with mocked repos
 
 ---
 
