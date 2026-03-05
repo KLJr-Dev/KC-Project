@@ -41,13 +41,40 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     
     // NestJS ValidationPipe format: { message: [{ field: "email", messages: ["..."] }, ...] } or { message: ["email: ...", ...] }
     if (Array.isArray(exceptionResponse.message)) {
+      console.log('[ValidationExceptionFilter] Message is array, processing...');
       exceptionResponse.message.forEach((msg: any) => {
         if (typeof msg === 'string') {
-          // Format: "field: constraint message"
-          const parts = msg.split(': ');
-          if (parts.length >= 2) {
-            const field = parts[0];
-            const constraint = parts.slice(1).join(': ');
+          // Extract field name from message strings like:
+          // - "email is required"
+          // - "email must be a valid email address"
+          // - "property extraField should not exist"
+          // - "email: must be a valid email"
+          
+          let field: string | null = null;
+          let constraint = msg;
+          
+          // Try "property {field}" pattern first (for forbidNonWhitelisted)
+          const propertyMatch = msg.match(/^property\s+(\w+)\s+(.+)$/);
+          if (propertyMatch) {
+            field = propertyMatch[1];
+            constraint = propertyMatch[2];
+          } else {
+            // Try "field: constraint" pattern
+            const colonMatch = msg.match(/^(\w+):\s+(.+)$/);
+            if (colonMatch) {
+              field = colonMatch[1];
+              constraint = colonMatch[2];
+            } else {
+              // Try simple "{field} {constraint}" pattern
+              const simpleMatch = msg.match(/^(\w+)\s+(.+)$/);
+              if (simpleMatch) {
+                field = simpleMatch[1];
+                constraint = simpleMatch[2];
+              }
+            }
+          }
+          
+          if (field) {
             if (!errors[field]) {
               errors[field] = [];
             }
