@@ -34,27 +34,50 @@ export class ValidationExceptionFilter implements ExceptionFilter {
   catch(exception: BadRequestException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const exceptionResponse = exception.getResponse();
+    const exceptionResponse = exception.getResponse() as any;
 
     // Extract error details from ValidationPipe response
     const errors: Record<string, string[]> = {};
-    if (
-      typeof exceptionResponse === 'object' &&
-      'message' in exceptionResponse &&
-      Array.isArray(exceptionResponse.message)
-    ) {
-      // ValidationPipe returns: { message: ["field: constraint", ...], statusCode, error }
-      exceptionResponse.message.forEach((msg: string) => {
-        // Parse messages like "email: must be a valid email address"
-        const parts = msg.split(': ');
-        if (parts.length >= 2) {
-          const field = parts[0];
-          const constraint = parts.slice(1).join(': ');
-          if (!errors[field]) {
-            errors[field] = [];
+    
+    // NestJS ValidationPipe format: { message: [{ field: "email", messages: ["..."] }, ...] } or { message: ["email: ...", ...] }
+    if (Array.isArray(exceptionResponse.message)) {
+      exceptionResponse.message.forEach((msg: any) => {
+        if (typeof msg === 'string') {
+          // Format: "field: constraint message"
+          const parts = msg.split(': ');
+          if (parts.length >= 2) {
+            const field = parts[0];
+            const constraint = parts.slice(1).join(': ');
+            if (!errors[field]) {
+              errors[field] = [];
+            }
+            if (!errors[field].includes(constraint)) {
+              errors[field].push(constraint);
+            }
           }
-          if (!errors[field].includes(constraint)) {
-            errors[field].push(constraint);
+        } else if (typeof msg === 'object' && msg !== null) {
+          // Format: { field: "email", messages: ["..."] } or { property: "email", constraints: {...} }
+          const field = msg.field || msg.property;
+          if (field) {
+            if (!errors[field]) {
+              errors[field] = [];
+            }
+            // Handle constraints as object
+            if (msg.constraints && typeof msg.constraints === 'object') {
+              Object.values(msg.constraints).forEach((constraint: any) => {
+                if (!errors[field].includes(String(constraint))) {
+                  errors[field].push(String(constraint));
+                }
+              });
+            }
+            // Handle messages as array
+            if (msg.messages && Array.isArray(msg.messages)) {
+              msg.messages.forEach((constraint: any) => {
+                if (!errors[field].includes(String(constraint))) {
+                  errors[field].push(String(constraint));
+                }
+              });
+            }
           }
         }
       });

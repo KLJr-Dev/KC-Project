@@ -67,6 +67,7 @@ export class FilesService {
     dto.storagePath = entity.storagePath;
     dto.description = entity.description;
     dto.size = entity.size;
+    dto.approvalStatus = entity.approvalStatus;
     dto.uploadedAt = entity.uploadedAt;
     return dto;
   }

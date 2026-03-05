@@ -57,7 +57,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
             password: 'p',
           })
           .expect(201);
-        expect(res.body).toHaveProperty('access_token');
+        expect(res.body).toHaveProperty('token');
       });
 
       it('should reject missing email field', async () => {
@@ -106,7 +106,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
             password: 'a',
           })
           .expect(201);
-        expect(res.body).toHaveProperty('access_token');
+        expect(res.body).toHaveProperty('token');
       });
 
       it('should reject unknown fields (strict whitelist)', async () => {
@@ -157,7 +157,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
             password: 'pass',
           })
           .expect(200);
-        expect(res.body).toHaveProperty('access_token');
+        expect(res.body).toHaveProperty('token');
       });
 
       it('should reject missing email on login', async () => {
@@ -196,7 +196,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           username: 'fileuser',
           password: 'pass',
         });
-      authToken = registerRes.body.access_token;
+      authToken = registerRes.body.token;
     });
 
     describe('UploadFileDto Validation', () => {
@@ -284,7 +284,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           username: 'adminuser',
           password: 'pass',
         });
-      authToken = userRes.body.access_token;
+      authToken = userRes.body.token;
       userId = userRes.body.userId;
 
       // Create admin user (manually set role in DB for test)
@@ -295,7 +295,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           username: 'admin',
           password: 'pass',
         });
-      adminToken = adminRes.body.access_token;
+      adminToken = adminRes.body.token;
     });
 
     describe('UpdateUserRoleDto Validation', () => {
@@ -390,7 +390,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           password: 'pass',
         });
 
-      const adminToken = registerRes.body.access_token;
+      const adminToken = registerRes.body.token;
 
       const res = await request(testApp.getHttpServer())
         .put(`/admin/users/${registerRes.body.userId}/role`)
