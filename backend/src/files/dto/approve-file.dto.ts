@@ -1,20 +1,20 @@
 /**
- * v0.4.3 -- Request body for file approval endpoint.
+ * v0.5.0 — Input Validation Pipeline: ApproveFileDto
  *
- * VULN (v0.4.3): No requester tracking. The endpoint doesn't record
- *       which moderator/admin approved the file. This absence of audit
- *       information is CWE-532 (Insertion of Sensitive Information into Log File).
- *       Remediation (v0.4.4): Track approvedBy userId and timestamp.
+ * Request body for file approval endpoint (moderator-only).
+ *
+ * v0.5.0 adds validators:
+ * - status: @IsEnum(['approved', 'rejected']) (enum validation)
+ *
+ * VULN (Intentional):
+ *   - CWE-841 (Role Ambiguity): Moderator/admin hierarchy undefined
+ *     Can moderator reject admin-approved file? Intentionally unclear.
+ *   - CWE-532: No audit trail yet (v0.6.0 adds persistent audit logs)
  */
+import { IsEnum, IsNotEmpty } from 'class-validator';
+
 export class ApproveFileDto {
-  /**
-   * Approval status. The endpoint accepts both 'approved' and 'rejected'
-   * to allow moderators to reject files that violate policy.
-   *
-   * Note: The ternary role system (v0.4.3) creates ambiguity:
-   * - Can a moderator reject an admin-approved file?
-   * - Can an admin override a moderator rejection?
-   * These scenarios are intentionally undefined (CWE-841).
-   */
-  status: 'approved' | 'rejected' = 'approved';
+  @IsEnum(['approved', 'rejected'], { message: 'status must be either "approved" or "rejected"' })
+  @IsNotEmpty({ message: 'status is required' })
+  status!: 'approved' | 'rejected';
 }

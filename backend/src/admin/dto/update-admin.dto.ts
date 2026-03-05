@@ -1,16 +1,21 @@
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.5.0 — Input Validation Pipeline: UpdateAdminDto
  *
- * Request body for PUT /admin/update/:id. Partial shape; validation
- * minimal/absent. Fields define the contract, not behaviour.
+ * Request body for PUT /admin/:id (updates admin metadata).
+ * All fields optional (partial shape).
  *
- * --- Why a separate Update DTO? ---
- * Update requests often allow partial payloads (only send what changed). We
- * use a dedicated DTO so the contract is explicit: clients know they can send
- * only label, only role, or both. Same shape as Create here for simplicity;
- * in real APIs update might have different rules (e.g. no id in body).
+ * v0.5.0 adds validators:
+ * - label: @IsString (optional label/name field)
+ * - role: @IsEnum (optional role field)
  */
+import { IsString, IsEnum, IsOptional } from 'class-validator';
+
 export class UpdateAdminDto {
+  @IsString({ message: 'label must be a string' })
+  @IsOptional()
   label?: string;
+
+  @IsEnum(['user', 'moderator', 'admin'], { message: 'role must be one of: user, moderator, admin' })
+  @IsOptional()
   role?: string;
 }

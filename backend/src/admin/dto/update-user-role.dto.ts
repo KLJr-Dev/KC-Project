@@ -1,13 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 
 /**
- * Update User Role Request DTO
+ * v0.5.0 — Input Validation Pipeline: UpdateUserRoleDto
  *
- * CWE-862: No validation that the caller (admin) should be allowed to modify this specific user.
- * Any admin can change any user's role. In v0.4.1, this is expected behavior (admins have broad power).
- * However, no audit trail is kept, and role changes take effect immediately (v0.4.4 adds logging).
+ * Request body for PUT /admin/users/:id/role (admin-only).
+ *
+ * v0.5.0 adds validators:
+ * - role: @IsEnum(['user', 'moderator', 'admin']) (enum validation)
+ *
+ * VULN (Intentional):
+ *   - CWE-862 (Missing Authorization): Any authenticated admin can change any user's role
+ *   - CWE-639 (IDOR): No ownership/hierarchy checks; admins can modify other admins
+ *   - CWE-841 (Role Abuse): Ternary role system creates ambiguity in moderator permissions
  */
 export class UpdateUserRoleDto {
   @ApiProperty({ example: 'admin', enum: ['user', 'moderator', 'admin'] })
-  role: 'user' | 'moderator' | 'admin' = 'user';
+  @IsEnum(['user', 'moderator', 'admin'], { message: 'role must be one of: user, moderator, admin' })
+  @IsNotEmpty({ message: 'role is required' })
+  role!: 'user' | 'moderator' | 'admin';
 }
