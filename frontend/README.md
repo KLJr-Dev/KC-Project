@@ -11,24 +11,30 @@ strong security guarantees in early versions.
 
 ## Current Status
 
-**Version:** v0.4.6 (Authorization UI Surface – Ternary Role Support)
+**Version:** v0.5.1 (File Download & Streaming)
 
-- Next.js application scaffolded (App Router, Tailwind CSS)
+- Next.js 16 application (App Router, Tailwind CSS, React 19)
 - Client-side types **auto-generated from OpenAPI spec** (`lib/types.gen.ts`)
-- Re-export layer with friendly aliases (`lib/types.ts`)
-- Typed API client covers every backend route (`lib/api.ts`)
-- Pages exercise full CRUD for all five backend domains
-- **Ternary role selector component** (user/moderator/admin) in admin UI (v0.4.3)
-- **Role displayed in header** with current user context from localStorage (CWE-639: role stored client-side, modifiable)
-- Role selection **bypassable via localStorage modification**; no server-side validation (CWE-639, v0.4.3–v0.4.6)
-- Backend connectivity verified via `/ping`
+- Typed API client covers all backend routes (`lib/api.ts`)
+- **v0.5.0–v0.5.1**: File upload, download, and streaming UI
+  - File list with metadata display
+  - Upload form with file picker and metadata input
+  - Download button with streaming support
+  - File deletion interface
+- Authentication context with JWT storage in localStorage (CWE-345)
+- Role-based layout components (v0.4.0+: role display in header, admin page)
+- **v0.5.0 (next)**: Input validation alignment
+  - Form validation mirrors backend DTO constraints
+  - Email format validation (@IsEmail)
+  - Username length validation (@MinLength(3), @MaxLength(50))
+  - Password weak validation (@MinLength(1) — intentional CWE-521)
+  - Error message display from 400 Bad Request validation responses
+  - Field-level error rendering (CWE-209 exposure)
 - ESLint configured with Prettier integration
-- Shared Prettier config (root-level `.prettierrc`)
-- JWT + role persisted to localStorage (CWE-639)
-- Automatic Bearer header on all API calls
-- Client-side role checks (bypassable); all enforcement expected server-side
-- No form validation
-- No input sanitisation
+- E2e tests with Supertest (96+ tests covering auth, RBAC, file ops, validation)
+- No password hashing (plaintext comparison, CWE-256)
+- No rate limiting or account lockout
+- CORS allows any origin (CWE-942)
 
 ---
 
