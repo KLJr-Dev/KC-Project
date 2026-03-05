@@ -125,12 +125,40 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 /**
+ * Structured validation error response from backend ValidationExceptionFilter.
+ * Provides field-level constraint messages for form display.
+ */
+export interface ValidationErrorResponse {
+  statusCode: number;
+  message: string;
+  errors?: Record<string, string[]>;
+  timestamp?: string;
+}
+
+/**
+ * Custom error class that wraps ValidationErrorResponse for structured errors.
+ * Allows components to check if error is validation-related and access field errors.
+ */
+export class ValidationError extends Error {
+  public readonly errors: Record<string, string[]>;
+  public readonly statusCode: number;
+
+  constructor(response: ValidationErrorResponse) {
+    super(response.message);
+    this.statusCode = response.statusCode;
+    this.errors = response.errors || {};
+    this.name = 'ValidationError';
+  }
+}
+
+/**
  * Core request helper. All API functions delegate to this.
  *
  * - Builds headers via getHeaders() (Content-Type + optional Bearer token)
  * - Merges caller-provided RequestInit (method, body, etc.)
  * - Throws a user-friendly error on network failure (TypeError = server down)
- * - Throws on non-2xx HTTP responses with status + body for debugging
+ * - Parses ValidationErrorResponse (400) into ValidationError with field errors
+ * - Throws on other non-2xx HTTP responses with status + body for debugging
  * - Returns parsed JSON typed as T
  *
  * Note: the ...init spread means caller-provided headers would override
@@ -153,7 +181,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`${res.status} ${res.statusText}: ${body}`);
+    try {
+      // Try to parse as JSON first (for 400 validation errors)
+      const json = JSON.parse(body) as ValidationErrorResponse;
+      if (json.statusCode === 400 && json.errors) {
+        throw new ValidationError(json);
+      }
+      // Re-throw as generic error if not validation format
+      throw new Error(`${res.status} ${res.statusText}: ${body}`);
+    } catch (parseErr) {
+      // If JSON parse fails, throw as plain error
+      if (parseErr instanceof ValidationError) throw parseErr;
+      throw new Error(`${res.status} ${res.statusText}: ${body}`);
+    }
   }
   return res.json() as Promise<T>;
 }
@@ -330,13 +370,12 @@ export const adminDelete = (id: string) => del<DeleteResponse>(`/admin/${id}`);
 // CWE-862: No additional authorization checks.
 // CWE-200: All user emails exposed.
 // CWE-400: Unbounded list.
-// v0.4.3: Role now includes 'moderator' for ternary RBAC system.
 
 export interface AdminUser {
   id: string;
   email: string;
   username: string;
-  role: 'user' | 'moderator' | 'admin';
+  role: 'user' | 'admin';
   createdAt: string;
   updatedAt: string;
 }
@@ -347,14 +386,14 @@ export interface GetAdminUsersResponse {
 }
 
 export interface UpdateUserRoleRequest {
-  role: 'user' | 'moderator' | 'admin';
+  role: 'user' | 'admin';
 }
 
 export interface UpdateUserRoleResponse {
   id: string;
   email: string;
   username: string;
-  role: 'user' | 'moderator' | 'admin';
+  role: 'user' | 'admin';
   createdAt: string;
   updatedAt: string;
 }
@@ -363,7 +402,7 @@ export interface UpdateUserRoleResponse {
  * GET /admin/users — List all users (admin only)
  * CWE-200: All user emails exposed
  * CWE-400: Unbounded list dump
- * CWE-639: Trusts role from JWT (v0.4.3: extended to moderator)
+ * CWE-639: Trusts 'admin' role from JWT
  */
 export const adminListUsers = () => request<GetAdminUsersResponse>('/admin/users');
 
@@ -371,7 +410,6 @@ export const adminListUsers = () => request<GetAdminUsersResponse>('/admin/users
  * PUT /admin/users/:id/role — Update a user's role (admin only)
  * CWE-862: No additional auth checks
  * CWE-532: No audit trail
- * v0.4.3: Can now promote to 'moderator' (has file approval permissions)
  */
-export const adminUpdateUserRole = (userId: string, role: 'user' | 'moderator' | 'admin') =>
+export const adminUpdateUserRole = (userId: string, role: 'user' | 'admin') =>
   put<UpdateUserRoleResponse>(`/admin/users/${userId}/role`, { role });
