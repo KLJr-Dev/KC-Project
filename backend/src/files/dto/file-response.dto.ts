@@ -17,5 +17,6 @@ export class FileResponseDto {
   storagePath?: string;
   description?: string;
   size?: number;
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
   uploadedAt!: string;
 }
