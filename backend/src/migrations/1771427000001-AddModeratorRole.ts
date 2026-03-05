@@ -22,7 +22,12 @@ export class AddModeratorRole1771427000001 implements MigrationInterface {
     // So we must drop and recreate the enum, or use a different approach
     // Here we'll use ALTER TYPE ADD VALUE which requires careful handling
 
-    // First, rename old enum type
+    // First, drop the default constraint (it prevents enum type change)
+    await queryRunner.query(
+      `ALTER TABLE "user" ALTER COLUMN "role" DROP DEFAULT`,
+    );
+
+    // Rename old enum type
     await queryRunner.query(
       `ALTER TYPE "user_role_enum" RENAME TO "user_role_enum_old"`,
     );
@@ -41,11 +46,21 @@ export class AddModeratorRole1771427000001 implements MigrationInterface {
     await queryRunner.query(
       `DROP TYPE "user_role_enum_old"`,
     );
+
+    // Re-add the default constraint
+    await queryRunner.query(
+      `ALTER TABLE "user" ALTER COLUMN "role" SET DEFAULT 'user'`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Revert to binary enum (remove any 'moderator' roles, but this will fail if any exist)
     // This is a destructive down migration — not ideal but matches the pattern of these intentional versions
+
+    // Drop the default constraint
+    await queryRunner.query(
+      `ALTER TABLE "user" ALTER COLUMN "role" DROP DEFAULT`,
+    );
 
     // Rename current enum
     await queryRunner.query(
@@ -71,6 +86,11 @@ export class AddModeratorRole1771427000001 implements MigrationInterface {
     // Drop old enum
     await queryRunner.query(
       `DROP TYPE "user_role_enum_old"`,
+    );
+
+    // Re-add the default constraint
+    await queryRunner.query(
+      `ALTER TABLE "user" ALTER COLUMN "role" SET DEFAULT 'user'`,
     );
   }
 }
