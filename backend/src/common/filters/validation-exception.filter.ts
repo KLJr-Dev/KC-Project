@@ -51,26 +51,16 @@ export class ValidationExceptionFilter implements ExceptionFilter {
           // - "email: must be a valid email"
           
           let field: string | null = null;
-          let constraint = msg;
           
           // Try "property {field}" pattern first (for forbidNonWhitelisted)
-          const propertyMatch = msg.match(/^property\s+(\w+)\s+(.+)$/);
+          const propertyMatch = msg.match(/^property\s+(\w+)/);
           if (propertyMatch) {
             field = propertyMatch[1];
-            constraint = propertyMatch[2];
           } else {
-            // Try "field: constraint" pattern
-            const colonMatch = msg.match(/^(\w+):\s+(.+)$/);
-            if (colonMatch) {
-              field = colonMatch[1];
-              constraint = colonMatch[2];
-            } else {
-              // Try simple "{field} {constraint}" pattern
-              const simpleMatch = msg.match(/^(\w+)\s+(.+)$/);
-              if (simpleMatch) {
-                field = simpleMatch[1];
-                constraint = simpleMatch[2];
-              }
+            // Try "field: constraint" or "field constraint" pattern
+            const fieldMatch = msg.match(/^(\w+)(?::|$|\s+)/);
+            if (fieldMatch) {
+              field = fieldMatch[1];
             }
           }
           
@@ -78,8 +68,9 @@ export class ValidationExceptionFilter implements ExceptionFilter {
             if (!errors[field]) {
               errors[field] = [];
             }
-            if (!errors[field].includes(constraint)) {
-              errors[field].push(constraint);
+            // Store the full message, including field name (as tests expect it)
+            if (!errors[field].includes(msg)) {
+              errors[field].push(msg);
             }
           }
         } else if (typeof msg === 'object' && msg !== null) {
