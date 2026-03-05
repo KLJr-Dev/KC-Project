@@ -1,17 +1,29 @@
 /**
- * v0.0.6 — Backend API Shape Definition
+ * v0.5.0 — Input Validation Pipeline: CreateSharingDto
  *
- * Request body for POST /sharing/create. Stub only; validation minimal/absent.
- * Defines the contract for creating a share (e.g. link to a file). Real
- * behaviour (public links, expiry) comes in v0.3.4.
+ * Request body for POST /sharing (creates public share link for file).
  *
- * --- Why a dedicated Create DTO? ---
- * Same pattern as admin/users: request shape is explicit. Sharing typically
- * links a file to a share id or public link; we stub fileId and public flag
- * for the contract. Optional fields for v0.0.6.
+ * v0.5.0 adds validators:
+ * - fileId: @IsUUID (UUID format validation; tracks which file to share)
+ * - public: @IsBoolean, @IsOptional (defaults false if omitted)
+ * - expiresAt: @IsISO8601, @IsOptional (ISO timestamp for share expiry)
+ *
+ * VULN (Intentional):
+ *   - CWE-639 (IDOR): No ownership validation; users can share files they don't own
+ *   - CWE-330 (Predictable Tokens): v0.3.x uses sequential tokens (not UUID-based)
  */
+import { IsUUID, IsBoolean, IsISO8601, IsOptional, IsNotEmpty } from 'class-validator';
+
 export class CreateSharingDto {
-  fileId?: string;
+  @IsUUID('4', { message: 'fileId must be a valid UUID' })
+  @IsNotEmpty({ message: 'fileId is required' })
+  fileId!: string;
+
+  @IsBoolean({ message: 'public must be a boolean' })
+  @IsOptional()
   public?: boolean;
+
+  @IsISO8601({ strict: true }, { message: 'expiresAt must be a valid ISO 8601 timestamp' })
+  @IsOptional()
   expiresAt?: string;
 }
