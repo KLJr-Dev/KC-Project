@@ -1,9 +1,12 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Describes the v0.4.5 PostgreSQL schema (current, managed via TypeORM migrations), the v1.0.0 target schema, and the v2.0.0 hardened schema.
+Entity definitions and relationships for KC-Project. Describes the **v1.0.0** PostgreSQL schema (managed via TypeORM migrations) and the v2.0.0 hardened schema.
 
+Demo seed IDs (ADR-029, ADR-030): users 9001–9004, files 9101–9104, share token `share-1`. See [demo-users.md](../deploy/demo-users.md) and [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md).
 
-## Current State (v0.4.5) -- PostgreSQL
+---
+
+## Current State (v1.0.0) — PostgreSQL
 PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize: true` in v0.2.5, see [ADR-022](../decisions/ADR-022-typeorm-migrations.md)). File storage on local filesystem via Multer (see [ADR-024](../decisions/ADR-024-file-storage-strategy.md)). See also [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
 
 ### Tables
@@ -12,12 +15,12 @@ PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize
 |-------|-------------|-------|
 | `user` | `User` | Auth + identity. Plaintext password column (CWE-256). Ternary `role` enum (v0.4.3). |
 | `file_entity` | `FileEntity` | Real file metadata from Multer uploads. `mimetype` + `storagePath` (v0.3.0), `description` (v0.2.5), `approvalStatus` (v0.4.3). Files stored on disk. |
-| `sharing_entity` | `SharingEntity` | No FK to files. `publicToken` (v0.3.4) for unauthenticated access. `ownerId` (v0.2.2, never enforced). |
-| `admin_item` | `AdminItem` | Placeholder admin records. |
+| `sharing_entity` | `SharingEntity` | No FK to files. `publicToken` (v0.3.4, predictable `share-N`) for unauthenticated access. `ownerId` never enforced. |
+| `audit_log` | `AuditLog` | Persistent audit records (v0.6.0). Readable by any authed user via weak guard (CWE-284). |
 
 All tables use `@PrimaryColumn()` with manually assigned sequential string IDs (`"1"`, `"2"`, ...) — intentionally predictable (CWE-330). No unique constraints, no foreign keys, no indices beyond primary keys. Schema weaknesses are intentional per [ADR-006](../decisions/ADR-006-insecure-by-design.md).
 
-### User Entity (v0.4.5)
+### User Entity (v1.0.0)
 
 ```typescript
 @Entity()
@@ -39,7 +42,7 @@ class User {
 }
 ```
 
-### FileEntity (v0.4.3)
+### FileEntity (v1.0.0)
 
 ```typescript
 @Entity()
@@ -65,7 +68,7 @@ class FileEntity {
 }
 ```
 
-### SharingEntity (v0.3.4)
+### SharingEntity (v1.0.0)
 
 ```typescript
 @Entity()
@@ -87,15 +90,47 @@ class SharingEntity {
 }
 ```
 
+### AuditLog (v0.6.0)
+
+```typescript
+@Entity('audit_log')
+class AuditLog {
+  @PrimaryColumn()
+  id: string;              // Sequential string
+  @Column()
+  actorId: string;         // User who performed action
+  @Column()
+  action: string;          // e.g. 'role_change', 'file_approve'
+  @Column({ default: '' })
+  targetId: string;
+  @Column({ type: 'text', default: '' })
+  details: string;
+  @Column()
+  createdAt: string;       // ISO 8601
+}
+```
+
+### Demo seed data (v1.0.0)
+
+| Entity | ID / token | Owner | Notes |
+|--------|------------|-------|-------|
+| User | 9001 `user@kc.test` | — | Regular user |
+| User | 9002 `mod@kc.test` | — | Moderator |
+| User | 9003 `admin@kc.test` | — | Admin |
+| User | 9004 `other@kc.test` | — | IDOR target |
+| File | 9101 `welcome.txt` | 9001 | approved; public share |
+| File | 9102 `pending-doc.pdf` | 9001 | pending (mod queue) |
+| File | 9103 `mod-notes.txt` | 9002 | approved; private |
+| File | 9104 `other-user-secret.txt` | 9004 | IDOR target |
+| Share | `share-1` | 9001 → 9101 | public, predictable (CWE-330) |
+
 ### Previous State (v0.0.x–v0.1.x)
 
 No database. Entities were plain TypeScript classes stored in service-level arrays. Data reset on restart. See [ADR-008](../decisions/ADR-008-in-memory-before-persistence.md).
 
 ---
 
-## v1.0.0 -- Database Schema (PostgreSQL)
-
-The target schema at the insecure MVP. Builds on v0.2.0 with additional columns, relationships, and file storage.
+## v1.0.0 ERD (conceptual)
 
 ### Entity Relationship Diagram
 
@@ -145,7 +180,7 @@ erDiagram
 | email | varchar(255) | NOT NULL | No unique constraint at app level in v1.0.0 |
 | username | varchar(100) | NOT NULL | |
 | password_hash | varchar(255) | NOT NULL | Weak hash or plaintext in v1.0.0 -- CWE-256 |
-| role | varchar(20) | NOT NULL, DEFAULT 'user' | 'user' or 'admin'. Stored as string, not enum |
+| role | enum | NOT NULL, DEFAULT 'user' | 'user', 'moderator', or 'admin' |
 | created_at | timestamp | NOT NULL, DEFAULT NOW() | |
 | updated_at | timestamp | NOT NULL, DEFAULT NOW() | |
 

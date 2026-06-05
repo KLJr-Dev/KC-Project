@@ -1,6 +1,10 @@
-# Authentication & Authorization Flow (v0.1.x – v0.4.x)
+# Authentication & Authorization Flow (v1.0.0)
 
-This document describes authentication and authorization flows across the v0.1.x identity surface (registration, login, sessions) and v0.4.x authorization surface (binary RBAC, ternary roles, escalation chains, missing authorization checks).
+Canonical auth/RBAC reference for v1.0.0. Covers identity flows (v0.1.x), ternary RBAC (v0.4.x), product UI guards (v0.9.x), and v1.0.0 guard inconsistencies.
+
+> **Diagrams:** Standalone sequence diagrams live in [diagrams/auth-flow.md](../diagrams/auth-flow.md). This file is the detailed narrative.
+
+Ground truth endpoint matrix: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) §3.
 
 Each version adds behaviour incrementally. Intentional security weaknesses are highlighted and mapped to OWASP/CWE identifiers.
 
@@ -585,31 +589,25 @@ The `HasRoleGuard` allows access if no `@HasRole` metadata is found on the endpo
 
 This demonstrates **CWE-862** (Improper Access Control — Missing Authorization) at scale. It shows how developers forget to add necessary guards on some endpoints while adding them correctly on others.
 
-#### Authorization Inconsistency Table
-
-Comparing admin endpoints shows the inconsistency:
+#### Authorization Inconsistency Table (v1.0.0)
 
 | Endpoint | Guards | Status |
 |----------|--------|--------|
-| GET /admin/users | `JwtAuthGuard` + `@HasRole('admin')` | ✓ Secure — 403 for non-admin |
-| PUT /admin/users/:id/role | `JwtAuthGuard` + `@HasRole('admin')` | ✓ Secure — 403 for non-admin |
-| PUT /admin/users/:id/role/escalate | `JwtAuthGuard` + `@HasRole(['moderator','admin'])` | ✓ Secure — 403 for user |
-| **DELETE /admin/users/:id** | **Only `JwtAuthGuard`** | **✗ VULNERABLE — Any auth user allowed** |
+| GET /admin/users | `JwtAuthGuard` + `@HasRole('admin')` | HasRole checks JWT only (CWE-639) |
+| PUT /admin/users/:id/role | `JwtAuthGuard` + `@HasRole('admin')` | HasRole checks JWT only |
+| PUT /admin/users/:id/role/escalate | `JwtAuthGuard` + `@HasRole(['moderator','admin'])` | Moderator escalation chain (CWE-269) |
+| PUT /files/:id/approve | `JwtAuthGuard` + `@HasRole(['moderator','admin'])` | Forge mod JWT to approve any file |
+| **DELETE /admin/users/:id** | **Only `JwtAuthGuard`** | **✗ Any authed user (CWE-862)** |
+| **GET /admin/audit-logs** | **Only `JwtAuthGuard`** | **✗ Any authed user (CWE-284)** |
+| GET /admin/stats | `JwtAuthGuard` + `@HasRole('admin')` | HasRole checks JWT only |
 
-The DELETE endpoint is unguarded, demonstrating a realistic authorization bypass scenario.
+Frontend `RequireRole` on `/moderator` and `/admin` reads JWT from localStorage — forge token to access UI (CWE-345, CWE-639).
 
 ---
 
-### Placeholder: GET /admin/audit-logs (v0.4.4)
+### Persistent audit logs (v0.6.0)
 
-```
-GET /admin/audit-logs
-(returns empty array)
-```
-
-Returns empty array. Placeholder for future audit trail implementation. No persistent logging of role changes, escalations, or deletions exists. All admin modifications are logged to stdout only (lost on restart).
-
-**CWE-532**: Insertion of Sensitive Information Into Log Files (or lack thereof — no audit trail at all).
+`GET /admin/audit-logs` returns persisted `AuditLog` rows but lacks `@HasRole('admin')` — any authenticated user can read audit data (CWE-284). Product UI shows audit tab to admin role only (client-side).
 
 ---
 

@@ -9,7 +9,7 @@
  *       Role changes are instantaneous and permanent (CWE-532).
  *       No role hierarchy documentation — ambiguous whether moderator
  *       can promote to admin or only other admins can (CWE-841).
- * 
+ *
  * VULN (v0.4.2-v0.4.3): CWE-639 exposed via frontend — if an attacker
  *       modifies localStorage to set role='admin', this component will
  *       show role change buttons (UI-only protection, backend guards matter).
@@ -58,9 +58,7 @@ export function RoleModifier({ user, onRoleChange }: RoleModifierProps) {
   return (
     <div className="bg-white rounded border border-blue-200 p-4">
       <div className="mb-4">
-        <h3 className="font-semibold text-lg mb-2">
-          Update Role for {user.username}
-        </h3>
+        <h3 className="font-semibold text-lg mb-2">Update Role for {user.username}</h3>
         <p className="text-sm text-gray-700 mb-3">
           Current role: <span className="font-mono font-bold">{user.role}</span>
         </p>
@@ -113,9 +111,8 @@ export function RoleModifier({ user, onRoleChange }: RoleModifierProps) {
 
       {/* Vulnerability note */}
       <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-        <strong>Vulnerability Note:</strong> This role change has no audit trail and takes
-        effect immediately. (CWE-862: Missing Authorization, CWE-532: Sensitive Data
-        Exposure in Log Files)
+        <strong>Vulnerability Note:</strong> This role change has no audit trail and takes effect
+        immediately. (CWE-862: Missing Authorization, CWE-532: Sensitive Data Exposure in Log Files)
       </div>
     </div>
   );

@@ -39,10 +39,7 @@ describe('PUT /admin/users/:id/role/escalate (e2e)', () => {
     const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
     const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
     const message = `${encodedHeader}.${encodedPayload}`;
-    const signature = crypto
-      .createHmac('sha256', JWT_SECRET)
-      .update(message)
-      .digest('base64url');
+    const signature = crypto.createHmac('sha256', JWT_SECRET).update(message).digest('base64url');
     return `${message}.${signature}`;
   }
 
@@ -236,15 +233,11 @@ describe('PUT /admin/users/:id/role/escalate (e2e)', () => {
    */
   describe('Test 5: Auth boundary checks', () => {
     it('should reject escalation without token', async () => {
-      await request(app.getHttpServer())
-        .put(`/admin/users/${userAId}/role/escalate`)
-        .expect(401);
+      await request(app.getHttpServer()).put(`/admin/users/${userAId}/role/escalate`).expect(401);
     });
 
     it('should reject audit-logs without token', async () => {
-      await request(app.getHttpServer())
-        .get('/admin/audit-logs')
-        .expect(401);
+      await request(app.getHttpServer()).get('/admin/audit-logs').expect(401);
     });
   });
 });

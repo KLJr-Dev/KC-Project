@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import { User } from './users/entities/user.entity';
 import { FileEntity } from './files/entities/file.entity';
 import { SharingEntity } from './sharing/entities/sharing.entity';
-import { AdminItem } from './admin/entities/admin-item.entity';
+import { AuditLog } from './admin/entities/audit-log.entity';
 
 /**
  * v0.2.5 — Persistence Refactoring
@@ -20,7 +20,7 @@ export default new DataSource({
   username: 'postgres',
   password: 'postgres',
   database: 'kc_dev',
-  entities: [User, FileEntity, SharingEntity, AdminItem],
+  entities: [User, FileEntity, SharingEntity, AuditLog],
   migrations: ['src/migrations/*.ts'],
   synchronize: false,
   logging: true,

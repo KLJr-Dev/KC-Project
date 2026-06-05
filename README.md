@@ -15,92 +15,86 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.5.x in progress on `dev`)
+## Current Status (v1.0.0 — pentest-ready insecure MVP)
 
-**Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) (ADR-027). v0.0–v0.4 complete on `main`; v0.5 foundation refinement active on `dev`.
+**Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) (ADR-027).
 
-- **Backend** (NestJS) -- v0.4.x RBAC complete (ternary roles, escalation, guard gaps). v0.5.0: global ValidationPipe + class-validator DTOs. v0.5.1: frontend form alignment. Planned: pagination (v0.5.2), error standardization (v0.5.3), request logging (v0.5.4). JWT hardcoded secret, plaintext passwords, IDOR, public Swagger — intentional CWEs per [STRATEGY.md](docs/roadmap/STRATEGY.md).
-- **Database** (PostgreSQL 16) -- Docker Compose in `infra/compose.yml`. Hardcoded credentials, TypeORM migrations with `migrationsRun: true`. User entity with ternary role enum, migrations for v0.4.3 (file approval status) and v0.4.4 (escalation support).
-- **File Storage** -- Local filesystem in `backend/uploads/` via Multer. Approval status tracked but no ownership checks (file handling shipped in v0.3.x).
-- **Frontend** (Next.js) -- Tabbed auth (Register/Sign In), role selector for moderator/admin (v0.4.3), localStorage persistence of role (and JWT, CWE-639). Role displayed in header with ternary selection. Admin page with client-side role checks (bypassable via localStorage, CWE-639). Theme toggle, app shell. Types auto-generated from OpenAPI spec.
-- **Tooling** -- Shared Prettier/ESLint, TypeScript `strict: true`, e2e tests via supertest (84 tests across 11 suites at v0.4.6 baseline, real PG with `--runInBand`). Migration scripts (`migration:generate`, `migration:run`, `migration:revert`).
-- **Documentation** -- ADRs 001-025 (025: RBAC Design with three-phase implementation rationale), formal spec, architecture diagrams, STRIDE threat model, auth flow docs (expanded for v0.4.x authorization surfaces), glossary, security baseline with v0.4.x vulnerability inventory. All OWASP references use Top 10:2025.
-- ~40 CWE entries through v0.4.x; target 60–80 by v1.0.0 per STRATEGY. Next: complete v0.5–v0.6 app work, then v0.7 Docker, v0.8–v0.9 freeze.
+- **Docker (primary):** `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
+- **Demo users:** `user@kc.test`, `mod@kc.test`, `admin@kc.test` — see [demo-users.md](docs/deploy/demo-users.md)
+- **Product UI:** My Files, Sharing, Review (mod), Admin. API explorers at `/dev`
+- **Security cycle:** [Cycle-1](docs/security/Cycle-1/README.md) — Dev / PenTest / Remediation
+- **Ground truth:** [v1.0.0-ground-truth.md](docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md)
+- **Tests:** 150 e2e (`./infra/e2e-docker.sh`), smoke, journey — see [infra/README.md](infra/README.md)
+- **Security:** 59 documented CWE instances / 38 IDs — [cwe-inventory.md](docs/security/cwe-inventory.md)
 
-### Run locally
-
-From the repo root:
+### Run locally (Docker — pentest path)
 
 ```bash
-# Terminal 1 — PostgreSQL (requires Docker)
-docker compose -f infra/compose.yml up -d
-
-# Terminal 2 — backend (NestJS)
-cd backend && npm run start:dev
-
-# Terminal 3 — frontend (Next.js)
-cd frontend && npm run dev
+cp infra/.env.example infra/.env
+docker compose -f infra/docker-compose.prod.yml up -d --build
+./infra/smoke-test.sh
+./infra/journey-test.sh
 ```
 
-Backend: `http://localhost:4000`. Frontend: `http://localhost:3000`. PostgreSQL: `localhost:5432` (`postgres`/`postgres`, database `kc_dev`). See `backend/README.md`, `frontend/README.md`, and `infra/README.md` for details.
+### Run locally (native dev)
+
+```bash
+docker compose -f infra/compose.yml up -d   # kc_dev on :5432 only
+cd backend && npm run start:dev             # :4000
+cd frontend && npm run dev                  # :3000
+```
 
 ## Repository Structure
 
 ```
 KC-PROJECT/
-├── backend/              # Backend service (NestJS) - REST API, auth, user management
-├── frontend/             # Frontend application (Next.js) - auth UI, app shell
-├── infra/                # Infrastructure (Docker Compose for PostgreSQL)
+├── backend/              # NestJS REST API (30 routes)
+├── frontend/             # Next.js product UI + /dev explorers
+├── infra/                # Docker compose, nginx, verify scripts
 ├── docs/                 # Engineering and project documentation
 │   ├── architecture/     # System architecture, auth flow, data model, STRIDE
-│   ├── decisions/        # Architecture Decision Records (ADR-001 to ADR-020)
-│   ├── diagrams/         # Standalone diagrams (architecture, auth, infra, threats, timeline)
-│   ├── roadmap/          # Version-by-version development plan
-│   ├── security/         # Pentesting methodology (future)
-│   ├── spec/             # Formal spec (scope, requirements, personas, security baseline)
-│   ├── glossary.md       # Security, architecture, and project terminology
+│   ├── decisions/        # ADRs 001–031
+│   ├── diagrams/         # Architecture, auth, infra, threats, timeline
+│   ├── roadmap/          # STRATEGY, ROADMAP, version summaries
+│   ├── security/         # Cycle-1 workspace, CWE inventory
+│   ├── spec/             # Scope, requirements, personas, security baseline
+│   ├── glossary.md
 │   └── README.md
-└── README.md             # Project overview
+└── README.md
 ```
 
+## Tooling
 
-Each directory contains a README describing its intended responsibility.
+Shared formatting via root [`.prettierrc`](.prettierrc) (ADR-016, NFR-2.5):
+
+```bash
+cd backend && npm run format:check && npm run lint
+cd frontend && npm run format:check && npm run lint
+```
 
 ## Documentation
 
-All engineering and technical documentation is maintained in the `/docs` directory.
-
-Documentation is treated as a **living artefact** and will evolve alongside the
-project as it progresses from research and design into implementation, testing,
-deployment, and security hardening.
+All engineering documentation lives in `/docs`. Security testing artifacts: [docs/security/Cycle-1/](docs/security/Cycle-1/README.md).
 
 ## Versioning
 
-The project uses incremental versioning to reflect architectural and security milestones.
+- `v0.x` — Build phase
+- `v1.0.0` — Insecure MVP (pentest-ready)
+- `v1.0.x` — Pentest cycle patches
+- `v2.0.0` — Secure parallel
+- `v1.N.0` / `v2.N.0` — Perpetual expansion cycle
 
-- `v0.x` — Build phase: scaffolding, identity, persistence, files, auth, deployment, observability
-- `v1.0.0` — Insecure MVP (~15 CWEs across 6 attack surfaces)
-- `v1.0.x` — Structured pentesting and incremental patches
-- `v2.0.0` — Secure parallel (all v1.0.0 CWEs remediated)
-- `v1.N.0` / `v2.N.0` — Perpetual expansion cycle (new insecure features → pentest → harden → repeat)
-
-See [ROADMAP.md](docs/roadmap/ROADMAP.md) and [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md) for the full versioning model.
+See [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md).
 
 ## Branching Strategy
 
 ```
 main          Stable releases only (squash-merged from dev)
- └── dev      Integration branch - features merge here, tested before PR to main
+ └── dev      Integration branch
       ├── frontend    Frontend feature work
       └── backend     Backend feature work
 ```
 
-- `main` only receives commits from `dev` (or `hotfix` branches)
-- Feature work happens on `frontend` / `backend` branches off `dev`
-- Both branches merge into `dev` for integration testing, then `dev` is PR'd to `main`
-
 ## Collaboration
 
-This project is developed collaboratively using Git for version control.
-Contributions follow the branching strategy above. CI/CD workflows will be introduced
-in later versions.
+Git version control. CI/CD deferred per ADR-017.

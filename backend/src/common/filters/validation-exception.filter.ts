@@ -38,7 +38,7 @@ export class ValidationExceptionFilter implements ExceptionFilter {
 
     // Extract error details from ValidationPipe response
     const errors: Record<string, string[]> = {};
-    
+
     // NestJS ValidationPipe format: { message: [{ field: "email", messages: ["..."] }, ...] } or { message: ["email: ...", ...] }
     if (Array.isArray(exceptionResponse.message)) {
       console.log('[ValidationExceptionFilter] Message is array, processing...');
@@ -49,9 +49,9 @@ export class ValidationExceptionFilter implements ExceptionFilter {
           // - "email must be a valid email address"
           // - "property extraField should not exist"
           // - "email: must be a valid email"
-          
+
           let field: string | null = null;
-          
+
           // Try "property {field}" pattern first (for forbidNonWhitelisted)
           const propertyMatch = msg.match(/^property\s+(\w+)/);
           if (propertyMatch) {
@@ -63,7 +63,7 @@ export class ValidationExceptionFilter implements ExceptionFilter {
               field = fieldMatch[1];
             }
           }
-          
+
           if (field) {
             if (!errors[field]) {
               errors[field] = [];

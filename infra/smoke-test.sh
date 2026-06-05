@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v0.9.1 — Smoke test: health → register → upload → list files
+# v1.0.0 — Smoke test: health → register → upload → list files
 set -euo pipefail
 
 BASE="${BASE_URL:-http://localhost:8080/api}"
@@ -59,6 +59,14 @@ if [[ "$LIST_HTTP" != "200" ]]; then
 fi
 echo "$LIST_BODY" | grep -q '"items"' || fail "expected paginated items in response: $LIST_BODY"
 echo "$LIST_BODY" | grep -q '"total"' || fail "expected total in paginated response: $LIST_BODY"
+echo "  OK"
+
+echo "Demo user login..."
+DEMO=$(curl -sS -X POST "${BASE}/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"user@kc.test","password":"UserPass123!"}') \
+  || fail "demo user login failed"
+echo "$DEMO" | grep -q '"token"' || fail "demo user missing token (run migrations / seed?)"
 echo "  OK"
 
 echo "Smoke test passed."

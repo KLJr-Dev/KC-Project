@@ -4,1267 +4,1267 @@
  */
 
 export interface paths {
-    "/ping": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * v0.0.5 — Reachability endpoint
-         *
-         *     Infrastructure-only endpoint.
-         *     Not part of application domain.
-         *     Will be removed or disabled post v0.1.x.
-         */
-        get: operations["AppController_ping"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  '/ping': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/admin/crash-test": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * GET /admin/crash-test — Intentional error for error handling testing
-         *
-         *     Throws an error to test that errors are properly caught and don't leak
-         *     sensitive information. Used in e2e tests to verify error handling.
-         *
-         *     Guarded by: JwtAuthGuard only (any authenticated user can access for testing)
-         *     Tests: v0.2.4 error leakage vulnerability testing (CWE-209)
-         */
-        get: operations["AppController_crashTest"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * v0.0.5 — Reachability endpoint
+     *
+     *     Infrastructure-only endpoint.
+     *     Not part of application domain.
+     *     Will be removed or disabled post v0.1.x.
+     */
+    get: operations['AppController_ping'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/crash-test': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** POST /auth/register — Public. No rate limiting (CWE-307). */
-        post: operations["AuthController_register"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * GET /admin/crash-test — Intentional error for error handling testing
+     *
+     *     Throws an error to test that errors are properly caught and don't leak
+     *     sensitive information. Used in e2e tests to verify error handling.
+     *
+     *     Guarded by: JwtAuthGuard only (any authenticated user can access for testing)
+     *     Tests: v0.2.4 error leakage vulnerability testing (CWE-209)
+     */
+    get: operations['AppController_crashTest'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/register': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** POST /auth/login — Public. No rate limiting, no lockout (CWE-307). */
-        post: operations["AuthController_login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** POST /auth/register — Public. No rate limiting (CWE-307). */
+    post: operations['AuthController_register'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/login': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /auth/me — Protected. Returns user profile from DB including role (v0.4.0). */
-        get: operations["AuthController_getMe"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** POST /auth/login — Public. No rate limiting, no lockout (CWE-307). */
+    post: operations['AuthController_login'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/me': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * POST /auth/logout — Protected. Intentionally does nothing server-side.
-         *     VULN: CWE-613 — token remains valid after logout.
-         */
-        post: operations["AuthController_logout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** GET /auth/me — Protected. Returns user profile from DB including role (v0.4.0). */
+    get: operations['AuthController_getMe'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/logout': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["UsersController_findAll"];
-        put?: never;
-        post: operations["UsersController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * POST /auth/logout — Protected. Intentionally does nothing server-side.
+     *     VULN: CWE-613 — token remains valid after logout.
+     */
+    post: operations['AuthController_logout'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/users/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["UsersController_findById"];
-        put: operations["UsersController_update"];
-        post?: never;
-        delete: operations["UsersController_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations['UsersController_findAll'];
+    put?: never;
+    post: operations['UsersController_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/files": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /files -- return all file records, unbounded. No pagination. */
-        get: operations["FilesController_findAll"];
-        put?: never;
-        /**
-         * POST /files -- multipart file upload.
-         *     VULN: client filename used as disk filename (CWE-22).
-         *     VULN: no file size limit (CWE-400).
-         *     VULN: mimetype from client header (CWE-434).
-         */
-        post: operations["FilesController_upload"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations['UsersController_findById'];
+    put: operations['UsersController_update'];
+    post?: never;
+    delete: operations['UsersController_delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/files': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/files/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /files/:id -- return file metadata or 404. */
-        get: operations["FilesController_getById"];
-        put?: never;
-        post?: never;
-        /**
-         * DELETE /files/:id -- remove file record AND file from disk.
-         *     VULN: no ownership check (CWE-639).
-         *     VULN: no path validation before fs.unlink (CWE-22).
-         */
-        delete: operations["FilesController_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** GET /files -- return all file records, unbounded. No pagination. */
+    get: operations['FilesController_findAll'];
+    put?: never;
+    /**
+     * POST /files -- multipart file upload.
+     *     VULN: client filename used as disk filename (CWE-22).
+     *     VULN: no file size limit (CWE-400).
+     *     VULN: mimetype from client header (CWE-434).
+     */
+    post: operations['FilesController_upload'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/files/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/files/{id}/download": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * GET /files/:id/download -- Stream file from disk to client.
-         *
-         *     v0.5.1: File download & streaming endpoint. Returns file content as attachment
-         *     with correct Content-Type and Content-Disposition headers. Supports all file sizes
-         *     via Express streaming (sendFile with piping).
-         *
-         *     Behavior:
-         *     1. Fetch file metadata from database by ID
-         *     2. Verify file exists on disk (storagePath)
-         *     3. Set Content-Type from stored MIME type (or application/octet-stream default)
-         *     4. Set Content-Disposition: attachment with filename for browser download
-         *     5. Stream file content via Express res.sendFile() (efficient piping)
-         *
-         *     Response:
-         *     - 200 OK: File stream with headers (Content-Type, Content-Disposition, Content-Length)
-         *     - 404 Not Found: File ID doesn't exist or disk storage missing
-         *     - 401 Unauthorized: No or invalid JWT token
-         *
-         *     OpenAPI: application/octet-stream (binary response)
-         *
-         *     VULN (v0.5.1 - CWE-639 IDOR): No ownership check. Any authenticated user
-         *           can download any file uploaded by any other user. Combined with CWE-200
-         *           (storagePath exposed in metadata), attacker can:
-         *           1. List all files via GET /files (unbounded)
-         *           2. Fetch metadata including storagePath of any file
-         *           3. Download file with GET /files/:id/download (no ownership validation)
-         *           Severity: HIGH - Full file confidentiality breach.
-         *           Remediation (v2.0.0): Check file.ownerId == currentUser.id before streaming.
-         *           Except: Admin/moderator can download if approval workflow requires review.
-         *
-         *     VULN (v0.5.1 - CWE-22 Path Traversal): storagePath used directly in sendFile()
-         *           without validation. If storagePath contains absolute path to system file
-         *           (e.g., "/etc/passwd"), and database can be poisoned via SQL injection or
-         *           race condition, attacker could read arbitrary system files.
-         *           Current risk: LOW (storagePath generated by multer, not user input).
-         *           But if migration or direct DB update allowed attacker to set:
-         *             storagePath = "/etc/shadow"
-         *           Then GET /files/:id/download would leak /etc/shadow content.
-         *           Remediation (v2.0.0): Whitelist storagePath to uploadDir; reject if
-         *           path.resolve(storagePath).startsWith(uploadDir) === false.
-         *
-         *     VULN (v0.5.1 - CWE-434 MIME Type Confusion): mimetype stored from client
-         *           (via multer Content-Type header) without validation. Attacker uploads
-         *           .txt file claiming mimetype='application/javascript', server stores
-         *           mimetype='application/javascript'. On download, Content-Type is set to
-         *           application/javascript, causing browser to execute as script (XSS).
-         *           Attack Flow:
-         *             1. Upload malicious.txt with Content-Type: application/javascript
-         *             2. Server stores: { filename: 'malicious.txt', mimetype: 'application/javascript' }
-         *             3. Download returns: Content-Type: application/javascript; body = malicious.txt
-         *             4. Browser <script src="/download"> executes JavaScript
-         *           Remediation (v1.0.0): Server detects MIME from file content (magic bytes)
-         *           using file library or libmagic. Whitelist safe MIME types (pdf, image/*, etc).
-         *           Do NOT trust Content-Type header.
-         *
-         *     VULN (v0.5.1 - CWE-200 Information Disclosure): storagePath exposed in
-         *           GET /files/:id metadata endpoint. Reveals internal file storage structure:
-         *           /home/kc/KC-Project-1/backend/uploads/abc123-filename.ext
-         *           Attacker learns:
-         *           - Application directory structure (/home/kc/...)
-         *           - Storage location (/backend/uploads)
-         *           - Filename pattern (UUID prefix)
-         *           Combined with CWE-22 and CWE-639, attacker can map attack surface.
-         *           Remediation (v2.0.0): Remove storagePath from API response.
-         *           Send file ID and filename only; keep storagePath server-side secret.
-         */
-        get: operations["FilesController_download"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** GET /files/:id -- return file metadata or 404. */
+    get: operations['FilesController_getById'];
+    put?: never;
+    post?: never;
+    /**
+     * DELETE /files/:id -- remove file record AND file from disk.
+     *     VULN: no ownership check (CWE-639).
+     *     VULN: no path validation before fs.unlink (CWE-22).
+     */
+    delete: operations['FilesController_delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/files/{id}/download': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/files/{id}/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * PUT /files/:id/approve -- Moderator or admin approves/rejects file.
-         *
-         *     v0.4.3: New endpoint for file approval workflow. Open to moderators and admins.
-         *
-         *     VULN (v0.4.3 - CWE-639 Extended): HasRole(['admin', 'moderator']) trusts JWT role
-         *           without database validation. An attacker who forges a JWT with role='moderator'
-         *           (knowing the hardcoded secret 'kc-secret') can approve arbitrary files.
-         *           This endpoint is directly reachable by forged tokens.
-         *           Remediation (v2.0.0): Server-side role re-validation from database on every request.
-         *
-         *     VULN (v0.4.3 - CWE-862): No additional authorization checks. Any moderator/admin
-         *           can approve ANY file, not just files they own or uploaded. Combined with
-         *           CWE-641 (lack of conflict detection), moderator could approve file, admin
-         *           could reject it, triggering race conditions or permission confusion.
-         *           Remediation (v2.0.0): Ownership checks, approval audit trail, re-review required
-         *           for status changes.
-         *
-         *     VULN (v0.4.3 - CWE-841): Role hierarchy is ambiguous. The ternary system
-         *           (user/moderator/admin) does not define if moderator can override admin
-         *           decisions or vice versa. This intentional ambiguity surfaces during pen-testing.
-         *           Remediation (v2.0.0): Explicit role hierarchy constants, documented permission matrix.
-         */
-        put: operations["FilesController_approveFile"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * GET /files/:id/download -- Stream file from disk to client.
+     *
+     *     v0.5.1: File download & streaming endpoint. Returns file content as attachment
+     *     with correct Content-Type and Content-Disposition headers. Supports all file sizes
+     *     via Express streaming (sendFile with piping).
+     *
+     *     Behavior:
+     *     1. Fetch file metadata from database by ID
+     *     2. Verify file exists on disk (storagePath)
+     *     3. Set Content-Type from stored MIME type (or application/octet-stream default)
+     *     4. Set Content-Disposition: attachment with filename for browser download
+     *     5. Stream file content via Express res.sendFile() (efficient piping)
+     *
+     *     Response:
+     *     - 200 OK: File stream with headers (Content-Type, Content-Disposition, Content-Length)
+     *     - 404 Not Found: File ID doesn't exist or disk storage missing
+     *     - 401 Unauthorized: No or invalid JWT token
+     *
+     *     OpenAPI: application/octet-stream (binary response)
+     *
+     *     VULN (v0.5.1 - CWE-639 IDOR): No ownership check. Any authenticated user
+     *           can download any file uploaded by any other user. Combined with CWE-200
+     *           (storagePath exposed in metadata), attacker can:
+     *           1. List all files via GET /files (unbounded)
+     *           2. Fetch metadata including storagePath of any file
+     *           3. Download file with GET /files/:id/download (no ownership validation)
+     *           Severity: HIGH - Full file confidentiality breach.
+     *           Remediation (v2.0.0): Check file.ownerId == currentUser.id before streaming.
+     *           Except: Admin/moderator can download if approval workflow requires review.
+     *
+     *     VULN (v0.5.1 - CWE-22 Path Traversal): storagePath used directly in sendFile()
+     *           without validation. If storagePath contains absolute path to system file
+     *           (e.g., "/etc/passwd"), and database can be poisoned via SQL injection or
+     *           race condition, attacker could read arbitrary system files.
+     *           Current risk: LOW (storagePath generated by multer, not user input).
+     *           But if migration or direct DB update allowed attacker to set:
+     *             storagePath = "/etc/shadow"
+     *           Then GET /files/:id/download would leak /etc/shadow content.
+     *           Remediation (v2.0.0): Whitelist storagePath to uploadDir; reject if
+     *           path.resolve(storagePath).startsWith(uploadDir) === false.
+     *
+     *     VULN (v0.5.1 - CWE-434 MIME Type Confusion): mimetype stored from client
+     *           (via multer Content-Type header) without validation. Attacker uploads
+     *           .txt file claiming mimetype='application/javascript', server stores
+     *           mimetype='application/javascript'. On download, Content-Type is set to
+     *           application/javascript, causing browser to execute as script (XSS).
+     *           Attack Flow:
+     *             1. Upload malicious.txt with Content-Type: application/javascript
+     *             2. Server stores: { filename: 'malicious.txt', mimetype: 'application/javascript' }
+     *             3. Download returns: Content-Type: application/javascript; body = malicious.txt
+     *             4. Browser <script src="/download"> executes JavaScript
+     *           Remediation (v1.0.0): Server detects MIME from file content (magic bytes)
+     *           using file library or libmagic. Whitelist safe MIME types (pdf, image/*, etc).
+     *           Do NOT trust Content-Type header.
+     *
+     *     VULN (v0.5.1 - CWE-200 Information Disclosure): storagePath exposed in
+     *           GET /files/:id metadata endpoint. Reveals internal file storage structure:
+     *           /home/kc/KC-Project-1/backend/uploads/abc123-filename.ext
+     *           Attacker learns:
+     *           - Application directory structure (/home/kc/...)
+     *           - Storage location (/backend/uploads)
+     *           - Filename pattern (UUID prefix)
+     *           Combined with CWE-22 and CWE-639, attacker can map attack surface.
+     *           Remediation (v2.0.0): Remove storagePath from API response.
+     *           Send file ID and filename only; keep storagePath server-side secret.
+     */
+    get: operations['FilesController_download'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/files/{id}/approve': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/sharing/public/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * GET /sharing/public/:token -- unauthenticated file download.
-         *     VULN: no auth required (CWE-285), sequential tokens (CWE-330),
-         *     expiry not checked (CWE-613).
-         *
-         *     IMPORTANT: This route must be declared before :id routes to avoid
-         *     "public" being captured as an id parameter.
-         */
-        get: operations["SharingController_publicDownload"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /**
+     * PUT /files/:id/approve -- Moderator or admin approves/rejects file.
+     *
+     *     v0.4.3: New endpoint for file approval workflow. Open to moderators and admins.
+     *
+     *     VULN (v0.4.3 - CWE-639 Extended): HasRole(['admin', 'moderator']) trusts JWT role
+     *           without database validation. An attacker who forges a JWT with role='moderator'
+     *           (knowing the hardcoded secret 'kc-secret') can approve arbitrary files.
+     *           This endpoint is directly reachable by forged tokens.
+     *           Remediation (v2.0.0): Server-side role re-validation from database on every request.
+     *
+     *     VULN (v0.4.3 - CWE-862): No additional authorization checks. Any moderator/admin
+     *           can approve ANY file, not just files they own or uploaded. Combined with
+     *           CWE-641 (lack of conflict detection), moderator could approve file, admin
+     *           could reject it, triggering race conditions or permission confusion.
+     *           Remediation (v2.0.0): Ownership checks, approval audit trail, re-review required
+     *           for status changes.
+     *
+     *     VULN (v0.4.3 - CWE-841): Role hierarchy is ambiguous. The ternary system
+     *           (user/moderator/admin) does not define if moderator can override admin
+     *           decisions or vice versa. This intentional ambiguity surfaces during pen-testing.
+     *           Remediation (v2.0.0): Explicit role hierarchy constants, documented permission matrix.
+     */
+    put: operations['FilesController_approveFile'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/sharing/public/{token}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/sharing": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /sharing -- list all share records. */
-        get: operations["SharingController_read"];
-        put?: never;
-        /** POST /sharing -- create share record. ownerId from JWT. */
-        post: operations["SharingController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * GET /sharing/public/:token -- unauthenticated file download.
+     *     VULN: no auth required (CWE-285), sequential tokens (CWE-330),
+     *     expiry not checked (CWE-613).
+     *
+     *     IMPORTANT: This route must be declared before :id routes to avoid
+     *     "public" being captured as an id parameter.
+     */
+    get: operations['SharingController_publicDownload'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/sharing': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/sharing/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /sharing/:id -- single share or 404. */
-        get: operations["SharingController_getById"];
-        /** PUT /sharing/:id -- update share or 404. */
-        put: operations["SharingController_update"];
-        post?: never;
-        /** DELETE /sharing/:id -- remove share or 404. */
-        delete: operations["SharingController_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** GET /sharing -- list all share records. */
+    get: operations['SharingController_read'];
+    put?: never;
+    /** POST /sharing -- create share record. ownerId from JWT. */
+    post: operations['SharingController_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/sharing/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/admin/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all users (admin only)
-         * @description Returns all users with their details. Guarded by HasRole(admin), trusts JWT role (CWE-639).
-         */
-        get: operations["AdminController_getAllUsers"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** GET /sharing/:id -- single share or 404. */
+    get: operations['SharingController_getById'];
+    /** PUT /sharing/:id -- update share or 404. */
+    put: operations['SharingController_update'];
+    post?: never;
+    /** DELETE /sharing/:id -- remove share or 404. */
+    delete: operations['SharingController_delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/users': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/admin/users/{id}/role": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update a user role (admin only)
-         * @description Change any user role from "user" to "admin" (or vice versa). No audit trail. Changes take effect immediately (CWE-862, CWE-532).
-         */
-        put: operations["AdminController_updateUserRole"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * List all users (admin only)
+     * @description Returns all users with their details. Guarded by HasRole(admin), trusts JWT role (CWE-639).
+     */
+    get: operations['AdminController_getAllUsers'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/users/{id}/role': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/admin/users/{id}/role/escalate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Escalate user role (moderator or admin)
-         * @description Promote a user to moderator role if not already. Only moderators and admins can call this. CWE-269 enabled: moderator can create more moderators immediately.
-         */
-        put: operations["AdminController_escalateUserRole"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /**
+     * Update a user role (admin only)
+     * @description Change any user role from "user" to "admin" (or vice versa). No audit trail. Changes take effect immediately (CWE-862, CWE-532).
+     */
+    put: operations['AdminController_updateUserRole'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/users/{id}/role/escalate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/admin/audit-logs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get audit logs (admin only, placeholder)
-         * @description Returns array of audit log entries. Currently a placeholder returning empty array (CWE-532: No audit trail implemented).
-         */
-        get: operations["AdminController_getAuditLogs"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /**
+     * Escalate user role (moderator or admin)
+     * @description Promote a user to moderator role if not already. Only moderators and admins can call this. CWE-269 enabled: moderator can create more moderators immediately.
+     */
+    put: operations['AdminController_escalateUserRole'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/audit-logs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/admin/users/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete a user (VULNERABILITY: Missing Authorization)
-         * @description Delete a user by ID. INTENTIONALLY MISSING @HasRole(admin) — any authenticated user can delete any other user. Demonstrates CWE-862.
-         */
-        delete: operations["AdminController_deleteUser"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Get audit logs (admin only, placeholder)
+     * @description Returns array of audit log entries. Currently a placeholder returning empty array (CWE-532: No audit trail implemented).
+     */
+    get: operations['AdminController_getAuditLogs'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/users/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    get?: never;
+    put?: never;
+    post?: never;
+    /**
+     * Delete a user (VULNERABILITY: Missing Authorization)
+     * @description Delete a user by ID. INTENTIONALLY MISSING @HasRole(admin) — any authenticated user can delete any other user. Demonstrates CWE-862.
+     */
+    delete: operations['AdminController_deleteUser'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        RegisterDto: {
-            email: string;
-            password: string;
-            username: string;
-        };
-        AuthResponseDto: {
-            token: string;
-            userId: string;
-            message?: string;
-        };
-        LoginDto: {
-            email: string;
-            password: string;
-        };
-        UserResponseDto: {
-            id: string;
-            email?: string;
-            username?: string;
-            role?: Record<string, never>;
-            createdAt: string;
-            updatedAt: string;
-        };
-        CreateUserDto: {
-            email: string;
-            username: string;
-            password: string;
-        };
-        UpdateUserDto: {
-            email?: string;
-            username?: string;
-            password?: string;
-        };
-        UploadFileDto: {
-            description?: string;
-        };
-        FileResponseDto: {
-            id: string;
-            ownerId?: string;
-            filename: string;
-            mimetype?: string;
-            storagePath?: string;
-            description?: string;
-            size?: number;
-            approvalStatus?: Record<string, never>;
-            uploadedAt: string;
-        };
-        ApproveFileDto: {
-            status: Record<string, never>;
-        };
-        CreateSharingDto: {
-            fileId: string;
-            public?: boolean;
-            expiresAt?: string;
-        };
-        SharingResponseDto: {
-            id: string;
-            ownerId?: string;
-            fileId?: string;
-            publicToken?: string;
-            public?: boolean;
-            createdAt: string;
-            expiresAt?: string;
-        };
-        UpdateSharingDto: {
-            public?: boolean;
-            expiresAt?: string;
-        };
-        UserListItemDto: {
-            /**
-             * @default
-             * @example 123e4567-e89b-12d3-a456-426614174000
-             */
-            id: string;
-            /**
-             * @default
-             * @example alice@example.com
-             */
-            email: string;
-            /**
-             * @default
-             * @example alice
-             */
-            username: string;
-            /**
-             * @default user
-             * @example admin
-             * @enum {string}
-             */
-            role: "user" | "moderator" | "admin";
-            /** @default  */
-            createdAt: Record<string, never>;
-            /** @default  */
-            updatedAt: Record<string, never>;
-        };
-        GetAdminUsersResponseDto: {
-            /** @default [] */
-            users: components["schemas"]["UserListItemDto"][];
-            /**
-             * @default 0
-             * @example 3
-             */
-            count: number;
-        };
-        UpdateUserRoleDto: {
-            /**
-             * @example admin
-             * @enum {string}
-             */
-            role: "user" | "moderator" | "admin";
-        };
+  schemas: {
+    RegisterDto: {
+      email: string;
+      password: string;
+      username: string;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    AuthResponseDto: {
+      token: string;
+      userId: string;
+      message?: string;
+    };
+    LoginDto: {
+      email: string;
+      password: string;
+    };
+    UserResponseDto: {
+      id: string;
+      email?: string;
+      username?: string;
+      role?: Record<string, never>;
+      createdAt: string;
+      updatedAt: string;
+    };
+    CreateUserDto: {
+      email: string;
+      username: string;
+      password: string;
+    };
+    UpdateUserDto: {
+      email?: string;
+      username?: string;
+      password?: string;
+    };
+    UploadFileDto: {
+      description?: string;
+    };
+    FileResponseDto: {
+      id: string;
+      ownerId?: string;
+      filename: string;
+      mimetype?: string;
+      storagePath?: string;
+      description?: string;
+      size?: number;
+      approvalStatus?: Record<string, never>;
+      uploadedAt: string;
+    };
+    ApproveFileDto: {
+      status: Record<string, never>;
+    };
+    CreateSharingDto: {
+      fileId: string;
+      public?: boolean;
+      expiresAt?: string;
+    };
+    SharingResponseDto: {
+      id: string;
+      ownerId?: string;
+      fileId?: string;
+      publicToken?: string;
+      public?: boolean;
+      createdAt: string;
+      expiresAt?: string;
+    };
+    UpdateSharingDto: {
+      public?: boolean;
+      expiresAt?: string;
+    };
+    UserListItemDto: {
+      /**
+       * @default
+       * @example 123e4567-e89b-12d3-a456-426614174000
+       */
+      id: string;
+      /**
+       * @default
+       * @example alice@example.com
+       */
+      email: string;
+      /**
+       * @default
+       * @example alice
+       */
+      username: string;
+      /**
+       * @default user
+       * @example admin
+       * @enum {string}
+       */
+      role: 'user' | 'moderator' | 'admin';
+      /** @default  */
+      createdAt: Record<string, never>;
+      /** @default  */
+      updatedAt: Record<string, never>;
+    };
+    GetAdminUsersResponseDto: {
+      /** @default [] */
+      users: components['schemas']['UserListItemDto'][];
+      /**
+       * @default 0
+       * @example 3
+       */
+      count: number;
+    };
+    UpdateUserRoleDto: {
+      /**
+       * @example admin
+       * @enum {string}
+       */
+      role: 'user' | 'moderator' | 'admin';
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    AppController_ping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  AppController_ping: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    AppController_crashTest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+        content?: never;
+      };
     };
-    AuthController_register: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RegisterDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthResponseDto"];
-                };
-            };
-        };
+  };
+  AppController_crashTest: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    AuthController_login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthResponseDto"];
-                };
-            };
-        };
+        content?: never;
+      };
     };
-    AuthController_getMe: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponseDto"];
-                };
-            };
-        };
+  };
+  AuthController_register: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    AuthController_logout: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RegisterDto'];
+      };
     };
-    UsersController_findAll: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponseDto"][];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['AuthResponseDto'];
         };
+      };
     };
-    UsersController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUserDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponseDto"];
-                };
-            };
-        };
+  };
+  AuthController_login: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    UsersController_findById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponseDto"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LoginDto'];
+      };
     };
-    UsersController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUserDto"];
-            };
+        content: {
+          'application/json': components['schemas']['AuthResponseDto'];
         };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponseDto"];
-                };
-            };
-        };
+      };
     };
-    UsersController_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  AuthController_getMe: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    FilesController_findAll: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FileResponseDto"][];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['UserResponseDto'];
         };
+      };
     };
-    FilesController_upload: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UploadFileDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FileResponseDto"];
-                };
-            };
-        };
+  };
+  AuthController_logout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    FilesController_getById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FileResponseDto"];
-                };
-            };
-        };
+        content?: never;
+      };
     };
-    FilesController_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  UsersController_findAll: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    FilesController_download: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
+        content: {
+          'application/json': components['schemas']['UserResponseDto'][];
         };
+      };
     };
-    FilesController_approveFile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ApproveFileDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FileResponseDto"];
-                };
-            };
-        };
+  };
+  UsersController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    SharingController_publicDownload: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateUserDto'];
+      };
     };
-    SharingController_read: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SharingResponseDto"][];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['UserResponseDto'];
         };
+      };
     };
-    SharingController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateSharingDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SharingResponseDto"];
-                };
-            };
-        };
+  };
+  UsersController_findById: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
     };
-    SharingController_getById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SharingResponseDto"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['UserResponseDto'];
         };
+      };
     };
-    SharingController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateSharingDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SharingResponseDto"];
-                };
-            };
-        };
+  };
+  UsersController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
     };
-    SharingController_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateUserDto'];
+      };
     };
-    AdminController_getAllUsers: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description List of all users */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetAdminUsersResponseDto"];
-                };
-            };
-            /** @description Unauthorized (no token) */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden (not admin) */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
+        content: {
+          'application/json': components['schemas']['UserResponseDto'];
         };
+      };
     };
-    AdminController_updateUserRole: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUserRoleDto"];
-            };
-        };
-        responses: {
-            /** @description User role updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden (not admin) */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  UsersController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
     };
-    AdminController_escalateUserRole: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description User escalated to moderator */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden (not moderator or admin) */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+        content?: never;
+      };
     };
-    AdminController_getAuditLogs: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Audit log entries */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden (not admin) */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  FilesController_findAll: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    AdminController_deleteUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description User deleted successfully (no body returned) */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized (no token) */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
+        content: {
+          'application/json': components['schemas']['FileResponseDto'][];
         };
+      };
     };
+  };
+  FilesController_upload: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UploadFileDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FileResponseDto'];
+        };
+      };
+    };
+  };
+  FilesController_getById: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FileResponseDto'];
+        };
+      };
+    };
+  };
+  FilesController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FilesController_download: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FilesController_approveFile: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ApproveFileDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FileResponseDto'];
+        };
+      };
+    };
+  };
+  SharingController_publicDownload: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SharingController_read: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SharingResponseDto'][];
+        };
+      };
+    };
+  };
+  SharingController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateSharingDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SharingResponseDto'];
+        };
+      };
+    };
+  };
+  SharingController_getById: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SharingResponseDto'];
+        };
+      };
+    };
+  };
+  SharingController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateSharingDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SharingResponseDto'];
+        };
+      };
+    };
+  };
+  SharingController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_getAllUsers: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description List of all users */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['GetAdminUsersResponseDto'];
+        };
+      };
+      /** @description Unauthorized (no token) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Forbidden (not admin) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_updateUserRole: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateUserRoleDto'];
+      };
+    };
+    responses: {
+      /** @description User role updated */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Forbidden (not admin) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description User not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_escalateUserRole: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description User escalated to moderator */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Forbidden (not moderator or admin) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description User not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_getAuditLogs: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Audit log entries */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Forbidden (not admin) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_deleteUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description User deleted successfully (no body returned) */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized (no token) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description User not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v0.8.2 — Run backend e2e suite against Docker PostgreSQL (kc_prod).
+# v1.0.0 — Run backend e2e suite against Docker PostgreSQL (kc_prod).
 # Requires: docker compose prod stack postgres healthy on host :5433.
 set -euo pipefail
 
@@ -18,7 +18,7 @@ for i in $(seq 1 30); do
 done
 docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U postgres
 
-echo "Running e2e (148 tests) against kc_prod on localhost:5433..."
+echo "Running e2e (150 tests) against kc_prod on localhost:5433..."
 cd "${ROOT}/backend"
 DB_HOST=localhost \
 DB_PORT=5433 \

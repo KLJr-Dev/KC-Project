@@ -33,13 +33,9 @@ export class AddRoleToUser1771411000001 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop role column
-    await queryRunner.query(
-      `ALTER TABLE "user" DROP COLUMN IF EXISTS "role"`,
-    );
+    await queryRunner.query(`ALTER TABLE "user" DROP COLUMN IF EXISTS "role"`);
 
     // Drop enum type if no longer referenced
-    await queryRunner.query(
-      `DROP TYPE IF EXISTS "user_role_enum"`,
-    );
+    await queryRunner.query(`DROP TYPE IF EXISTS "user_role_enum"`);
   }
 }

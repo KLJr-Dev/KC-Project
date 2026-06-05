@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
 import { FileEntity } from './entities/file.entity';
+import { SharingEntity } from '../sharing/entities/sharing.entity';
 import { AuthModule } from '../auth/auth.module';
 import { AuditModule } from '../audit/audit.module';
 
@@ -16,7 +17,7 @@ import { AuditModule } from '../audit/audit.module';
  * VULN (v0.2.2): ownerId never checked on read/delete. CWE-639 | A01:2025
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([FileEntity]), AuthModule, AuditModule],
+  imports: [TypeOrmModule.forFeature([FileEntity, SharingEntity]), AuthModule, AuditModule],
   controllers: [FilesController],
   providers: [FilesService],
   exports: [FilesService],

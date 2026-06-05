@@ -18,10 +18,7 @@ export function logAuthEvent(
   );
 }
 
-export function logAdminEvent(
-  action: string,
-  details: Record<string, unknown>,
-): void {
+export function logAdminEvent(action: string, details: Record<string, unknown>): void {
   console.log(
     JSON.stringify({
       event: `admin.${action}`,

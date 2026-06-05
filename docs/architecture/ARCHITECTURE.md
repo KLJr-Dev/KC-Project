@@ -1,33 +1,46 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v0.4.5** (Authorization surface with ternary RBAC, escalation chains, and intentional missing authorization checks on some endpoints).
+This document describes the system architecture as of **v1.0.0** (pentest-ready insecure MVP: ternary RBAC, product UI + dev explorers, Docker prod stack, 59/38 CWEs, 150 e2e tests).
+
+Ground truth: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md). Cycle-1 structure: [ADR-031](../decisions/ADR-031-security-cycle-docs.md).
 
 ---
 
 ## System Overview
 
-KC-Project is a three-process full-stack web application. Frontend and backend run natively; PostgreSQL runs in a Docker container.
+### Production / pentest (primary)
+
+Full stack in Docker (`infra/docker-compose.prod.yml`). nginx reverse proxy at `:8080` routes `/` → frontend, `/api` → backend. PostgreSQL internal; host port `5433` for e2e only.
 
 ```mermaid
 flowchart LR
     subgraph client [Untrusted Client]
-        Frontend["Frontend\nNext.js :3000\nApp Router"]
+        Browser["Browser\n:8080"]
     end
-    subgraph server [Trust Boundary]
-        Backend["Backend\nNestJS :4000\nREST API"]
-        PG["PostgreSQL :5432\nDocker container"]
+    subgraph compose [docker-compose.prod.yml]
+        Nginx["nginx :80\n→ host :8080"]
+        Frontend["Frontend\nNext.js :3000"]
+        Backend["Backend\nNestJS :4000"]
+        PG["PostgreSQL 16\nkc_prod"]
     end
-    Frontend -- "HTTP/REST\nJSON over localhost:4000" --> Backend
-    Backend -- "JSON responses" --> Frontend
+    Browser -- "HTTP" --> Nginx
+    Nginx -- "/" --> Frontend
+    Nginx -- "/api" --> Backend
+    Frontend -- "NEXT_PUBLIC_API_URL=/api" --> Nginx
     Backend -- "TypeORM" --> PG
 ```
 
-- **Frontend** — Next.js 16 with App Router, Tailwind CSS, React 19. Runs on port 3000. All pages are client components (`'use client'`) that call the backend via fetch. Bearer token in Authorization header.
-- **Backend** — NestJS 11 on Express. Runs on port 4000. Modular architecture with controllers, services, and DTOs. CORS enabled (intentionally permissive). TypeORM repositories backed by PostgreSQL.
-- **Database** — PostgreSQL 16 in Docker (`infra/compose.yml`). Hardcoded credentials, TypeORM migrations with `migrationsRun: true` (replaced `synchronize: true` in v0.2.5), SQL logging. See [ADR-019](../decisions/ADR-019-typeorm-orm.md), [ADR-020](../decisions/ADR-020-docker-db-only.md), [ADR-022](../decisions/ADR-022-typeorm-migrations.md).
-- **Communication** — Plain HTTP REST. JSON request/response bodies. No WebSockets, no GraphQL, no tRPC.
-- **Persistence** — All data persisted in PostgreSQL via TypeORM. Survives process restarts.
-- **File Storage** — Uploaded files stored on local filesystem in `backend/uploads/` via Multer `diskStorage`. Client-supplied filenames used as disk filenames with no sanitisation. See [ADR-024](../decisions/ADR-024-file-storage-strategy.md).
+Deploy: `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
+
+### Dev (native)
+
+Backend and frontend run natively; PostgreSQL in Docker (`infra/compose.yml`, `kc_dev` on `:5432`).
+
+- **Frontend** — Next.js 16 App Router, Tailwind CSS, React 19. Product UI (`/files`, `/moderator`, `/admin`) + dev explorers (`/dev/*`). Client components call API via fetch; Bearer token from localStorage.
+- **Backend** — NestJS 11 on Express. Five domain modules + audit. CORS permissive. TypeORM + PostgreSQL. Persistent `AuditLog` entity (v0.6.0). Demo seed migrations (ADR-029, ADR-030).
+- **Database** — PostgreSQL 16. Prod: `pgdata_prod` volume. Dev: `pgdata` volume. Migrations with `migrationsRun: true`.
+- **Communication** — Plain HTTP REST. JSON (or multipart for uploads). No WebSockets, GraphQL, or tRPC.
+- **File Storage** — Multer `diskStorage` in `uploads/` volume. Client-supplied filenames, no sanitisation ([ADR-024](../decisions/ADR-024-file-storage-strategy.md)).
 
 ---
 
@@ -71,8 +84,8 @@ graph TD
     SharingModule --> SharingService["SharingService\nRepository - SharingEntity\npredictable publicToken"]
     SharingModule -.->|"imports (FilesService)"| FilesModule
 
-    AdminModule --> AdminController["AdminController\n🔒 JwtAuthGuard\nGET /admin/users (requires @HasRole)\nPUT /admin/users/:id/role (requires @HasRole)\nPUT /admin/users/:id/role/escalate (requires @HasRole)\nDELETE /admin/users/:id (NO @HasRole!)\nGET /admin/audit-logs (requires @HasRole)"]
-    AdminModule --> AdminService["AdminService\nRepository - User\n(role changes stored, not audited)\n(escalation cascade model)\n(delete without guard)"]
+    AdminModule --> AdminController["AdminController\n🔒 JwtAuthGuard\nGET /admin/users (@HasRole admin)\nPUT /admin/users/:id/role (@HasRole admin)\nPUT /admin/users/:id/role/escalate (@HasRole mod+admin)\nDELETE /admin/users/:id (NO @HasRole!)\nGET /admin/audit-logs (NO @HasRole!)\nGET /admin/stats (@HasRole admin)"]
+    AdminModule --> AdminService["AdminService\nRepository - User, AuditLog\n(persistent audit v0.6.0)\n(guard inconsistencies CWE-862, CWE-284)"]
 ```
 
 ### Per-module pattern
@@ -94,13 +107,16 @@ app/                          Next.js App Router pages
 ├── layout.tsx                Root layout (Header, PageContainer, Footer)
 ├── providers.tsx             Client wrapper for AuthProvider + ThemeProvider
 ├── globals.css               Design tokens (CSS variables), Tailwind, dark mode
-├── page.tsx                  Landing / home page
-├── auth/
-│   └── page.tsx              Tabbed Register + Sign In form
-├── users/                    Users CRUD pages
-├── files/                    Upload + view metadata
-├── admin/                    Admin CRUD pages
-└── sharing/                  Sharing CRUD pages
+├── page.tsx                  Landing / home (demo accounts, version v1.0.0)
+├── auth/page.tsx             Register + Sign In (demo quick-fill)
+├── files/                    Product UI — own files (client-filtered)
+├── files/[id]/               File detail (access-denied banner if not owner)
+├── sharing/                  Product UI — own shares (client-filtered)
+├── share/[token]/            Public share landing (unauthenticated)
+├── moderator/                Review queue (RequireRole mod+admin)
+├── admin/                    Dashboard: users, stats, audit, all files
+├── dev/                      API explorer hub → /dev/files, /dev/users, /dev/sharing
+└── users/                    Redirect → /dev/users
 
 app/components/               Layout-level components
 ├── header.tsx                Nav bar + auth toggle + theme toggle
@@ -159,8 +175,8 @@ Non-CRUD operations use verb paths:
 
 The backend auto-generates an OpenAPI 3.0 spec via `@nestjs/swagger` with the CLI plugin (no manual `@ApiProperty()` decorators needed). Available at:
 
-- **Swagger UI:** `http://localhost:4000/api/docs`
-- **JSON spec:** `http://localhost:4000/api/docs-json`
+- **Swagger UI:** `http://localhost:8080/api/docs` (prod) or `http://localhost:4000/api/docs` (dev)
+- **JSON spec:** `/api/docs-json`
 
 ---
 
@@ -210,7 +226,7 @@ sequenceDiagram
     Page-->>Browser: Re-render with data or error
 ```
 
-As of v0.2.2, JwtAuthGuard protects **all** endpoints (auth, users, files, sharing, admin). Authentication is enforced everywhere, but as of v0.4.0, authorization checks have been added via `@HasRole()` guard. However, **inconsistent enforcement**: role is trusted directly from JWT payload without DB re-validation (CWE-639); role hierarchy is ambiguous for ternary roles (CWE-841); and some endpoints (e.g., DELETE /admin/users/:id) are missing the authorization guard entirely (CWE-862). As of v0.4.4, escalation chains allow moderators to promote other users to moderator indefinitely (CWE-269). No middleware for general validation, no global exception filter for error sanitisation.
+JwtAuthGuard protects most endpoints. `@HasRole()` checks JWT `role` without DB re-validation (CWE-639). **Guard inconsistencies** (high value): `DELETE /admin/users/:id` and `GET /admin/audit-logs` lack `@HasRole`. Product UI uses `RequireRole` from localStorage (CWE-345) — forge JWT to see admin/mod links. API is the security boundary; UI client-filters files/shares. Global ValidationPipe (v0.5.0), pagination, unified errors, request logging, persistent audit logs (v0.6.0). 150 e2e tests via `e2e-docker.sh`.
 
 ---
 
@@ -298,21 +314,12 @@ These weaknesses are intentional. The security surface grows incrementally per t
 
 ---
 
-## What This Architecture Does Not Include (Yet)
+## v1.0.0 Intentional Gaps (v2.0.0 targets)
 
-- **Database-backed authorization** -- Role stored in JWT and trusted without re-validation (CWE-639, v0.4.0–v0.4.5)
-- **Consistent authorization guards** -- Some admin endpoints have `@HasRole()`, others don't (CWE-862, v0.4.5)
-- **Explicit role hierarchy** -- Three roles (user/moderator/admin) with no defined precedence constants (CWE-841, v0.4.3–v0.4.5)
-- **Role escalation limits** -- Moderators can promote other users to moderator indefinitely (CWE-269, v0.4.4)
-- **Ownership enforcement** -- ownerId exists on files/shares but is never checked (CWE-639, v0.3.x)
-- **Audit trail for authorization changes** -- Role changes logged to stdout only (CWE-532, v0.4.x)
-- Pagination enforcement -- list endpoints accept `skip`/`take` but defaults remain permissive; admin user list still unbounded (CWE-400 partial, v0.5.2)
-- File upload sanitisation -- filenames, MIME types, and Multer size limits are not validated (v0.3.x intentional; nginx 1m ceiling is accidental infra, not CWE)
-- App containers / deployment -- full stack in `docker-compose.prod.yml` (v0.7.x complete)
-- CI/CD pipelines
-- Environment configuration (credentials still hardcoded)
-- Swagger auth protection — spec is publicly accessible (CWE-200)
-- Response header hardening — X-Powered-By not disabled (CWE-200)
-- Global exception filter / error sanitisation — stack traces leak to logs (A10:2025, ADR-023)
-- Input validation pipeline — no ValidationPipe registered (CWE-209)
-- Migration review gate — migrationsRun:true auto-executes any migration file (CWE-1188 partial)
+See [security-baseline.md](../spec/security-baseline.md) and [cwe-inventory.md](../security/cwe-inventory.md) (59 instances / 38 IDs).
+
+- Database-backed authorization — JWT role trusted (CWE-639)
+- Consistent guards — DELETE users, audit-logs missing HasRole (CWE-862, CWE-284)
+- Server-side ownership — API IDOR on files/users/sharing (CWE-639)
+- TLS, rate limiting, bcrypt, RS256 — v2.0.0 transport and auth hardening
+- CI/CD pipelines — not yet implemented

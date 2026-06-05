@@ -17,7 +17,7 @@ Quick reference for terminology used across KC-Project documentation and codebas
 | **CSRF** | Cross-Site Request Forgery. Tricking a user's browser into making unintended requests to a site where they're authenticated. Classified as CWE-352. Planned for v1.1.0 expansion. | -- |
 | **SSRF** | Server-Side Request Forgery. Tricking the server into making requests to internal resources. Classified as CWE-918. Planned for v1.1.0 expansion. | -- |
 | **SQLi** | SQL Injection. Inserting SQL code into application queries via user input. Classified as CWE-89. Part of the v1.0.0 injection surface. | [threat-model.md](diagrams/threat-model.md) |
-| **RBAC** | Role-Based Access Control. Restricting system access based on user roles (e.g. `user` vs `admin`). Introduced in v0.4.x. | [requirements.md](spec/requirements.md) |
+| **RBAC** | Role-Based Access Control. Ternary roles: `user`, `moderator`, `admin`. Guards trust JWT `role` claim, not DB (CWE-639). Introduced in v0.4.x. | [requirements.md](spec/requirements.md) |
 | **JWT** | JSON Web Token. A compact, URL-safe token format containing a signed JSON payload. Used for stateless authentication. | [ADR-012](decisions/ADR-012-jwt-over-sessions.md) |
 | **HS256** | HMAC-SHA256. A symmetric JWT signing algorithm where the same secret is used to sign and verify. Used in v1.0.0 (weak). | [ADR-012](decisions/ADR-012-jwt-over-sessions.md) |
 | **RS256** | RSA-SHA256. An asymmetric JWT signing algorithm where a private key signs and a public key verifies. Used in v2.0.0 (secure). | [security-baseline.md](spec/security-baseline.md) |
@@ -52,10 +52,15 @@ Quick reference for terminology used across KC-Project documentation and codebas
 
 | Term | Definition | Reference |
 |------|-----------|-----------|
-| **Attack surface** | The set of points where an attacker can interact with a system. KC-Project defines 6 surfaces: Identity, Data, Injection, File, Authorization, Infrastructure. | [threat-model.md](diagrams/threat-model.md) |
+| **Attack surface** | The set of points where an attacker can interact with a system. KC-Project defines 6 surfaces: Identity, Data, Injection, File, Authorization, Infrastructure. v1.0.0 documents **59 CWE instances across 38 unique CWE IDs**. | [cwe-inventory.md](security/cwe-inventory.md), [threat-model.md](diagrams/threat-model.md) |
 | **Trust boundary** | A line where the level of trust changes. In KC-Project, the primary trust boundary is between the browser (untrusted) and the backend API. | [ARCHITECTURE.md](architecture/ARCHITECTURE.md) |
 | **Expansion cycle** | The perpetual v1.N.0 (insecure) -> v1.N.x (pentest) -> v2.N.0 (secure) -> v1.N+1.0 (new insecure) loop. | [ADR-013](decisions/ADR-013-expansion-cycle-versioning.md) |
 | **Insecure-by-design** | The project philosophy of introducing security weaknesses deliberately, then discovering and fixing them through structured pentesting. | [ADR-006](decisions/ADR-006-insecure-by-design.md) |
 | **Security baseline** | The set of security controls that must be implemented for a version to qualify as v2.N.0 (hardened). | [security-baseline.md](spec/security-baseline.md) |
 | **Pentest cycle** | The v1.N.x phase where the insecure baseline is systematically tested, findings documented, and patches applied. | [ADR-013](decisions/ADR-013-expansion-cycle-versioning.md) |
 | **ADR** | Architecture Decision Record. A document capturing a specific technical decision with context, rationale, and consequences. | [decisions/](decisions/) |
+| **Moderator** | Intermediate RBAC role (`moderator`) between `user` and `admin`. Reviews pending file uploads via `/moderator`; can call `PUT /files/:id/approve` and `PUT /admin/users/:id/role/escalate` (CWE-269). Demo: `mod@kc.test`. | [personas.md](spec/personas.md) |
+| **Product UI** | Role-aware web app at `/`, `/auth`, `/files`, `/sharing`, `/moderator`, `/admin`, `/share/[token]`. Filters files/shares client-side by `ownerId`; **not** the security boundary. | [scope.md](spec/scope.md), [ADR-028](decisions/ADR-028-product-ux-v09.md) |
+| **Dev explorers** | Raw API CRUD pages at `/dev/*` (no client-side filtering). Primary pentester path alongside Burp/curl/OpenAPI. | [ADR-028](decisions/ADR-028-product-ux-v09.md) |
+| **Ground truth** | Canonical exploitable-state reference for a v1.N.0 baseline: demo creds, seeded IDs, per-page matrix, guard inconsistencies. | [v1.0.0-ground-truth.md](security/Cycle-1/Dev/v1.0.0-ground-truth.md) |
+| **Cycle-1** | First expansion cycle: v1.0.0 (insecure) → v1.0.x (pentest) → v2.0.0 (secure). Security artifacts live under `docs/security/Cycle-1/`. | [ADR-031](decisions/ADR-031-security-cycle-docs.md), [Cycle-1/README.md](security/Cycle-1/README.md) |

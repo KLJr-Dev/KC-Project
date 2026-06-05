@@ -1,236 +1,174 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { filesUploadMultipart, filesGetById, filesList, filesDownload } from '../../lib/api';
+import { useCallback, useEffect, useState } from 'react';
+import { filesUploadMultipart, filesList, filesDownload, filesDelete } from '../../lib/api';
 import type { FileResponse } from '../../lib/types';
+import { formatUserError } from '../../lib/errors';
+import { filesForUser } from '../../lib/file-scope';
+import { useAuth } from '../../lib/auth-context';
+import RequireAuth from '../components/require-auth';
+import FileTable from '../components/file-table';
+import ErrorBanner from '../components/ui/error-banner';
+import SuccessBanner from '../components/ui/success-banner';
+import EmptyState from '../components/ui/empty-state';
+import LoadingSpinner from '../components/ui/loading-spinner';
 
 export default function FilesPage() {
-  const [error, setError] = useState<string | null>(null);
+  return (
+    <RequireAuth>
+      <MyFilesContent />
+    </RequireAuth>
+  );
+}
 
-  // upload
+function MyFilesContent() {
+  const { userId } = useAuth();
+  const [files, setFiles] = useState<FileResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [description, setDescription] = useState('');
-  const [uploadedFile, setUploadedFile] = useState<FileResponse | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  // lookup
-  const [lookupId, setLookupId] = useState('');
-  const [file, setFile] = useState<FileResponse | null>(null);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const all = await filesList();
+      setFiles(filesForUser(all, userId));
+    } catch (err) {
+      setError(formatUserError(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
 
-  // list
-  const [files, setFiles] = useState<FileResponse[] | null>(null);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const triggerDownload = async (id: string, filename: string) => {
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      setError('Choose a file to upload.');
+      return;
+    }
+    setUploading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await filesUploadMultipart(selectedFile, description || undefined);
+      setSuccess(`Uploaded ${selectedFile.name}`);
+      setSelectedFile(null);
+      setDescription('');
+      await load();
+    } catch (err) {
+      setError(formatUserError(err));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDownload = async (id: string, filename: string) => {
+    setDownloadingId(id);
     setError(null);
     try {
       const blob = await filesDownload(id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filename || 'download';
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      setError(String(err));
+      setError(formatUserError(err));
+    } finally {
+      setDownloadingId(null);
     }
   };
 
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setUploadedFile(null);
-    if (!selectedFile) {
-      setError('Please choose a file before uploading.');
-      return;
-    }
-    try {
-      const res = await filesUploadMultipart(selectedFile, description || undefined);
-      setUploadedFile(res);
-      setSelectedFile(null);
-      setDescription('');
-    } catch (err) {
-      setError(String(err));
-    }
-  };
-
-  const handleLookup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFile(null);
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this file?')) return;
     setError(null);
     try {
-      const res = await filesGetById(lookupId);
-      setFile(res);
+      await filesDelete(id);
+      setSuccess('File deleted');
+      await load();
     } catch (err) {
-      setError(String(err));
+      setError(formatUserError(err));
     }
   };
 
   return (
-    <div className="space-y-10">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Files</h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold text-foreground">My Files</h1>
+        <p className="mt-1 text-sm text-muted">Upload, download, and manage your files.</p>
+      </div>
 
-      {error && (
-        <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-          {error}
-        </pre>
-      )}
+      <ErrorBanner message={error} />
+      <SuccessBanner message={success} />
 
-      {/* Upload */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">POST /files</h2>
-        <form onSubmit={handleUpload} className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              Choose file
-            </span>
+      <form onSubmit={handleUpload} className="rounded-lg border border-border p-6 space-y-4">
+        <h2 className="text-sm font-medium text-foreground">Upload a file</h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label className="text-xs text-muted">File</label>
             <input
-              id="file-input"
               type="file"
-              onChange={(e) => {
-                const file = e.target.files?.[0] ?? null;
-                setSelectedFile(file);
-              }}
-              className="max-w-xs text-sm text-foreground file:mr-3 file:rounded file:border file:border-zinc-300 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium dark:text-zinc-100 dark:file:border-zinc-700 dark:file:bg-zinc-900"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+              className="mt-1 block w-full text-sm file:mr-3 file:rounded file:border file:border-border file:bg-muted/30 file:px-3 file:py-1.5"
             />
-            {selectedFile && (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                Selected: {selectedFile.name}
-              </span>
-            )}
           </div>
-          <input
-            type="text"
-            placeholder="description (optional)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
+          <div className="flex-1">
+            <label className="text-xs text-muted">Description (optional)</label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Notes about this file"
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+          </div>
           <button
             type="submit"
-            className="rounded bg-black px-4 py-1.5 text-sm text-white dark:bg-zinc-100 dark:text-black"
+            disabled={uploading}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
           >
-            Upload
+            {uploading ? 'Uploading…' : 'Upload'}
           </button>
-        </form>
-        {uploadedFile && (
-          <div className="space-y-2">
-            <pre className="rounded border border-green-300 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-              {JSON.stringify(uploadedFile, null, 2)}
-            </pre>
-            <button
-              type="button"
-              onClick={() => triggerDownload(uploadedFile.id, uploadedFile.filename)}
-              className="text-sm text-blue-600 underline dark:text-blue-400"
-            >
-              Download uploaded file →
-            </button>
-          </div>
-        )}
-      </div>
+        </div>
+      </form>
 
-      {/* Lookup by ID */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">GET /files/:id</h2>
-        <form onSubmit={handleLookup} className="flex gap-2">
-          <input
-            type="text"
-            placeholder="file id"
-            value={lookupId}
-            onChange={(e) => setLookupId(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-foreground">Your files</h2>
           <button
-            type="submit"
-            className="rounded bg-black px-4 py-1.5 text-sm text-white dark:bg-zinc-100 dark:text-black"
+            type="button"
+            onClick={load}
+            className="text-sm text-muted underline hover:text-foreground"
           >
-            Fetch
+            Refresh
           </button>
-        </form>
-        {file && (
-          <div className="space-y-2">
-            <pre className="rounded border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900">
-              {JSON.stringify(file, null, 2)}
-            </pre>
-            <button
-              type="button"
-              onClick={() => triggerDownload(file.id, file.filename)}
-              className="text-sm text-blue-600 underline dark:text-blue-400"
-            >
-              Download this file →
-            </button>
-            <Link
-              href={`/files/${file.id}`}
-              className="text-sm text-blue-600 underline dark:text-blue-400"
-            >
-              Go to detail page →
-            </Link>
-          </div>
-        )}
-      </div>
-
-      {/* List all files */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">GET /files</h2>
-        <button
-          type="button"
-          onClick={async () => {
-            setError(null);
-            try {
-              const result = await filesList();
-              setFiles(result);
-            } catch (err) {
-              setError(String(err));
-            }
-          }}
-          className="rounded bg-black px-4 py-1.5 text-sm text-white dark:bg-zinc-100 dark:text-black"
-        >
-          Load all files
-        </button>
-        {files && (
-          <div className="mt-2 space-y-2">
-            {files.length === 0 && (
-              <p className="text-sm text-muted">No files found.</p>
-            )}
-            {files.length > 0 && (
-              <table className="w-full table-auto border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-zinc-200 dark:border-zinc-800">
-                    <th className="px-2 py-1 text-left">ID</th>
-                    <th className="px-2 py-1 text-left">Filename</th>
-                    <th className="px-2 py-1 text-left">Owner</th>
-                    <th className="px-2 py-1 text-left">MIME</th>
-                    <th className="px-2 py-1 text-left">Size</th>
-                    <th className="px-2 py-1 text-left">Download</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {files.map((f) => (
-                    <tr
-                      key={f.id}
-                      className="border-b border-zinc-100 last:border-0 dark:border-zinc-800"
-                    >
-                      <td className="px-2 py-1 align-top">{f.id}</td>
-                      <td className="px-2 py-1 align-top">{f.filename}</td>
-                      <td className="px-2 py-1 align-top text-xs text-muted">{f.ownerId}</td>
-                      <td className="px-2 py-1 align-top text-xs text-muted">{f.mimetype}</td>
-                      <td className="px-2 py-1 align-top">{f.size}</td>
-                      <td className="px-2 py-1 align-top">
-                        <button
-                          type="button"
-                          onClick={() => triggerDownload(f.id, f.filename)}
-                          className="text-blue-600 underline dark:text-blue-400"
-                        >
-                          download
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+        </div>
+        {loading ? (
+          <LoadingSpinner label="Loading files…" />
+        ) : files.length === 0 ? (
+          <EmptyState
+            title="No files yet"
+            description="Upload your first file using the form above."
+          />
+        ) : (
+          <FileTable
+            files={files}
+            onDownload={handleDownload}
+            onDelete={handleDelete}
+            downloadingId={downloadingId}
+          />
         )}
       </div>
     </div>

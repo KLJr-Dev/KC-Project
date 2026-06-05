@@ -1,152 +1,253 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { sharingCreate, sharingList, sharingPublicUrl } from '../../lib/api';
-import type { SharingResponse } from '../../lib/types';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import {
+  sharingCreate,
+  sharingList,
+  sharingFriendlyUrl,
+  sharingPublicUrl,
+  filesList,
+} from '../../lib/api';
+import type { SharingResponse, FileResponse } from '../../lib/types';
+import { formatUserError } from '../../lib/errors';
+import { formatDate, fileApprovalStatus } from '../../lib/format';
+import { filesForUser, sharesForUser, filesShareable } from '../../lib/file-scope';
+import { useAuth } from '../../lib/auth-context';
+import RequireAuth from '../components/require-auth';
+import ErrorBanner from '../components/ui/error-banner';
+import SuccessBanner from '../components/ui/success-banner';
+import EmptyState from '../components/ui/empty-state';
+import LoadingSpinner from '../components/ui/loading-spinner';
 
 export default function SharingPage() {
+  return (
+    <RequireAuth>
+      <Suspense fallback={<LoadingSpinner />}>
+        <SharingContent />
+      </Suspense>
+    </RequireAuth>
+  );
+}
+
+function SharingContent() {
+  const { userId } = useAuth();
+  const searchParams = useSearchParams();
+  const prefillFileId = searchParams.get('fileId') ?? '';
+
   const [items, setItems] = useState<SharingResponse[]>([]);
+  const [myFiles, setMyFiles] = useState<FileResponse[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [fileId, setFileId] = useState('');
-  const [isPublic, setIsPublic] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [fileId, setFileId] = useState(prefillFileId);
+  const [isPublic, setIsPublic] = useState(true);
   const [expiresAt, setExpiresAt] = useState('');
-  const [createResult, setCreateResult] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const load = () => {
+  const load = useCallback(async () => {
+    setLoading(true);
     setError(null);
-    sharingList()
-      .then(setItems)
-      .catch((e) => setError(String(e)));
-  };
+    try {
+      const [shares, files] = await Promise.all([sharingList(), filesList()]);
+      setItems(sharesForUser(shares, userId));
+      setMyFiles(filesShareable(filesForUser(files, userId)));
+    } catch (err) {
+      setError(formatUserError(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    if (prefillFileId) setFileId(prefillFileId);
+  }, [prefillFileId]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCreateResult(null);
-    setError(null);
-    if (!fileId.trim()) {
-      setError('fileId is required');
+    if (!fileId) {
+      setError('Select a file to share.');
       return;
     }
+    setSubmitting(true);
+    setError(null);
+    setSuccess(null);
     try {
-      const res = await sharingCreate({
-        fileId: fileId.trim(),
+      const created = await sharingCreate({
+        fileId,
         public: isPublic,
         expiresAt: expiresAt || undefined,
       });
-      setCreateResult(JSON.stringify(res, null, 2));
+      const friendlyUrl =
+        created.public && created.publicToken ? sharingFriendlyUrl(created.publicToken) : null;
+      setSuccess(friendlyUrl ? `Share link created: ${friendlyUrl}` : 'Share link created');
       setFileId('');
-      setIsPublic(false);
       setExpiresAt('');
-      load();
+      await load();
     } catch (err) {
-      setError(String(err));
+      setError(formatUserError(err));
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  const copyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setSuccess('Copied to clipboard');
+    } catch {
+      setError('Could not copy to clipboard');
+    }
+  };
+
+  const fileName = (fid: string) => myFiles.find((f) => f.id === fid)?.filename ?? `File #${fid}`;
+
+  const selectedFile = myFiles.find((f) => f.id === fileId);
+  const selectedPending =
+    selectedFile && fileApprovalStatus(selectedFile.approvalStatus) === 'pending';
+
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-black dark:text-zinc-100">Sharing</h1>
+      <div>
+        <h1 className="text-2xl font-semibold text-foreground">My Shares</h1>
+        <p className="mt-1 text-sm text-muted">Create and manage sharing links for your files.</p>
+      </div>
 
-      {error && (
-        <pre className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-          {error}
-        </pre>
-      )}
+      <ErrorBanner message={error} />
+      <SuccessBanner message={success} />
 
-      {/* Create */}
-      <form onSubmit={handleCreate} className="space-y-3">
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">POST /sharing</h2>
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="text"
-            placeholder="fileId"
-            value={fileId}
-            onChange={(e) => setFileId(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
-          <input
-            type="text"
-            placeholder="expiresAt (ISO)"
-            value={expiresAt}
-            onChange={(e) => setExpiresAt(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
-          <label className="flex items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+      <form onSubmit={handleCreate} className="rounded-lg border border-border p-6 space-y-4">
+        <h2 className="text-sm font-medium text-foreground">Create a share</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="text-xs text-muted">File</label>
+            <select
+              value={fileId}
+              onChange={(e) => setFileId(e.target.value)}
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Select a file…</option>
+              {myFiles.map((f) => {
+                const status = fileApprovalStatus(f.approvalStatus);
+                const suffix = status === 'pending' ? ' (awaiting review)' : '';
+                return (
+                  <option key={f.id} value={f.id}>
+                    {f.filename}
+                    {suffix}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-muted">Expires (optional)</label>
             <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
+              type="datetime-local"
+              value={expiresAt}
+              onChange={(e) => setExpiresAt(e.target.value)}
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
             />
-            public
-          </label>
-          <button
-            type="submit"
-            className="rounded bg-black px-4 py-1.5 text-sm text-white dark:bg-zinc-100 dark:text-black"
-          >
-            Create
-          </button>
+          </div>
         </div>
-        {createResult && (
-          <pre className="rounded border border-green-300 bg-green-50 p-3 text-sm dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-            {createResult}
-          </pre>
+        {selectedPending && (
+          <p className="text-sm text-amber-700 dark:text-amber-300">
+            This file is awaiting moderator review. You can still create a share link.
+          </p>
         )}
+        <label className="flex items-center gap-2 text-sm text-muted">
+          <input
+            type="checkbox"
+            checked={isPublic}
+            onChange={(e) => setIsPublic(e.target.checked)}
+          />
+          Public link (no login required)
+        </label>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+        >
+          {submitting ? 'Creating…' : 'Create share'}
+        </button>
       </form>
 
-      {/* List */}
-      <div>
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">GET /sharing</h2>
-        {items.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-400">No sharing entries.</p>
+      <div className="space-y-4">
+        <h2 className="text-sm font-medium text-foreground">Active shares</h2>
+        {loading ? (
+          <LoadingSpinner />
+        ) : items.length === 0 ? (
+          <EmptyState
+            title="No shares yet"
+            description="Create a share link for one of your files."
+          />
         ) : (
-          <table className="mt-2 w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-800">
-                <th className="py-2 pr-4 font-medium text-zinc-500">ID</th>
-                <th className="py-2 pr-4 font-medium text-zinc-500">File ID</th>
-                <th className="py-2 pr-4 font-medium text-zinc-500">Public</th>
-                <th className="py-2 pr-4 font-medium text-zinc-500">Public Token</th>
-                <th className="py-2 pr-4 font-medium text-zinc-500">Expires</th>
-                <th className="py-2 font-medium text-zinc-500">Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((s) => (
-                <tr key={s.id} className="border-b border-zinc-100 dark:border-zinc-800/50">
-                  <td className="py-2 pr-4">
-                    <Link
-                      href={`/sharing/${s.id}`}
-                      className="text-blue-600 underline dark:text-blue-400"
-                    >
-                      {s.id}
-                    </Link>
-                  </td>
-                  <td className="py-2 pr-4 font-mono">{s.fileId ?? '—'}</td>
-                  <td className="py-2 pr-4 font-mono">{s.public ? 'yes' : 'no'}</td>
-                  <td className="py-2 pr-4">
-                    {s.public && s.publicToken ? (
-                      <a
-                        href={sharingPublicUrl(s.publicToken)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-blue-600 underline break-all dark:text-blue-400"
-                      >
-                        {s.publicToken}
-                      </a>
-                    ) : (
-                      <span className="font-mono text-zinc-400">—</span>
-                    )}
-                  </td>
-                  <td className="py-2 pr-4 font-mono text-zinc-400">{s.expiresAt ?? '—'}</td>
-                  <td className="py-2 font-mono text-zinc-400">{s.createdAt}</td>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/30">
+                  <th className="px-4 py-3 font-medium text-muted">File</th>
+                  <th className="px-4 py-3 font-medium text-muted">Public</th>
+                  <th className="px-4 py-3 font-medium text-muted">Link</th>
+                  <th className="px-4 py-3 font-medium text-muted">Created</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map((s) => {
+                  const friendlyUrl =
+                    s.public && s.publicToken ? sharingFriendlyUrl(s.publicToken) : null;
+                  const apiUrl = s.public && s.publicToken ? sharingPublicUrl(s.publicToken) : null;
+                  return (
+                    <tr key={s.id} className="border-b border-border last:border-0">
+                      <td className="px-4 py-3">{fileName(s.fileId ?? '')}</td>
+                      <td className="px-4 py-3">{s.public ? 'Yes' : 'No'}</td>
+                      <td className="px-4 py-3">
+                        {friendlyUrl ? (
+                          <div className="flex flex-wrap gap-2">
+                            <a
+                              href={friendlyUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="underline text-foreground"
+                            >
+                              Open
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => copyText(friendlyUrl)}
+                              className="text-muted underline"
+                            >
+                              Copy
+                            </button>
+                            {apiUrl && (
+                              <button
+                                type="button"
+                                onClick={() => copyText(apiUrl)}
+                                className="text-xs text-muted underline"
+                                title="Direct API download URL"
+                              >
+                                Copy API
+                              </button>
+                            )}
+                          </div>
+                        ) : s.public ? (
+                          <span className="text-amber-700 dark:text-amber-300">
+                            Public flag set but no link — recreate share
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted">{formatDate(s.createdAt)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

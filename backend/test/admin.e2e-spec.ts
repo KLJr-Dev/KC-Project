@@ -48,11 +48,7 @@ describe('AdminController /admin/* (e2e)', () => {
   /**
    * Helper: Register a user and return { userId, token }
    */
-  async function registerUser(
-    email: string,
-    username: string,
-    password = 'password123',
-  ) {
+  async function registerUser(email: string, username: string, password = 'password123') {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, username, password })
@@ -80,19 +76,14 @@ describe('AdminController /admin/* (e2e)', () => {
   // Test 1: Unauthenticated access (no JWT) → 401
   // ============================================================================
   it('GET /admin/users returns 401 when no JWT token provided', async () => {
-    await request(app.getHttpServer())
-      .get('/admin/users')
-      .expect(401);
+    await request(app.getHttpServer()).get('/admin/users').expect(401);
   });
 
   // ============================================================================
   // Test 2: Authenticated but non-admin → 403 (HasRoleGuard blocks)
   // ============================================================================
   it('GET /admin/users returns 403 when user is not admin (HasRoleGuard)', async () => {
-    const { token } = await registerUser(
-      'regular@example.com',
-      'regularuser',
-    );
+    const { token } = await registerUser('regular@example.com', 'regularuser');
 
     await request(app.getHttpServer())
       .get('/admin/users')

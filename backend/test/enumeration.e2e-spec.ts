@@ -65,10 +65,7 @@ describe('Enumeration Surface (v0.2.3)', () => {
 
     app = moduleFixture.createNestApplication();
 
-    const config = new DocumentBuilder()
-      .setTitle('KC-Project API')
-      .setVersion('0.2.3')
-      .build();
+    const config = new DocumentBuilder().setTitle('KC-Project API').setVersion('0.2.3').build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);
 
