@@ -1,7 +1,9 @@
 # ADR-025: Role-Based Access Control (RBAC) Design & Permission Enforcement Gaps
 
+> **Note:** Superseded by the canonical [ADR-025-rbac-strategy.md](ADR-025-rbac-strategy.md), which is indexed in [decisions/README.md](README.md). This document is retained for supplementary implementation detail.
+
 **Date**: February 2026  
-**Status**: DECIDED (v0.4.x implementation)  
+**Status**: Superseded (see ADR-025-rbac-strategy.md)  
 **Context**: Authorization surface for KC-Project, versions v0.4.0 through v0.4.5
 
 ---

@@ -45,8 +45,8 @@ timeline
     v0.4.0 : Roles introduced
     v0.4.1 : Admin endpoints
     v0.4.2 : Mixed trust boundaries
-    v0.4.3 : Privilege escalation paths
-    v0.4.4 : Cross-user access
+    v0.4.3 : Ternary role system
+    v0.4.4 : Privilege escalation paths
     v0.4.5 : RBAC complexity growth
   section v0.5.x Deployment
     v0.5.0 : Docker introduction

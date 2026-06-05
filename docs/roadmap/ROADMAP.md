@@ -419,7 +419,7 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - CWEs demonstrated: CWE-639 (Client-Controlled Authorization), CWE-862 (Missing Authorization)
 - All 8 test suites passing (100%)
 
-### v0.4.3 — Ternary Role System (User / Moderator / Admin)
+### v0.4.3 — Ternary Role System (User / Moderator / Admin) ✅ COMPLETE
 
 - `role` enum expanded: `'user'` | `'moderator'` | `'admin'`
 - Add `moderator` as a new role with ambiguous permissions:
@@ -432,10 +432,13 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - Weak implementation: `HasRole(['admin', 'moderator'])` trusts JWT role, not database state (CWE-639 extended)
 - Endpoint accidentally allows users to call it if they forge JWT with `role: 'moderator'`
 - Role hierarchy ambiguity: no explicit constants defining role rankings (CWE-841 Improper Restriction of Rendered UI Layers or Frames)
-- 6 new e2e tests: moderator creation, file approval endpoint, role escalation attempts (user → moderator, moderator → admin), role hierarchy confusion
+- 7 new e2e tests in `files-approval.e2e-spec.ts`: moderator creation, file approval endpoint, role escalation attempts, role hierarchy confusion
 - Swagger bumped to v0.4.3
+- CWE-841 (Role Hierarchy Ambiguity) introduced
+- **Status:** Ternary role system implemented, file approval endpoint working, frontend role selector updated. Ready for v0.4.4.
+- **Total e2e tests:** 68 (61 from v0.4.2 + 7 new file approval/ternary role tests)
 
-### v0.4.4 — Privilege Escalation & Cross-User Escalation
+### v0.4.4 — Privilege Escalation & Cross-User Escalation ✅ COMPLETE
 
 - Introduce endpoint `PUT /admin/users/:id/role/escalate` — allows moderator to escalate other users to moderator (not admin)
 - Moderator cannot promote to admin (guard rejects), but can create more moderators (horizontal escalation)
@@ -443,11 +446,13 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - New endpoint `GET /admin/audit-logs` — returns list of role changes (placeholder, returns empty, no actual logging in v0.4.4)
 - E2e test: moderator escalates user A to moderator, user A uses new moderator role to escalate user B, chain reaction (CWE-269 Improper Access Control)
 - No rate limiting on escalation attempts (brute-force cascade attacks possible)
-- 4 new e2e tests: cross-user escalation, escalation chains, unauthorized escalation, audit log endpoint
+- 7 new e2e tests in `escalation.e2e-spec.ts`: cross-user escalation, escalation chains, unauthorized escalation, audit log endpoint
 - Swagger bumped to v0.4.4
 - CWE-269 (Improper Access Control) introduced
+- **Status:** Escalation chains demonstrated and tested. Audit logs placeholder returns empty array. Ready for v0.4.5.
+- **Total e2e tests:** 75 (68 from v0.4.3 + 7 new escalation tests)
 
-### v0.4.5 — RBAC Complexity & Inconsistent Enforcement
+### v0.4.5 — RBAC Complexity & Inconsistent Enforcement ✅ COMPLETE
 
 - Some endpoints use `HasRole('admin')` (single role check)
 - Some use `HasRole(['admin', 'moderator'])` (multiple role check)
@@ -456,25 +461,26 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - User can delete any other user if they can authenticate (no role required)
 - Admin endpoints scattered across controllers (no centralized admin module yet, causing missed guards)
 - Documentation inconsistent: some endpoints document role requirements, others don't
-- 5 new e2e tests: missing guard on delete endpoint, implicit admin-only endpoints, UI/API inconsistency, enforcement gaps
+- 9 new e2e tests in `inconsistency.e2e-spec.ts`: missing guard on delete endpoint, implicit admin-only endpoints, UI/API inconsistency, enforcement gaps
 - Swagger bumped to v0.4.5
 - CWE-862 expanded (multiple endpoints with missing authorization checks)
-- **v0.4.x authorization surface complete:** 6 versions, ~8–10 new CWEs introduced across v0.4.0–v0.4.5
-- Total e2e tests: 70+ (spanning auth, role tests, IDOR, escalation, inconsistency tests)
+- **Status:** Authorization inconsistency demonstrated. DELETE endpoint intentionally missing HasRole guard. Ready for v0.4.6.
+- **Total e2e tests:** 84 (75 from v0.4.4 + 9 new inconsistency tests)
 
-### v0.4.6 — Documentation Update
+### v0.4.6 — Documentation Update ✅ COMPLETE
 
-- Add any new ADRs
-- Add any new diagrams, architecture, security, spec docs
-- Update any documentation
+- `v0.4.x-summary.md` retrospective written
+- ROADMAP v0.4.0–v0.4.6 marked complete with metrics
+- Swagger bumped to v0.4.6 in `main.ts`
+- `data-model.md` updated for ternary roles and `approvalStatus`
+- `types.gen.ts` regenerated; JwtPayload and auth-context role unions fixed
+- `docs/roadmap/README.md` and `docs/README.md` index updated
+- Root README current status updated
+- **v0.4.x authorization surface complete**
 
 #### v0.4.x Authorization & Administrative Surface Summary
 
-The v0.4.x series introduces role-based access control in binary (v0.4.0–v0.4.2) and ternary (v0.4.3–v0.4.5) forms, with intentional weaknesses:
-- **Binary (v0.4.0–v0.4.2):** Only User/Admin, client-side role trust, JWT forgery possible
-- **Ternary (v0.4.3–v0.4.5):** User/Moderator/Admin, role confusion, inconsistent guards, escalation chains
-- **Key weaknesses:** CWE-639 (client-controlled authorization), CWE-862 (missing authorization on endpoints), CWE-269 (privilege escalation), CWE-841 (role hierarchy ambiguity)
-- **v0.4.x surface now closed** with 70+ e2e tests and comprehensive permission confusion for v1.0.x pentest cycles.
+See [v0.4.x-summary.md](v0.4.x-summary.md) for the full retrospective: versions, CWEs, test coverage, schema changes, and transition notes.
 
 ## v0.5.x — File Handling & Storage Surface
 

@@ -1,23 +1,23 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Describes the v0.4.0 PostgreSQL schema (current, managed via TypeORM migrations), the v1.0.0 target schema, and the v2.0.0 hardened schema.
+Entity definitions and relationships for KC-Project. Describes the v0.4.5 PostgreSQL schema (current, managed via TypeORM migrations), the v1.0.0 target schema, and the v2.0.0 hardened schema.
 
 
-## Current State (v0.4.0) -- PostgreSQL
+## Current State (v0.4.5) -- PostgreSQL
 PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize: true` in v0.2.5, see [ADR-022](../decisions/ADR-022-typeorm-migrations.md)). File storage on local filesystem via Multer (see [ADR-024](../decisions/ADR-024-file-storage-strategy.md)). See also [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
 
 ### Tables
 
 | Table | Entity Class | Notes |
 |-------|-------------|-------|
-| `user` | `User` | Auth + identity. Plaintext password column (CWE-256). |
-| `file_entity` | `FileEntity` | Real file metadata from Multer uploads. `mimetype` + `storagePath` (v0.3.0), `description` (v0.2.5). Files stored on disk. |
+| `user` | `User` | Auth + identity. Plaintext password column (CWE-256). Ternary `role` enum (v0.4.3). |
+| `file_entity` | `FileEntity` | Real file metadata from Multer uploads. `mimetype` + `storagePath` (v0.3.0), `description` (v0.2.5), `approvalStatus` (v0.4.3). Files stored on disk. |
 | `sharing_entity` | `SharingEntity` | No FK to files. `publicToken` (v0.3.4) for unauthenticated access. `ownerId` (v0.2.2, never enforced). |
 | `admin_item` | `AdminItem` | Placeholder admin records. |
 
 All tables use `@PrimaryColumn()` with manually assigned sequential string IDs (`"1"`, `"2"`, ...) — intentionally predictable (CWE-330). No unique constraints, no foreign keys, no indices beyond primary keys. Schema weaknesses are intentional per [ADR-006](../decisions/ADR-006-insecure-by-design.md).
 
-### User Entity (v0.4.0)
+### User Entity (v0.4.5)
 
 ```typescript
 @Entity()
@@ -30,8 +30,8 @@ class User {
   username: string;
   @Column()
   password: string;    // Plaintext in DB (CWE-256)
-  @Column({ type: 'enum', enum: ['user', 'admin'], default: 'user' })
-  role: 'user' | 'admin';  // v0.4.0 -- stored in JWT payload, never re-validated (CWE-639)
+  @Column({ type: 'enum', enum: ['user', 'moderator', 'admin'], default: 'user' })
+  role: 'user' | 'moderator' | 'admin';  // v0.4.3 -- stored in JWT payload, never re-validated (CWE-639)
   @Column()
   createdAt: string;   // ISO 8601
   @Column()
@@ -39,7 +39,7 @@ class User {
 }
 ```
 
-### FileEntity (v0.3.0)
+### FileEntity (v0.4.3)
 
 ```typescript
 @Entity()
@@ -58,6 +58,8 @@ class FileEntity {
   description?: string;    // Added via migration in v0.2.5
   @Column({ type: 'int', default: 0 })
   size: number;            // Actual file size from Multer, no limit (CWE-400)
+  @Column({ type: 'enum', enum: ['pending', 'approved', 'rejected'], default: 'pending' })
+  approvalStatus: 'pending' | 'approved' | 'rejected';  // v0.4.3 -- no ownership check on approve (CWE-639)
   @Column()
   uploadedAt: string;      // ISO 8601
 }
