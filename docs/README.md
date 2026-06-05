@@ -63,6 +63,10 @@ Version-by-version development plan.
 
 - [ROADMAP.md](roadmap/ROADMAP.md) -- Full project roadmap (v0.0.x through v1.0.0)
 - [v0.0.x-summary.md](roadmap/v0.0.x-summary.md) -- Foundation phase retrospective
+- [v0.1.x-summary.md](roadmap/v0.1.x-summary.md) -- Identity & authentication surface retrospective
+- [v0.2.x-summary.md](roadmap/v0.2.x-summary.md) -- Persistence & database surface retrospective
+- [v0.3.x-summary.md](roadmap/v0.3.x-summary.md) -- File handling surface retrospective
+- [v0.4.x-summary.md](roadmap/v0.4.x-summary.md) -- Authorization & administrative surface retrospective
 
 ### [security/](security/)
 

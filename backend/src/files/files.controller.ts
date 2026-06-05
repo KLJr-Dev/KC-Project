@@ -19,7 +19,7 @@ import { FilesService } from './files.service';
 import { UploadFileDto } from './dto/upload-file.dto';
 import { ApproveFileDto } from './dto/approve-file.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { HasRole } from '../auth/guards/has-role.guard';
+import { HasRole, HasRoleGuard } from '../auth/guards/has-role.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { join } from 'path';
@@ -88,7 +88,7 @@ import { existsSync } from 'fs';
  * - Verify file storage and metadata persistence
  */
 @Controller('files')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, HasRoleGuard)
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 

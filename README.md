@@ -15,17 +15,17 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v0.4.3–v0.4.6)
+## Current Status (v0.4.6 — Authorization Surface Complete)
 
-Authorization surface introduced with ternary roles and intentional authorization gaps.
+v0.4.x authorization surface closed. Ternary RBAC with intentional authorization gaps documented in [v0.4.x-summary.md](docs/roadmap/v0.4.x-summary.md). Next phase TBD pending roadmap reconciliation.
 
 - **Backend** (NestJS) -- Registration, login, protected profile, cosmetic logout. Real HS256 JWTs (hardcoded secret, no expiration). **Ternary role enum ('user'|'moderator'|'admin')** in User entity, role stored in JWT payload (CWE-639: JWT role trusted, never re-validated from DB). JwtAuthGuard on most resource endpoints. HasRoleGuard on some admin endpoints (inconsistent, CWE-862: DELETE endpoint missing guard). **File approval endpoint** (PUT `/files/:id/approve`) with moderator oversight (v0.4.3). **Privilege escalation endpoint** (PUT `/admin/users/:id/role/escalate`) allows moderators to promote users indefinitely—no depth limits (CWE-269, v0.4.4). **Audit logs placeholder** (GET `/admin/audit-logs`) returns empty, no persistent audit trail (CWE-532, v0.4.4). **Role hierarchy ambiguity** -- moderator permissions undefined vs admin, cascading attacks possible (CWE-841, v0.4.3–v0.4.5). `ownerId` tracked but never enforced (IDOR, v0.3.x). Multipart file uploads via Multer (CWE-22, CWE-434, CWE-400 still present). Predictable share tokens (CWE-330). All list endpoints unbounded. Swagger + X-Powered-By publicly accessible. No ValidationPipe. Passwords plaintext. Swagger at `/api/docs`.
 - **Database** (PostgreSQL 16) -- Docker Compose in `infra/compose.yml`. Hardcoded credentials, TypeORM migrations with `migrationsRun: true`. User entity with ternary role enum, migrations for v0.4.3 (file approval status) and v0.4.4 (escalation support).
-- **File Storage** -- Local filesystem in `backend/uploads/` via Multer. Approval status tracked but no ownership checks. v0.5.x will introduce file handling vulnerabilities.
+- **File Storage** -- Local filesystem in `backend/uploads/` via Multer. Approval status tracked but no ownership checks (file handling shipped in v0.3.x).
 - **Frontend** (Next.js) -- Tabbed auth (Register/Sign In), role selector for moderator/admin (v0.4.3), localStorage persistence of role (and JWT, CWE-639). Role displayed in header with ternary selection. Admin page with client-side role checks (bypassable via localStorage, CWE-639). Theme toggle, app shell. Types auto-generated from OpenAPI spec.
-- **Tooling** -- Shared Prettier/ESLint, TypeScript `strict: true`, e2e tests via supertest (22 RBAC-specific tests + 50+ baseline tests = 72+ total tests, real PG with `--runInBand`). Migration scripts (`migration:generate`, `migration:run`, `migration:revert`).
+- **Tooling** -- Shared Prettier/ESLint, TypeScript `strict: true`, e2e tests via supertest (84 tests across 11 suites at v0.4.6 baseline, real PG with `--runInBand`). Migration scripts (`migration:generate`, `migration:run`, `migration:revert`).
 - **Documentation** -- ADRs 001-025 (025: RBAC Design with three-phase implementation rationale), formal spec, architecture diagrams, STRIDE threat model, auth flow docs (expanded for v0.4.x authorization surfaces), glossary, security baseline with v0.4.x vulnerability inventory. All OWASP references use Top 10:2025.
-- ~40 CWE entries across v0.1.0–v0.4.x (39 intentional, 1 accidental). Authorization surface closed; v0.5.x focuses on file handling.
+- ~40 CWE entries across v0.1.0–v0.4.x (39 intentional, 1 accidental). Authorization surface closed. Next phase TBD pending roadmap reconciliation.
 
 ### Run locally
 

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 
@@ -68,9 +68,17 @@ describe('PUT /admin/users/:id/role/escalate (e2e)', () => {
 
     const userRepo = dataSource.getRepository('User');
     let adminId: string;
+    const now = new Date().toISOString();
 
-    for (const userData of usersData) {
-      const user = await userRepo.save(userData);
+    for (let i = 0; i < usersData.length; i++) {
+      const userData = usersData[i];
+      const user = await userRepo.save({
+        ...userData,
+        id: String(i + 1),
+        password: 'plaintext',
+        createdAt: now,
+        updatedAt: now,
+      });
       if (userData.role === 'admin') {
         adminId = user.id;
         adminToken = signJwt({
