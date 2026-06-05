@@ -306,9 +306,9 @@ These weaknesses are intentional. The security surface grows incrementally per t
 - **Role escalation limits** -- Moderators can promote other users to moderator indefinitely (CWE-269, v0.4.4)
 - **Ownership enforcement** -- ownerId exists on files/shares but is never checked (CWE-639, v0.3.x)
 - **Audit trail for authorization changes** -- Role changes logged to stdout only (CWE-532, v0.4.x)
-- Pagination / query limits -- all list endpoints are unbounded (CWE-400)
-- File upload sanitisation -- filenames, MIME types, and size limits are not validated (v0.3.x intentional)
-- App containers / deployment (v0.5.x) — only PG is containerised
+- Pagination enforcement -- list endpoints accept `skip`/`take` but defaults remain permissive; admin user list still unbounded (CWE-400 partial, v0.5.2)
+- File upload sanitisation -- filenames, MIME types, and Multer size limits are not validated (v0.3.x intentional; nginx 1m ceiling is accidental infra, not CWE)
+- App containers / deployment -- full stack in `docker-compose.prod.yml` (v0.7.x complete)
 - CI/CD pipelines
 - Environment configuration (credentials still hardcoded)
 - Swagger auth protection — spec is publicly accessible (CWE-200)

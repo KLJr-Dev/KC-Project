@@ -6,30 +6,60 @@ Canonical deployment timeline: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3
 
 ---
 
-## Current Status (v0.4.6 app / v0.7.x Docker planned)
+## Current Status (v1.0.0 — Docker mandatory)
 
-**PostgreSQL only in compose.** The database runs in Docker; backend and frontend run natively (`npm run start:dev`) until v0.7.x ships full stack containerisation. Uploaded files live in `backend/uploads/`. See [ADR-020](../docs/decisions/ADR-020-docker-db-only.md) and [ADR-024](../docs/decisions/ADR-024-file-storage-strategy.md).
+**Primary path:** full stack via `docker-compose.prod.yml` (postgres, backend, frontend, nginx on `localhost:8080`).
 
-### Quick Start (dev DB)
+**Dev path:** PostgreSQL-only compose for native `npm run start:dev` (backend `:4000`, frontend `:3000`).
+
+See [ADR-020](../docs/decisions/ADR-020-docker-db-only.md) and [ADR-024](../docs/decisions/ADR-024-file-storage-strategy.md).
+
+### Quick Start (production stack)
 
 ```bash
-# Start PostgreSQL
-docker compose -f infra/compose.yml up -d
-
-# Stop (keep data)
-docker compose -f infra/compose.yml down
-
-# Stop + delete all data
-docker compose -f infra/compose.yml down -v
+docker compose -f infra/docker-compose.prod.yml up -d --build
+./infra/smoke-test.sh
 ```
 
-### What's Running (dev)
+App URL: `http://localhost:8080` — API proxied at `/api/*`.
 
-| Service | Image | Port | Credentials |
-|---------|-------|------|-------------|
-| `kc-postgres` | `postgres:16` | `5432` | `postgres` / `postgres` |
+### Quick Start (dev DB only)
 
-Database: `kc_dev`. Data persisted via named volume `pgdata`.
+```bash
+docker compose -f infra/compose.yml up -d
+cd backend && npm run start:dev
+cd frontend && npm run dev
+```
+
+### What's Running (prod)
+
+| Service | Image | Host port | Notes |
+|---------|-------|-----------|-------|
+| `nginx` | `nginx:alpine` | `8080` | Reverse proxy |
+| `frontend` | built | internal | `NEXT_PUBLIC_API_URL=/api` |
+| `backend` | built | internal | NestJS on `:4000` |
+| `postgres` | `postgres:16-alpine` | `5433` | DB `kc_prod`; `5433` for host e2e tooling |
+
+Credentials (intentional CWE-798): `postgres` / `postgres`.
+
+Volumes: `pgdata_prod` (database), `uploads` (file storage).
+
+**Note:** Prod uses `pgdata_prod` (DB `kc_prod`), separate from dev `compose.yml` (`pgdata` / `kc_dev`). Reusing the dev volume causes `database "kc_prod" does not exist` and backend crash.
+
+---
+
+## Verification scripts
+
+| Script | Purpose |
+|--------|---------|
+| `smoke-test.sh` | Health → register → upload → list files via nginx |
+| `e2e-docker.sh` | Full backend e2e (148 tests) against Docker `kc_prod` on `:5433` |
+| `vm-setup.sh` | Ubuntu VM provisioning (Docker install) |
+
+```bash
+chmod +x infra/smoke-test.sh infra/e2e-docker.sh
+./infra/e2e-docker.sh
+```
 
 ---
 
@@ -38,14 +68,7 @@ Database: `kc_dev`. Data persisted via named volume `pgdata`.
 TypeORM migrations have replaced `synchronize: true`. The app auto-runs pending migrations on start (`migrationsRun: true`).
 
 ```bash
-# Generate a migration after changing entities:
-cd backend && npm run migration:generate -- src/migrations/YourMigrationName
-
-# Run migrations manually (also happens on app start):
 cd backend && npm run migration:run
-
-# Revert the last migration:
-cd backend && npm run migration:revert
 ```
 
 See [ADR-022](../docs/decisions/ADR-022-typeorm-migrations.md).
@@ -55,16 +78,9 @@ See [ADR-022](../docs/decisions/ADR-022-typeorm-migrations.md).
 | File | Purpose |
 |------|---------|
 | `compose.yml` | Dev PostgreSQL only (v0.2.0+) |
-| `docker-compose.prod.yml` | Full stack — planned v0.7.1 |
-| `vm-setup.sh` | Ubuntu VM provisioning — planned v0.7.2 |
-| `.env.example` | Production env template — planned v0.7.2 |
-
-## Planned (v0.7.x)
-
-Primary run path after v0.7.x:
-
-```bash
-docker compose -f infra/docker-compose.prod.yml up -d
-```
-
-Services: `postgres`, `backend`, `frontend`, `nginx` with persistent volumes (`pgdata`, `uploads`).
+| `docker-compose.prod.yml` | Full production stack (v0.7.x) |
+| `nginx.conf` | Reverse proxy `/api` → backend, `/` → frontend |
+| `smoke-test.sh` | Compose smoke journey |
+| `e2e-docker.sh` | E2E against Docker postgres |
+| `vm-setup.sh` | Ubuntu VM provisioning |
+| `.env.example` | Production env template |

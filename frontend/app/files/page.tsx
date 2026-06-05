@@ -179,9 +179,6 @@ export default function FilesPage() {
             setError(null);
             try {
               const result = await filesList();
-              if (!Array.isArray(result)) {
-                throw new Error('Unexpected /files response shape (expected array).');
-              }
               setFiles(result);
             } catch (err) {
               setError(String(err));

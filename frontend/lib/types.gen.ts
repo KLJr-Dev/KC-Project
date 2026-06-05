@@ -507,7 +507,7 @@ export interface components {
             username?: string;
             role?: Record<string, never>;
             createdAt: string;
-            updatedAt?: string; // v0.4.0: added updatedAt field
+            updatedAt: string;
         };
         CreateUserDto: {
             email: string;

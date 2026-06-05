@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { existsSync } from 'fs';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 
 /**
  * v0.3.4 -- Public File Sharing

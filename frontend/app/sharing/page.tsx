@@ -27,9 +27,13 @@ export default function SharingPage() {
     e.preventDefault();
     setCreateResult(null);
     setError(null);
+    if (!fileId.trim()) {
+      setError('fileId is required');
+      return;
+    }
     try {
       const res = await sharingCreate({
-        fileId: fileId || undefined,
+        fileId: fileId.trim(),
         public: isPublic,
         expiresAt: expiresAt || undefined,
       });

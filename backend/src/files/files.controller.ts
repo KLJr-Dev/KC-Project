@@ -25,6 +25,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 
 /**
  * v0.5.0 -- Real Multipart File Upload

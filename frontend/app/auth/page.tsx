@@ -46,7 +46,7 @@
  */
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { authRegister, authLogin } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
@@ -93,7 +93,7 @@ function validatePassword(password: string): string | null {
   return null;
 }
 
-export default function AuthPage() {
+function AuthPageContent() {
   const searchParams = useSearchParams();
   const initialMode = searchParams.get('mode') === 'login' ? 'login' : 'register';
   const [mode, setMode] = useState<AuthMode>(initialMode);
@@ -345,5 +345,13 @@ export default function AuthPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center pt-8 text-sm text-muted">Loading…</div>}>
+      <AuthPageContent />
+    </Suspense>
   );
 }
