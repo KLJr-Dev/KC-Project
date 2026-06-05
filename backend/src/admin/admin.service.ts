@@ -1,8 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
+import { FileEntity } from '../files/entities/file.entity';
+import { SharingEntity } from '../sharing/entities/sharing.entity';
 import { GetAdminUsersResponseDto, UserListItemDto } from './dto/get-admin-users-response.dto';
+import { AdminUsersQueryDto } from './dto/admin-users-query.dto';
+import { AdminStatsResponseDto } from './dto/admin-stats-response.dto';
+import { resolvePagination } from '../common/pagination.util';
+import { logAdminEvent } from '../common/logging.util';
+import { AuditService } from './audit.service';
+import { AuditLog } from './entities/audit-log.entity';
 
 /**
  * AdminService — Administrative Business Logic (v0.4.1: User Management)
@@ -16,6 +24,11 @@ export class AdminService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(FileEntity)
+    private readonly fileRepository: Repository<FileEntity>,
+    @InjectRepository(SharingEntity)
+    private readonly sharingRepository: Repository<SharingEntity>,
+    private readonly auditService: AuditService,
   ) {}
 
   /**
@@ -23,15 +36,44 @@ export class AdminService {
    * CWE-400: No pagination, no limit — full table dump
    * CWE-200: Exposes all user emails and roles
    */
-  async getAllUsers(): Promise<GetAdminUsersResponseDto> {
-    const users = await this.usersRepository.find({
+  async getAllUsers(query: AdminUsersQueryDto = {}): Promise<GetAdminUsersResponseDto> {
+    const { skip, take } = resolvePagination(query.skip, query.take);
+    const where: Record<string, unknown> = {};
+    if (query.role) {
+      where.role = query.role;
+    }
+    if (query.search) {
+      const pattern = `%${query.search}%`;
+      const [users, total] = await this.usersRepository.findAndCount({
+        select: ['id', 'email', 'username', 'role', 'createdAt', 'updatedAt'],
+        where: [
+          { ...(query.role ? { role: query.role } : {}), email: ILike(pattern) },
+          { ...(query.role ? { role: query.role } : {}), username: ILike(pattern) },
+        ],
+        order: { createdAt: 'ASC' },
+        skip,
+        take,
+      });
+      const items = users.map((user) => this.mapUserToDto(user));
+      return { items, users: items, total, count: total, skip, take };
+    }
+
+    const [users, total] = await this.usersRepository.findAndCount({
       select: ['id', 'email', 'username', 'role', 'createdAt', 'updatedAt'],
+      where,
       order: { createdAt: 'ASC' },
+      skip,
+      take,
     });
 
+    const items = users.map((user) => this.mapUserToDto(user));
     return {
-      users: users.map((user) => this.mapUserToDto(user)),
-      count: users.length,
+      items,
+      users: items,
+      total,
+      count: total,
+      skip,
+      take,
     };
   }
 
@@ -44,6 +86,7 @@ export class AdminService {
   async updateUserRole(
     userId: string,
     newRole: 'user' | 'moderator' | 'admin',
+    actorId: string,
   ): Promise<UserListItemDto> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
@@ -55,9 +98,11 @@ export class AdminService {
     await this.usersRepository.save(user);
 
     // CWE-532: No audit of role changes — no persistent log of who changed what, when
-    console.log(
-      `[ADMIN] Role Changed: user="${userId}" newRole="${newRole}" (CWE-532: No Persistent Audit)`,
-    );
+    logAdminEvent('role_change', { actorId, targetUserId: userId, newRole });
+    await this.auditService.record(actorId, 'role_change', userId, {
+      newRole,
+      email: user.email,
+    });
 
     return this.mapUserToDto(user);
   }
@@ -82,6 +127,7 @@ export class AdminService {
   async escalateUserRole(
     userId: string,
     currentUserRole: 'user' | 'moderator' | 'admin',
+    actorId: string,
   ): Promise<UserListItemDto> {
     // CWE-269: Weak escalation check — just verifies caller is elevated, not admin
     if (currentUserRole !== 'moderator' && currentUserRole !== 'admin') {
@@ -101,26 +147,37 @@ export class AdminService {
       await this.usersRepository.save(user);
 
       // CWE-532: No audit trail — just console log, lost on restart
-      console.log(
-        `[ADMIN] Escalation: user="${userId}" elevated to moderator by role="${currentUserRole}" (CWE-269, CWE-532)`,
-      );
+      logAdminEvent('escalate', { actorId, targetUserId: userId, byRole: currentUserRole });
+      await this.auditService.record(actorId, 'escalate', userId, { newRole: 'moderator' });
     }
 
     return this.mapUserToDto(user);
   }
 
-  /**
-   * Get audit logs (placeholder for v0.4.4)
-   * CWE-532: No persistent audit trail implemented
-   * Future: Should store all role changes, approvals, etc.
-   *
-   * @returns Empty array (placeholder)
-   */
-  async getAuditLogs(): Promise<Array<any>> {
-    // TODO: Implement persistent audit log table
-    // For now, return empty array as placeholder
-    console.log('[AUDIT] getAuditLogs() called — no persistence yet (CWE-532)');
-    return [];
+  async getAuditLogs(): Promise<AuditLog[]> {
+    return this.auditService.findAll();
+  }
+
+  async getStats(from?: string, to?: string): Promise<AdminStatsResponseDto> {
+    const userCount = await this.usersRepository.count();
+    const fileCount = await this.fileRepository.count();
+    const shareCount = await this.sharingRepository.count();
+
+    const files = await this.fileRepository.find({ select: ['size', 'uploadedAt'] });
+    let storageBytesEstimate = files.reduce((sum, f) => sum + (f.size ?? 0), 0);
+
+    if (from || to) {
+      const fromTs = from ? Date.parse(from) : 0;
+      const toTs = to ? Date.parse(to) : Number.MAX_SAFE_INTEGER;
+      storageBytesEstimate = files
+        .filter((f) => {
+          const ts = Date.parse(f.uploadedAt ?? '');
+          return ts >= fromTs && ts <= toTs;
+        })
+        .reduce((sum, f) => sum + (f.size ?? 0), 0);
+    }
+
+    return { userCount, fileCount, shareCount, storageBytesEstimate };
   }
 
   /**
@@ -143,7 +200,7 @@ export class AdminService {
    * @param userId - User ID to delete
    * @throws NotFoundException if user not found
    */
-  async deleteUser(userId: string): Promise<void> {
+  async deleteUser(userId: string, actorId: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
     if (!user) {
@@ -154,9 +211,8 @@ export class AdminService {
     await this.usersRepository.remove(user);
 
     // CWE-532: No audit trail — log to console, lost on restart
-    console.log(
-      `[ADMIN] User Deleted: userId="${userId}" email="${user.email}" (CWE-862: No Auth Check, CWE-532: No Audit)`,
-    );
+    logAdminEvent('delete_user', { actorId, targetUserId: userId, email: user.email });
+    await this.auditService.record(actorId, 'delete_user', userId, { email: user.email });
   }
 
   /**

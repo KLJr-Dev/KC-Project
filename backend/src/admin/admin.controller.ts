@@ -7,6 +7,7 @@ import {
   HttpCode,
   Param,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -21,6 +22,8 @@ import { GetAdminUsersResponseDto } from './dto/get-admin-users-response.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { AdminUsersQueryDto } from './dto/admin-users-query.dto';
+import { AdminStatsResponseDto } from './dto/admin-stats-response.dto';
 
 @ApiTags('admin')
 @Controller('admin')
@@ -56,9 +59,9 @@ export class AdminController {
     status: 403,
     description: 'Forbidden (not admin)',
   })
-  async getAllUsers(): Promise<GetAdminUsersResponseDto> {
+  async getAllUsers(@Query() query: AdminUsersQueryDto): Promise<GetAdminUsersResponseDto> {
     // VULN: HasRoleGuard trusts JWT role, doesn't re-check database
-    return this.adminService.getAllUsers();
+    return this.adminService.getAllUsers(query);
   }
 
   /**
@@ -95,11 +98,9 @@ export class AdminController {
   async updateUserRole(
     @Param('id') userId: string,
     @Body() dto: UpdateUserRoleDto,
+    @CurrentUser() user: JwtPayload,
   ) {
-    // VULN: No additional authorization checks beyond "is admin"
-    // VULN: Admin can modify any user, including other admins
-    // VULN: No rate limiting on role changes
-    return this.adminService.updateUserRole(userId, dto.role);
+    return this.adminService.updateUserRole(userId, dto.role, user.sub);
   }
 
   /**
@@ -143,21 +144,34 @@ export class AdminController {
     @CurrentUser() user: JwtPayload,
   ) {
     // CWE-639: Role extracted from JWT, no DB re-validation
-    return this.adminService.escalateUserRole(userId, user.role as 'user' | 'moderator' | 'admin');
+    return this.adminService.escalateUserRole(
+      userId,
+      user.role as 'user' | 'moderator' | 'admin',
+      user.sub,
+    );
   }
 
   /**
-   * GET /admin/audit-logs — Retrieve audit logs (placeholder for v0.4.4)
-   *
-   * Guarded by: JwtAuthGuard + HasRoleGuard (requires 'admin' role)
-   * CWE-532: No persistent audit trail yet
+   * GET /admin/stats — System statistics (v0.6.2)
+   */
+  @Get('stats')
+  @HasRole('admin')
+  @ApiOperation({ summary: 'System statistics (admin only)' })
+  async getStats(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ): Promise<AdminStatsResponseDto> {
+    return this.adminService.getStats(from, to);
+  }
+
+  /**
+   * GET /admin/audit-logs — Persistent audit trail (v0.6.0)
+   * CWE-284: JwtAuthGuard only — any authenticated user can read audit logs.
    */
   @Get('audit-logs')
-  @HasRole('admin')
   @ApiOperation({
-    summary: 'Get audit logs (admin only, placeholder)',
-    description:
-      'Returns array of audit log entries. Currently a placeholder returning empty array (CWE-532: No audit trail implemented).',
+    summary: 'Get audit logs (any authenticated user — CWE-284)',
+    description: 'Returns persisted audit log entries. Weak guard: no admin role required.',
   })
   @ApiResponse({
     status: 200,
@@ -223,12 +237,11 @@ export class AdminController {
     status: 404,
     description: 'User not found',
   })
-  async deleteUser(@Param('id') userId: string): Promise<void> {
-    // VULN: No @HasRole check — any auth user can delete any user
-    // VULN: No ownership check — can delete other users, not just self
-    // VULN: No audit trail — deletion logged to stdout, lost on restart
-    // VULN: No soft-delete — permanent removal, no recovery
-    return this.adminService.deleteUser(userId);
+  async deleteUser(
+    @Param('id') userId: string,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.adminService.deleteUser(userId, user.sub);
   }
 }
 

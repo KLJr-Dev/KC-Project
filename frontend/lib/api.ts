@@ -61,7 +61,7 @@ import type {
  * CWE-319 (Cleartext Transmission of Sensitive Information) | A04:2025
  * Remediation (v2.0.0): HTTPS via nginx TLS termination, HSTS header.
  */
-const API_BASE = 'http://localhost:4000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -125,12 +125,61 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 /**
+ * Structured validation error response from backend ValidationExceptionFilter.
+ * Provides field-level constraint messages for form display.
+ */
+export interface ValidationErrorResponse {
+  statusCode: number;
+  message: string;
+  errors?: Record<string, string[]>;
+  timestamp?: string;
+}
+
+/**
+ * Custom error class that wraps ValidationErrorResponse for structured errors.
+ * Allows components to check if error is validation-related and access field errors.
+ */
+export interface ApiErrorResponse {
+  statusCode: number;
+  message: string;
+  timestamp?: string;
+  errors?: Record<string, string[]>;
+}
+
+export class ValidationError extends Error {
+  public readonly errors: Record<string, string[]>;
+  public readonly statusCode: number;
+  public readonly timestamp?: string;
+
+  constructor(response: ValidationErrorResponse) {
+    super(response.message);
+    this.statusCode = response.statusCode;
+    this.errors = response.errors || {};
+    this.timestamp = response.timestamp;
+    this.name = 'ValidationError';
+  }
+}
+
+export class ApiError extends Error {
+  public readonly statusCode: number;
+  public readonly timestamp?: string;
+
+  constructor(response: ApiErrorResponse) {
+    super(response.message);
+    this.statusCode = response.statusCode;
+    this.timestamp = response.timestamp;
+    this.name = 'ApiError';
+  }
+}
+
+/**
  * Core request helper. All API functions delegate to this.
  *
  * - Builds headers via getHeaders() (Content-Type + optional Bearer token)
  * - Merges caller-provided RequestInit (method, body, etc.)
  * - Throws a user-friendly error on network failure (TypeError = server down)
- * - Throws on non-2xx HTTP responses with status + body for debugging
+ * - Parses ValidationErrorResponse (400) into ValidationError with field errors
+ * - Throws on other non-2xx HTTP responses with status + body for debugging
  * - Returns parsed JSON typed as T
  *
  * Note: the ...init spread means caller-provided headers would override
@@ -153,7 +202,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`${res.status} ${res.statusText}: ${body}`);
+    try {
+      const json = JSON.parse(body) as ApiErrorResponse;
+      if (json.statusCode === 400 && json.errors) {
+        throw new ValidationError(json);
+      }
+      if (json.statusCode && json.message) {
+        throw new ApiError(json);
+      }
+      throw new Error(`${res.status} ${res.statusText}: ${body}`);
+    } catch (parseErr) {
+      if (parseErr instanceof ValidationError || parseErr instanceof ApiError) {
+        throw parseErr;
+      }
+      throw new Error(`${res.status} ${res.statusText}: ${body}`);
+    }
   }
   return res.json() as Promise<T>;
 }
@@ -330,31 +393,50 @@ export const adminDelete = (id: string) => del<DeleteResponse>(`/admin/${id}`);
 // CWE-862: No additional authorization checks.
 // CWE-200: All user emails exposed.
 // CWE-400: Unbounded list.
-// v0.4.3: Role now includes 'moderator' for ternary RBAC system.
 
 export interface AdminUser {
   id: string;
   email: string;
   username: string;
-  role: 'user' | 'moderator' | 'admin';
+  role: 'user' | 'admin';
   createdAt: string;
   updatedAt: string;
 }
 
 export interface GetAdminUsersResponse {
+  items: AdminUser[];
   users: AdminUser[];
+  total: number;
   count: number;
+  skip: number;
+  take: number;
+}
+
+export interface AdminStatsResponse {
+  userCount: number;
+  fileCount: number;
+  shareCount: number;
+  storageBytesEstimate: number;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actorId: string;
+  action: string;
+  targetId: string;
+  details: string;
+  createdAt: string;
 }
 
 export interface UpdateUserRoleRequest {
-  role: 'user' | 'moderator' | 'admin';
+  role: 'user' | 'admin';
 }
 
 export interface UpdateUserRoleResponse {
   id: string;
   email: string;
   username: string;
-  role: 'user' | 'moderator' | 'admin';
+  role: 'user' | 'admin';
   createdAt: string;
   updatedAt: string;
 }
@@ -363,15 +445,31 @@ export interface UpdateUserRoleResponse {
  * GET /admin/users — List all users (admin only)
  * CWE-200: All user emails exposed
  * CWE-400: Unbounded list dump
- * CWE-639: Trusts role from JWT (v0.4.3: extended to moderator)
+ * CWE-639: Trusts 'admin' role from JWT
  */
-export const adminListUsers = () => request<GetAdminUsersResponse>('/admin/users');
+export const adminListUsers = (params?: {
+  search?: string;
+  role?: string;
+  skip?: number;
+  take?: number;
+}) => {
+  const query = new URLSearchParams();
+  if (params?.search) query.set('search', params.search);
+  if (params?.role) query.set('role', params.role);
+  if (params?.skip !== undefined) query.set('skip', String(params.skip));
+  if (params?.take !== undefined) query.set('take', String(params.take));
+  const qs = query.toString();
+  return request<GetAdminUsersResponse>(`/admin/users${qs ? `?${qs}` : ''}`);
+};
+
+export const adminGetStats = () => request<AdminStatsResponse>('/admin/stats');
+
+export const adminGetAuditLogs = () => request<AuditLogEntry[]>('/admin/audit-logs');
 
 /**
  * PUT /admin/users/:id/role — Update a user's role (admin only)
  * CWE-862: No additional auth checks
  * CWE-532: No audit trail
- * v0.4.3: Can now promote to 'moderator' (has file approval permissions)
  */
-export const adminUpdateUserRole = (userId: string, role: 'user' | 'moderator' | 'admin') =>
+export const adminUpdateUserRole = (userId: string, role: 'user' | 'admin') =>
   put<UpdateUserRoleResponse>(`/admin/users/${userId}/role`, { role });

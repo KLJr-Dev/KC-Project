@@ -1,18 +1,13 @@
 /**
- * Delete User Request DTO (v0.4.5)
+ * v0.5.0 — Input Validation Pipeline: DeleteUserDto
  *
- * CWE-862: Improper Access Control — Missing Authorization
+ * Request body for DELETE /admin/users/:id (admin-only endpoint).
+ * DTO is intentionally empty; delete logic uses only path parameter (userId).
  *
- * This DTO is simple (nearly empty) because the delete endpoint intentionally
- * lacks role-based authorization checks. The endpoint only uses JwtAuthGuard,
- * allowing any authenticated user to delete any other user.
- *
- * In a secure system, DELETE endpoints would require:
- * - Role check: @HasRole('admin')
- * - Ownership validation: Can user delete themselves? Others?
- * - Soft-delete or audit trail: Track deletion timestamps and who deleted whom
- *
- * This endpoint demonstrates intentional CWE-862 by omitting all three.
+ * VULN (Intentional):
+ *   - CWE-862 (Missing Authorization): Endpoint lacks proper guard validation
+ *     (v0.4.5 — HasRole guard missing on DELETE endpoint)
+ *   - CWE-532: No audit trail; deletion not logged
  */
 export class DeleteUserDto {
   // Currently empty — no request body required

@@ -5,6 +5,8 @@ import { SharingEntity } from './entities/sharing.entity';
 import { SharingResponseDto } from './dto/sharing-response.dto';
 import { CreateSharingDto } from './dto/create-sharing.dto';
 import { UpdateSharingDto } from './dto/update-sharing.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { buildPaginatedResponse, resolvePagination } from '../common/pagination.util';
 
 /**
  * v0.3.4 -- Public File Sharing
@@ -60,10 +62,20 @@ export class SharingService {
     return this.toResponse(saved);
   }
 
-  /** GET /sharing -- return all share records. */
-  async read(): Promise<SharingResponseDto[]> {
-    const entities = await this.shareRepo.find();
-    return entities.map((e) => this.toResponse(e));
+  /** GET /sharing -- paginated share list (v0.5.2). */
+  async read(query: PaginationQueryDto = {}) {
+    const { skip, take } = resolvePagination(query.skip, query.take);
+    const [entities, total] = await this.shareRepo.findAndCount({
+      skip,
+      take,
+      order: { createdAt: 'DESC' },
+    });
+    return buildPaginatedResponse(
+      entities.map((e) => this.toResponse(e)),
+      total,
+      skip,
+      take,
+    );
   }
 
   /** GET /sharing/:id -- return single share or null. */

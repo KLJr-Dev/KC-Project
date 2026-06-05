@@ -60,7 +60,7 @@ import { authLogout } from './api';
 interface AuthState {
   token: string | null;
   userId: string | null;
-  role?: 'user' | 'admin'; // v0.4.0: user privilege level
+  role?: 'user' | 'moderator' | 'admin'; // v0.4.3: ternary role system
 }
 
 /** Full context value exposed to consumers via useAuth(). */
@@ -182,6 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // VULN: only checks token presence, not validity (CWE-345)
       isAuthenticated: !!state.token,
       isAdmin: state.role === 'admin', // v0.4.0: convenience flag (NOTE: trusts client-side role, not validated server-side yet)
+      isModerator: state.role === 'moderator', // v0.4.3: trusts client-side role (CWE-639)
       login,
       logout,
     }),

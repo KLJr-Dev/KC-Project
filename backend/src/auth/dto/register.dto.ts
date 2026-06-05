@@ -1,31 +1,37 @@
 /**
- * v0.1.5 — Authentication Edge Cases
+ * v0.5.0 — Input Validation Pipeline: RegisterDto
  *
  * Request body for POST /auth/register.
- * Fields are now required to support basic validation and tests for:
- * - 201 code for successful registration
- * - 400 code when required fields are missing
- * - 409 code on weak duplicate email handling
  *
- * --- Why a dedicated Register DTO? ---
- * Register often carries more than login (e.g. username, email, password).
- * Keeping it separate from LoginDto makes the API contract clear and allows
- * different validation rules per endpoint.
+ * v0.5.0 adds class-validator decorators for field-level validation:
+ * - email: @IsEmail (format validation, CWE-20 partial mitigation)
+ * - username: @IsString, @MinLength(3), @MaxLength(50) (strong constraints)
+ * - password: @IsString, @MinLength(1) ONLY (CWE-521 Weak Passwords — intentional)
  *
- * VULN: No class-validator decorators and no ValidationPipe. These fields
- *       have no constraints — password accepts any non-empty string ("a",
- *       "1", " "), email accepts any string (no format validation on the
- *       backend), and username has no length limit. The only validation is
- *       the manual `if (!email || !username || !password)` check in
- *       AuthService.register(), which only checks for falsy values.
- *       CWE-521 (Weak Password Requirements) | A07:2025
- *       CWE-20 (Improper Input Validation) | A05:2025
- *       Remediation (v2.0.0): Add class-validator decorators (@IsEmail,
- *       @MinLength(12), @Matches for complexity), enable ValidationPipe
- *       globally in main.ts.
+ * ValidationPipe (registered in main.ts) validates all incoming requests;
+ * malformed input returns 400 Bad Request with field-level error details.
+ *
+ * VULN (Intentional):
+ *   - CWE-521: Password requires only 1 character minimum; no complexity, no max length
+ *   - CWE-20: Email format validated, but usernames not enumerated, no rate limiting
+ *   - CWE-1025: Type mismatch exposure — if client sends "username" as number,
+ *     strict validation rejects it (no auto-convert)
  */
+import { IsEmail, IsString, MinLength, MaxLength, IsNotEmpty } from 'class-validator';
+
 export class RegisterDto {
+  @IsEmail({}, { message: 'email must be a valid email address' })
+  @IsNotEmpty({ message: 'email is required' })
   email!: string;
+
+  @IsString({ message: 'password must be a string' })
+  @MinLength(1, { message: 'password must be at least 1 character' })
+  @IsNotEmpty({ message: 'password is required' })
   password!: string;
+
+  @IsString({ message: 'username must be a string' })
+  @MinLength(3, { message: 'username must be at least 3 characters' })
+  @MaxLength(50, { message: 'username must not exceed 50 characters' })
+  @IsNotEmpty({ message: 'username is required' })
   username!: string;
 }

@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -72,11 +73,11 @@ export class SharingController {
     return this.sharingService.create(dto, user.sub);
   }
 
-  /** GET /sharing -- list all share records. */
+  /** GET /sharing -- paginated share list (v0.5.2). */
   @Get()
   @UseGuards(JwtAuthGuard)
-  async read() {
-    return this.sharingService.read();
+  async read(@Query() query: PaginationQueryDto) {
+    return this.sharingService.read(query);
   }
 
   /** GET /sharing/:id -- single share or 404. */
