@@ -2,7 +2,18 @@
 
 Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable or documentable instance; duplicate CWE IDs reflect distinct surfaces.
 
-## Identity & Auth (v0.1.x) — 8 instances
+**Cycle:** All entries below are `cycle: 1` (v1.0.0 insecure baseline → v2.0.0 remediation). Workspace: [Cycle-1/README.md](Cycle-1/README.md). Ground truth: [Cycle-1/Dev/v1.0.0-ground-truth.md](Cycle-1/Dev/v1.0.0-ground-truth.md).
+
+## Cycle 1 summary
+
+| Metric | Count |
+|--------|-------|
+| Instances (`cycle: 1`) | **59** |
+| Unique CWE IDs | **38** |
+| Attack surfaces | 6 |
+| Remediation target | v2.0.0 ([Remediation/v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md)) |
+
+## Identity & Auth (`cycle: 1`, v0.1.x) — 8 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
@@ -15,7 +26,7 @@ Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable o
 | CWE-521 | Weak password policy | v0.5.0 |
 | CWE-345 | Client `isAuthenticated` checks token presence only | v1.0.0 |
 
-## Persistence & Data (v0.2.x) — 9 instances
+## Persistence & Data (`cycle: 1`, v0.2.x) — 9 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
@@ -29,7 +40,7 @@ Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable o
 | CWE-1393 | Default postgres credentials (dev compose) | v0.2.0 |
 | CWE-205 | Pagination offset oracle on list endpoints | v0.5.2 |
 
-## Files & Sharing (v0.3.x) — 12 instances
+## Files & Sharing (`cycle: 1`, v0.3.x) — 12 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
@@ -46,7 +57,7 @@ Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable o
 | CWE-862 | File approve trusts JWT role only | v0.4.3 |
 | CWE-841 | Moderator/admin hierarchy ambiguity on approve | v0.4.3 |
 
-## Authorization & Admin (v0.4.x–v0.6.x) — 14 instances
+## Authorization & Admin (`cycle: 1`, v0.4.x–v0.6.x) — 14 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
@@ -65,7 +76,7 @@ Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable o
 | CWE-532 | Audit log details in plaintext | v0.6.0 |
 | CWE-200 | Health endpoint exposes version/env hints | v0.6.3 |
 
-## Validation & Errors (v0.5.x) — 5 instances
+## Validation & Errors (`cycle: 1`, v0.5.x) — 5 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
@@ -75,7 +86,7 @@ Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable o
 | CWE-400 | Pagination defaults permissive (high take) | v0.5.2 |
 | CWE-209 | Structured 400 errors leak field names | v0.5.3 |
 
-## Client-Side / Frontend (v1.0.0) — 5 instances
+## Client-Side / Frontend (`cycle: 1`, v1.0.0) — 5 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
@@ -85,7 +96,7 @@ Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable o
 | CWE-345 | UI trusts client-side role for admin link visibility | v0.4.0 |
 | CWE-613 | Client logout clears storage only; server token valid | v0.1.4 |
 
-## Infrastructure & Deployment (v0.7.x) — 6 instances
+## Infrastructure & Deployment (`cycle: 1`, v0.7.x) — 6 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
@@ -106,9 +117,10 @@ Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable o
 
 | Metric | Count |
 |--------|-------|
+| Cycle | **1** (v1.0.0 → v2.0.0) |
 | Unique CWE IDs | **38** |
 | Documented instances | **59** |
 | Attack surfaces | 6 (auth, persistence, files/sharing, RBAC/admin, client, infra) |
 | Target range (STRATEGY) | 60–80 |
 
-Remaining headroom (~1–21 instances) is reserved for v1.0.x pentest discoveries and documentation of variant exploit paths on existing surfaces.
+Remaining headroom (~1–21 instances) is reserved for v1.0.x pentest discoveries in [Cycle-1/PenTest/](Cycle-1/PenTest/) and documentation of variant exploit paths on existing surfaces.

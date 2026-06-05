@@ -1,10 +1,10 @@
-# v0.2.0 — Database Introduction (Local)
+# v1.0.0 — Dev PostgreSQL only (ADR-020)
 #
-# Docker Compose for PostgreSQL only. The backend and frontend still run
-# natively (npm run start:dev). App containerisation is deferred to v0.5.x.
+# Native dev path: DB in Docker, backend/frontend run via npm run start:dev.
+# Do NOT use this volume for prod (kc_prod) — use docker-compose.prod.yml instead.
 #
 # Usage:
-#   docker compose -f infra/compose.yml up -d      Start PG
+#   docker compose -f infra/compose.yml up -d      Start PG (kc_dev on :5432)
 #   docker compose -f infra/compose.yml down        Stop PG (keep data)
 #   docker compose -f infra/compose.yml down -v     Stop PG + delete data
 #

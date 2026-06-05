@@ -35,18 +35,14 @@
  */
 
 import type {
-  AdminResponse,
   AuthResponse,
-  CreateAdmin,
   CreateSharing,
   CreateUser,
   DeleteResponse,
   FileResponse,
   LoginRequest,
-  PingResponse,
   RegisterRequest,
   SharingResponse,
-  UpdateAdmin,
   UpdateSharing,
   UpdateUser,
   UploadFileRequest,
@@ -249,11 +245,6 @@ function del<T>(path: string): Promise<T> {
   return request<T>(path, { method: 'DELETE' });
 }
 
-// ── Ping ─────────────────────────────────────────────────────────────
-// GET /ping — health check, confirms backend is reachable
-
-export const ping = () => request<PingResponse>('/ping');
-
 // ── Users ────────────────────────────────────────────────────────────
 // CRUD operations on /users. These are the raw user management endpoints
 // (separate from auth). Currently unprotected — no guard on the backend.
@@ -297,8 +288,7 @@ export const authMe = () => request<UserResponse>('/auth/me');
  *       Remediation (v2.0.0): POST /auth/logout deletes refresh token from DB.
  *       Frontend clears httpOnly cookie via Set-Cookie maxAge=0 from backend.
  */
-export const authLogout = () =>
-  request<{ message: string }>('/auth/logout', { method: 'POST' });
+export const authLogout = () => request<{ message: string }>('/auth/logout', { method: 'POST' });
 
 // ── Files ────────────────────────────────────────────────────────────
 // File management endpoints. Backed by real Multer multipart uploads
@@ -344,6 +334,9 @@ export const filesList = () => listItems<FileResponse>('/files');
 
 export const filesDelete = (id: string) => del<DeleteResponse>(`/files/${id}`);
 
+export const filesApprove = (id: string, status: 'approved' | 'rejected') =>
+  put<FileResponse>(`/files/${id}/approve`, { status });
+
 /**
  * Download helper for GET /files/:id/download.
  *
@@ -386,19 +379,13 @@ export const sharingDelete = (id: string) => del<DeleteResponse>(`/sharing/${id}
  */
 export const sharingPublicUrl = (token: string) => `${API_BASE}/sharing/public/${token}`;
 
-// ── Admin ────────────────────────────────────────────────────────────
-// Administrative endpoints. Currently stub routes on the backend.
-
-export const adminCreate = (dto: CreateAdmin) => post<AdminResponse>('/admin', dto);
-
-export const adminList = () => request<AdminResponse[]>('/admin');
-
-export const adminGetById = (id: string) => request<AdminResponse>(`/admin/${id}`);
-
-export const adminUpdate = (id: string, dto: UpdateAdmin) =>
-  put<AdminResponse>(`/admin/${id}`, dto);
-
-export const adminDelete = (id: string) => del<DeleteResponse>(`/admin/${id}`);
+/** Product UI: friendly landing page (frontend route, not API). */
+export const sharingFriendlyUrl = (token: string) => {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/share/${token}`;
+  }
+  return `/share/${token}`;
+};
 
 // ── Admin Users (v0.4.1) ──────────────────────────────────────────────
 // v0.4.1: User management endpoints (admin-only, weak authorization).
@@ -488,3 +475,10 @@ export const adminGetAuditLogs = () => request<AuditLogEntry[]>('/admin/audit-lo
  */
 export const adminUpdateUserRole = (userId: string, role: AdminRole) =>
   put<UpdateUserRoleResponse>(`/admin/users/${userId}/role`, { role });
+
+/** PUT /admin/users/:id/role/escalate — moderator escalation chain (CWE-269) */
+export const adminEscalateUserRole = (userId: string) =>
+  put<UpdateUserRoleResponse>(`/admin/users/${userId}/role/escalate`, {});
+
+/** DELETE /admin/users/:id — missing HasRole guard (CWE-862) */
+export const adminDeleteUser = (userId: string) => del<DeleteResponse>(`/admin/users/${userId}`);

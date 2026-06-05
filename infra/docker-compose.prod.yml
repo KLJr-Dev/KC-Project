@@ -1,13 +1,16 @@
-# v0.7.x — Production Docker stack (CWE-798: hardcoded defaults intentional)
+# v1.0.0 — Pentest/production Docker stack (mandatory for Cycle-1)
+# Usage: cp infra/.env.example infra/.env && docker compose -f infra/docker-compose.prod.yml up -d --build
 services:
   postgres:
     image: postgres:16-alpine
     ports:
       - '5433:5432' # host access for e2e-docker.sh; backend uses internal network
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: kc_prod
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-kc_prod}
     volumes:
       - pgdata_prod:/var/lib/postgresql/data
     healthcheck:
@@ -23,13 +26,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: kc_prod
-      PORT: 4000
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-kc_prod}
+      PORT: ${PORT:-4000}
     volumes:
       - uploads:/app/uploads
     expose:
@@ -39,8 +44,7 @@ services:
     build:
       context: ../frontend
       args:
-        # Relative path — browser resolves against http://localhost:8080 (nginx)
-        NEXT_PUBLIC_API_URL: /api
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
     depends_on:
       - backend
     expose:

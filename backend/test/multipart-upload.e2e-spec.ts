@@ -274,7 +274,12 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
   describe('file download', () => {
     it('downloads file and returns stored MIME type (CWE-434)', async () => {
       const httpServer = app.getHttpServer();
-      const user = await registerAndLogin(httpServer, 'downloader@test.com', 'downloader', 'password');
+      const user = await registerAndLogin(
+        httpServer,
+        'downloader@test.com',
+        'downloader',
+        'password',
+      );
 
       const uploadRes = await request(httpServer)
         .post('/files')
@@ -321,7 +326,12 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
     it('sets Content-Disposition with filename', async () => {
       const httpServer = app.getHttpServer();
-      const user = await registerAndLogin(httpServer, 'downloader2@test.com', 'downloader2', 'password');
+      const user = await registerAndLogin(
+        httpServer,
+        'downloader2@test.com',
+        'downloader2',
+        'password',
+      );
 
       const uploadRes = await request(httpServer)
         .post('/files')
@@ -342,7 +352,12 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
     it('returns 404 for non-existent file on download', async () => {
       const httpServer = app.getHttpServer();
-      const user = await registerAndLogin(httpServer, 'downloader3@test.com', 'downloader3', 'password');
+      const user = await registerAndLogin(
+        httpServer,
+        'downloader3@test.com',
+        'downloader3',
+        'password',
+      );
 
       await request(httpServer)
         .get('/files/999/download')
@@ -390,7 +405,12 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
     it('deletes file without ownership check (CWE-639 IDOR)', async () => {
       const httpServer = app.getHttpServer();
-      const user1 = await registerAndLogin(httpServer, 'attacker2@test.com', 'attacker2', 'password');
+      const user1 = await registerAndLogin(
+        httpServer,
+        'attacker2@test.com',
+        'attacker2',
+        'password',
+      );
       const user2 = await registerAndLogin(httpServer, 'victim2@test.com', 'victim2', 'password');
 
       // User2 uploads a file
@@ -433,7 +453,12 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
   describe('path traversal vulnerability (CWE-22)', () => {
     it('allows path traversal in filename when client supplies "../" (vulnerable)', async () => {
       const httpServer = app.getHttpServer();
-      const user = await registerAndLogin(httpServer, 'traverser@test.com', 'traverser', 'password');
+      const user = await registerAndLogin(
+        httpServer,
+        'traverser@test.com',
+        'traverser',
+        'password',
+      );
 
       // Simulate client supplying filename with "../" traversal attempt
       // Note: Multer's diskStorage receives the originalname from the client
@@ -454,7 +479,12 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
     it('stores absolute storagePath, exposing directory structure (CWE-200)', async () => {
       const httpServer = app.getHttpServer();
-      const user = await registerAndLogin(httpServer, 'pathexpose@test.com', 'pathexpose', 'password');
+      const user = await registerAndLogin(
+        httpServer,
+        'pathexpose@test.com',
+        'pathexpose',
+        'password',
+      );
 
       const res = await request(httpServer)
         .post('/files')
@@ -491,7 +521,12 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
     it('download returns stored MIME type to client', async () => {
       const httpServer = app.getHttpServer();
-      const user = await registerAndLogin(httpServer, 'mimedownload@test.com', 'mimedownload', 'password');
+      const user = await registerAndLogin(
+        httpServer,
+        'mimedownload@test.com',
+        'mimedownload',
+        'password',
+      );
 
       const uploadRes = await request(httpServer)
         .post('/files')
@@ -519,7 +554,12 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
   describe('file size limits (CWE-400)', () => {
     it('allows unbounded file uploads (no size limit configured)', async () => {
       const httpServer = app.getHttpServer();
-      const user = await registerAndLogin(httpServer, 'uploader_large@test.com', 'uploader_large', 'password');
+      const user = await registerAndLogin(
+        httpServer,
+        'uploader_large@test.com',
+        'uploader_large',
+        'password',
+      );
 
       // Attempt to upload a 10MB file
       const res = await request(httpServer)
@@ -552,7 +592,12 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
     it('includes approvalStatus in file metadata', async () => {
       const httpServer = app.getHttpServer();
-      const user = await registerAndLogin(httpServer, 'approval2@test.com', 'approval2', 'password');
+      const user = await registerAndLogin(
+        httpServer,
+        'approval2@test.com',
+        'approval2',
+        'password',
+      );
 
       const uploadRes = await request(httpServer)
         .post('/files')

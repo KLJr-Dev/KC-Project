@@ -135,25 +135,25 @@ export class FilesController {
 
   /**
    * GET /files/:id/download -- Stream file from disk to client.
-   * 
+   *
    * v0.5.1: File download & streaming endpoint. Returns file content as attachment
    * with correct Content-Type and Content-Disposition headers. Supports all file sizes
    * via Express streaming (sendFile with piping).
-   * 
+   *
    * Behavior:
    * 1. Fetch file metadata from database by ID
    * 2. Verify file exists on disk (storagePath)
    * 3. Set Content-Type from stored MIME type (or application/octet-stream default)
    * 4. Set Content-Disposition: attachment with filename for browser download
    * 5. Stream file content via Express res.sendFile() (efficient piping)
-   * 
+   *
    * Response:
    * - 200 OK: File stream with headers (Content-Type, Content-Disposition, Content-Length)
    * - 404 Not Found: File ID doesn't exist or disk storage missing
    * - 401 Unauthorized: No or invalid JWT token
-   * 
+   *
    * OpenAPI: application/octet-stream (binary response)
-   * 
+   *
    * VULN (v0.5.1 - CWE-639 IDOR): No ownership check. Any authenticated user
    *       can download any file uploaded by any other user. Combined with CWE-200
    *       (storagePath exposed in metadata), attacker can:
@@ -163,7 +163,7 @@ export class FilesController {
    *       Severity: HIGH - Full file confidentiality breach.
    *       Remediation (v2.0.0): Check file.ownerId == currentUser.id before streaming.
    *       Except: Admin/moderator can download if approval workflow requires review.
-   * 
+   *
    * VULN (v0.5.1 - CWE-22 Path Traversal): storagePath used directly in sendFile()
    *       without validation. If storagePath contains absolute path to system file
    *       (e.g., "/etc/passwd"), and database can be poisoned via SQL injection or
@@ -174,7 +174,7 @@ export class FilesController {
    *       Then GET /files/:id/download would leak /etc/shadow content.
    *       Remediation (v2.0.0): Whitelist storagePath to uploadDir; reject if
    *       path.resolve(storagePath).startsWith(uploadDir) === false.
-   * 
+   *
    * VULN (v0.5.1 - CWE-434 MIME Type Confusion): mimetype stored from client
    *       (via multer Content-Type header) without validation. Attacker uploads
    *       .txt file claiming mimetype='application/javascript', server stores
@@ -188,7 +188,7 @@ export class FilesController {
    *       Remediation (v1.0.0): Server detects MIME from file content (magic bytes)
    *       using file library or libmagic. Whitelist safe MIME types (pdf, image/*, etc).
    *       Do NOT trust Content-Type header.
-   * 
+   *
    * VULN (v0.5.1 - CWE-200 Information Disclosure): storagePath exposed in
    *       GET /files/:id metadata endpoint. Reveals internal file storage structure:
    *       /home/kc/KC-Project-1/backend/uploads/abc123-filename.ext

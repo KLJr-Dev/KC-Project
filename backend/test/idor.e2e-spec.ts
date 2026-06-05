@@ -78,7 +78,7 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
    * User A uploads a file (ownerId = A). User B, with a different JWT,
    * can read User A's file by knowing its ID. No ownership check.
    */
-  it('User B can read User A\'s file — CWE-639 IDOR', async () => {
+  it("User B can read User A's file — CWE-639 IDOR", async () => {
     const httpServer = app.getHttpServer();
 
     const userA = await registerAndLogin(httpServer, 'a@example.com', 'user-a', 'pass-a');
@@ -108,7 +108,7 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
   /**
    * IDOR: User B deletes User A's file — CWE-639
    */
-  it('User B can delete User A\'s file — CWE-639 IDOR', async () => {
+  it("User B can delete User A's file — CWE-639 IDOR", async () => {
     const httpServer = app.getHttpServer();
 
     const userA = await registerAndLogin(httpServer, 'a@example.com', 'user-a', 'pass-a');
@@ -139,7 +139,7 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
   /**
    * IDOR: User B modifies User A's profile — CWE-639
    */
-  it('User B can modify User A\'s profile — CWE-639 IDOR', async () => {
+  it("User B can modify User A's profile — CWE-639 IDOR", async () => {
     const httpServer = app.getHttpServer();
 
     const userA = await registerAndLogin(httpServer, 'a@example.com', 'user-a', 'pass-a');

@@ -64,9 +64,9 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('KC-Project API')
     .setDescription(
-      'v0.5.0+ — Foundation Refinement: Input Validation, Error Standardization, Logging. Global ValidationPipe enforces DTO constraints. CWE-20, CWE-1025, CWE-269, CWE-400 vulnerabilities intentional. File upload/download via Multer (v0.5.0–v0.5.1).',
+      'v1.0.0 — Insecure MVP (pentest-ready). 30 routes, intentional CWEs across auth, files, sharing, RBAC, admin. See docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md.',
     )
-    .setVersion('0.6.5')
+    .setVersion('1.0.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

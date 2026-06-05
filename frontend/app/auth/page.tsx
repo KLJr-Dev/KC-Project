@@ -47,10 +47,11 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { authRegister, authLogin } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import { ValidationError } from '../../lib/api';
+import { DEMO_USERS } from '../../lib/demo-users';
 import FormInput from '../components/ui/form-input';
 import SubmitButton from '../components/ui/submit-button';
 import ErrorBanner from '../components/ui/error-banner';
@@ -95,8 +96,11 @@ function validatePassword(password: string): string | null {
 
 function AuthPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialMode = searchParams.get('mode') === 'login' ? 'login' : 'register';
+  const nextPath = searchParams.get('next') ?? '/files';
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [showDemo, setShowDemo] = useState(false);
   const { login } = useAuth();
 
   // ── Register state ──────────────────────────────────────────────────
@@ -140,11 +144,7 @@ function AuthPageContent() {
         password: regPassword,
       });
       login(res);
-      setRegSuccess(`Account created - user ID: ${res.userId}`);
-      setRegEmail('');
-      setRegUsername('');
-      setRegPassword('');
-      setRegFieldErrors({});
+      router.push(nextPath);
     } catch (err) {
       // Handle structured validation errors from backend
       if (err instanceof ValidationError) {
@@ -185,10 +185,7 @@ function AuthPageContent() {
         password: loginPassword,
       });
       login(res);
-      setLoginSuccess(`Signed in - user ID: ${res.userId}`);
-      setLoginEmail('');
-      setLoginPassword('');
-      setLoginFieldErrors({});
+      router.push(nextPath);
     } catch (err) {
       // Handle structured validation errors from backend
       if (err instanceof ValidationError) {
@@ -343,6 +340,39 @@ function AuthPageContent() {
             </p>
           </form>
         )}
+
+        <div className="rounded-lg border border-border p-4">
+          <button
+            type="button"
+            onClick={() => setShowDemo(!showDemo)}
+            className="text-sm font-medium text-foreground"
+          >
+            {showDemo ? 'Hide' : 'Show'} demo accounts
+          </button>
+          {showDemo && (
+            <div className="mt-3 space-y-2">
+              {DEMO_USERS.map((d) => (
+                <button
+                  key={d.email}
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setLoginEmail(d.email);
+                    setLoginPassword(d.password);
+                    setLoginError(null);
+                  }}
+                  className="block w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/30"
+                >
+                  <span className="font-medium">{d.label}</span>
+                  <span className="ml-2 text-muted">{d.email}</span>
+                </button>
+              ))}
+              <p className="text-xs text-muted">
+                Seeded on Docker startup. See docs/deploy/demo-users.md
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -350,7 +380,9 @@ function AuthPageContent() {
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center pt-8 text-sm text-muted">Loading…</div>}>
+    <Suspense
+      fallback={<div className="flex justify-center pt-8 text-sm text-muted">Loading…</div>}
+    >
       <AuthPageContent />
     </Suspense>
   );

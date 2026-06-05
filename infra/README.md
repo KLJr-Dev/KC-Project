@@ -1,86 +1,128 @@
 # Infrastructure
 
-Deployment and infrastructure definitions for **KC-Project**.
+Deployment and infrastructure for **KC-Project** v1.0.0.
 
-Canonical deployment timeline: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x).
+Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+).
 
 ---
 
-## Current Status (v1.0.0 — Docker mandatory)
+## Dual deploy paths
 
-**Primary path:** full stack via `docker-compose.prod.yml` (postgres, backend, frontend, nginx on `localhost:8080`).
+| Path | Compose file | Use case | Entry |
+|------|--------------|----------|-------|
+| **Pentest (primary)** | `docker-compose.prod.yml` | Cycle-1 testing, VM deploy, smoke/journey | `http://localhost:8080` |
+| **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 
-**Dev path:** PostgreSQL-only compose for native `npm run start:dev` (backend `:4000`, frontend `:3000`).
-
-See [ADR-020](../docs/decisions/ADR-020-docker-db-only.md) and [ADR-024](../docs/decisions/ADR-024-file-storage-strategy.md).
-
-### Quick Start (production stack)
-
-```bash
-docker compose -f infra/docker-compose.prod.yml up -d --build
-./infra/smoke-test.sh
+```mermaid
+flowchart TB
+    subgraph pentest [Pentest path]
+        prodCompose[docker-compose.prod.yml]
+        nginx[nginx :8080]
+        prodCompose --> nginx
+    end
+    subgraph dev [Dev path]
+        devCompose[compose.yml PG only]
+        nativeBE[backend :4000]
+        devCompose --> nativeBE
+    end
 ```
 
-App URL: `http://localhost:8080` — API proxied at `/api/*`.
+**Warning:** Prod uses `pgdata_prod` / `kc_prod`. Dev uses `pgdata` / `kc_dev`. Mixing volumes causes `database "kc_prod" does not exist`.
 
-### Quick Start (dev DB only)
+---
+
+## Quick start (pentest / production stack)
+
+```bash
+cp infra/.env.example infra/.env
+docker compose -f infra/docker-compose.prod.yml up -d --build
+./infra/smoke-test.sh
+./infra/journey-test.sh
+```
+
+App: `http://localhost:8080` — API at `/api/*`.
+
+---
+
+## Quick start (native dev)
 
 ```bash
 docker compose -f infra/compose.yml up -d
-cd backend && npm run start:dev
-cd frontend && npm run dev
+cd backend && npm run start:dev   # :4000
+cd frontend && npm run dev        # :3000
 ```
 
-### What's Running (prod)
+---
 
-| Service | Image | Host port | Notes |
-|---------|-------|-----------|-------|
-| `nginx` | `nginx:alpine` | `8080` | Reverse proxy |
-| `frontend` | built | internal | `NEXT_PUBLIC_API_URL=/api` |
-| `backend` | built | internal | NestJS on `:4000` |
-| `postgres` | `postgres:16-alpine` | `5433` | DB `kc_prod`; `5433` for host e2e tooling |
+## Environment (`.env.example`)
 
-Credentials (intentional CWE-798): `postgres` / `postgres`.
+Copy to `infra/.env` before prod compose. Loaded via `env_file` in `docker-compose.prod.yml`.
 
-Volumes: `pgdata_prod` (database), `uploads` (file storage).
-
-**Note:** Prod uses `pgdata_prod` (DB `kc_prod`), separate from dev `compose.yml` (`pgdata` / `kc_dev`). Reusing the dev volume causes `database "kc_prod" does not exist` and backend crash.
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `DB_HOST` | `postgres` | Docker service name |
+| `DB_PORT` | `5432` | Internal port |
+| `DB_USER` / `DB_PASSWORD` | `postgres` | Intentional CWE-798 |
+| `DB_NAME` | `kc_prod` | Prod database |
+| `NEXT_PUBLIC_API_URL` | `/api` | Browser-relative API path |
 
 ---
 
 ## Verification scripts
 
-| Script | Purpose |
-|--------|---------|
-| `smoke-test.sh` | Health → register → upload → list files via nginx |
-| `e2e-docker.sh` | Full backend e2e (148 tests) against Docker `kc_prod` on `:5433` |
-| `vm-setup.sh` | Ubuntu VM provisioning (Docker install) |
+```bash
+chmod +x infra/*.sh
+```
+
+| Script | Prereq | Purpose |
+|--------|--------|---------|
+| `smoke-test.sh` | Full prod stack on `:8080` | Health → register → upload → list + demo login |
+| `journey-test.sh` | Full prod stack | 3 roles, share-1 API+UI, mod pending, admin files, IDOR baseline |
+| `e2e-docker.sh` | Docker available | 150 backend e2e tests vs `kc_prod` on host `:5433` |
+| `vm-setup.sh` | Ubuntu + sudo | Install Docker, clone repo, prod stack, smoke + journey |
+
+Env overrides: `BASE_URL` (default `http://localhost:8080/api`), `APP_URL` (default `http://localhost:8080`).
+
+### Full verify gate
 
 ```bash
-chmod +x infra/smoke-test.sh infra/e2e-docker.sh
-./infra/e2e-docker.sh
+docker compose -f infra/docker-compose.prod.yml up -d --build
+./infra/smoke-test.sh
+./infra/journey-test.sh
+./infra/e2e-docker.sh   # expect 150 passed
 ```
 
 ---
 
-## Migrations (v0.2.5+)
+## Security testing
 
-TypeORM migrations have replaced `synchronize: true`. The app auto-runs pending migrations on start (`migrationsRun: true`).
+Pentest entry and artifacts: [docs/security/Cycle-1/README.md](../docs/security/Cycle-1/README.md)
+
+Ground truth: [v1.0.0-ground-truth.md](../docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md)
+
+---
+
+## Contents
+
+| File | Purpose |
+|------|---------|
+| `compose.yml` | Dev PostgreSQL only (`kc_dev`, `:5432`) |
+| `docker-compose.prod.yml` | Full stack: postgres, backend, frontend, nginx |
+| `.env.example` | Prod env template → copy to `.env` |
+| `nginx.conf` | Reverse proxy `/api` → backend, `/` → frontend |
+| `smoke-test.sh` | Minimal API smoke |
+| `journey-test.sh` | Role + seed journey |
+| `e2e-docker.sh` | Full e2e vs Docker postgres |
+| `vm-setup.sh` | Ubuntu VM bootstrap |
+
+---
+
+## Migrations
+
+TypeORM migrations run on backend start (`migrationsRun: true`).
 
 ```bash
 cd backend && npm run migration:run
 ```
 
 See [ADR-022](../docs/decisions/ADR-022-typeorm-migrations.md).
-
-## Contents
-
-| File | Purpose |
-|------|---------|
-| `compose.yml` | Dev PostgreSQL only (v0.2.0+) |
-| `docker-compose.prod.yml` | Full production stack (v0.7.x) |
-| `nginx.conf` | Reverse proxy `/api` → backend, `/` → frontend |
-| `smoke-test.sh` | Compose smoke journey |
-| `e2e-docker.sh` | E2E against Docker postgres |
-| `vm-setup.sh` | Ubuntu VM provisioning |
-| `.env.example` | Production env template |

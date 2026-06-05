@@ -55,7 +55,7 @@ import { useTheme } from '../../lib/theme-context';
 import { authMe } from '../../lib/api';
 
 export default function Header() {
-  const { isAuthenticated, logout, isAdmin, role } = useAuth();
+  const { isAuthenticated, logout, isAdmin, isModerator, role } = useAuth();
   const { resolved, toggleTheme } = useTheme();
   const [username, setUsername] = useState<string | null>(null);
 
@@ -86,11 +86,35 @@ export default function Header() {
           <Link href="/" className="text-sm text-muted transition-colors hover:text-foreground">
             Home
           </Link>
-          <Link href="/files" className="text-sm text-muted transition-colors hover:text-foreground">
-            Files
-          </Link>
+          {isAuthenticated && (
+            <>
+              <Link
+                href="/files"
+                className="text-sm text-muted transition-colors hover:text-foreground"
+              >
+                My Files
+              </Link>
+              <Link
+                href="/sharing"
+                className="text-sm text-muted transition-colors hover:text-foreground"
+              >
+                Sharing
+              </Link>
+            </>
+          )}
+          {isAuthenticated && (isModerator || isAdmin) && (
+            <Link
+              href="/moderator"
+              className="text-sm text-muted transition-colors hover:text-foreground"
+            >
+              Review
+            </Link>
+          )}
           {isAuthenticated && isAdmin && (
-            <Link href="/admin" className="text-sm text-muted transition-colors hover:text-foreground">
+            <Link
+              href="/admin"
+              className="text-sm text-muted transition-colors hover:text-foreground"
+            >
               Admin
             </Link>
           )}

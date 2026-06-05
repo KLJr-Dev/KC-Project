@@ -13,8 +13,6 @@ export class AddPublicTokenColumn1771410878902 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "sharing_entity" DROP COLUMN IF EXISTS "publicToken"`,
-    );
+    await queryRunner.query(`ALTER TABLE "sharing_entity" DROP COLUMN IF EXISTS "publicToken"`);
   }
 }

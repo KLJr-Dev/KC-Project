@@ -17,7 +17,7 @@ But the project's value as a learning sandbox and portfolio piece depends on bei
 Adopt a **perpetual insecure/secure expansion cycle**:
 
 ```
-v1.0.0 (insecure MVP, ~15 CWEs)
+v1.0.0 (insecure MVP, 59 instances / 38 CWE IDs)
   → v1.0.x (pentest + patch)
   → v2.0.0 (secure parallel to v1.0.0)
   → v1.1.0 (fork v2.0.0, add ~10 new CWEs)
@@ -44,11 +44,22 @@ v1.0.0 (insecure MVP, ~15 CWEs)
 3. **Harden** (v2.N.0) — All weaknesses from v1.N.0 are remediated. The system is functionally identical but secure.
 4. **Expand** (v1.N+1.0) — Fork the secure version. Break it again with new vulnerability classes. Repeat.
 
+### Cycle-N documentation artifacts
+
+Per [ADR-031](./ADR-031-security-cycle-docs.md), each expansion cycle owns a `docs/security/Cycle-N/` workspace:
+
+| Cycle | Index | Dev (ground truth) | PenTest (writeup) | Remediation |
+|-------|-------|--------------------|-------------------|-------------|
+| 1 | [Cycle-1/README.md](../security/Cycle-1/README.md) | [Dev/v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) | [PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) | [Remediation/v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md) |
+| N | `docs/security/Cycle-N/README.md` | `Dev/v1.N.0-ground-truth.md` | `PenTest/v1.N.0-writeup.md` | `Remediation/v2.N.0-remediation.md` |
+
+Cross-cycle: [cwe-inventory.md](../security/cwe-inventory.md) tags instances by cycle; [security-baseline.md](../spec/security-baseline.md) is the v2.N.0 control checklist.
+
 ### Growth projection
 
 | Cycle | Insecure | Secure | New CWEs | Cumulative | Example new surfaces |
 |-------|----------|--------|----------|-----------|---------------------|
-| 1 | v1.0.0 | v2.0.0 | ~15 | ~15 | Identity, Data, Injection, Files, AuthZ, Infra |
+| 1 | v1.0.0 | v2.0.0 | 59 inst. / 38 IDs | 59 / 38 | Identity, Data, Files, AuthZ, Client, Infra |
 | 2 | v1.1.0 | v2.1.0 | ~10 | ~25 | XSS, CSRF, SSRF, Deserialization |
 | 3 | v1.2.0 | v2.2.0 | ~10 | ~35 | Race conditions, Cache poisoning, JWT algorithm confusion |
 | 4 | v1.3.0 | v2.3.0 | ~10 | ~45 | Supply chain, CI/CD, cloud misconfigurations |

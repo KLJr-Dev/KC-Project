@@ -23,7 +23,7 @@ export class AppController {
   health() {
     return {
       status: 'ok',
-      version: '0.6.3',
+      version: '1.0.0',
       service: 'kc-backend',
       timestamp: new Date().toISOString(),
     };

@@ -1,85 +1,62 @@
 # Documentation
 
-This directory contains engineering and technical documentation for KC-Project.
-
----
+Engineering and technical documentation for KC-Project.
 
 ## Contents
 
 ### [spec/](spec/)
 
-Formal project specification -- what the system is, what it must do, who uses it, and what "secure" looks like.
-
-- [scope.md](spec/scope.md) -- System type, core functionality, in-scope, out-of-scope
-- [requirements.md](spec/requirements.md) -- Functional, non-functional, and security requirements
-- [personas.md](spec/personas.md) -- Stakeholders and in-app user personas
-- [security-baseline.md](spec/security-baseline.md) -- v2.0.0 target security controls
+- [scope.md](spec/scope.md) — system boundaries, product UI vs API
+- [requirements.md](spec/requirements.md) — functional, non-functional, security requirements
+- [personas.md](spec/personas.md) — stakeholders and in-app personas
+- [security-baseline.md](spec/security-baseline.md) — v2.0.0 control checklist
 
 ### [architecture/](architecture/)
 
-System architecture, data model, authentication flows, and threat categorisation.
-
-- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) -- Full architecture document (current state)
-- [auth-flow.md](architecture/auth-flow.md) -- v0.1.x authentication flows, sequence diagrams, and security surface
-- [data-model.md](architecture/data-model.md) -- Entity definitions, ERD, and intentional data layer weaknesses
-- [stride.md](architecture/stride.md) -- STRIDE threat model mapped to 6 attack surfaces
+- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — v1.0.0 system overview, Docker prod topology
+- [auth-flow.md](architecture/auth-flow.md) — auth/RBAC flows, guard inconsistencies
+- [data-model.md](architecture/data-model.md) — entities, demo seed IDs, AuditLog
+- [stride.md](architecture/stride.md) — STRIDE per attack surface
 
 ### [decisions/](decisions/)
 
-Architecture Decision Records (ADRs). Each ADR documents a specific technical decision with context, rationale, and consequences.
+ADRs 001–031. Index: [decisions/README.md](decisions/README.md). Recent: ADR-028 (product UX), ADR-029 (demo users), ADR-030 (demo files/shares), ADR-031 (Cycle-1 security doc structure).
 
-- [ADR-001](decisions/ADR-001-nestjs-backend.md) -- NestJS as backend framework
-- [ADR-002](decisions/ADR-002-nextjs-frontend.md) -- Next.js App Router as frontend framework
-- [ADR-003](decisions/ADR-003-rest-over-trpc.md) -- REST over tRPC for API communication
-- [ADR-004](decisions/ADR-004-dto-mirroring-to-codegen.md) -- Manual DTO mirroring then OpenAPI codegen
-- [ADR-005](decisions/ADR-005-typescript-strict-mode.md) -- TypeScript strict mode on both projects
-- [ADR-006](decisions/ADR-006-insecure-by-design.md) -- Intentionally insecure design philosophy
-- [ADR-007](decisions/ADR-007-five-domain-split.md) -- Five-domain module split
-- [ADR-008](decisions/ADR-008-in-memory-before-persistence.md) -- In-memory storage before persistence
-- [ADR-009](decisions/ADR-009-localstorage-auth-state.md) -- localStorage for client-side auth state
-- [ADR-010](decisions/ADR-010-tailwind-css.md) -- Tailwind CSS as design system
-- [ADR-011](decisions/ADR-011-client-side-rendering.md) -- Client-side rendering only (intentionally insecure)
-- [ADR-012](decisions/ADR-012-jwt-over-sessions.md) -- JWT over server-side sessions
-- [ADR-013](decisions/ADR-013-expansion-cycle-versioning.md) -- Perpetual expansion cycle versioning
-- [ADR-014](decisions/ADR-014-github-vcs.md) -- GitHub as VCS platform
-- [ADR-015](decisions/ADR-015-branching-strategy.md) -- Branching strategy
-- [ADR-016](decisions/ADR-016-monorepo.md) -- Monorepo structure
-- [ADR-017](decisions/ADR-017-no-cicd-yet.md) -- No CI/CD yet (deferred)
-- [ADR-018](decisions/ADR-018-swagger-cli-plugin.md) -- Swagger CLI plugin over manual decorators
+### [deploy/](deploy/)
+
+- [demo-users.md](deploy/demo-users.md) — seeded test accounts and files
+- [pentest-journeys.md](deploy/pentest-journeys.md) — exploit journey narratives
+- [vm-deployment.md](deploy/vm-deployment.md) — Ubuntu Docker deploy
 
 ### [diagrams/](diagrams/)
 
-Canonical standalone diagrams covering the full project lifecycle -- current state, v1.0.0 insecure MVP, and v2.0.0 hardened parallel. All weaknesses dual-classified with CWE + OWASP Top 10.
-
-- [system-architecture.md](diagrams/system-architecture.md) -- System topology across lifecycle stages
-- [auth-flow.md](diagrams/auth-flow.md) -- Authentication flows with security annotations
-- [threat-model.md](diagrams/threat-model.md) -- v1.0.0 attack surface map and v2.0.0 remediation map
-- [infrastructure.md](diagrams/infrastructure.md) -- Deployment topology (docker-compose, nginx, networking)
-- [version-timeline.md](diagrams/version-timeline.md) -- Development progression and expansion cycle
+System architecture, auth flow, threat model, infrastructure, version timeline.
 
 ### [roadmap/](roadmap/)
 
-Version-by-version development plan. **[STRATEGY.md](roadmap/STRATEGY.md) is the canonical authority** for v0.5 onward; ROADMAP.md derives execution detail from it.
-
-- [STRATEGY.md](roadmap/STRATEGY.md) -- Canonical strategy: v0.5–v1.0.0 vision, CWE targets, Docker mandate
-- [ROADMAP.md](roadmap/ROADMAP.md) -- Full project roadmap (v0.0.x through v1.0.0)
-- [v0.0.x-summary.md](roadmap/v0.0.x-summary.md) -- Foundation phase retrospective
-- [v0.1.x-summary.md](roadmap/v0.1.x-summary.md) -- Identity & authentication surface retrospective
-- [v0.2.x-summary.md](roadmap/v0.2.x-summary.md) -- Persistence & database surface retrospective
-- [v0.3.x-summary.md](roadmap/v0.3.x-summary.md) -- File handling surface retrospective
-- [v0.4.x-summary.md](roadmap/v0.4.x-summary.md) -- Authorization & administrative surface retrospective
-- [v0.5.x-summary.md](roadmap/v0.5.x-summary.md) -- Foundation refinement retrospective
+- [STRATEGY.md](roadmap/STRATEGY.md) — canonical authority (ADR-027)
+- [ROADMAP.md](roadmap/ROADMAP.md)
+- Summaries: v0.0.x through v0.9.x
 
 ### [security/](security/)
 
-Security testing methodology, tools, and findings. **Deferred** until closer to v1.0.0.
+Cycle-1 workspace (ADR-031):
+
+```
+docs/security/Cycle-1/
+├── README.md
+├── Dev/           → v1.0.0-ground-truth.md (developer cheat sheet)
+├── PenTest/       → v1.0.0-writeup.md (offensive writeup)
+└── Remediation/   → v2.0.0-remediation.md (defensive target)
+```
+
+- [pentest-cheat-sheet.md](security/pentest-cheat-sheet.md) — redirect to ground truth
+- [README.md](security/README.md) — pentest methodology
+- [cwe-inventory.md](security/cwe-inventory.md) — 59 instances / 38 CWE IDs
+
+### [release/](release/)
+
+- [v1.0.0.md](release/v1.0.0.md)
+- [v1.0.0-pentest-ready.md](release/v1.0.0-pentest-ready.md) — readiness gate
 
 ### [glossary.md](glossary.md)
-
-Quick reference for security, architecture, and project terminology used across the documentation.
-
----
-
-## Documentation Philosophy
-
-Documentation is treated as a **living artefact**. It evolves alongside the codebase and is versioned with it. New ADRs are added as decisions are made; architecture and spec documents are updated as the system grows.

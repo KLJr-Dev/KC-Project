@@ -20,11 +20,7 @@ interface AdminUserListProps {
   isLoading?: boolean;
 }
 
-export function AdminUserList({
-  users,
-  onRoleChange,
-  isLoading = false,
-}: AdminUserListProps) {
+export function AdminUserList({ users, onRoleChange, isLoading = false }: AdminUserListProps) {
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
   if (isLoading) {
@@ -79,9 +75,7 @@ export function AdminUserList({
                 {/* Role modifier button */}
                 <button
                   className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition"
-                  onClick={() =>
-                    setExpandedUserId(expandedUserId === user.id ? null : user.id)
-                  }
+                  onClick={() => setExpandedUserId(expandedUserId === user.id ? null : user.id)}
                 >
                   {expandedUserId === user.id ? 'Cancel' : 'Change Role'}
                 </button>

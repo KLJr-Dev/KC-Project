@@ -69,8 +69,6 @@ import { AdminModule } from './admin/admin.module';
     AdminModule,
   ],
   controllers: [AppController], // infrastructure-only (/ping)
-  providers: [
-    { provide: APP_INTERCEPTOR, useClass: RequestLoggingInterceptor },
-  ],
+  providers: [{ provide: APP_INTERCEPTOR, useClass: RequestLoggingInterceptor }],
 })
 export class AppModule {}

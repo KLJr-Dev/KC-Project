@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
@@ -125,9 +121,9 @@ describe('AuthService.login', () => {
   it('throws UnauthorizedException on wrong password', async () => {
     usersService.findEntityByEmail.mockResolvedValue(stubUser);
 
-    await expect(
-      service.login({ email: 'test@example.com', password: 'wrong' }),
-    ).rejects.toThrow(UnauthorizedException);
+    await expect(service.login({ email: 'test@example.com', password: 'wrong' })).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('throws BadRequestException when required fields are missing', async () => {

@@ -33,31 +33,6 @@ export type CreateSharing = components['schemas']['CreateSharingDto'];
 export type UpdateSharing = components['schemas']['UpdateSharingDto'];
 export type SharingResponse = components['schemas']['SharingResponseDto'];
 
-// ── Admin (legacy /admin CRUD stubs; user management uses lib/api AdminUser) ──
-
-export interface CreateAdmin {
-  label?: string;
-  role?: string;
-}
-
-export interface UpdateAdmin {
-  label?: string;
-  role?: string;
-}
-
-export interface AdminResponse {
-  id: string;
-  label?: string;
-  role?: string;
-}
-
-// ── Infrastructure ───────────────────────────────────────────────────
-
-export interface PingResponse {
-  status: string;
-  service: string;
-}
-
 // ── Generic ──────────────────────────────────────────────────────────
 
 export interface DeleteResponse {
