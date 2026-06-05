@@ -5,6 +5,8 @@ import { User } from './entities/user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { buildPaginatedResponse, resolvePagination } from '../common/pagination.util';
 
 /**
  * v0.2.1 — Persisted Authentication
@@ -89,10 +91,20 @@ export class UsersService {
     return this.userRepo.findOne({ where: { email } });
   }
 
-  /** GET /users — return all users as response DTOs. */
-  async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.userRepo.find();
-    return users.map((u) => this.toResponse(u));
+  /** GET /users — paginated user list (v0.5.2). */
+  async findAll(query: PaginationQueryDto = {}) {
+    const { skip, take } = resolvePagination(query.skip, query.take);
+    const [users, total] = await this.userRepo.findAndCount({
+      skip,
+      take,
+      order: { createdAt: 'ASC' },
+    });
+    return buildPaginatedResponse(
+      users.map((u) => this.toResponse(u)),
+      total,
+      skip,
+      take,
+    );
   }
 
   /** GET /users/:id — return single user or null. */

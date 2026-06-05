@@ -3,6 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 /**
  * v0.5.0+ — Foundation Refinement: Input Validation, Error Standardization, Logging
@@ -45,7 +46,7 @@ async function bootstrap() {
   // v0.5.0: Global exception filter for validation errors
   // Formats BadRequestException responses with field-level constraint details
   // Response format: { statusCode, message, errors: { field: [...constraints] }, timestamp }
-  app.useGlobalFilters(new ValidationExceptionFilter());
+  app.useGlobalFilters(new ValidationExceptionFilter(), new HttpExceptionFilter());
 
   /**
    * VULN (v0.0.5): enableCors() with no options allows ALL origins,
@@ -65,7 +66,7 @@ async function bootstrap() {
     .setDescription(
       'v0.5.0+ — Foundation Refinement: Input Validation, Error Standardization, Logging. Global ValidationPipe enforces DTO constraints. CWE-20, CWE-1025, CWE-269, CWE-400 vulnerabilities intentional. File upload/download via Multer (v0.5.0–v0.5.1).',
     )
-    .setVersion('0.5.0')
+    .setVersion('0.6.5')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

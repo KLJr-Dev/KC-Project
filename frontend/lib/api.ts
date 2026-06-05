@@ -61,7 +61,7 @@ import type {
  * CWE-319 (Cleartext Transmission of Sensitive Information) | A04:2025
  * Remediation (v2.0.0): HTTPS via nginx TLS termination, HSTS header.
  */
-const API_BASE = 'http://localhost:4000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -139,15 +139,36 @@ export interface ValidationErrorResponse {
  * Custom error class that wraps ValidationErrorResponse for structured errors.
  * Allows components to check if error is validation-related and access field errors.
  */
+export interface ApiErrorResponse {
+  statusCode: number;
+  message: string;
+  timestamp?: string;
+  errors?: Record<string, string[]>;
+}
+
 export class ValidationError extends Error {
   public readonly errors: Record<string, string[]>;
   public readonly statusCode: number;
+  public readonly timestamp?: string;
 
   constructor(response: ValidationErrorResponse) {
     super(response.message);
     this.statusCode = response.statusCode;
     this.errors = response.errors || {};
+    this.timestamp = response.timestamp;
     this.name = 'ValidationError';
+  }
+}
+
+export class ApiError extends Error {
+  public readonly statusCode: number;
+  public readonly timestamp?: string;
+
+  constructor(response: ApiErrorResponse) {
+    super(response.message);
+    this.statusCode = response.statusCode;
+    this.timestamp = response.timestamp;
+    this.name = 'ApiError';
   }
 }
 
@@ -182,16 +203,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) {
     const body = await res.text();
     try {
-      // Try to parse as JSON first (for 400 validation errors)
-      const json = JSON.parse(body) as ValidationErrorResponse;
+      const json = JSON.parse(body) as ApiErrorResponse;
       if (json.statusCode === 400 && json.errors) {
         throw new ValidationError(json);
       }
-      // Re-throw as generic error if not validation format
+      if (json.statusCode && json.message) {
+        throw new ApiError(json);
+      }
       throw new Error(`${res.status} ${res.statusText}: ${body}`);
     } catch (parseErr) {
-      // If JSON parse fails, throw as plain error
-      if (parseErr instanceof ValidationError) throw parseErr;
+      if (parseErr instanceof ValidationError || parseErr instanceof ApiError) {
+        throw parseErr;
+      }
       throw new Error(`${res.status} ${res.statusText}: ${body}`);
     }
   }
@@ -381,8 +404,28 @@ export interface AdminUser {
 }
 
 export interface GetAdminUsersResponse {
+  items: AdminUser[];
   users: AdminUser[];
+  total: number;
   count: number;
+  skip: number;
+  take: number;
+}
+
+export interface AdminStatsResponse {
+  userCount: number;
+  fileCount: number;
+  shareCount: number;
+  storageBytesEstimate: number;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actorId: string;
+  action: string;
+  targetId: string;
+  details: string;
+  createdAt: string;
 }
 
 export interface UpdateUserRoleRequest {
@@ -404,7 +447,24 @@ export interface UpdateUserRoleResponse {
  * CWE-400: Unbounded list dump
  * CWE-639: Trusts 'admin' role from JWT
  */
-export const adminListUsers = () => request<GetAdminUsersResponse>('/admin/users');
+export const adminListUsers = (params?: {
+  search?: string;
+  role?: string;
+  skip?: number;
+  take?: number;
+}) => {
+  const query = new URLSearchParams();
+  if (params?.search) query.set('search', params.search);
+  if (params?.role) query.set('role', params.role);
+  if (params?.skip !== undefined) query.set('skip', String(params.skip));
+  if (params?.take !== undefined) query.set('take', String(params.take));
+  const qs = query.toString();
+  return request<GetAdminUsersResponse>(`/admin/users${qs ? `?${qs}` : ''}`);
+};
+
+export const adminGetStats = () => request<AdminStatsResponse>('/admin/stats');
+
+export const adminGetAuditLogs = () => request<AuditLogEntry[]>('/admin/audit-logs');
 
 /**
  * PUT /admin/users/:id/role — Update a user's role (admin only)

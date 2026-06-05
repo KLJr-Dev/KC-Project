@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Res,
   UseGuards,
   UseInterceptors,
@@ -117,10 +118,10 @@ export class FilesController {
     return this.filesService.upload(file, dto, user.sub);
   }
 
-  /** GET /files -- return all file records, unbounded. No pagination. */
+  /** GET /files -- paginated file list (v0.5.2). */
   @Get()
-  async findAll() {
-    return this.filesService.findAll();
+  async findAll(@Query() query: PaginationQueryDto) {
+    return this.filesService.findAll(query);
   }
 
   /** GET /files/:id -- return file metadata or 404. */
@@ -252,7 +253,7 @@ export class FilesController {
     @Body() dto: ApproveFileDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    const updated = await this.filesService.approveFile(id, dto.status);
+    const updated = await this.filesService.approveFile(id, dto.status, user.sub);
     if (!updated) throw new NotFoundException();
     return updated;
   }

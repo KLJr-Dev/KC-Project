@@ -11,6 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
 import { UserResponseDto } from '../users/dto/user-response.dto';
+import { logAuthEvent, truncateSecret } from '../common/logging.util';
 
 /**
  * v0.2.0 — Database Introduction (Local)
@@ -134,6 +135,12 @@ export class AuthService {
     // VULN (v0.4.0): role included in JWT payload, trusted without re-validation (CWE-639)
     const token = this.jwtService.sign({ sub: user.id, role: user.role });
 
+    logAuthEvent('login', {
+      userId: user.id,
+      email: user.email,
+      token: truncateSecret(token),
+    });
+
     return {
       token,
       userId: user.id,
@@ -161,6 +168,7 @@ export class AuthService {
    *       CWE-613 (Insufficient Session Expiration) | A07:2025
    */
   logout(): { message: string } {
+    logAuthEvent('logout', { note: 'client-side only, token still valid' });
     return {
       message: 'Logged out (client-side only, token still valid) (v0.1.4)',
     };

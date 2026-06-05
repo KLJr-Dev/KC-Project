@@ -203,28 +203,31 @@ describe('PUT /admin/users/:id/role/escalate (e2e)', () => {
   });
 
   /**
-   * Test 4: Admin can retrieve audit logs (placeholder)
-   * CWE-532: Audit log returns empty (no persistence)
+   * Test 4: Persistent audit logs (v0.6.0)
+   * CWE-284: Any authenticated user can read audit logs (weak guard).
    */
-  describe('Test 4: Admin audit logs endpoint (placeholder)', () => {
-    it('admin should be able to call GET /admin/audit-logs', async () => {
+  describe('Test 4: Audit logs endpoint (v0.6.0)', () => {
+    it('admin should retrieve audit logs after escalation', async () => {
+      await request(app.getHttpServer())
+        .put(`/admin/users/${userAId}/role/escalate`)
+        .set('Authorization', `Bearer ${moderatorToken}`)
+        .expect(200);
+
       const response = await request(app.getHttpServer())
         .get('/admin/audit-logs')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      // Currently returns empty array (placeholder for v0.4.5)
       expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBe(0);
-
-      // CWE-532: No audit trail, returns empty placeholder
+      expect(response.body.length).toBeGreaterThanOrEqual(1);
+      expect(response.body[0]).toHaveProperty('action', 'escalate');
     });
 
-    it('non-admin should not be able to call GET /admin/audit-logs', async () => {
+    it('non-admin can also read audit logs (CWE-284 weak guard)', async () => {
       await request(app.getHttpServer())
         .get('/admin/audit-logs')
         .set('Authorization', `Bearer ${moderatorToken}`)
-        .expect(403);
+        .expect(200);
     });
   });
 

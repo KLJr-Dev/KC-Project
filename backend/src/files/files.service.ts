@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { unlink } from 'fs/promises';
 import { FileEntity } from './entities/file.entity';
 import { FileResponseDto } from './dto/file-response.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { buildPaginatedResponse, resolvePagination } from '../common/pagination.util';
+import { AuditService } from '../admin/audit.service';
 import { UploadFileDto } from './dto/upload-file.dto';
 
 /**
@@ -56,6 +59,7 @@ export class FilesService {
   constructor(
     @InjectRepository(FileEntity)
     private readonly fileRepo: Repository<FileEntity>,
+    private readonly auditService: AuditService,
   ) {}
 
   private toResponse(entity: FileEntity): FileResponseDto {
@@ -94,10 +98,20 @@ export class FilesService {
     return this.toResponse(saved);
   }
 
-  /** GET /files -- return all file records, unbounded. */
-  async findAll(): Promise<FileResponseDto[]> {
-    const entities = await this.fileRepo.find();
-    return entities.map((e) => this.toResponse(e));
+  /** GET /files -- paginated file list (v0.5.2). */
+  async findAll(query: PaginationQueryDto = {}) {
+    const { skip, take } = resolvePagination(query.skip, query.take);
+    const [entities, total] = await this.fileRepo.findAndCount({
+      skip,
+      take,
+      order: { uploadedAt: 'DESC' },
+    });
+    return buildPaginatedResponse(
+      entities.map((e) => this.toResponse(e)),
+      total,
+      skip,
+      take,
+    );
   }
 
   /** GET /files/:id -- return file metadata or null. */
@@ -145,12 +159,14 @@ export class FilesService {
   async approveFile(
     id: string,
     status: 'pending' | 'approved' | 'rejected',
+    actorId: string,
   ): Promise<FileResponseDto | null> {
     const entity = await this.fileRepo.findOne({ where: { id } });
     if (!entity) return null;
 
     entity.approvalStatus = status;
     const updated = await this.fileRepo.save(entity);
+    await this.auditService.record(actorId, 'file_approve', id, { status });
     return this.toResponse(updated);
   }
 }

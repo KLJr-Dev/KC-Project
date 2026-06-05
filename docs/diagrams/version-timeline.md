@@ -48,20 +48,29 @@ timeline
     v0.4.3 : Ternary role system
     v0.4.4 : Privilege escalation paths
     v0.4.5 : RBAC complexity growth
-  section v0.5.x Deployment
-    v0.5.0 : Docker introduction
-    v0.5.1 : Environment variables
-    v0.5.2 : Service networking
-    v0.5.3 : Volume and persistence
-    v0.5.4 : Docker misconfigurations
-  section v0.6.x Runtime
-    v0.6.0 : VM deployment (Ubuntu)
-    v0.6.1 : Network exposure
-    v0.6.2 : Logging and debugging
-    v0.6.3 : Configuration drift
-    v0.6.4 : Operational fragility
+  section v0.5.x Refinement
+    v0.5.0 : Input validation (ValidationPipe)
+    v0.5.1 : Frontend form alignment
+    v0.5.2 : Pagination
+    v0.5.3 : Error standardization
+    v0.5.4 : Request logging
+  section v0.6.x Admin Polish
+    v0.6.0 : Persistent audit logs
+    v0.6.1 : User search and filter
+    v0.6.2 : System statistics
+    v0.6.3 : Health endpoint
+  section v0.7.x Docker
+    v0.7.0 : Dockerfiles
+    v0.7.1 : docker-compose.prod.yml
+    v0.7.2 : VM provisioning
+    v0.7.3 : Compose smoke tests
+  section v0.8.x Lock
+    v0.8.0 : API route freeze
+    v0.8.1 : Pentest methodology
+  section v0.9.x Freeze
+    v0.9.5 : Release candidate
   section v1.0.0
-    v1.0.0 : Insecure MVP frozen (10-15 CWEs baseline)
+    v1.0.0 : Pentest-ready insecure MVP (60-80 CWEs)
 ```
 
 ---
@@ -73,7 +82,7 @@ After v1.0.0, the project follows a repeating insecure/secure loop. Each cycle a
 ```mermaid
 flowchart TD
   subgraph cycle1 ["Cycle 1"]
-    v100["v1.0.0\nInsecure MVP\n~15 CWEs\nAll 6 surfaces"]
+    v100["v1.0.0\nInsecure MVP\n60-80 CWEs\nDocker mandatory"]
     v10x["v1.0.x\nStructured Pentest\nDiscover + Document\nIncremental Patches"]
     v200["v2.0.0\nSecure Parallel\nAll v1.0.0 CWEs\nRemediated"]
   end
@@ -114,9 +123,9 @@ flowchart TD
 | Harden | v2.N.0 | Apply all remediations, verify each fix, document the delta | Secure counterpart, remediation evidence |
 | Repeat | v1.(N+1).0 | Fork v2.N.0, add next wave of vulnerabilities | Next insecure baseline |
 
-### First cycle (v1.0.0) starts with ~15 CWEs from the roadmap
+### First cycle (v1.0.0) starts with 60–80 CWEs per STRATEGY
 
-- v1.0.0 forks directly from v0.6.4 (last build phase version)
+- v1.0.0 tags the v0.9.5 RC after v0.7 Docker deployment is verified
 - No fork from a secure version -- this is the first cycle
 
 ### Subsequent cycles expand the surface
@@ -133,7 +142,7 @@ Cumulative CWE count across expansion cycles. Each cycle adds a new wave of weak
 
 ```mermaid
 flowchart LR
-  subgraph v100_surface ["v1.0.0 (~15 CWEs)"]
+  subgraph v100_surface ["v1.0.0 (60-80 CWEs)"]
     S1_Identity["Identity\n7 CWEs"]
     S1_Data["Data\n3 CWEs"]
     S1_Injection["Injection\n2 CWEs"]
@@ -165,7 +174,7 @@ flowchart LR
 
 | Cycle | Version | New CWEs | Cumulative | Primary New Surfaces |
 |-------|---------|----------|-----------|---------------------|
-| 1 | v1.0.0 | ~15 | ~15 | Identity, Data, Injection, Files, Authorization, Infrastructure |
+| 1 | v1.0.0 | 60–80 | 60–80 | Identity, Data, Injection, Files, Authorization, Admin, Infrastructure |
 | 2 | v1.1.0 | ~10 | ~25 | Client-side (XSS, CSRF), Server-side request forgery, Deserialization |
 | 3 | v1.2.0 | ~10 | ~35 | Concurrency, Caching, Cryptographic weaknesses |
 | 4 | v1.3.0 | ~10 | ~45 | Supply chain, CI/CD, cloud misconfigurations |
@@ -184,9 +193,12 @@ The v1.1.0+ CWE additions are speculative projections to illustrate the expansio
 | v0.2.x | Persistence and database surface |
 | v0.3.x | File handling surface |
 | v0.4.x | Authorization and administrative surface |
-| v0.5.x | Containerisation and deployment surface |
-| v0.6.x | Runtime, configuration, and observability surface |
-| **v1.0.0** | **Insecure MVP -- frozen baseline (~15 CWEs)** |
+| v0.5.x | Foundation refinement (validation, pagination, errors, logging) |
+| v0.6.x | Admin polish (audit, search, stats) |
+| v0.7.x | Docker deployment surface |
+| v0.8.x | API lock and test hardening |
+| v0.9.x | MVP freeze and release candidate |
+| **v1.0.0** | **Pentest-ready insecure MVP (60–80 CWEs, Docker mandatory)** |
 | v1.0.x | Pentest + incremental securing of v1.0.0 |
 | **v2.0.0** | **Secure parallel to v1.0.0 -- all CWEs remediated** |
 | **v1.1.0** | **Insecure iteration -- fork v2.0.0 + ~10 new CWEs** |
@@ -204,7 +216,7 @@ Each cycle creates a clear branch structure:
 ```mermaid
 gitGraph
   commit id: "v0.0.1" tag: "v0.0.1"
-  commit id: "v0.6.4" tag: "v0.6.4"
+  commit id: "v0.9.5-rc" tag: "v0.9.5-rc.1"
   commit id: "v1.0.0" tag: "v1.0.0"
 
   branch v1.0.x
