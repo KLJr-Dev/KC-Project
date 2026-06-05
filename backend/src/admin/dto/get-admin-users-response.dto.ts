@@ -29,8 +29,20 @@ export class UserListItemDto {
 
 export class GetAdminUsersResponseDto {
   @ApiProperty({ type: [UserListItemDto] })
+  items: UserListItemDto[] = [];
+
+  @ApiProperty({ type: [UserListItemDto], description: 'Alias for items (backward compat)' })
   users: UserListItemDto[] = [];
 
   @ApiProperty({ example: 3 })
+  total: number = 0;
+
+  @ApiProperty({ example: 3, description: 'Alias for total (backward compat)' })
   count: number = 0;
+
+  @ApiProperty({ example: 0 })
+  skip: number = 0;
+
+  @ApiProperty({ example: 20 })
+  take: number = 20;
 }

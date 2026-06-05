@@ -231,8 +231,9 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
         .set('Authorization', `Bearer ${user.token}`)
         .expect(200);
 
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body.length).toBeGreaterThanOrEqual(2);
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.items.length).toBeGreaterThanOrEqual(2);
+      expect(res.body.total).toBeGreaterThanOrEqual(2);
     });
 
     it('retrieves file metadata by ID', async () => {

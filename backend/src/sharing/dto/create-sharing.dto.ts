@@ -4,7 +4,7 @@
  * Request body for POST /sharing (creates public share link for file).
  *
  * v0.5.0 adds validators:
- * - fileId: @IsUUID (UUID format validation; tracks which file to share)
+ * - fileId: @IsString (sequential IDs like "1", "2" — intentional weak validation)
  * - public: @IsBoolean, @IsOptional (defaults false if omitted)
  * - expiresAt: @IsISO8601, @IsOptional (ISO timestamp for share expiry)
  *
@@ -12,10 +12,10 @@
  *   - CWE-639 (IDOR): No ownership validation; users can share files they don't own
  *   - CWE-330 (Predictable Tokens): v0.3.x uses sequential tokens (not UUID-based)
  */
-import { IsUUID, IsBoolean, IsISO8601, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsBoolean, IsISO8601, IsOptional, IsNotEmpty } from 'class-validator';
 
 export class CreateSharingDto {
-  @IsUUID('4', { message: 'fileId must be a valid UUID' })
+  @IsString({ message: 'fileId must be a string' })
   @IsNotEmpty({ message: 'fileId is required' })
   fileId!: string;
 

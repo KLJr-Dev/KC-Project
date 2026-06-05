@@ -176,3 +176,18 @@ Each v1.N.0 is designed as a **valid, deployable system** that happens to contai
 - v1.0.0 release includes reproducible docker-compose setup for local or VM deployment
 - v2.1.0 (Infrastructure Hardening ADR) addresses TLS, secrets, ops monitoring post-fork
 - All v1.x and v2.x versions use same Docker/compose foundation established in v0.9.x
+
+---
+
+## Amendment (March 2026) — Superseded by STRATEGY.md
+
+[STRATEGY.md](../roadmap/STRATEGY.md) and [ADR-027](./ADR-027-strategy-canonical-roadmap.md) are now the canonical roadmap authority. Version numbering amended:
+
+| Old (this ADR) | New (STRATEGY) |
+|----------------|----------------|
+| v0.5.x Docker/deployment | v0.7.x Docker deployment |
+| v0.6.x runtime/observability | v0.6.x admin polish (audit, search, stats) |
+| v0.5–v0.9 app + infra combined | v0.5 refinement → v0.6 admin → v0.7 Docker → v0.8 lock → v0.9 RC |
+| v1.0.0 ~15–18 CWEs | v1.0.0 **60–80 CWEs**, pentest-ready, Docker mandatory |
+
+ROADMAP.md and version-timeline.md derive from STRATEGY. This ADR's Option B intent (app-complete before v1.0.0) remains; execution order is refined per STRATEGY Part 2–5.

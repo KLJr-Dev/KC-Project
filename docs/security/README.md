@@ -1,45 +1,33 @@
-# Security
+# Security & Penetration Testing Methodology (v0.8.1 draft)
 
-This directory will contain security testing methodology, tools, reporting formats, and findings.
+## Scope
 
-**Status: Deferred** -- content will be added closer to v1.0.0 when structured penetration testing begins.
+KC-Project v1.0.0 insecure MVP: full-stack web app with intentional CWEs across auth, files, sharing, RBAC, admin, and infrastructure.
 
----
+## Tools
 
-## Planned Contents
+- Burp Suite / OWASP ZAP (HTTP proxy)
+- curl / httpx (API probing)
+- jwt_tool (JWT forgery with known secret `kc-secret`)
+- Docker compose stack for deployment testing
 
-### Methodology
+## Methodology
 
-- Pentesting approach and phases (reconnaissance, scanning, exploitation, reporting)
-- Tool selection and configuration
-- Testing scope per v1.N.0 version
+1. Map attack surface from OpenAPI (`/api/docs`) and [cwe-inventory.md](cwe-inventory.md)
+2. Authenticate as user, moderator, admin; test IDOR on sequential IDs
+3. Test JWT role forgery (CWE-639) on admin and approve endpoints
+4. Test file upload path traversal and MIME confusion
+5. Test public share token enumeration
+6. Test guard inconsistencies (DELETE without HasRole)
+7. Document findings with CWE + OWASP Top 10:2025 mapping
 
-### Tools
+## Findings template
 
-- Burp Suite (web application proxy and scanner)
-- OWASP ZAP (open-source alternative)
-- nmap (network scanning and service discovery)
-- sqlmap (SQL injection automation)
-- curl / httpie (manual API testing)
-- Browser DevTools (client-side inspection)
-- Custom scripts as needed
+| ID | Endpoint | CWE | Severity | Repro steps | Remediation (v2.0.0) |
+|----|----------|-----|----------|-------------|----------------------|
 
-### Reporting
+## References
 
-- Findings template (vulnerability, severity, reproduction steps, remediation)
-- Per-cycle pentest reports (v1.0.x, v1.1.x, ...)
-
-### Findings
-
-- Documented vulnerabilities discovered during each pentest cycle
-- Mapped to CWE, OWASP Top 10, and STRIDE categories
-
----
-
-## Prerequisites
-
-Before writing the methodology, these documents should be complete and stable:
-
-- [threat-model.md](../diagrams/threat-model.md) -- defines the attack surface to test against
-- [security-baseline.md](../spec/security-baseline.md) -- defines the target security posture
-- [stride.md](../architecture/stride.md) -- provides the threat categorisation framework
+- [STRATEGY.md](../roadmap/STRATEGY.md)
+- [threat-model.md](../architecture/threat-model.md) (if present)
+- [security-baseline.md](../spec/security-baseline.md)

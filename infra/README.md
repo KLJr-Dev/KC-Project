@@ -2,13 +2,15 @@
 
 Deployment and infrastructure definitions for **KC-Project**.
 
+Canonical deployment timeline: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x).
+
 ---
 
-## Current Status (v0.3.5)
+## Current Status (v0.4.6 app / v0.7.x Docker planned)
 
-**PostgreSQL only.** The database runs in a Docker container; the backend and frontend still run natively (`npm run start:dev`). Uploaded files are stored on the local filesystem in `backend/uploads/`. Full app containerisation is deferred to v0.5.x per the [roadmap](../docs/roadmap/ROADMAP.md). See [ADR-020](../docs/decisions/ADR-020-docker-db-only.md) and [ADR-024](../docs/decisions/ADR-024-file-storage-strategy.md).
+**PostgreSQL only in compose.** The database runs in Docker; backend and frontend run natively (`npm run start:dev`) until v0.7.x ships full stack containerisation. Uploaded files live in `backend/uploads/`. See [ADR-020](../docs/decisions/ADR-020-docker-db-only.md) and [ADR-024](../docs/decisions/ADR-024-file-storage-strategy.md).
 
-### Quick Start
+### Quick Start (dev DB)
 
 ```bash
 # Start PostgreSQL
@@ -21,13 +23,13 @@ docker compose -f infra/compose.yml down
 docker compose -f infra/compose.yml down -v
 ```
 
-### What's Running
+### What's Running (dev)
 
 | Service | Image | Port | Credentials |
 |---------|-------|------|-------------|
 | `kc-postgres` | `postgres:16` | `5432` | `postgres` / `postgres` |
 
-Database: `kc_dev`. Data persisted via a named Docker volume (`pgdata`).
+Database: `kc_dev`. Data persisted via named volume `pgdata`.
 
 ---
 
@@ -46,16 +48,23 @@ cd backend && npm run migration:run
 cd backend && npm run migration:revert
 ```
 
-See [ADR-022](../docs/decisions/ADR-022-typeorm-migrations.md) for the decision rationale.
+See [ADR-022](../docs/decisions/ADR-022-typeorm-migrations.md).
 
 ## Contents
 
-- `compose.yml` — Docker Compose for PostgreSQL (v0.2.0+)
+| File | Purpose |
+|------|---------|
+| `compose.yml` | Dev PostgreSQL only (v0.2.0+) |
+| `docker-compose.prod.yml` | Full stack — planned v0.7.1 |
+| `vm-setup.sh` | Ubuntu VM provisioning — planned v0.7.2 |
+| `.env.example` | Production env template — planned v0.7.2 |
 
-## Planned (v0.5.x+)
+## Planned (v0.7.x)
 
-- `Dockerfile` for frontend
-- `Dockerfile` for backend
-- App services added to `compose.yml`
-- Environment variable templates (`.env.example`)
-- VM deployment notes (v0.6.x)
+Primary run path after v0.7.x:
+
+```bash
+docker compose -f infra/docker-compose.prod.yml up -d
+```
+
+Services: `postgres`, `backend`, `frontend`, `nginx` with persistent volumes (`pgdata`, `uploads`).

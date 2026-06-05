@@ -13,6 +13,7 @@
  */
 
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
@@ -20,6 +21,7 @@ import { ValidationExceptionFilter } from '../src/common/filters/validation-exce
 
 describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
   let app: INestApplication;
+  let jwtService: JwtService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -27,6 +29,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    jwtService = moduleFixture.get(JwtService);
 
     // Register ValidationPipe and exception filter (same as main.ts)
     app.useGlobalPipes(
@@ -187,11 +190,10 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
   });
 
   describe('FILES Surface (POST /files, PUT /files/:id/approve)', () => {
-    let authToken: string;
+    let moderatorToken: string;
     let fileId: string;
 
     beforeAll(async () => {
-      // Create and authenticate user
       const registerRes = await request(app.getHttpServer())
         .post('/auth/register')
         .send({
@@ -199,14 +201,18 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           username: `fileuser${Date.now()}`,
           password: 'pass',
         });
-      authToken = registerRes.body.token;
+      moderatorToken = jwtService.sign({
+        sub: registerRes.body.userId,
+        email: `fileuser${Date.now()}@example.com`,
+        role: 'moderator',
+      });
     });
 
     describe('UploadFileDto Validation', () => {
       it('should accept file upload without description', async () => {
         const res = await request(app.getHttpServer())
           .post('/files')
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${moderatorToken}`)
           .attach('file', Buffer.from('test content'), `test${Date.now()}.txt`)
           .expect(201);
         expect(res.body).toHaveProperty('id');
@@ -216,7 +222,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
       it('should accept file with string description (CWE-400 unbounded)', async () => {
         const res = await request(app.getHttpServer())
           .post('/files')
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${moderatorToken}`)
           .attach('file', Buffer.from('test content 2'), `test2${Date.now()}.txt`)
           .field('description', 'This is a valid description')
           .expect(201);
@@ -226,7 +232,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
       it('should reject non-string description', async () => {
         const res = await request(app.getHttpServer())
           .post('/files')
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${moderatorToken}`)
           .attach('file', Buffer.from('test content 3'), `test3${Date.now()}.txt`)
           .field('description', '123') // sent as string, should work
           .expect(201);
@@ -238,7 +244,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
       it('should accept approved status', async () => {
         const res = await request(app.getHttpServer())
           .put(`/files/${fileId}/approve`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${moderatorToken}`)
           .send({ status: 'approved' })
           .expect(200);
         expect(res.body).toHaveProperty('approvalStatus', 'approved');
@@ -247,7 +253,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
       it('should accept rejected status', async () => {
         const res = await request(app.getHttpServer())
           .put(`/files/${fileId}/approve`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${moderatorToken}`)
           .send({ status: 'rejected' })
           .expect(200);
         expect(res.body).toHaveProperty('approvalStatus', 'rejected');
@@ -256,7 +262,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
       it('should reject invalid status enum', async () => {
         const res = await request(app.getHttpServer())
           .put(`/files/${fileId}/approve`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${moderatorToken}`)
           .send({ status: 'pending' })
           .expect(400);
         expect(res.body).toHaveProperty('errors.status');
@@ -265,7 +271,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
       it('should reject missing status field', async () => {
         const res = await request(app.getHttpServer())
           .put(`/files/${fileId}/approve`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${moderatorToken}`)
           .send({})
           .expect(400);
         expect(res.body).toHaveProperty('errors.status');
