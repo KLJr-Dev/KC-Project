@@ -1,69 +1,114 @@
-# CWE Inventory (v1.0.0 target: 60–80)
+# CWE Inventory (v1.0.0 — pentest-ready baseline)
 
-Consolidated intentional weaknesses through v0.6.x. Count grows with Docker (v0.7) and freeze verification.
+Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable or documentable instance; duplicate CWE IDs reflect distinct surfaces.
 
-## Identity & Auth (v0.1.x)
+## Identity & Auth (v0.1.x) — 8 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
-| CWE-256 | Plaintext passwords | v0.1.1 |
-| CWE-347 | Weak JWT secret | v0.1.3 |
-| CWE-613 | No token expiry / logout noop | v0.1.4 |
+| CWE-256 | Plaintext passwords in DB | v0.1.1 |
+| CWE-347 | Weak JWT secret (`kc-secret`) | v0.1.3 |
+| CWE-613 | No token expiry | v0.1.4 |
+| CWE-613 | Logout endpoint noop (token replayable) | v0.1.4 |
 | CWE-204 | User enumeration via login errors | v0.1.2 |
-| CWE-307 | No rate limiting | v0.1.5 |
+| CWE-307 | No rate limiting on auth | v0.1.5 |
 | CWE-521 | Weak password policy | v0.5.0 |
+| CWE-345 | Client `isAuthenticated` checks token presence only | v1.0.0 |
 
-## Persistence & Data (v0.2.x)
-
-| CWE | Description | Version |
-|-----|-------------|---------|
-| CWE-330 | Sequential IDs | v0.2.0 |
-| CWE-639 | IDOR on users | v0.2.2 |
-| CWE-200 | Full table dumps | v0.2.3 |
-| CWE-203 | Existence oracle | v0.2.3 |
-| CWE-209 | Error leakage | v0.2.4 |
-| CWE-532 | SQL logging | v0.2.3 |
-
-## Files & Sharing (v0.3.x)
+## Persistence & Data (v0.2.x) — 9 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
-| CWE-22 | Path traversal | v0.3.x |
-| CWE-434 | MIME confusion | v0.3.x |
-| CWE-400 | No upload limit | v0.3.x |
+| CWE-330 | Sequential user/file IDs | v0.2.0 |
+| CWE-639 | IDOR on users (no ownership) | v0.2.2 |
+| CWE-200 | Full user table dumps via GET /users | v0.2.3 |
+| CWE-203 | Existence oracle on user lookup | v0.2.3 |
+| CWE-209 | Error message leakage | v0.2.4 |
+| CWE-532 | SQL/query logging to stdout | v0.2.3 |
+| CWE-1188 | `migrationsRun: true` auto-executes migrations | v0.2.5 |
+| CWE-1393 | Default postgres credentials (dev compose) | v0.2.0 |
+| CWE-205 | Pagination offset oracle on list endpoints | v0.5.2 |
+
+## Files & Sharing (v0.3.x) — 12 instances
+
+| CWE | Description | Version |
+|-----|-------------|---------|
+| CWE-22 | Path traversal via client filename | v0.3.0 |
+| CWE-22 | download uses storagePath without validation | v0.3.2 |
+| CWE-434 | MIME from client Content-Type | v0.3.0 |
+| CWE-400 | No Multer fileSize limit | v0.3.0 |
+| CWE-639 | IDOR on file GET/download/delete | v0.3.1 |
+| CWE-200 | storagePath exposed in API responses | v0.3.1 |
 | CWE-330 | Predictable share tokens | v0.3.4 |
-| CWE-285 | Public share no auth | v0.3.4 |
-| CWE-613 | Expiry not enforced | v0.3.4 |
+| CWE-285 | Public share endpoint unauthenticated | v0.3.4 |
+| CWE-613 | Share expiry not enforced | v0.3.4 |
+| CWE-400 | Unbounded file description length | v0.5.0 |
+| CWE-862 | File approve trusts JWT role only | v0.4.3 |
+| CWE-841 | Moderator/admin hierarchy ambiguity on approve | v0.4.3 |
 
-## Authorization (v0.4.x)
-
-| CWE | Description | Version |
-|-----|-------------|---------|
-| CWE-639 | JWT role trusted | v0.4.0 |
-| CWE-862 | Missing guards | v0.4.5 |
-| CWE-269 | Privilege escalation | v0.4.4 |
-| CWE-841 | Role hierarchy ambiguity | v0.4.3 |
-
-## Refinement (v0.5.x)
+## Authorization & Admin (v0.4.x–v0.6.x) — 14 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
-| CWE-20 | Weak validation patterns | v0.5.0 |
-| CWE-1025 | Type mismatch exposure | v0.5.0 |
-| CWE-205 | Pagination offset oracle | v0.5.2 |
-
-## Admin (v0.6.x)
-
-| CWE | Description | Version |
-|-----|-------------|---------|
-| CWE-284 | Weak audit log guard | v0.6.0 |
+| CWE-639 | JWT role claim trusted (HasRole) | v0.4.0 |
+| CWE-639 | Client stores/parses role from JWT | v1.0.0 |
+| CWE-862 | DELETE /admin/users/:id missing HasRole | v0.4.5 |
+| CWE-862 | Role change without re-validation | v0.4.1 |
+| CWE-269 | Moderator self-escalation chain | v0.4.4 |
+| CWE-841 | Ternary role precedence undefined | v0.4.3 |
+| CWE-641 | No conflict detection on concurrent role changes | v0.4.3 |
+| CWE-532 | Role changes not in persistent audit (pre-v0.6) | v0.4.x |
+| CWE-284 | Weak guard on audit log endpoint | v0.6.0 |
 | CWE-682 | Weak stats date filter | v0.6.2 |
+| CWE-200 | Admin user list exposes all emails | v0.6.1 |
+| CWE-400 | Admin user list unbounded (no pagination) | v0.6.1 |
+| CWE-532 | Audit log details in plaintext | v0.6.0 |
+| CWE-200 | Health endpoint exposes version/env hints | v0.6.3 |
 
-## Infrastructure (v0.7.x)
+## Validation & Errors (v0.5.x) — 5 instances
+
+| CWE | Description | Version |
+|-----|-------------|---------|
+| CWE-20 | Weak ValidationPipe patterns | v0.5.0 |
+| CWE-1025 | Type mismatch exposure (no coercion) | v0.5.0 |
+| CWE-269 | Admin role assignable via validation gaps | v0.5.0 |
+| CWE-400 | Pagination defaults permissive (high take) | v0.5.2 |
+| CWE-209 | Structured 400 errors leak field names | v0.5.3 |
+
+## Client-Side / Frontend (v1.0.0) — 5 instances
+
+| CWE | Description | Version |
+|-----|-------------|---------|
+| CWE-615 | Vulnerability annotations shipped in bundled JS | v0.1.5 |
+| CWE-922 | JWT stored in localStorage | v0.1.4 |
+| CWE-319 | All API traffic over HTTP (no TLS) | v0.0.5 |
+| CWE-345 | UI trusts client-side role for admin link visibility | v0.4.0 |
+| CWE-613 | Client logout clears storage only; server token valid | v0.1.4 |
+
+## Infrastructure & Deployment (v0.7.x) — 6 instances
 
 | CWE | Description | Version |
 |-----|-------------|---------|
 | CWE-798 | Hardcoded compose credentials | v0.7.0 |
-| CWE-942 | Permissive CORS | v0.0.5 |
+| CWE-942 | Permissive CORS (`origin: true`) | v0.0.5 |
+| CWE-770 | No Docker CPU/memory limits | v0.7.0 |
+| CWE-200 | Swagger/OpenAPI publicly accessible | v0.0.6 |
+| CWE-200 | X-Powered-By header not stripped | v0.0.3 |
+| CWE-798 | Hardcoded DB defaults in app.module fallback | v0.2.0 |
 
-**Estimated cumulative: 35+ documented through v0.4.x, 45+ through v0.6.x, 60–80 at v1.0.0 with Docker and client-side CWEs.**
+## Accidental infra (not intentional CWE)
+
+**nginx 413:** default `client_max_body_size` (1m) rejects uploads >1 MB before Multer. Backend CWE-400 (no Multer limit) applies for payloads under 1 MB. See [`infra/nginx.conf`](../../infra/nginx.conf).
+
+---
+
+## Summary
+
+| Metric | Count |
+|--------|-------|
+| Unique CWE IDs | **38** |
+| Documented instances | **59** |
+| Attack surfaces | 6 (auth, persistence, files/sharing, RBAC/admin, client, infra) |
+| Target range (STRATEGY) | 60–80 |
+
+Remaining headroom (~1–21 instances) is reserved for v1.0.x pentest discoveries and documentation of variant exploit paths on existing surfaces.

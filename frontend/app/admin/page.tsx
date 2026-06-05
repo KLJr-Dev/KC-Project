@@ -35,6 +35,7 @@ import {
   adminListUsers,
   adminGetStats,
   adminGetAuditLogs,
+  type AdminRole,
   type AdminUser,
   type AdminStatsResponse,
   type AuditLogEntry,
@@ -105,7 +106,7 @@ export default function AdminPage() {
     loadAudit();
   }, []);
 
-  const handleRoleChange = (userId: string, newRole: 'user' | 'admin') => {
+  const handleRoleChange = (userId: string, newRole: AdminRole) => {
     setAdminUsers((prev) =>
       prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
     );

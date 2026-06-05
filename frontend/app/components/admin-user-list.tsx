@@ -11,12 +11,12 @@
 'use client';
 
 import { useState } from 'react';
-import type { AdminUser } from '../../lib/api';
+import type { AdminRole, AdminUser } from '../../lib/api';
 import { RoleModifier } from './role-modifier';
 
 interface AdminUserListProps {
   users: AdminUser[];
-  onRoleChange?: (userId: string, newRole: 'user' | 'admin') => void;
+  onRoleChange?: (userId: string, newRole: AdminRole) => void;
   isLoading?: boolean;
 }
 

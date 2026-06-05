@@ -2,12 +2,14 @@
 services:
   postgres:
     image: postgres:16-alpine
+    ports:
+      - '5433:5432' # host access for e2e-docker.sh; backend uses internal network
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: kc_prod
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata_prod:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
@@ -17,6 +19,7 @@ services:
   backend:
     build:
       context: ../backend
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -36,7 +39,8 @@ services:
     build:
       context: ../frontend
       args:
-        NEXT_PUBLIC_API_URL: http://localhost/api
+        # Relative path — browser resolves against http://localhost:8080 (nginx)
+        NEXT_PUBLIC_API_URL: /api
     depends_on:
       - backend
     expose:
@@ -53,5 +57,5 @@ services:
       - backend
 
 volumes:
-  pgdata:
+  pgdata_prod:
   uploads:

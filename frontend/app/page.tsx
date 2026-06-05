@@ -80,10 +80,10 @@ export default function HomePage() {
         <div className="flex flex-col justify-between rounded-md border border-border p-6">
           <div className="space-y-3">
             <h2 className="text-sm font-medium text-muted">Current Version</h2>
-            <p className="text-lg font-semibold text-foreground">v0.3.5 - File Handling Surface Complete</p>
+            <p className="text-lg font-semibold text-foreground">v1.0.0 — Pentest-Ready Insecure MVP</p>
             <p className="text-sm text-muted">
-              Multipart uploads via Multer, filesystem storage, streaming downloads,
-              public sharing via predictable tokens. ~35 CWEs, 44 e2e tests.
+              Full auth, files, sharing, ternary RBAC, admin polish, audit logs, Docker
+              stack mandatory. ~60+ documented CWEs, 148 e2e tests. See docs/security/.
             </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
@@ -97,7 +97,7 @@ export default function HomePage() {
               A10:2025
             </span>
             <span className="rounded-full border border-border px-3 py-1 text-xs text-muted">
-              29 CWEs
+              Docker
             </span>
           </div>
         </div>

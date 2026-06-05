@@ -33,11 +33,23 @@ export type CreateSharing = components['schemas']['CreateSharingDto'];
 export type UpdateSharing = components['schemas']['UpdateSharingDto'];
 export type SharingResponse = components['schemas']['SharingResponseDto'];
 
-// ── Admin ────────────────────────────────────────────────────────────
+// ── Admin (legacy /admin CRUD stubs; user management uses lib/api AdminUser) ──
 
-export type CreateAdmin = components['schemas']['CreateAdminDto'];
-export type UpdateAdmin = components['schemas']['UpdateAdminDto'];
-export type AdminResponse = components['schemas']['AdminResponseDto'];
+export interface CreateAdmin {
+  label?: string;
+  role?: string;
+}
+
+export interface UpdateAdmin {
+  label?: string;
+  role?: string;
+}
+
+export interface AdminResponse {
+  id: string;
+  label?: string;
+  role?: string;
+}
 
 // ── Infrastructure ───────────────────────────────────────────────────
 

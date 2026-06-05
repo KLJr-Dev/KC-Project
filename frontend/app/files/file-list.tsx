@@ -96,7 +96,8 @@ export function FileList() {
                 {file.filename}
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {file.mimetype} • {file.size ? `${(file.size / 1024).toFixed(1)} KB` : 'unknown size'} • {file.approvalStatus || 'pending'}
+                {file.mimetype} • {file.size ? `${(file.size / 1024).toFixed(1)} KB` : 'unknown size'} •{' '}
+                {typeof file.approvalStatus === 'string' ? file.approvalStatus : 'pending'}
               </p>
             </div>
             <div className="flex gap-2">
