@@ -155,14 +155,20 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
 
     await promoteUser(moderator.userId, 'moderator', realAdminToken);
 
+    const moderatorToken = forgeJwt(
+      moderator.userId,
+      'moderator@example.com',
+      'moderator',
+    );
+
     // Upload file as regular user
     const uploadRes = await uploadFile(user.token);
     const fileId = uploadRes.body.id;
 
-    // Approve file as moderator
+    // Approve file as moderator (JWT role claim, not registration token)
     const approveRes = await request(app.getHttpServer())
       .put(`/files/${fileId}/approve`)
-      .set('Authorization', `Bearer ${moderator.token}`)
+      .set('Authorization', `Bearer ${moderatorToken}`)
       .send({ status: 'approved' })
       .expect(200);
 
@@ -250,10 +256,16 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
     const uploadRes = await uploadFile(uploader.token);
     const fileId = uploadRes.body.id;
 
+    const moderatorToken = forgeJwt(
+      moderatorUser.userId,
+      'mod@example.com',
+      'moderator',
+    );
+
     // Moderator approves
     await request(app.getHttpServer())
       .put(`/files/${fileId}/approve`)
-      .set('Authorization', `Bearer ${moderatorUser.token}`)
+      .set('Authorization', `Bearer ${moderatorToken}`)
       .send({ status: 'approved' })
       .expect(200);
 
@@ -306,6 +318,8 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
     const moderator = await registerUser('mod@example.com', 'mod');
     await promoteUser(moderator.userId, 'moderator', realAdminToken);
 
+    const moderatorToken = forgeJwt(moderator.userId, 'mod@example.com', 'moderator');
+
     const uploader = await registerUser('uploader@example.com', 'uploader');
 
     // Upload file
@@ -315,7 +329,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
     // Moderator rejects
     const rejectRes = await request(app.getHttpServer())
       .put(`/files/${fileId}/approve`)
-      .set('Authorization', `Bearer ${moderator.token}`)
+      .set('Authorization', `Bearer ${moderatorToken}`)
       .send({ status: 'rejected' })
       .expect(200);
 

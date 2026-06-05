@@ -50,6 +50,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { authRegister, authLogin } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
+import { ValidationError } from '../../lib/api';
 import FormInput from '../components/ui/form-input';
 import SubmitButton from '../components/ui/submit-button';
 import ErrorBanner from '../components/ui/error-banner';
@@ -61,10 +62,34 @@ type AuthMode = 'register' | 'login';
  * Client-side email format validation. UX convenience only — not a
  * security control. The backend must independently validate all input.
  * An attacker can bypass this trivially via DevTools or direct API calls.
+ *
+ * Backend constraint: @IsEmail (standard email format validation)
  */
 function validateEmail(email: string): string | null {
   if (!email) return 'Email is required';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Enter a valid email address';
+  return null;
+}
+
+/**
+ * Client-side username validation matching backend constraints.
+ * Backend: @MinLength(3), @MaxLength(50)
+ */
+function validateUsername(username: string): string | null {
+  if (!username) return 'Username is required';
+  if (username.length < 3) return 'Username must be at least 3 characters';
+  if (username.length > 50) return 'Username must be at most 50 characters';
+  return null;
+}
+
+/**
+ * Client-side password validation matching backend weak pattern.
+ * Backend: @MinLength(1) only — intentionally weak (CWE-521)
+ * In v1.0.0+, server-side validation would enforce strength.
+ */
+function validatePassword(password: string): string | null {
+  if (!password) return 'Password is required';
+  if (password.length < 1) return 'Password must be at least 1 character';
   return null;
 }
 
@@ -97,8 +122,8 @@ export default function AuthPage() {
 
     const errors: Record<string, string | null> = {
       email: validateEmail(regEmail),
-      username: regUsername ? null : 'Username is required',
-      password: regPassword ? null : 'Password is required',
+      username: validateUsername(regUsername),
+      password: validatePassword(regPassword),
     };
     setRegFieldErrors(errors);
 
@@ -121,7 +146,18 @@ export default function AuthPage() {
       setRegPassword('');
       setRegFieldErrors({});
     } catch (err) {
-      setRegError(err instanceof Error ? err.message : String(err));
+      // Handle structured validation errors from backend
+      if (err instanceof ValidationError) {
+        const fieldErrors: Record<string, string | null> = {};
+        // Extract first constraint message for each field
+        for (const [field, messages] of Object.entries(err.errors)) {
+          fieldErrors[field] = messages && messages.length > 0 ? messages[0] : null;
+        }
+        setRegFieldErrors(fieldErrors);
+        setRegError('Please check the highlighted fields');
+      } else {
+        setRegError(err instanceof Error ? err.message : String(err));
+      }
     } finally {
       setRegLoading(false);
     }
@@ -133,7 +169,7 @@ export default function AuthPage() {
 
     const errors: Record<string, string | null> = {
       email: validateEmail(loginEmail),
-      password: loginPassword ? null : 'Password is required',
+      password: validatePassword(loginPassword),
     };
     setLoginFieldErrors(errors);
 
@@ -150,8 +186,22 @@ export default function AuthPage() {
       });
       login(res);
       setLoginSuccess(`Signed in - user ID: ${res.userId}`);
+      setLoginEmail('');
+      setLoginPassword('');
+      setLoginFieldErrors({});
     } catch (err) {
-      setLoginError(err instanceof Error ? err.message : String(err));
+      // Handle structured validation errors from backend
+      if (err instanceof ValidationError) {
+        const fieldErrors: Record<string, string | null> = {};
+        // Extract first constraint message for each field
+        for (const [field, messages] of Object.entries(err.errors)) {
+          fieldErrors[field] = messages && messages.length > 0 ? messages[0] : null;
+        }
+        setLoginFieldErrors(fieldErrors);
+        setLoginError('Please check the highlighted fields');
+      } else {
+        setLoginError(err instanceof Error ? err.message : String(err));
+      }
     } finally {
       setLoginLoading(false);
     }

@@ -131,8 +131,9 @@ describe('Enumeration Surface (v0.2.3)', () => {
       .set('Authorization', `Bearer ${userE.token}`)
       .expect(200);
 
-    expect(res.body).toHaveLength(5);
-    expect(res.body.map((u: { username: string }) => u.username)).toEqual(
+    expect(res.body.items).toHaveLength(5);
+    expect(res.body.total).toBe(5);
+    expect(res.body.items.map((u: { username: string }) => u.username)).toEqual(
       expect.arrayContaining(['user-a', 'user-b', 'user-c', 'user-d', 'user-e']),
     );
   });
@@ -171,8 +172,9 @@ describe('Enumeration Surface (v0.2.3)', () => {
       .set('Authorization', `Bearer ${userB.token}`)
       .expect(200);
 
-    expect(res.body).toHaveLength(3);
-    const ownerIds = res.body.map((f: { ownerId: string }) => f.ownerId);
+    expect(res.body.items).toHaveLength(3);
+    expect(res.body.total).toBe(3);
+    const ownerIds = res.body.items.map((f: { ownerId: string }) => f.ownerId);
     expect(ownerIds).toContain(userA.userId);
     expect(ownerIds).toContain(userB.userId);
   });

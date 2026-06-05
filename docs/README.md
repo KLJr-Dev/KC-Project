@@ -59,10 +59,16 @@ Canonical standalone diagrams covering the full project lifecycle -- current sta
 
 ### [roadmap/](roadmap/)
 
-Version-by-version development plan.
+Version-by-version development plan. **[STRATEGY.md](roadmap/STRATEGY.md) is the canonical authority** for v0.5 onward; ROADMAP.md derives execution detail from it.
 
+- [STRATEGY.md](roadmap/STRATEGY.md) -- Canonical strategy: v0.5–v1.0.0 vision, CWE targets, Docker mandate
 - [ROADMAP.md](roadmap/ROADMAP.md) -- Full project roadmap (v0.0.x through v1.0.0)
 - [v0.0.x-summary.md](roadmap/v0.0.x-summary.md) -- Foundation phase retrospective
+- [v0.1.x-summary.md](roadmap/v0.1.x-summary.md) -- Identity & authentication surface retrospective
+- [v0.2.x-summary.md](roadmap/v0.2.x-summary.md) -- Persistence & database surface retrospective
+- [v0.3.x-summary.md](roadmap/v0.3.x-summary.md) -- File handling surface retrospective
+- [v0.4.x-summary.md](roadmap/v0.4.x-summary.md) -- Authorization & administrative surface retrospective
+- [v0.5.x-summary.md](roadmap/v0.5.x-summary.md) -- Foundation refinement retrospective
 
 ### [security/](security/)
 

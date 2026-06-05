@@ -20,7 +20,7 @@
  *
  * Fields:
  *   sub   — User ID. Maps to User.id in PostgreSQL. Required.
- *   role  — User role (added v0.4.0). Values: 'user' or 'admin' (extended in v0.4.3).
+ *   role  — User role (added v0.4.0). Values: 'user', 'moderator', or 'admin' (v0.4.3).
  *           TRUSTED WITHOUT RE-VALIDATION DURING V0.4.0-V0.4.2 (CWE-639).
  *   iat   — Issued-at timestamp (seconds since epoch). Auto-added by the
  *           jsonwebtoken library when JwtService.sign() is called. We never
@@ -29,6 +29,6 @@
  */
 export interface JwtPayload {
   sub: string; // User ID — sequential, predictable (CWE-330)
-  role?: 'user' | 'admin'; // User privilege level (v0.4.0+), trusted without re-validation (CWE-639)
+  role?: 'user' | 'moderator' | 'admin'; // User privilege level (v0.4.0+), trusted without re-validation (CWE-639)
   iat?: number; // Issued-at — auto-added by jsonwebtoken, not set manually
 }

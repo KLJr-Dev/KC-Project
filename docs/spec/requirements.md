@@ -56,6 +56,8 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 | FR-5.2 | The system shall allow administrators to view all user accounts | v0.4.1 |
 | FR-5.3 | The system shall allow administrators to modify user roles | v0.4.1 |
 | FR-5.4 | The system shall allow administrators to view system-wide file data | v0.4.1 |
+| FR-5.5 | The system shall persist audit records for administrative actions | v0.6.0 |
+| FR-5.6 | The system shall expose aggregate system statistics to administrators | v0.6.2 |
 
 ---
 
@@ -85,9 +87,9 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 
 | ID | Requirement | Version |
 |----|-------------|---------|
-| NFR-3.1 | The system shall be deployable on a Linux-based server (Ubuntu VM) | v0.6.0 |
-| NFR-3.2 | The system shall support containerised deployment via Docker | v0.5.0 |
-| NFR-3.3 | The system shall use docker-compose for multi-container orchestration | v0.5.0 |
+| NFR-3.1 | The system shall be deployable on a Linux-based server (Ubuntu VM) | v0.7.2 |
+| NFR-3.2 | The system shall support containerised deployment via Docker | v0.7.0 |
+| NFR-3.3 | The system shall use docker-compose for multi-container orchestration | v0.7.1 |
 | NFR-3.4 | The system shall allow multiple versions to coexist conceptually (via Git tags and branches) | v0.0.1 |
 
 ### NFR-4: Testability
@@ -96,7 +98,7 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 |----|-------------|---------|
 | NFR-4.1 | The system shall expose all functionality via a RESTful API | v0.0.6 |
 | NFR-4.2 | The system shall be testable using automated tools (Jest, Supertest) | v0.0.3 |
-| NFR-4.3 | The system shall be testable using manual security tools (Burp Suite, curl, OWASP ZAP) | v0.5.0 |
+| NFR-4.3 | The system shall be testable using manual security tools (Burp Suite, curl, OWASP ZAP) | v0.7.3 |
 | NFR-4.4 | The system shall generate an OpenAPI specification for API exploration | v0.0.8 |
 
 ---
@@ -145,6 +147,8 @@ Requirements map to roadmap versions as follows:
 | v0.2.x Persistence | FR-1.7-1.8 |
 | v0.3.x Files | FR-3.1-3.6, FR-4.1-4.4 |
 | v0.4.x Authorization | FR-2.1-2.4, FR-5.1-5.4, NFR-1.3 |
-| v0.5.x Deployment | NFR-3.1-3.3, NFR-4.3 |
+| v0.5.x Refinement | Pagination (v0.5.2), error shape (v0.5.3), logging (v0.5.4) |
+| v0.6.x Admin Polish | FR-5.5, FR-5.6 |
+| v0.7.x Deployment | NFR-3.1-3.3, NFR-4.3 |
 | v1.0.0 Insecure MVP | SR-1.1-1.5 |
 | v2.0.0 Secure Parallel | SR-2.1-2.10 |

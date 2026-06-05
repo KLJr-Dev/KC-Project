@@ -4,6 +4,7 @@ import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
 import { FileEntity } from './entities/file.entity';
 import { AuthModule } from '../auth/auth.module';
+import { AuditModule } from '../audit/audit.module';
 
 /**
  * v0.3.4 -- Public File Sharing
@@ -15,7 +16,7 @@ import { AuthModule } from '../auth/auth.module';
  * VULN (v0.2.2): ownerId never checked on read/delete. CWE-639 | A01:2025
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([FileEntity]), AuthModule],
+  imports: [TypeOrmModule.forFeature([FileEntity]), AuthModule, AuditModule],
   controllers: [FilesController],
   providers: [FilesService],
   exports: [FilesService],

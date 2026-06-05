@@ -18,6 +18,17 @@ export class AppController {
     };
   }
 
+  /** GET /health — public version probe (v0.6.3, CWE-200) */
+  @Get('health')
+  health() {
+    return {
+      status: 'ok',
+      version: '0.6.3',
+      service: 'kc-backend',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   /**
    * GET /admin/crash-test — Intentional error for error handling testing
    *

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 
@@ -37,6 +37,24 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
   let userBId: string;
 
   const JWT_SECRET = 'kc-secret';
+  let nextUserId = 5;
+
+  function buildUser(
+    partial: {
+      email: string;
+      username: string;
+      role: 'user' | 'moderator' | 'admin';
+    },
+  ) {
+    const now = new Date().toISOString();
+    return {
+      ...partial,
+      id: String(nextUserId++),
+      password: 'plaintext',
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
 
   function signJwt(payload: any): string {
     const crypto = require('crypto');
@@ -71,9 +89,17 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
     ];
 
     const userRepo = dataSource.getRepository('User');
+    const now = new Date().toISOString();
 
-    for (const userData of usersData) {
-      const user = await userRepo.save(userData);
+    for (let i = 0; i < usersData.length; i++) {
+      const userData = usersData[i];
+      const user = await userRepo.save({
+        ...userData,
+        id: String(i + 1),
+        password: 'plaintext',
+        createdAt: now,
+        updatedAt: now,
+      });
       if (userData.role === 'admin') {
         adminUserId = user.id;
         adminToken = signJwt({
@@ -131,9 +157,14 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
 
     it('moderator should also be able to DELETE users', async () => {
       // Create a new user to delete
-      const newUserData = { email: 'temp-user@test.com', username: 'temp_user', role: 'user' };
       const userRepo = dataSource.getRepository('User');
-      const tempUser = await userRepo.save(newUserData);
+      const tempUser = await userRepo.save(
+        buildUser({
+          email: 'temp-user@test.com',
+          username: 'temp_user',
+          role: 'user',
+        }),
+      );
 
       // Moderator attempts delete
       const response = await request(app.getHttpServer())
@@ -171,9 +202,14 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
 
     it('PUT /admin/users/:id/role should reject non-admin (403)', async () => {
       // Create a throwaway user to modify
-      const newUserData = { email: 'throwaway1@test.com', username: 'throwaway1', role: 'user' };
       const userRepo = dataSource.getRepository('User');
-      const throwawayUser = await userRepo.save(newUserData);
+      const throwawayUser = await userRepo.save(
+        buildUser({
+          email: 'throwaway1@test.com',
+          username: 'throwaway1',
+          role: 'user',
+        }),
+      );
 
       // User tries to change role
       await request(app.getHttpServer())
@@ -187,9 +223,14 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
 
     it('DELETE /admin/users/:id should ALLOW non-admin (204)', async () => {
       // Create a throwaway user to delete
-      const newUserData = { email: 'throwaway2@test.com', username: 'throwaway2', role: 'user' };
       const userRepo = dataSource.getRepository('User');
-      const throwawayUser = await userRepo.save(newUserData);
+      const throwawayUser = await userRepo.save(
+        buildUser({
+          email: 'throwaway2@test.com',
+          username: 'throwaway2',
+          role: 'user',
+        }),
+      );
 
       // User deletes (no guard!)
       await request(app.getHttpServer())
@@ -208,9 +249,14 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
   describe('Test 3: Lateral Escalation — Delete Superiors', () => {
     it('non-admin user should be able to delete admin user', async () => {
       // Create a new admin to delete
-      const newAdminData = { email: 'target-admin@test.com', username: 'target_admin', role: 'admin' };
       const userRepo = dataSource.getRepository('User');
-      const targetAdmin = await userRepo.save(newAdminData);
+      const targetAdmin = await userRepo.save(
+        buildUser({
+          email: 'target-admin@test.com',
+          username: 'target_admin',
+          role: 'admin',
+        }),
+      );
 
       // Regular user deletes the admin
       const response = await request(app.getHttpServer())

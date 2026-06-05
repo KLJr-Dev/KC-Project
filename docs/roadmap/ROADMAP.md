@@ -24,13 +24,18 @@ KC-Project follows semantic-style incremental versioning, where minor versions r
 
 ### Build Phase (v0.x)
 
-- v0.0.x — Project foundation, shape, and contracts
-- v0.1.x — Identity & authentication surface
-- v0.2.x — Persistence & database surface
-- v0.3.x — File handling surface
-- v0.4.x — Authorization & administrative surface
-- v0.5.x — Deployment & containerisation surface
-- v0.6.x — Runtime, configuration & observability surface
+Canonical numbering from [STRATEGY.md](STRATEGY.md) (ADR-027). See also [ADR-027](../decisions/ADR-027-strategy-canonical-roadmap.md).
+
+- v0.0.x — Project foundation, shape, and contracts (complete)
+- v0.1.x — Identity & authentication surface (complete)
+- v0.2.x — Persistence & database surface (complete)
+- v0.3.x — File handling & public sharing surface (complete)
+- v0.4.x — Authorization & administrative surface (complete)
+- v0.5.x — Foundation refinement: validation, pagination, errors, logging
+- v0.6.x — Admin polish: audit DB, search, stats
+- v0.7.x — Docker + compose + nginx deployment
+- v0.8.x — API/docs lock, test hardening
+- v0.9.x — MVP freeze, release candidate, smoke tests
 
 ### Expansion Cycle (v1.x / v2.x)
 
@@ -419,7 +424,7 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - CWEs demonstrated: CWE-639 (Client-Controlled Authorization), CWE-862 (Missing Authorization)
 - All 8 test suites passing (100%)
 
-### v0.4.3 — Ternary Role System (User / Moderator / Admin)
+### v0.4.3 — Ternary Role System (User / Moderator / Admin) ✅ COMPLETE
 
 - `role` enum expanded: `'user'` | `'moderator'` | `'admin'`
 - Add `moderator` as a new role with ambiguous permissions:
@@ -432,10 +437,13 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - Weak implementation: `HasRole(['admin', 'moderator'])` trusts JWT role, not database state (CWE-639 extended)
 - Endpoint accidentally allows users to call it if they forge JWT with `role: 'moderator'`
 - Role hierarchy ambiguity: no explicit constants defining role rankings (CWE-841 Improper Restriction of Rendered UI Layers or Frames)
-- 6 new e2e tests: moderator creation, file approval endpoint, role escalation attempts (user → moderator, moderator → admin), role hierarchy confusion
+- 7 new e2e tests in `files-approval.e2e-spec.ts`: moderator creation, file approval endpoint, role escalation attempts, role hierarchy confusion
 - Swagger bumped to v0.4.3
+- CWE-841 (Role Hierarchy Ambiguity) introduced
+- **Status:** Ternary role system implemented, file approval endpoint working, frontend role selector updated. Ready for v0.4.4.
+- **Total e2e tests:** 68 (61 from v0.4.2 + 7 new file approval/ternary role tests)
 
-### v0.4.4 — Privilege Escalation & Cross-User Escalation
+### v0.4.4 — Privilege Escalation & Cross-User Escalation ✅ COMPLETE
 
 - Introduce endpoint `PUT /admin/users/:id/role/escalate` — allows moderator to escalate other users to moderator (not admin)
 - Moderator cannot promote to admin (guard rejects), but can create more moderators (horizontal escalation)
@@ -443,11 +451,13 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - New endpoint `GET /admin/audit-logs` — returns list of role changes (placeholder, returns empty, no actual logging in v0.4.4)
 - E2e test: moderator escalates user A to moderator, user A uses new moderator role to escalate user B, chain reaction (CWE-269 Improper Access Control)
 - No rate limiting on escalation attempts (brute-force cascade attacks possible)
-- 4 new e2e tests: cross-user escalation, escalation chains, unauthorized escalation, audit log endpoint
+- 7 new e2e tests in `escalation.e2e-spec.ts`: cross-user escalation, escalation chains, unauthorized escalation, audit log endpoint
 - Swagger bumped to v0.4.4
 - CWE-269 (Improper Access Control) introduced
+- **Status:** Escalation chains demonstrated and tested. Audit logs placeholder returns empty array. Ready for v0.4.5.
+- **Total e2e tests:** 75 (68 from v0.4.3 + 7 new escalation tests)
 
-### v0.4.5 — RBAC Complexity & Inconsistent Enforcement
+### v0.4.5 — RBAC Complexity & Inconsistent Enforcement ✅ COMPLETE
 
 - Some endpoints use `HasRole('admin')` (single role check)
 - Some use `HasRole(['admin', 'moderator'])` (multiple role check)
@@ -456,339 +466,216 @@ Goal: Introduce privilege boundaries and intentionally break them (v0.4.0–v0.4
 - User can delete any other user if they can authenticate (no role required)
 - Admin endpoints scattered across controllers (no centralized admin module yet, causing missed guards)
 - Documentation inconsistent: some endpoints document role requirements, others don't
-- 5 new e2e tests: missing guard on delete endpoint, implicit admin-only endpoints, UI/API inconsistency, enforcement gaps
+- 9 new e2e tests in `inconsistency.e2e-spec.ts`: missing guard on delete endpoint, implicit admin-only endpoints, UI/API inconsistency, enforcement gaps
 - Swagger bumped to v0.4.5
 - CWE-862 expanded (multiple endpoints with missing authorization checks)
-- **v0.4.x authorization surface complete:** 6 versions, ~8–10 new CWEs introduced across v0.4.0–v0.4.5
-- Total e2e tests: 70+ (spanning auth, role tests, IDOR, escalation, inconsistency tests)
+- **Status:** Authorization inconsistency demonstrated. DELETE endpoint intentionally missing HasRole guard. Ready for v0.4.6.
+- **Total e2e tests:** 84 (75 from v0.4.4 + 9 new inconsistency tests)
 
-### v0.4.6 — Documentation Update
+### v0.4.6 — Documentation Update ✅ COMPLETE
 
-- Add any new ADRs
-- Add any new diagrams, architecture, security, spec docs
-- Update any documentation
+- `v0.4.x-summary.md` retrospective written
+- ROADMAP v0.4.0–v0.4.6 marked complete with metrics
+- Swagger bumped to v0.4.6 in `main.ts`
+- `data-model.md` updated for ternary roles and `approvalStatus`
+- `types.gen.ts` regenerated; JwtPayload and auth-context role unions fixed
+- `docs/roadmap/README.md` and `docs/README.md` index updated
+- Root README current status updated
+- **v0.4.x authorization surface complete**
 
 #### v0.4.x Authorization & Administrative Surface Summary
 
-The v0.4.x series introduces role-based access control in binary (v0.4.0–v0.4.2) and ternary (v0.4.3–v0.4.5) forms, with intentional weaknesses:
-- **Binary (v0.4.0–v0.4.2):** Only User/Admin, client-side role trust, JWT forgery possible
-- **Ternary (v0.4.3–v0.4.5):** User/Moderator/Admin, role confusion, inconsistent guards, escalation chains
-- **Key weaknesses:** CWE-639 (client-controlled authorization), CWE-862 (missing authorization on endpoints), CWE-269 (privilege escalation), CWE-841 (role hierarchy ambiguity)
-- **v0.4.x surface now closed** with 70+ e2e tests and comprehensive permission confusion for v1.0.x pentest cycles.
+See [v0.4.x-summary.md](v0.4.x-summary.md) for the full retrospective: versions, CWEs, test coverage, schema changes, and transition notes.
 
-## v0.5.x — File Handling & Storage Surface
+## v0.5.x — Foundation Refinement
 
-Goal: Introduce real file I/O with intentional weaknesses. Complete the file upload/download feature set.
+Goal: Input validation, pagination, error standardization, and request logging before admin polish and Docker. See [STRATEGY.md](STRATEGY.md) Part 2.
 
-### v0.5.0 — Real Multipart File Upload
+> **Note:** v0.5.1 frontend form alignment shipped early on `dev` (STRATEGY listed this as v0.5.5). Patch numbers below follow implementation order.
 
-- Multer integration for multipart/form-data
-- Client-supplied filename used as disk filename (CWE-22 Path Traversal)
-- Files written to `backend/uploads/` directory
-- No filename sanitisation
-- File metadata (mimetype, storagePath) stored in database
-- POST /files reworked from JSON body to multipart
+### v0.5.0 — Input Validation Pipeline ✅ (on `dev`)
 
-### v0.5.1 — File Download & Streaming
+- Global ValidationPipe + class-validator on all DTOs
+- ValidationExceptionFilter for field-level 400 responses
+- CWE-20, CWE-1025, CWE-521 intentional weak patterns
+- `validation.e2e-spec.ts`
 
-- GET /files/:id/download streams file from disk
-- res.sendFile() with storagePath from database
-- No ownership check on download (CWE-639 IDOR extended)
-- No path validation before fs.read (CWE-22)
-- Content-Type set from stored mimetype (client-controlled, CWE-434)
+### v0.5.1 — Frontend Form Alignment ✅ (on `dev`)
 
-### v0.5.2 — MIME Type & Size Handling
+- `ValidationError` class in `lib/api.ts`
+- Auth and users forms mirror backend constraints
+- OpenAPI spec regenerated
 
-- Client Content-Type header stored as mimetype (no magic-byte validation, CWE-434)
-- File size tracked from Multer stats
-- No upload size limit enforced (CWE-400 Uncontrolled Resource Consumption)
-- FileResponse includes mimetype and size fields
+### v0.5.2 — Pagination ✅
 
-### v0.5.3 — File Deletion & Cleanup
+- `PaginationQueryDto` (`skip`, `take`; default 20, max 100)
+- Applied to `GET /users`, `/files`, `/sharing`, `/admin/users`
+- CWE-400 (no rate limit), CWE-205 (offset oracle)
 
-- DELETE /files/:id removes database record AND file from disk
-- fs.unlink() on storagePath with no validation (CWE-22)
-- No ownership check (CWE-639)
-- Orphaned files if service throws after Multer write
+### v0.5.3 — Error Standardization ✅
 
-### v0.5.4 — File Metadata & Descriptions
+- Global exception filter: unified `{ statusCode, message, timestamp }` for 401/403/404
+- No stack traces in HTTP responses (CWE-209)
 
-- Add description column to FileEntity via migration
-- Metadata completeness: filename, mimetype, size, storagePath, description, uploadedAt
-- Storage path (absolute filesystem path) exposed in API responses (CWE-200)
+### v0.5.4 — Request Logging ✅
 
-### v0.5.5 — File Handling Edge Cases
+- HTTP interceptor: method, path, status, duration, userId
+- Auth and admin events to stdout (CWE-532)
 
-- Tests: multipart parsing, upload without auth (401), MIME confusion, path traversal attempts, oversized uploads, file streaming, IDOR on download, filesystem deletion, orphaned file edge cases
-- Swagger bumped to v0.5.5
-- File handling surface closed with 6 new CWEs (CWE-22, CWE-200, CWE-400, CWE-434)
-- E2e tests: +12 new tests specifically for file operations
+### v0.5.5 — Closure ✅
 
-#### v0.5.x File Handling Surface Summary
+- Performance baseline documented
+- Swagger 0.5.5; see [v0.5.x-summary.md](v0.5.x-summary.md)
 
-The v0.5.x series introduces real file I/O via Multer, local filesystem storage, streaming downloads, filesystem deletion, and metadata persistence. Five new CWEs introduced across file operations (CWE-22 path traversal, CWE-200 path disclosure, CWE-400 no size limit, CWE-434 MIME confusion). All file operations lack ownership checks, carrying forward CWE-639. The surface is now closed with integrated file functionality.
+#### v0.5.x Summary
 
-## v0.6.x — Public Sharing & Expiry Surface
-
-Goal: Introduce public, unauthenticated access and share lifecycle management.
-
-### v0.6.0 — Public Share Token Generation
-
-- publicToken field added to SharingEntity via migration
-- When SharingEntity.public = true, generate token (sequential: "share-1", "share-2", etc.)
-- Tokens trivially guessable (CWE-330 Predictable Identifiers)
-- Token not validated to be unique before insertion
-
-### v0.6.1 — Unauthenticated Public Access
-
-- GET /sharing/public/:token endpoint (no JwtAuthGuard)
-- Returns file download if token matches a SharingEntity.publicToken
-- File retrieved via FilesService.download() using SharingEntity.fileId
-- No ownership verification; any token grants access to associated file
-
-### v0.6.2 — Share Expiry Enforcement
-
-- expiresAt field on SharingEntity (ISO timestamp string, nullable)
-- Check expiresAt on both GET /sharing/:id and GET /sharing/public/:token
-- If expiresAt is in the past, enforce: deny access or 410 Gone (intentionally inconsistent)
-- Expired shares may still return data before frontend checks expiry logic
-
-### v0.6.3 — Share Revocation & Lifecycle
-
-- PUT /sharing/:id allows toggling public flag and updating expiresAt
-- DELETE /sharing/:id removes the share record (file remains in storage)
-- Revoked shares are not trackable (no audit of removal timestamps)
-- No notification to prior accessors that share was revoked
-
-### v0.6.4 — Share Access Logging Basics
-
-- Log (to stdout) when GET /sharing/public/:token is accessed
-- Log includes token, fileId, timestamp
-- Logged to console, not persisted (lost on restart)
-- No rate limiting on token guessing
-
-### v0.6.5 — Share Edge Cases
-
-- Tests: create share with public:true, verify token generated, access via public token, test expiry checks, test revocation, test expired share access, test invalid token 404, test token reuse, test token collision
-- Swagger bumped to v0.6.5
-- Public sharing surface closed with 3 new CWEs (CWE-330 predictable tokens, CWE-613 no expiry enforcement, CWE-285 missing access control)
-- SharingModule exports SharingService to allow FilesModule to call getFileForPublicShare() without circular dependency
-- E2e tests: +8 new tests for public sharing
-
-#### v0.6.x Public Sharing Surface Summary
-
-The v0.6.x series introduces public, unauthenticated file access via predictable share tokens, token guessing attack surface, incomplete expiry enforcement, and share lifecycle management. Three new CWEs introduced (CWE-330 predictable tokens, CWE-613 no expiry enforcement, CWE-285 missing checks). The surface is now closed with full public sharing capability.
-
-
-## v0.7.x — Advanced Admin Features
-
-Goal: Build out administrative API surface with multi-level user management and system visibility.
-
-### v0.7.0 — User Listing & Filtering (Admin)
-
-- GET /admin/users (new endpoint, admin-only guard; not yet implemented in v0.4, placeholder)
-- Returns all users with id, email, username, role, createdAt, updatedAt
-- No pagination; unbounded list (table dump) — intentional CWE-400 extension
-- No filtering or search; raw sequential scan
-- Reveals all user emails and roles to any admin
-
-### v0.7.1 — User Role Modification (Admin)
-
-- PUT /admin/users/:id endpoint to update user.role
-- Admin can change any user from 'user' to 'admin' and vice versa
-- No audit trail; history of role changes not tracked
-- No rate limiting on role change attempts
-- Role change takes effect immediately; no confirmation or delay
-
-### v0.7.2 — User Profile Updates (Admin)
-
-- PUT /admin/users/:id also allows updating email, username, password
-- Admin can reset any user's password without user consent
-- No notification sent to user of changes
-- Changes are effective immediately
-
-### v0.7.3 — System Statistics & Dashboards
-
-- GET /admin/stats returns: user count, file count, share count, storage usage estimate
-- No auth guard checks (relies on JwtAuthGuard only; role not re-validated)
-- Stats computed fresh on each request (no caching)
-- Reveals infrastructure details: table sizes, storage paths
-
-### v0.7.4 — Audit Trail Basics
-
-- SQL logging (from v0.2.3) provides implicit audit of queries
-- Add "admin action" logging: log role changes, user updates to stdout
-- Logged data includes: admin user ID, action type, target user ID, old/new values
-- Not persisted; lost on restart (CWE-532 log information leakage remains)
-
-### v0.7.5 — Admin Surface Completeness
-
-- Tests: admin user listing, role modification via admin endpoint, unauthorized role changes by non-admin (should fail), admin stats endpoint, audit log output verification
-- Swagger bumped to v0.7.5
-- Admin surface expanded with 2 new endpoints (/admin/users, /admin/stats)
-- E2e tests: +6 new tests for admin operations
-- CWE-862 (Missing Authorization) on admin endpoints is intentional in v0.7.x (guards added in v0.4.x but role not re-checked at endpoint level)
-
-#### v0.7.x Admin Surface Summary
-
-The v0.7.x series expands the admin surface with user listing, role modification, password reset, and system statistics endpoints. Administrative functionality is guarded by authentication but not re-validated against DB role state (CWE-639 extended). No audit persistence means admin abuse is not permanently tracked. The admin surface is now operationally complete.
-
-## v0.8.x — App Polish & Refinement
-
-Goal: Improve foundation, add input validation and pagination, standardize error handling before v1.0.0 freeze.
-
-### v0.8.0 — Input Validation Pipeline
-
-- Global ValidationPipe registered in main.ts
-- Request DTO validation for all POST/PUT endpoints
-- Whitelist enforcement: forbidNonWhitelisted = true
-- Class validator decorators on all DTOs (@IsEmail, @IsString, @MinLength, etc.)
-- Malformed requests now return 400 Bad Request with validation errors instead of 500
-
-### v0.8.1 — Pagination & Limits
-
-- Add skip/take query params to all list endpoints (/users, /files, /sharing, /admin/:resource)
-- Default limit: 20 records, max limit: 100
-- Offset-based pagination (not cursor-based)
-- Unbounded list queries no longer possible (CWE-400 partially mitigated intentionally in v0.8, will be hardened in v2.0.0)
-- E2e tests verify pagination works and defaults are applied
-
-### v0.8.2 — Error Response Standardization
-
-- All error responses follow format: `{ statusCode: number, message: string, errors?: object }`
-- 404 Not Found responses include reason ("User not found" vs generic)
-- 400 Bad Request includes validation error details
-- 401 Unauthorized when token missing/invalid
-- 403 Forbidden when role/ownership check fails (v0.4.x guards)
-- No stack traces in HTTP responses; logged to stdout only
-
-### v0.8.3 — Request/Response Logging
-
-- Log all HTTP requests: method, path, status code, response time
-- Log auth events: register, login, logout, token verify fail
-- Log admin actions: role change, user delete, stats access
-- Logging format: timestamp, level, event type, actor (userId), details
-- Sensitive data redacted: passwords, tokens truncated
-
-### v0.8.4 — Performance Baseline Testing
-
-- Measure endpoint response times under load (100 concurrent requests)
-- Identify slow queries (N+1 problems, missing indices)
-- Baseline acceptable response times: auth <50ms, list <200ms, file download <500ms
-- No optimization applied in v0.8; baseline captured for future hardening
-
-### v0.8.5 — Frontend-Backend Alignment
-
-- Regenerate OpenAPI spec and frontend types (types.gen.ts)
-- Verify all endpoints reflected in frontend API wrappers (lib/api.ts)
-- UI error handling updated to parse new error response format
-- Form validation on frontend matches backend validators
-- Swagger UI updated to v0.8.5
-
-#### v0.8.x Refinement Surface Summary
-
-The v0.8.x series adds input validation, pagination, error standardization, request logging, and performance instrumentation. No new vulnerabilities intentionally introduced; existing weaknesses (predictable IDs, IDOR, weak auth) remain. Foundation is now polished for v1.0.0 freeze.
-
-## v0.9.x — Infrastructure Integration & MVP Freeze
-
-Goal: Integrate Docker/compose deployment, lock down feature set, finalize documentation, prepare fully deployable v1.0.0 product.
-
-### v0.9.0 — Feature Completeness & Docker Image Build
-
-- Checklist: all FR requirements from SENG spec implemented
-  - User registration/login/profile/logout: ✓
-  - File upload/download/delete: ✓
-  - File metadata (MIME, size, description): ✓
-  - Share creation/deletion/expiry: ✓
-  - Public share tokens: ✓
-  - Role-based user levels (User/Admin/Moderator): ✓
-  - Admin user management: ✓
-- No more features added; feature surface frozen
-- Create `backend/Dockerfile`: Node 20-alpine, COPY app, RUN npm ci, ENV NODE_ENV=production, EXPOSE 3000, CMD = node main.js (actual v0.9.0 version)
-- Create `frontend/Dockerfile`: Node 20-alpine, COPY app, RUN npm ci, RUN npm run build, EXPOSE 3000, CMD = npm start
-- Build images locally, test run: `docker run -e DATABASE_URL=... <image>`
-
-### v0.9.1 — Docker Compose Orchestration
-
-- Create `docker-compose.prod.yml` (differs from existing `infra/compose.yml`):
-  - `postgres`: `postgres:16-alpine`, volumes for data persistence, `POSTGRES_DBNAME=kc_prod`
-  - `backend`: built from `backend/Dockerfile`, depends_on: postgres, env: DATABASE_HOST=postgres, DATABASE_PORT=5432, DATABASE_NAME=kc_prod
-  - `frontend`: built from `frontend/Dockerfile`, depends_on: backend, NEXT_PUBLIC_API_URL=http://backend:3000
-  - `nginx` (reverse proxy): port 80 → frontend:3000, `/api` → backend:3000
-- Add `.dockerignore` to both frontend and backend (node_modules, dist, build, .git)
-- Test compose stack locally: `docker-compose -f docker-compose.prod.yml up`, verify frontend accessible at localhost
-
-### v0.9.2 — VM Provisioning & Networking Setup
-
-- Create Ubuntu VM setup script (`infra/vm-setup.sh`):
-  - Install Docker, Docker Compose
-  - Create `kc` user (non-root), add to docker group
-  - Clone repo to `/opt/kc-project`
-  - Set up environment files (DATABASE credentials, NEXT_PUBLIC_API_URL)
-  - Configure firewall: allow 22 (SSH), 80 (HTTP), 443 (HTTPS)
-- Create `.env.production` template for secrets (DATABASE_PASSWORD, JWT_SECRET)
-- Document: "Deploy to VM: `scp -r . user@vm:/opt/kc-project && ssh user@vm docker-compose -f /opt/kc-project/docker-compose.prod.yml up -d`"
-
-### v0.9.3 — Infrastructure Testing & Reproducibility
-
-- Test scenario: Fresh Ubuntu VM, run `vm-setup.sh`, deploy via docker-compose, register user, upload file, share file, download via public token
-- Generate database migration on fresh container to verify TypeORM works in Docker
-- Test failover: stop postgres, restart, verify data persists
-- Test compose tear-down and re-up: no data loss
-- Document: reproducible deployment checklist
-
-### v0.9.4 — Documentation & API Surface Lock
-
-- Update ARCHITECTURE.md to v0.9.0 (add deployment diagram, Docker + VM layers)
-- Update data-model.md with final schema
-- ADRs finalized (ADR-026-versioning-expansion-cycle complete)
-- SENG spec reviewed and final
-- Roadmap locked (v1.0.0 ready to proceed)
-- API surface frozen (no new routes after v0.9.4)
-- Request/response DTOs finalized
-- Swagger UI locked at v0.9.4
-- Backend versioning: Swagger reports v0.9.4
-- All endpoint signatures frozen (no changes in v1.0.x)
-- Deployment guide documented (docker-compose steps, VM provisioning, secrets management)
-
-### v0.9.5 — Release Candidate & Smoke Tests
-
-- Tag release candidate: v0.9.5-rc.1
-- Smoke tests:
-  - **Local dev:** Register → upload → share → download → admin ops
-  - **Docker compose:** Spin up stack locally, run same journey
-  - **VM deployment:** Deploy to test Ubuntu VM, run same journey
-  - **Persistence:** Stop all containers, check `docker volume ls`, restart, verify data present
-  - **API health:** `GET /health`, Swagger `/api/docs`, database connection verified
-- Git history clean: all branches merged, no uncommitted changes
-- Release notes drafted: what's new (6 surfaces: auth, files, sharing, admin, v0.9 infra), known issues (intentional CWEs), v1.0.0 readiness checklist
-- Final merge: dev → main after RC approval, tag v1.0.0-dev (pre-release pointing to v0.9.5 commit)
-
-#### v0.9.x Infrastructure Integration & MVP Freeze Summary
-
-The v0.9.x series integrates Docker and docker-compose deployment infrastructure, freezes all features and APIs, locks documentation, and prepares the system as a fully deployable product ready for v1.0.0 release. v1.0.0 will be insecure, but production-ready: containerized, reproducibly deployable to VM, with persistent database, and comprehensive e2e test coverage. This is the first version that feels like a complete product, not just a prototype.
+See [v0.5.x-summary.md](v0.5.x-summary.md).
 
 ---
 
-## v1.0.0 — Insecure MVP Baseline
+> **Superseded — File Handling (old v0.5.x):** Shipped in [v0.3.x](v0.3.x-summary.md). Do not re-implement.
 
-Goal: Freeze a realistic, insecure reference system with ~15-18 documented CWEs across 5 attack surfaces.
+---
+
+## v0.6.x — Admin Polish
+
+Goal: Persistent audit logs, user search, system statistics. See STRATEGY Part 2.
+
+> **Superseded — Public Sharing (old v0.6.x):** Shipped in [v0.3.4](v0.3.x-summary.md).
+
+### v0.6.0 — Persistent Audit Logging ✅
+
+- `AuditLog` entity + migration
+- Wire role change, escalate, delete, file approve
+- `GET /admin/audit-logs` returns DB rows (CWE-532, CWE-284)
+
+### v0.6.1 — User Search & Filter ✅
+
+- `GET /admin/users?search=&role=` with pagination
+- CWE-200, CWE-203 enumeration vectors
+
+### v0.6.2 — System Statistics ✅
+
+- `GET /admin/stats` — counts and storage estimate (CWE-200, CWE-682)
+
+### v0.6.3 — Health Endpoint ✅
+
+- `GET /health` public version probe (CWE-200)
+
+### v0.6.4–v0.6.5 — Admin UI & E2E
+
+- Admin dashboard: audit viewer, stats, search
+- See [v0.6.x-summary.md](v0.6.x-summary.md)
+
+---
+
+> **Superseded — Advanced Admin (old v0.7.x):** Core admin shipped in [v0.4.x](v0.4.x-summary.md). v0.6.x adds audit/stats/search only.
+
+---
+
+## v0.7.x — Docker Deployment
+
+Goal: Mandatory containerised deployment path per STRATEGY Part 3.
+
+### v0.7.0 — Dockerfiles
+
+- `backend/Dockerfile`, `frontend/Dockerfile`, `.dockerignore`
+- CWE-798 hardcoded defaults in compose templates
+
+### v0.7.1 — Docker Compose Production Stack
+
+- `infra/docker-compose.prod.yml`: postgres, backend, frontend, nginx
+- Persistent volumes: `pgdata`, `uploads`
+
+### v0.7.2 — VM Provisioning
+
+- `infra/vm-setup.sh`, `infra/.env.example`
+
+### v0.7.3 — Smoke Tests in Compose
+
+- Full user journey inside compose only
+- See [v0.7.x-summary.md](v0.7.x-summary.md)
+
+---
+
+## v0.8.x — API Lock & Test Hardening
+
+Goal: Freeze API surface, green e2e in Docker, pentest methodology draft.
+
+### v0.8.0 — Route Freeze
+
+- No new endpoints after v0.8.0
+- ARCHITECTURE.md updated
+
+### v0.8.1 — Security Methodology
+
+- [docs/security/README.md](../security/README.md) pentest draft
+- CWE inventory consolidated
+
+### v0.8.2–v0.8.5 — Test & Doc Lock
+
+- Full e2e green in Docker environment
+- See [v0.8.x-summary.md](v0.8.x-summary.md)
+
+---
+
+> **Superseded — App Polish (old v0.8.x validation/pagination):** Moved to v0.5.x per STRATEGY.
+
+
+## v0.9.x — MVP Freeze & Release Candidate
+
+Goal: Feature checklist vs requirements, Docker verification (v0.7 stack), API lock, RC tag before v1.0.0. Docker build lives in [v0.7.x](#v07x--docker-deployment); v0.9 validates it.
+
+### v0.9.0 — Feature Completeness Checklist
+
+- Verify all FR/NFR from [requirements.md](../spec/requirements.md) against implemented surface
+- No new features; surface frozen after v0.8 route lock
+
+### v0.9.1 — Docker Reproducibility Verification
+
+- Fresh VM + `docker compose -f infra/docker-compose.prod.yml up`
+- Full journey: register → upload → share → public download → admin role change → audit log
+- Persistence across `compose down` / `up`
+
+### v0.9.2 — Documentation Final Pass
+
+- ARCHITECTURE.md, data-model.md, deployment guide aligned to v0.9
+- Swagger locked at v0.9.x
+
+### v0.9.3–v0.9.4 — E2E & API Lock Confirmation
+
+- Full e2e green in Docker CI-local run
+- Endpoint signatures unchanged from v0.8 freeze
+
+### v0.9.5 — Release Candidate
+
+- Tag `v0.9.5-rc.1` on `main`
+- Smoke tests: local dev + Docker compose + VM deployment
+- Release notes draft for v1.0.0 (CWE inventory, known weaknesses)
+- See [v0.9.x-summary.md](v0.9.x-summary.md)
+
+#### v0.9.x MVP Freeze Summary
+
+v0.9.x confirms the v0.7 Docker stack, locks documentation and API, and produces an RC for v1.0.0 pentest-ready tagging.
+
+---
+
+## v1.0.0 — Insecure MVP Baseline (Pentest-Ready Tag)
+
+Goal: Tag the v0.9.5 RC as the first pentest-ready insecure baseline per [STRATEGY.md](STRATEGY.md). **60–80 documented CWEs** across all surfaces; mandatory Docker deployment.
 
 ### v1.0.0 Criteria
 
-- ✅ Full functionality implemented: all 5 domains operational (users, auth, files, sharing, admin)
-- ✅ File upload/download/delete fully working
-- ✅ Public sharing with predictable tokens and missing expiry enforcement
-- ✅ Multi-level RBAC (User/Admin/Moderator) introduced but not enforced server-side
-- ✅ Admin UI and endpoints for user management
-- ✅ PostgreSQL persistence layer complete
-- ✅ ~15-18 intentional vulnerabilities documented with CWE + OWASP Top 10:2025 classification
-- ✅ Architecture and threat model complete (SENG spec finalized)
-- ✅ E2e test suite comprehensive (200+ tests)
-- ✅ **Docker containerization:** Frontend, backend, database images; docker-compose orchestration
-- ✅ **VM deployment ready:** Provisioning script, deployment guide, reproducible setup
-- ✅ **Production-like deployment:** Runs on containers, persistent database, networked architecture
-- ✅ Ready for v1.0.x penetration testing and v2.0.0 hardening
+- [ ] Full functionality: auth, files, sharing, admin (v0.0–v0.4 complete; v0.5–v0.6 refinement complete)
+- [ ] v0.5.x: ValidationPipe, pagination, error shape, request logging
+- [ ] v0.6.x: Persistent audit logs, admin search, stats, health endpoint
+- [ ] **Docker mandatory:** `infra/docker-compose.prod.yml` stack (v0.7.x)
+- [ ] **VM deployment:** `infra/vm-setup.sh`, reproducible smoke journey in compose
+- [ ] **60–80 intentional CWEs** inventoried with OWASP Top 10:2025 mapping
+- [ ] Architecture, threat model, pentest methodology docs complete
+- [ ] Full e2e suite green in Docker environment
+- [ ] API/Swagger frozen at v0.9.x; no new routes in v1.0.0
+- [ ] Ready for v1.0.x penetration testing and v2.0.0 hardening
 
 ### Version characteristics
 

@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
@@ -49,11 +51,11 @@ import { AdminModule } from './admin/admin.module';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres', // VULN: hardcoded credentials (CWE-798)
-      password: 'postgres', // VULN: hardcoded credentials (CWE-798)
-      database: 'kc_dev',
+      host: process.env.DB_HOST ?? 'localhost',
+      port: Number(process.env.DB_PORT ?? 5432),
+      username: process.env.DB_USER ?? 'postgres', // VULN: hardcoded defaults (CWE-798)
+      password: process.env.DB_PASSWORD ?? 'postgres', // VULN: hardcoded defaults (CWE-798)
+      database: process.env.DB_NAME ?? 'kc_dev',
       autoLoadEntities: true,
       synchronize: false, // v0.2.5: replaced with migrations (was true, CWE-1188 partial fix)
       migrations: [__dirname + '/migrations/*{.ts,.js}'],
@@ -67,5 +69,8 @@ import { AdminModule } from './admin/admin.module';
     AdminModule,
   ],
   controllers: [AppController], // infrastructure-only (/ping)
+  providers: [
+    { provide: APP_INTERCEPTOR, useClass: RequestLoggingInterceptor },
+  ],
 })
 export class AppModule {}

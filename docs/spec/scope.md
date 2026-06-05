@@ -112,8 +112,9 @@ See [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) and [version-t
 - Persistence and database (v0.2.x)
 - File handling (v0.3.x)
 - Authorisation and RBAC (v0.4.x)
-- Containerisation and deployment (v0.5.x)
-- Runtime, configuration, and observability (v0.6.x)
+- Foundation refinement: validation, pagination, errors, logging (v0.5.x)
+- Admin polish: audit logs, search, stats (v0.6.x)
+- Containerisation and deployment (v0.7.x)
 
 ### Infrastructure
 
@@ -121,7 +122,7 @@ See [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) and [version-t
 - docker-compose orchestration
 - Ubuntu VM deployment
 - Volume-based persistence (file uploads, database data)
-- Self-hosted GitLab (v0.5.x+ per [ADR-014](../decisions/ADR-014-github-vcs.md))
+- Self-hosted GitLab (v0.7.x+ per [ADR-014](../decisions/ADR-014-github-vcs.md))
 
 ### Security activities
 
@@ -152,6 +153,6 @@ The following are explicitly excluded from the project. Some may be introduced i
 | Compliance certifications (SOC 2, ISO 27001, PCI) | Not applicable to an educational project |
 | Mobile clients (iOS, Android, React Native) | Web-only |
 | GraphQL / WebSocket / tRPC | REST is the chosen API pattern ([ADR-003](../decisions/ADR-003-rest-over-trpc.md)). Other protocols may be added in v1.1.0+ expansion cycles |
-| Monitoring and alerting (Prometheus, Grafana) | May be introduced in v0.6.x observability phase, but not core |
+| Monitoring and alerting (Prometheus, Grafana) | Out of scope for v1.0.0; may appear in v2.x |
 | Multi-tenancy | Single-tenant application |
 | Internationalisation (i18n) | English only |

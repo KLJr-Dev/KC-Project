@@ -31,20 +31,26 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/auth-context';
-import { adminListUsers } from '../../lib/api';
+import {
+  adminListUsers,
+  adminGetStats,
+  adminGetAuditLogs,
+  type AdminUser,
+  type AdminStatsResponse,
+  type AuditLogEntry,
+} from '../../lib/api';
 import { AdminUserList } from '@/app/components/admin-user-list';
-import type { AdminUser, GetAdminUsersResponse } from '../../lib/api';
 
 export default function AdminPage() {
   const { isAuthenticated, isAdmin } = useAuth();
   const router = useRouter();
 
-  // New user management (v0.4.1)
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [userCount, setUserCount] = useState(0);
   const [usersLoading, setUsersLoading] = useState(false);
-
-  // Error/success state
+  const [search, setSearch] = useState('');
+  const [stats, setStats] = useState<AdminStatsResponse | null>(null);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   // v0.4.0: Client-side role check — redirect non-admins to home
   // VULN (CWE-639): This check can be bypassed by modifying localStorage
@@ -54,14 +60,22 @@ export default function AdminPage() {
     }
   }, [isAuthenticated, isAdmin, router]);
 
-  // Load new admin users (v0.4.1)
-  const loadAdminUsers = async () => {
+  useEffect(() => {
+    if (!isAuthenticated || !isAdmin) {
+      router.push('/');
+    }
+  }, [isAuthenticated, isAdmin, router]);
+
+  const loadAdminUsers = async (searchTerm = search) => {
     setUsersLoading(true);
     setError(null);
     try {
-      const res: GetAdminUsersResponse = await adminListUsers();
-      setAdminUsers(res.users);
-      setUserCount(res.count);
+      const res = await adminListUsers({
+        search: searchTerm || undefined,
+        take: 50,
+      });
+      setAdminUsers(res.users ?? res.items);
+      setUserCount(res.count ?? res.total);
     } catch (err) {
       setError(`Failed to load users: ${String(err)}`);
     } finally {
@@ -69,17 +83,36 @@ export default function AdminPage() {
     }
   };
 
+  const loadStats = async () => {
+    try {
+      setStats(await adminGetStats());
+    } catch {
+      /* stats optional */
+    }
+  };
+
+  const loadAudit = async () => {
+    try {
+      setAuditLogs(await adminGetAuditLogs());
+    } catch {
+      /* audit optional */
+    }
+  };
+
   useEffect(() => {
     loadAdminUsers();
+    loadStats();
+    loadAudit();
   }, []);
 
   const handleRoleChange = (userId: string, newRole: 'user' | 'admin') => {
-    // Update local state immediately
     setAdminUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
     );
-    // Optionally reload to confirm with backend
-    setTimeout(() => loadAdminUsers(), 1000);
+    setTimeout(() => {
+      loadAdminUsers();
+      loadAudit();
+    }, 1000);
   };
 
   return (
@@ -92,38 +125,73 @@ export default function AdminPage() {
         </div>
       )}
 
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded border p-4 dark:border-zinc-700">
+            <div className="text-sm text-zinc-500">Users</div>
+            <div className="text-2xl font-bold">{stats.userCount}</div>
+          </div>
+          <div className="rounded border p-4 dark:border-zinc-700">
+            <div className="text-sm text-zinc-500">Files</div>
+            <div className="text-2xl font-bold">{stats.fileCount}</div>
+          </div>
+          <div className="rounded border p-4 dark:border-zinc-700">
+            <div className="text-sm text-zinc-500">Shares</div>
+            <div className="text-2xl font-bold">{stats.shareCount}</div>
+          </div>
+          <div className="rounded border p-4 dark:border-zinc-700">
+            <div className="text-sm text-zinc-500">Storage (bytes)</div>
+            <div className="text-2xl font-bold">{stats.storageBytesEstimate}</div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded p-4 dark:bg-blue-950/30 dark:border-blue-900">
-          <h2 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            User Management
-          </h2>
-          <p className="text-sm text-blue-800 dark:text-blue-200">
-            List all users and modify their roles. <br />
-            <strong>Vulnerabilities:</strong> CWE-639 (JWT role trusted), CWE-862 (missing
-            auth checks), CWE-200 (email exposure), CWE-400 (unbounded list)
-          </p>
+        <div className="flex gap-2 items-center">
+          <input
+            type="search"
+            placeholder="Search email or username"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border rounded px-3 py-2 dark:bg-zinc-900 dark:border-zinc-700"
+          />
+          <button
+            onClick={() => loadAdminUsers(search)}
+            className="px-3 py-2 bg-blue-600 text-white rounded"
+          >
+            Search
+          </button>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <h3 className="text-md font-semibold text-zinc-700 dark:text-zinc-300">
-              All Users ({userCount})
-            </h3>
-            <button
-              onClick={loadAdminUsers}
-              disabled={usersLoading}
-              className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded transition"
-            >
-              {usersLoading ? 'Loading...' : 'Refresh'}
-            </button>
-          </div>
-          <AdminUserList
-            users={adminUsers}
-            isLoading={usersLoading}
-            onRoleChange={handleRoleChange}
-          />
+        <div className="flex justify-between items-center">
+          <h3 className="text-md font-semibold">All Users ({userCount})</h3>
+          <button
+            onClick={() => loadAdminUsers()}
+            disabled={usersLoading}
+            className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
+          >
+            {usersLoading ? 'Loading...' : 'Refresh'}
+          </button>
         </div>
+        <AdminUserList
+          users={adminUsers}
+          isLoading={usersLoading}
+          onRoleChange={handleRoleChange}
+        />
       </div>
+
+      {auditLogs.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="font-semibold">Audit Log</h3>
+          <ul className="text-sm space-y-1 max-h-48 overflow-y-auto border rounded p-3 dark:border-zinc-700">
+            {auditLogs.map((log) => (
+              <li key={log.id}>
+                [{log.createdAt}] {log.action} by {log.actorId} on {log.targetId}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
