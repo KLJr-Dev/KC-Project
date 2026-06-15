@@ -1,10 +1,10 @@
-# Admin DTOs — v0.0.6 Backend API Shape Definition
+# Admin DTOs
 
-Request/response shapes for admin routes. Stub only; validation minimal/absent.
-All files in this folder exist to freeze API contract for v0.0.6.
+| File | Purpose |
+|------|---------|
+| `admin-users-query.dto.ts` | Query params for `GET /admin/users` |
+| `get-admin-users-response.dto.ts` | Paginated user list response |
+| `update-user-role.dto.ts` | Body for `PUT /admin/users/:id/role` |
+| `admin-stats-response.dto.ts` | `GET /admin/stats` response |
 
-**NestJS convention:** Each feature module has a `dto/` folder for types that cross the API boundary. We use classes (not raw interfaces) so Nest can bind request bodies to them and we can add validation decorators later. Naming: `create-*.dto.ts` for create payloads, `update-*.dto.ts` for updates, `*-response.dto.ts` for responses.
-
-- `create-admin.dto.ts` — POST /admin/create body
-- `update-admin.dto.ts` — PUT /admin/update/:id body
-- `admin-response.dto.ts` — response for read, get, create, update
+Audit log entity: `../entities/audit-log.entity.ts`

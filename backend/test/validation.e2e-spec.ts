@@ -147,13 +147,11 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
       it('should accept valid login', async () => {
         const uniqueEmail = `login${Date.now()}@example.com`;
         // Create user first
-        await request(app.getHttpServer())
-          .post('/auth/register')
-          .send({
-            email: uniqueEmail,
-            username: 'loginuser',
-            password: 'pass',
-          });
+        await request(app.getHttpServer()).post('/auth/register').send({
+          email: uniqueEmail,
+          username: 'loginuser',
+          password: 'pass',
+        });
 
         // Then login
         const res = await request(app.getHttpServer())

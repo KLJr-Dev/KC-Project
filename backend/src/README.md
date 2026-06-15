@@ -1,273 +1,30 @@
-# Backend Source (`src/`)
+# Backend source (`src/`)
 
-This directory contains the NestJS backend application source code for **KC-Project**.
+NestJS application source for KC-Project v1.0.0.
 
-The backend is implemented as a modular REST API and acts as the primary trust boundary of the system. All authentication, authorization, business logic, and data access will eventually live here.
+## Modules
 
-At early versions (v0.0.x–v1.0.0), the backend is **intentionally insecure by design** to support security learning, penetration testing, and remediation workflows.
+| Module | Path | Responsibility |
+|--------|------|----------------|
+| `AppModule` | `app.module.ts` | Composition root, TypeORM config |
+| `AuthModule` | `auth/` | Register, login, JWT, guards |
+| `UsersModule` | `users/` | User CRUD |
+| `FilesModule` | `files/` | Upload, download, approve |
+| `SharingModule` | `sharing/` | Share CRUD, public token download |
+| `AdminModule` | `admin/` | Admin users, stats, role changes |
+| `AuditModule` | `audit/` | AuditLog persistence |
 
----
+## Key files
 
-## Architectural model
+- `main.ts` — bootstrap, CORS, Swagger, ValidationPipe
+- `app.controller.ts` — `/ping`, `/health`, `/admin/crash-test`
+- `data-source.ts` — TypeORM CLI (migrations)
+- `migrations/` — schema + demo user/file/share seeds
 
-The backend follows NestJS’s module-based architecture, which mirrors modern enterprise backend systems:
+## DTO READMEs
 
-- **Explicit module boundaries**
-- **Dependency injection (DI)**
-- **Separation of concerns**
-- **Realistic security failure modes**
+Per-domain DTO docs in `*/dto/README.md`.
 
-Each domain feature is implemented as its own module under `src/`.
+## Pentest reference
 
----
-
-## High-level structure
-
-```
-src/
-├── main.ts                # Application entry point (bootstrap)
-├── app.module.ts          # Root module (composition root)
-├── app.controller.ts      # Temporary root controller (/ping)
-├── README.md              # This document
-│
-├── auth/                  # Authentication & session handling (v0.0.6 complete)
-│   ├── auth.module.ts
-│   ├── auth.controller.ts
-│   ├── auth.service.ts
-│   └── dto/
-│       ├── register.dto.ts
-│       ├── login.dto.ts
-│       ├── auth-response.dto.ts
-│       └── README.md
-├── users/                 # User management (v0.0.6 complete)
-│   ├── users.module.ts
-│   ├── users.controller.ts
-│   ├── users.service.ts
-│   └── dto/
-│       ├── create-user.dto.ts
-│       ├── update-user.dto.ts
-│       ├── user-response.dto.ts
-│       └── README.md
-├── files/                 # File upload/download/metadata (v0.0.6 complete)
-│   ├── files.module.ts
-│   ├── files.controller.ts
-│   ├── files.service.ts
-│   └── dto/
-│       ├── upload-file.dto.ts
-│       ├── file-response.dto.ts
-│       └── README.md
-├── sharing/               # Public & private file sharing (v0.0.6 complete)
-│   ├── sharing.module.ts
-│   ├── sharing.controller.ts
-│   ├── sharing.service.ts
-│   └── dto/
-│       ├── create-sharing.dto.ts
-│       ├── update-sharing.dto.ts
-│       ├── sharing-response.dto.ts
-│       └── README.md
-└── admin/                 # Administrative functionality (v0.0.6 complete)
-    ├── admin.module.ts
-    ├── admin.controller.ts
-    ├── admin.service.ts
-    └── dto/
-        ├── create-admin.dto.ts
-        ├── update-admin.dto.ts
-        ├── admin-response.dto.ts
-        └── README.md
-```
-
----
-
-## Core files
-
-### `main.ts`
-
-Application bootstrap file.
-
-**Responsibilities:**
-
-- Create the NestJS application
-- Apply global configuration (e.g. permissive CORS)
-- Start the HTTP server
-
-This file must not contain business logic.
-
-### `app.module.ts`
-
-The root module of the backend.
-
-**Responsibilities:**
-
-- Import all feature modules
-- Define the application dependency graph
-
-Think of this as the backend’s composition root, not a router.
-
-### `app.controller.ts`
-
-A temporary root controller.
-
-**Current purpose:**
-
-- Expose a trivial `/ping` endpoint
-- Verify backend reachability
-- Support early frontend ↔ backend testing
-
-This controller is not part of the final domain model.
-
----
-
-## RESTful routing
-
-The backend follows **RESTful** conventions for all resource endpoints.
-
-REST (Representational State Transfer) treats every domain concept as a **resource** identified by a URL. Instead of encoding the action in the path (`/users/create`, `/users/delete/3`), the **HTTP method** carries the verb and the path identifies only the resource:
-
-| HTTP method | Meaning | Example |
-|---|---|---|
-| `POST` | Create a new resource | `POST /users` |
-| `GET` | Read one or many | `GET /users` or `GET /users/1` |
-| `PUT` | Update an existing resource | `PUT /users/1` |
-| `DELETE` | Remove a resource | `DELETE /users/1` |
-
-**Why this matters:**
-
-- **Uniform interface** — every resource follows the same pattern, so consumers (frontend, scripts, tools) can predict URLs without reading docs.
-- **HTTP semantics are reused** — status codes, caching, idempotency all map cleanly when the method carries intent.
-- **No verb duplication** — the path `/users` is enough; adding `/users/create` or `/users/delete/:id` duplicates information that the HTTP method already provides.
-
-**Non-resource routes** like `/auth/register`, `/auth/login`, and `/ping` are intentionally action-based. They represent operations, not CRUD on a resource, so they keep a verb in the path. This is standard practice — REST applies to resources, not to every endpoint.
-
-### Full route map (v0.3.5)
-
-```
-POST   /users              Create user
-GET    /users              List users
-GET    /users/:id          Get user by id
-PUT    /users/:id          Update user
-DELETE /users/:id          Delete user
-
-POST   /files              Upload file (multipart, v0.3.0)
-GET    /files              List all files (v0.2.3)
-GET    /files/:id          Get file metadata
-GET    /files/:id/download Stream file from disk (v0.3.2)
-DELETE /files/:id          Delete file + remove from disk (v0.3.3)
-
-POST   /sharing            Create share (generates publicToken if public=true)
-GET    /sharing            List shares
-GET    /sharing/public/:token  Unauthenticated file download (v0.3.4)
-GET    /sharing/:id        Get share by id
-PUT    /sharing/:id        Update share
-DELETE /sharing/:id        Delete share
-
-POST   /admin              Create admin item
-GET    /admin              List admin items
-GET    /admin/crash-test   Deliberate crash (v0.2.4)
-GET    /admin/:id          Get admin item by id
-PUT    /admin/:id          Update admin item
-DELETE /admin/:id          Delete admin item
-
-POST   /auth/register      Register (action, not resource)
-POST   /auth/login         Login (action, not resource)
-
-GET    /ping               Reachability check (infrastructure)
-```
-
----
-
-## Feature modules
-
-Each feature lives in its own folder and follows the same internal structure.
-
-### Module layout (example: `users/` — v0.0.6 complete)
-
-```
-users/
-├── users.module.ts        # Module definition
-├── users.controller.ts    # RESTful HTTP routes (POST, GET, PUT, DELETE on /users)
-├── users.service.ts       # Business logic (TypeORM repository)
-└── dto/                   # Request/response contracts
-    ├── create-user.dto.ts
-    ├── update-user.dto.ts
-    ├── user-response.dto.ts
-    └── README.md
-```
-
-Auth and files use the same pattern with fewer routes; admin, users, and sharing match (full CRUD).
-
-### `*.module.ts`
-
-**Defines:**
-
-- Which controllers belong to the module
-- Which services are provided
-- Which providers are exported
-
-Modules define explicit architectural boundaries.
-
-### `*.controller.ts`
-
-**Defines:**
-
-- RESTful endpoints (resource path + HTTP method)
-- Request handling
-- Response formatting
-
-**Conventions:**
-
-- Controllers should be thin
-- Delegate logic to services
-- Intentionally perform weak or missing validation in early versions
-
-### `*.service.ts`
-
-**Defines:**
-
-- Business logic
-- Access control decisions
-- Data handling (later)
-
-Services are where intentional security mistakes will live.
-
-### DTOs (`dto/` directories)
-
-**DTO** = Data Transfer Object. DTOs define the shape of data crossing the API boundary.
-
-Each feature module has its own `dto/` directory. For CRUD modules (admin, users, sharing) we use create/update/response; for auth, register/login/response; for files, upload/response.
-
-```
-dto/
-├── create-*.dto.ts        # (or register.dto.ts, upload-file.dto.ts)
-├── update-*.dto.ts        # where applicable
-└── *-response.dto.ts     # response shape(s)
-```
-
-**At v0.0.6 (current):**
-
-- DTOs are defined for admin, auth, users, files, sharing
-- Validation is weak or absent (contract only)
-- DTOs lock API shape; behaviour is mock
-
-**DTOs are critical for:**
-
-- API contract stability
-- Frontend ↔ backend alignment
-- Realistic enterprise structure
-
----
-
-## Current version context (v0.3.5)
-
-**v0.3.5 -- File Handling Surface** is complete. The v0.3.x file handling surface is closed.
-
-- **All modules:** Services backed by TypeORM repositories, data persisted in PostgreSQL. All methods async.
-- **users module:** `User` entity with plaintext passwords (CWE-256). Any authenticated user can CRUD any profile (CWE-639, CWE-862).
-- **auth module:** Real HS256 JWTs (hardcoded secret, no expiry). AuthModule exports JwtModule.
-- **files module:** Real multipart uploads via Multer `diskStorage`. Client filenames used as disk filenames (CWE-22). Client MIME type trusted (CWE-434). No size limit (CWE-400). `storagePath` exposed in API (CWE-200). Download endpoint streams from disk (CWE-22/CWE-639). Delete removes from disk and DB (CWE-22).
-- **sharing module:** `publicToken` generated sequentially (CWE-330). `GET /sharing/public/:token` unauthenticated (CWE-285). `expiresAt` not enforced (CWE-613).
-- **admin module:** Any authenticated user can access admin endpoints (CWE-862). Crash-test endpoint (v0.2.4).
-- **Migrations:** TypeORM with `migrationsRun: true`. InitialSchema, AddFileDescription, AddFileUploadColumns, AddPublicTokenColumn.
-- **OpenAPI/Swagger** at `/api/docs` (v0.3.5) -- publicly accessible without authentication.
-- **OWASP Top 10:2025:** All references use 2025 (ADR-021).
-- **No authorization enforcement** -- authentication without authorization (CWE-862)
-- 44 e2e tests across 6 suites, ~35 CWE entries
+[Ground truth](../../docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md) — endpoint guard matrix and exploit chains.

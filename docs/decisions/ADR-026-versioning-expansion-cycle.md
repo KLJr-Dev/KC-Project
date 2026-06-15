@@ -25,7 +25,7 @@ After completing v0.4.0 (Authorization & Administrative Surface), KC-Project fac
 ### Proposed Plan (Option B: App-Complete-First)
 
 - v0.5.x–v0.9.x: Complete all web app features **and** integrate infrastructure (Docker, Docker Compose, VM setup)
-- v1.0.0: Insecure MVP baseline (15–18 documented CWEs) **running on Docker containers in a VM** (fully deployable product)
+- v1.0.0: Insecure MVP baseline (59 documented instances / 38 unique CWE IDs) **running on Docker containers in a VM** (fully deployable product)
 - v1.0.x: Penetration testing & incremental patching
 - v1.1.0: Fork v2.0.0, add ~10 new CWEs (client-side vulnerabilities, race conditions, etc.)
 - v1.1.x: Pentest + patch v1.1.0
@@ -56,7 +56,7 @@ v0.x — Feature Development + Infrastructure Integration (insecure product)
   v0.9.0–v0.9.5: Infrastructure Integration (Docker image build, docker-compose, VM setup) + MVP Freeze
 
 v1.0.0 — Insecure MVP Baseline (deployed on Docker + VM)
-  15–18 documented CWEs across 5 attack surfaces
+  59 documented instances / 38 unique CWE IDs across 6 attack surfaces
   Full functionality, fully containerized, deployable to VM
   Production-like (reproducible, persistent, networked)
 
@@ -123,7 +123,7 @@ After v1.0.0, KC-Project enters a **perpetual insecure/secure loop**:
 - **v2.N.x:** Ops patterns maintained
 - **Fork:** v1.N+1.0 branches from v2.N.0 (or v2.N.1), adds new CWEs, cycle continues
 
-This loop allows KC-Project to scale from 15 CWEs (v1.0.0) to 50+ CWEs (v1.5.0) over time, covering all OWASP Top 10:2025 categories and more.
+This loop allows KC-Project to scale from 59 instances / 38 IDs (v1.0.0 Cycle 1) to 100+ instances over later cycles, covering all OWASP Top 10:2025 categories and more.
 
 ### Post-v2.0.0 Expansion Roadmap (Speculative)
 
@@ -188,6 +188,6 @@ Each v1.N.0 is designed as a **valid, deployable system** that happens to contai
 | v0.5.x Docker/deployment | v0.7.x Docker deployment |
 | v0.6.x runtime/observability | v0.6.x admin polish (audit, search, stats) |
 | v0.5–v0.9 app + infra combined | v0.5 refinement → v0.6 admin → v0.7 Docker → v0.8 lock → v0.9 RC |
-| v1.0.0 ~15–18 CWEs | v1.0.0 **60–80 CWEs**, pentest-ready, Docker mandatory |
+| v1.0.0 ~15–18 CWEs | v1.0.0 **59 instances / 38 IDs** (target 60–80), pentest-ready, Docker mandatory |
 
 ROADMAP.md and version-timeline.md derive from STRATEGY. This ADR's Option B intent (app-complete before v1.0.0) remains; execution order is refined per STRATEGY Part 2–5.

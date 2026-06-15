@@ -23,10 +23,13 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 
 | ID | Requirement | Version |
 |----|-------------|---------|
-| FR-2.1 | The system shall support at least two user roles: regular user and admin | v0.4.0 |
+| FR-2.1 | The system shall support user roles: regular user, moderator, and admin | v0.4.3 |
 | FR-2.2 | The system shall associate each user with a role at creation time | v0.4.0 |
 | FR-2.3 | The system shall expose role-based functionality (admin-only endpoints) | v0.4.1 |
 | FR-2.4 | The system shall allow administrators to modify user roles | v0.4.1 |
+| FR-2.5 | The system shall expose a moderator review queue for pending file uploads | v0.9.0 |
+| FR-2.6 | The system shall allow moderators and admins to approve or reject files (`PUT /files/:id/approve`) | v0.4.3 |
+| FR-2.7 | The system shall allow moderators and admins to escalate users to moderator (`PUT /admin/users/:id/role/escalate`) | v0.4.4 |
 
 ### FR-3: File Management
 
@@ -34,7 +37,7 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 |----|-------------|---------|
 | FR-3.1 | The system shall allow authenticated users to upload files | v0.3.0 |
 | FR-3.2 | The system shall store file metadata (filename, MIME type, size, owner) | v0.3.1 |
-| FR-3.3 | The system shall allow users to view metadata of their uploaded files | v0.3.1 |
+| FR-3.3 | The system shall allow users to view metadata of their uploaded files (product UI scoped; API returns all — CWE-639) | v0.3.1 |
 | FR-3.4 | The system shall allow users to download files by identifier | v0.3.2 |
 | FR-3.5 | The system shall allow users to delete files they own | v0.3.3 |
 | FR-3.6 | The system shall store uploaded file contents on the local filesystem | v0.3.0 |
@@ -47,6 +50,9 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 | FR-4.2 | The system shall support public (unauthenticated) access to shared files | v0.3.4 |
 | FR-4.3 | The system shall distinguish between public and private resources | v0.3.4 |
 | FR-4.4 | The system shall associate sharing links with the creating user | v0.3.4 |
+| FR-4.5 | The system shall generate `publicToken` when toggling a share public (`PUT /sharing/:id`) | v1.0.0 |
+| FR-4.6 | The system shall provide a friendly public share landing page at `/share/[token]` | v0.9.0 |
+| FR-4.7 | The system shall remove orphan share rows when a file is deleted | v1.0.0 |
 
 ### FR-5: Administrative Functions
 
@@ -55,9 +61,10 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 | FR-5.1 | The system shall provide administrative access to privileged users | v0.4.1 |
 | FR-5.2 | The system shall allow administrators to view all user accounts | v0.4.1 |
 | FR-5.3 | The system shall allow administrators to modify user roles | v0.4.1 |
-| FR-5.4 | The system shall allow administrators to view system-wide file data | v0.4.1 |
+| FR-5.4 | The system shall allow administrators to view system-wide file data (Admin → All files; API `GET /files`) | v0.4.1 |
 | FR-5.5 | The system shall persist audit records for administrative actions | v0.6.0 |
 | FR-5.6 | The system shall expose aggregate system statistics to administrators | v0.6.2 |
+| FR-5.7 | The system shall expose a health check endpoint (`GET /health`) | v0.6.3 |
 
 ---
 
@@ -91,6 +98,7 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 | NFR-3.2 | The system shall support containerised deployment via Docker | v0.7.0 |
 | NFR-3.3 | The system shall use docker-compose for multi-container orchestration | v0.7.1 |
 | NFR-3.4 | The system shall allow multiple versions to coexist conceptually (via Git tags and branches) | v0.0.1 |
+| NFR-3.5 | The system shall provide a Docker production stack (`docker-compose.prod.yml`) as the mandatory v1.0.x pentest deploy path | v1.0.0 |
 
 ### NFR-4: Testability
 
@@ -100,6 +108,8 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 | NFR-4.2 | The system shall be testable using automated tools (Jest, Supertest) | v0.0.3 |
 | NFR-4.3 | The system shall be testable using manual security tools (Burp Suite, curl, OWASP ZAP) | v0.7.3 |
 | NFR-4.4 | The system shall generate an OpenAPI specification for API exploration | v0.0.8 |
+| NFR-4.5 | The system shall maintain 150 automated e2e tests runnable against Docker prod (`e2e-docker.sh`) | v1.0.0 |
+| NFR-4.6 | The system shall provide deploy verification scripts (`smoke-test.sh`, `journey-test.sh`) | v1.0.0 |
 
 ---
 
@@ -116,6 +126,8 @@ The system is **not required to meet production security standards** in v1.0.0. 
 | SR-1.3 | All intentional weaknesses shall be documented with CWE and OWASP Top 10 classification | v1.0.0 |
 | SR-1.4 | The system shall be deployed in a controlled, isolated environment only | v1.0.0 |
 | SR-1.5 | No real user data shall be processed | All |
+| SR-1.6 | Product UI client-side filtering shall not be treated as a security control; API IDOR weaknesses remain intentional | v1.0.0 |
+| SR-1.7 | All intentional weaknesses shall be inventoried (59 instances / 38 CWE IDs at v1.0.0) with Cycle-1 ground truth | v1.0.0 |
 
 ### SR-2: v2.0.0 Security Position
 
@@ -146,9 +158,17 @@ Requirements map to roadmap versions as follows:
 | v0.1.x Identity | FR-1.1-1.6 |
 | v0.2.x Persistence | FR-1.7-1.8 |
 | v0.3.x Files | FR-3.1-3.6, FR-4.1-4.4 |
-| v0.4.x Authorization | FR-2.1-2.4, FR-5.1-5.4, NFR-1.3 |
+| v0.4.x Authorization | FR-2.1-2.4, FR-2.6-2.7, FR-5.1-5.4, NFR-1.3 |
 | v0.5.x Refinement | Pagination (v0.5.2), error shape (v0.5.3), logging (v0.5.4) |
-| v0.6.x Admin Polish | FR-5.5, FR-5.6 |
+| v0.6.x Admin Polish | FR-5.5-5.7 |
 | v0.7.x Deployment | NFR-3.1-3.3, NFR-4.3 |
-| v1.0.0 Insecure MVP | SR-1.1-1.5 |
+| v0.9.x Product UX | FR-2.5, FR-4.6, NFR-1.3 (role-aware nav) |
+| v1.0.0 Insecure MVP | FR-4.5, FR-4.7, NFR-3.5, NFR-4.5-4.6, SR-1.1-1.7 |
 | v2.0.0 Secure Parallel | SR-2.1-2.10 |
+
+### Cycle-1 references
+
+- Ground truth: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md)
+- CWE inventory: [cwe-inventory.md](../security/cwe-inventory.md)
+- Security baseline (v2.0.0 targets): [security-baseline.md](security-baseline.md)
+- Cycle structure: [ADR-031](../decisions/ADR-031-security-cycle-docs.md)

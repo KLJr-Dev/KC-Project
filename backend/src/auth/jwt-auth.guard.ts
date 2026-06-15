@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { JwtPayload } from './jwt-payload.interface';
@@ -83,16 +78,12 @@ export class JwtAuthGuard implements CanActivate {
 
     // No Authorization header at all
     if (!authHeader) {
-      throw new UnauthorizedException(
-        'Missing Authorization header (v0.1.3)',
-      );
+      throw new UnauthorizedException('Missing Authorization header (v0.1.3)');
     }
 
     // Header present but not in "Bearer <token>" format
     if (!authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException(
-        'Authorization header must use Bearer scheme (v0.1.3)',
-      );
+      throw new UnauthorizedException('Authorization header must use Bearer scheme (v0.1.3)');
     }
 
     const token = authHeader.slice(7); // Strip "Bearer " prefix
@@ -109,9 +100,7 @@ export class JwtAuthGuard implements CanActivate {
     } catch {
       // jwtService.verify() throws on invalid signature, malformed token,
       // or expired token (if exp claim existed, which it doesn't here)
-      throw new UnauthorizedException(
-        'Invalid or expired token (v0.1.3)',
-      );
+      throw new UnauthorizedException('Invalid or expired token (v0.1.3)');
     }
 
     return true;

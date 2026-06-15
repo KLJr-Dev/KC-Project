@@ -4,100 +4,56 @@ System topology at three lifecycle stages. Each diagram shows how the components
 
 ---
 
-## Current State (v0.3.x)
+## Current State (v1.0.0) — Docker prod (primary)
 
-Three processes: frontend and backend run natively on the developer's machine, PostgreSQL runs in a Docker container. Data persists across restarts. Files stored on local filesystem.
+Full stack in `infra/docker-compose.prod.yml`. nginx at `:8080` is the sole browser entry. Backend and frontend are internal; PostgreSQL exposed on `:5433` for e2e only.
 
 ```mermaid
 flowchart LR
-  Browser["Browser"]
-  Frontend["Next.js\n:3000\nApp Router\nTailwind CSS"]
-  Backend["NestJS\n:4000\nREST API\nSwagger at /api/docs"]
-  PG["PostgreSQL 16\n:5432\nDocker container\nkc_dev database"]
+  Browser["Browser\n:8080"]
+  Nginx["nginx :80\n→ host :8080"]
+  Frontend["Next.js :3000\nProduct UI + /dev"]
+  Backend["NestJS :4000\nREST API\nSwagger /api/docs"]
+  PG["PostgreSQL 16\nkc_prod\n:5433 host (e2e)"]
 
-  Browser -->|"HTTP"| Frontend
-  Frontend -->|"HTTP REST\nJSON over localhost:4000"| Backend
+  Browser -->|"HTTP"| Nginx
+  Nginx -->|"/"| Frontend
+  Nginx -->|"/api"| Backend
+  Frontend -->|"NEXT_PUBLIC_API_URL=/api"| Nginx
   Backend -->|"TypeORM"| PG
 ```
 
 ### What exists
 
-- **Frontend** -- Next.js 16, App Router, React 19, Tailwind CSS 4. Client components call backend via fetch. Auth state persisted to localStorage. Bearer token sent on all API calls.
-- **Backend** -- NestJS 11 on Express. Five domain modules (Auth, Users, Files, Sharing, Admin). CORS allows all origins. Swagger auto-generated and **publicly accessible without auth** (CWE-200). `X-Powered-By: Express` header not disabled (CWE-200). Real HS256 JWTs (hardcoded secret, no expiry). Most resource endpoints protected by JwtAuthGuard -- authentication enforced but no authorization/ownership checks. Exception: `GET /sharing/public/:token` is unauthenticated (CWE-285). ownerId tracked but never enforced (CWE-639, CWE-862). All list endpoints unbounded. Multipart file uploads via Multer (CWE-22, CWE-434, CWE-400). File download/streaming and filesystem deletion. `GET /admin/crash-test` demonstrates unhandled exception leakage (CWE-209, A10:2025). No ValidationPipe.
-- **Database** -- PostgreSQL 16 in Docker (`infra/compose.yml`). TypeORM with migrations (`migrationsRun: true`, replaced `synchronize: true` in v0.2.5). 4 tables + `mimetype`/`storagePath`/`publicToken` columns added via migrations. Hardcoded credentials (CWE-798). SQL logging with plaintext passwords (CWE-532).
-- **Communication** -- Plain HTTP, JSON bodies (or multipart for file upload), Bearer token in Authorization header.
-- **Storage** -- TypeORM repositories backed by PostgreSQL. File data on local filesystem in `backend/uploads/` via Multer `diskStorage` (see ADR-024). Data persists across restarts.
+- **nginx** — Reverse proxy. Routes `/` → frontend, `/api` → backend. 1 MB body limit (accidental upload ceiling).
+- **Frontend** — Next.js 16. Product UI (`/files`, `/moderator`, `/admin`) + dev explorers (`/dev/*`). Client-side file/share filtering; API IDOR preserved.
+- **Backend** — NestJS 11. 28 live endpoints + health/ping/crash-test. Ternary RBAC. Persistent audit logs. Demo seeds (ADR-029, ADR-030).
+- **Database** — PostgreSQL 16, `pgdata_prod` volume, `kc_prod` database.
+- **Verification** — `smoke-test.sh`, `journey-test.sh`, `e2e-docker.sh` (150 tests).
 
-### What does not exist yet
+### Dev path (secondary)
 
-- Authorization / ownership checks (ownerId exists but is never enforced)
-- Pagination / query limits (all list endpoints are unbounded)
-- Swagger auth protection (spec is publicly accessible)
-- Response header hardening (X-Powered-By not disabled)
-- Global exception filter / error sanitisation (stack traces leak to logs, A10:2025)
-- Input validation pipeline (no ValidationPipe, CWE-209)
-- Migration review gate (migrationsRun:true auto-executes)
-- File upload sanitisation (filenames, MIME, size limits -- all intentionally absent)
-- App containers (frontend/backend still run natively)
-- Reverse proxy, TLS, network segmentation
-- Rate limiting
+Native backend/frontend + `infra/compose.yml` (PostgreSQL `kc_dev` on `:5432` only).
 
 ---
 
-## v1.0.0 -- Insecure MVP
+## v1.0.0 — Insecure MVP (detail)
 
-Full stack, containerised, deployed on an Ubuntu VM. All five domains functional with real persistence. Intentionally misconfigured: every service port exposed directly, no reverse proxy, no TLS, default credentials.
+Same functional surface as above. Intentionally weak: no TLS, default DB creds, JWT role trusted, guard inconsistencies.
 
-```mermaid
-flowchart TD
-  subgraph vm ["Ubuntu VM (public IP)"]
-    subgraph compose ["docker-compose (default bridge network)"]
-      FE["frontend\nNext.js\n0.0.0.0:3000\nroot user"]
-      BE["backend\nNestJS\n0.0.0.0:4000\nroot user"]
-      PG["postgres\n0.0.0.0:5432\nuser: postgres\npassword: postgres"]
-      UploadsVol["volume: ./uploads\nworld-readable"]
-      PGDataVol["volume: pgdata\nunencrypted"]
-    end
-  end
-
-  Internet["Internet"] -->|"HTTP :3000"| FE
-  Internet -->|"HTTP :4000"| BE
-  Internet -->|"TCP :5432"| PG
-
-  FE -->|"HTTP internal"| BE
-  BE -->|"TCP internal"| PG
-  BE --- UploadsVol
-  PG --- PGDataVol
-```
-
-### Components
-
-| Component | Technology | Port | Notes |
-|-----------|-----------|------|-------|
-| Frontend | Next.js 16 (containerised) | 3000 | Serves UI, calls backend API |
-| Backend | NestJS 11 (containerised) | 4000 | REST API, JWT auth (weak), file handling |
-| Database | PostgreSQL (containerised) | 5432 | User table, file metadata, sharing records |
-| File storage | Docker volume (./uploads) | -- | Local filesystem, no validation |
-
-### Intentional weaknesses at this layer
-
-| Weakness | CWE | OWASP Top 10 |
-|----------|-----|-------------|
-| All ports exposed to internet | CWE-668 | A02:2025 Security Misconfiguration |
-| No TLS (plaintext HTTP) | CWE-319 | A04:2025 Cryptographic Failures |
-| Default database credentials | CWE-798 | A07:2025 Authentication Failures |
-| Containers run as root | CWE-250 | A02:2025 Security Misconfiguration |
-| No network segmentation | CWE-668 | A02:2025 Security Misconfiguration |
-| Volumes world-readable | CWE-732 | A01:2025 Broken Access Control |
-| No resource limits on containers | CWE-770 | A02:2025 Security Misconfiguration |
-| No health checks | -- | Operational fragility |
-| Sensitive data in logs | CWE-532 | A09:2025 Security Logging and Alerting Failures |
+| Component | Technology | Exposure | Notes |
+|-----------|-----------|----------|-------|
+| nginx | nginx:alpine | `:8080` | Single browser entry |
+| Frontend | Next.js 16 | internal :3000 | Product UI + `/dev` explorers |
+| Backend | NestJS 11 | internal :4000 | 59/38 CWEs documented |
+| Database | PostgreSQL 16 | `:5433` (e2e) | `postgres`/`postgres` default |
+| File storage | Docker volume `uploads` | internal | No path/MIME validation |
 
 ---
 
-## v2.0.0 -- Secure Parallel
+## v2.0.0 — Secure Parallel
 
-Hardened counterpart to v1.0.0. Same functional surface, every weakness remediated. nginx reverse proxy terminates TLS and gates all external traffic. Internal services are not reachable from outside.
+Hardened counterpart to v1.0.0. nginx terminates TLS on `:443`. Internal services not reachable from outside.
 
 ```mermaid
 flowchart TD
@@ -120,34 +76,14 @@ flowchart TD
   PG --- PGDataVol
 ```
 
-### What changed (v1.0.0 to v2.0.0)
-
-| v1.0.0 (insecure) | v2.0.0 (hardened) | Remediation |
-|--------------------|-------------------|-------------|
-| All ports exposed (3000, 4000, 5432) | Only port 443 exposed via nginx | CWE-668 / A02:2025 |
-| HTTP plaintext | HTTPS with TLS termination at nginx | CWE-319 / A04:2025 |
-| No reverse proxy | nginx with rate limiting + security headers | CWE-16 / A02:2025 |
-| Default DB credentials (postgres/postgres) | Strong credentials via Docker secrets | CWE-798 / A07:2025 |
-| Root containers | Non-root users, read-only filesystems | CWE-250 / A02:2025 |
-| Default bridge network | Custom internal network, no host ports for DB | CWE-668 / A02:2025 |
-| World-readable volumes | Scoped paths, validated filenames | CWE-732 / A01:2025 |
-| No resource limits | CPU/memory limits per container | CWE-770 / A02:2025 |
-| Verbose logs with sensitive data | Structured logging, sensitive fields redacted | CWE-532 / A09:2025 |
-| No health checks | Liveness and readiness probes | Operational resilience |
-
 ---
 
 ## Cross-Version Component Map
 
-Summary of which components exist at each stage:
-
-| Component | v0.1.x | v1.0.0 | v2.0.0 |
-|-----------|--------|--------|--------|
-| Next.js frontend | Bare process | Docker container (root) | Docker container (non-root, read-only) |
-| NestJS backend | Bare process | Docker container (root) | Docker container (non-root, helmet) |
-| PostgreSQL | Docker container (v0.2.0+) | Docker container (exposed) | Docker container (internal only) |
-| nginx reverse proxy | -- | -- | Docker container (TLS, rate limiting) |
-| File storage | -- | Docker volume (world-readable) | Docker volume (scoped, validated) |
-| docker-compose | DB only (v0.2.0+) | Full stack | Custom internal network |
-| Ubuntu VM | -- | Host for containers | Host for containers |
-| TLS certificates | -- | -- | Let's Encrypt or self-signed |
+| Component | Dev (native) | v1.0.0 prod | v2.0.0 |
+|-----------|--------------|-------------|--------|
+| Next.js frontend | Bare :3000 | Docker (internal) | Docker (non-root, read-only) |
+| NestJS backend | Bare :4000 | Docker (internal) | Docker (non-root, helmet) |
+| PostgreSQL | compose.yml :5432 | prod :5433 (e2e) | Internal only |
+| nginx | — | :8080 entry | :443 TLS |
+| docker-compose | DB only | `docker-compose.prod.yml` | Custom internal network |

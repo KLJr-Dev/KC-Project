@@ -55,11 +55,7 @@ describe('RBAC & JWT Forgery (v0.4.2 CWE-639 Demonstration)', () => {
   /**
    * Helper: Register a user and return { userId, token }
    */
-  async function registerUser(
-    email: string,
-    username: string,
-    password = 'password123',
-  ) {
+  async function registerUser(email: string, username: string, password = 'password123') {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, username, password })

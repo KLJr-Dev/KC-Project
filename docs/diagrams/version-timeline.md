@@ -69,8 +69,11 @@ timeline
     v0.8.1 : Pentest methodology
   section v0.9.x Freeze
     v0.9.5 : Release candidate
+  section v0.9.x Product UX
+    v0.9.0 : Product UI + /dev explorers (ADR-028)
+    v0.9.5 : Demo seeds, 150 e2e, pentest-ready
   section v1.0.0
-    v1.0.0 : Pentest-ready insecure MVP (60-80 CWEs)
+    v1.0.0 : Pentest-ready insecure MVP (59/38 CWEs, Docker :8080)
 ```
 
 ---
@@ -82,7 +85,7 @@ After v1.0.0, the project follows a repeating insecure/secure loop. Each cycle a
 ```mermaid
 flowchart TD
   subgraph cycle1 ["Cycle 1"]
-    v100["v1.0.0\nInsecure MVP\n60-80 CWEs\nDocker mandatory"]
+    v100["v1.0.0\nInsecure MVP\n59 instances / 38 CWE IDs\nDocker :8080 mandatory"]
     v10x["v1.0.x\nStructured Pentest\nDiscover + Document\nIncremental Patches"]
     v200["v2.0.0\nSecure Parallel\nAll v1.0.0 CWEs\nRemediated"]
   end
@@ -123,10 +126,11 @@ flowchart TD
 | Harden | v2.N.0 | Apply all remediations, verify each fix, document the delta | Secure counterpart, remediation evidence |
 | Repeat | v1.(N+1).0 | Fork v2.N.0, add next wave of vulnerabilities | Next insecure baseline |
 
-### First cycle (v1.0.0) starts with 60–80 CWEs per STRATEGY
+### First cycle (v1.0.0) — 59 instances / 38 unique CWE IDs
 
-- v1.0.0 tags the v0.9.5 RC after v0.7 Docker deployment is verified
-- No fork from a secure version -- this is the first cycle
+- v1.0.0 tagged from v0.9.5-rc.1; post-tag fixes on `main`
+- Docker prod (`docker-compose.prod.yml`) mandatory for v1.0.x pentest
+- Cycle-1 artifacts: [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
 
 ### Subsequent cycles expand the surface
 
@@ -142,7 +146,7 @@ Cumulative CWE count across expansion cycles. Each cycle adds a new wave of weak
 
 ```mermaid
 flowchart LR
-  subgraph v100_surface ["v1.0.0 (60-80 CWEs)"]
+  subgraph v100_surface ["v1.0.0 (59/38 CWEs)"]
     S1_Identity["Identity\n7 CWEs"]
     S1_Data["Data\n3 CWEs"]
     S1_Injection["Injection\n2 CWEs"]
@@ -174,7 +178,7 @@ flowchart LR
 
 | Cycle | Version | New CWEs | Cumulative | Primary New Surfaces |
 |-------|---------|----------|-----------|---------------------|
-| 1 | v1.0.0 | 60–80 | 60–80 | Identity, Data, Injection, Files, Authorization, Admin, Infrastructure |
+| 1 | v1.0.0 | 59 / 38 IDs | 59 / 38 IDs | Identity, Data, Injection, Files, Authorization, Admin, Infrastructure |
 | 2 | v1.1.0 | ~10 | ~25 | Client-side (XSS, CSRF), Server-side request forgery, Deserialization |
 | 3 | v1.2.0 | ~10 | ~35 | Concurrency, Caching, Cryptographic weaknesses |
 | 4 | v1.3.0 | ~10 | ~45 | Supply chain, CI/CD, cloud misconfigurations |
@@ -198,7 +202,7 @@ The v1.1.0+ CWE additions are speculative projections to illustrate the expansio
 | v0.7.x | Docker deployment surface |
 | v0.8.x | API lock and test hardening |
 | v0.9.x | MVP freeze and release candidate |
-| **v1.0.0** | **Pentest-ready insecure MVP (60–80 CWEs, Docker mandatory)** |
+| **v1.0.0** | **Pentest-ready insecure MVP (59/38 CWEs, Docker prod :8080 mandatory)** |
 | v1.0.x | Pentest + incremental securing of v1.0.0 |
 | **v2.0.0** | **Secure parallel to v1.0.0 -- all CWEs remediated** |
 | **v1.1.0** | **Insecure iteration -- fork v2.0.0 + ~10 new CWEs** |

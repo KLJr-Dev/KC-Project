@@ -39,8 +39,8 @@ Canonical numbering from [STRATEGY.md](STRATEGY.md) (ADR-027). See also [ADR-027
 
 ### Expansion Cycle (v1.x / v2.x)
 
-- v1.0.0 — Insecure MVP (~15 CWEs across 6 attack surfaces)
-- v1.0.x — Structured pentesting, discovery, incremental patches
+- v1.0.0 — Insecure MVP (59 instances / 38 CWE IDs across 6 attack surfaces)
+- v1.0.x — Structured pentesting, discovery, incremental patches ([Cycle-1](../security/Cycle-1/README.md))
 - v2.0.0 — Secure parallel to v1.0.0 (all CWEs remediated)
 - v1.1.0 — Fork v2.0.0, introduce ~10 new CWEs (next insecure iteration)
 - v1.1.x — Pentest cycle for v1.1.0
@@ -666,16 +666,18 @@ Goal: Tag the v0.9.5 RC as the first pentest-ready insecure baseline per [STRATE
 
 ### v1.0.0 Criteria
 
-- [ ] Full functionality: auth, files, sharing, admin (v0.0–v0.4 complete; v0.5–v0.6 refinement complete)
-- [ ] v0.5.x: ValidationPipe, pagination, error shape, request logging
-- [ ] v0.6.x: Persistent audit logs, admin search, stats, health endpoint
-- [ ] **Docker mandatory:** `infra/docker-compose.prod.yml` stack (v0.7.x)
-- [ ] **VM deployment:** `infra/vm-setup.sh`, reproducible smoke journey in compose
-- [ ] **60–80 intentional CWEs** inventoried with OWASP Top 10:2025 mapping
-- [ ] Architecture, threat model, pentest methodology docs complete
-- [ ] Full e2e suite green in Docker environment
-- [ ] API/Swagger frozen at v0.9.x; no new routes in v1.0.0
-- [ ] Ready for v1.0.x penetration testing and v2.0.0 hardening
+- [x] Full functionality: auth, files, sharing, admin (v0.0–v0.4 complete; v0.5–v0.6 refinement complete)
+- [x] v0.5.x: ValidationPipe, pagination, error shape, request logging
+- [x] v0.6.x: Persistent audit logs, admin search, stats, health endpoint
+- [x] **Docker mandatory:** `infra/docker-compose.prod.yml` stack (v0.7.x)
+- [x] **VM deployment:** `infra/vm-setup.sh`, [vm-deployment.md](../deploy/vm-deployment.md)
+- [x] **59 documented CWE instances** (38 unique IDs); target 60–80 with v1.0.x discoveries
+- [x] Architecture, threat model, pentest methodology docs complete
+- [x] Full e2e suite green in Docker environment (`infra/e2e-docker.sh`)
+- [x] API/Swagger frozen at v0.9.x; no new routes in v1.0.0
+- [x] **Product UI** for user/moderator/admin + `/dev` API explorers (v0.9)
+- [x] Demo users seeded (`docs/deploy/demo-users.md`)
+- [x] Ready for v1.0.x penetration testing and v2.0.0 hardening
 
 ### Version characteristics
 
@@ -688,12 +690,37 @@ Goal: Tag the v0.9.5 RC as the first pentest-ready insecure baseline per [STRATE
 
 This version is the first insecure baseline **and the first production-like deployment**. It enters the expansion cycle: pentest (v1.0.x), harden (v2.0.0), then fork and expand (v1.1.0).
 
+## Phase 2 — v1.0.x Pentest (Cycle 1)
+
+Goal: Structured offensive testing against the v1.0.0 baseline; portfolio-grade writeup; minimal patches only for accidental RCE/crash bugs.
+
+Workspace: **[docs/security/Cycle-1/](../security/Cycle-1/README.md)** (ADR-031)
+
+| Deliverable | Path | Owner |
+|-------------|------|-------|
+| Ground truth | [Cycle-1/Dev/v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) | Developer |
+| Pentest writeup | [Cycle-1/PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) | Offensive |
+| Screenshots / notes | [Cycle-1/PenTest/screenshots/](../security/Cycle-1/PenTest/screenshots/), [notes/](../security/Cycle-1/PenTest/notes/) | Offensive |
+| Remediation plan | [Cycle-1/Remediation/v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md) | Defensive |
+| CWE inventory | [cwe-inventory.md](../security/cwe-inventory.md) | Cross-cycle |
+| Exploit journeys | [pentest-journeys.md](../deploy/pentest-journeys.md) | Cross-cycle |
+
+### Cycle-1 gate
+
+- [x] v1.0.0 pentest-ready declaration ([v1.0.0-pentest-ready.md](../release/v1.0.0-pentest-ready.md))
+- [x] 59 / 38 CWE baseline documented
+- [x] Demo users + files seeded (ADR-029, ADR-030)
+- [x] `smoke-test.sh`, `journey-test.sh`, `e2e-docker.sh` green in Docker
+- [ ] Pentest writeup complete in `Cycle-1/PenTest/`
+- [ ] Findings table populated in [security/README.md](../security/README.md)
+- [ ] v2.0.0 remediation writeup drafted
+
 ## v1.0.x — Penetration Testing & Incremental Patching
 
 Goal: Discover and document all v1.0.0 weaknesses through structured testing; apply minimal patches as bugs are identified.
 
 - Execute penetration testing against v1.0.0 baseline
-- Document findings with CWE + CVSS + proof-of-concept
+- Document findings with CWE + CVSS + proof-of-concept in [Cycle-1/PenTest/](../security/Cycle-1/PenTest/)
 - Apply patches for critical bugs (e.g., RCE) but leave exploitable weaknesses intact
 - Each v1.0.x minor release includes incremental patches + updated threat model
 - Versions: v1.0.1, v1.0.2, v1.0.3, ...

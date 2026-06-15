@@ -66,7 +66,8 @@ interface AuthState {
 /** Full context value exposed to consumers via useAuth(). */
 interface AuthContextValue extends AuthState {
   isAuthenticated: boolean;
-  isAdmin: boolean; // v0.4.0: convenience check for role === 'admin'
+  isAdmin: boolean;
+  isModerator: boolean;
   login: (response: AuthResponse) => void;
   logout: () => void;
 }
@@ -100,13 +101,17 @@ function loadFromStorage(): AuthState {
   }
 }
 
-function parseRoleFromToken(token: string | null): 'user' | 'admin' | undefined {
+function parseRoleFromToken(
+  token: string | null,
+): 'user' | 'moderator' | 'admin' | undefined {
   if (!token) return undefined;
   const parts = token.split('.');
   if (parts.length !== 3) return undefined;
   try {
     const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-    return payload?.role === 'admin' ? 'admin' : payload?.role === 'user' ? 'user' : undefined;
+    const role = payload?.role;
+    if (role === 'admin' || role === 'moderator' || role === 'user') return role;
+    return undefined;
   } catch {
     return undefined;
   }

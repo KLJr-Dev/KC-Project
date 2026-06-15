@@ -16,7 +16,9 @@ import { IsEnum, IsNotEmpty } from 'class-validator';
  */
 export class UpdateUserRoleDto {
   @ApiProperty({ example: 'admin', enum: ['user', 'moderator', 'admin'] })
-  @IsEnum(['user', 'moderator', 'admin'], { message: 'role must be one of: user, moderator, admin' })
+  @IsEnum(['user', 'moderator', 'admin'], {
+    message: 'role must be one of: user, moderator, admin',
+  })
   @IsNotEmpty({ message: 'role is required' })
   role!: 'user' | 'moderator' | 'admin';
 }

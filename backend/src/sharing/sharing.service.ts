@@ -88,7 +88,14 @@ export class SharingService {
   async update(id: string, dto: UpdateSharingDto): Promise<SharingResponseDto | null> {
     const entity = await this.shareRepo.findOne({ where: { id } });
     if (!entity) return null;
-    if (dto.public !== undefined) entity.public = dto.public;
+    if (dto.public !== undefined) {
+      entity.public = dto.public;
+      if (dto.public && !entity.publicToken) {
+        entity.publicToken = `share-${id}`;
+      } else if (!dto.public) {
+        entity.publicToken = undefined;
+      }
+    }
     if (dto.expiresAt !== undefined) entity.expiresAt = dto.expiresAt;
     const saved = await this.shareRepo.save(entity);
     return this.toResponse(saved);
@@ -101,9 +108,7 @@ export class SharingService {
   }
 
   /** Look up a sharing record by its publicToken. Returns raw entity for download. */
-  async findByPublicToken(
-    token: string,
-  ): Promise<{ fileId: string; expiresAt: string } | null> {
+  async findByPublicToken(token: string): Promise<{ fileId: string; expiresAt: string } | null> {
     const entity = await this.shareRepo.findOne({ where: { publicToken: token } });
     if (!entity) return null;
     return { fileId: entity.fileId, expiresAt: entity.expiresAt };

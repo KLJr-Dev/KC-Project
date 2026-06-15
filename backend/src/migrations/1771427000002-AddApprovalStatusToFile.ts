@@ -34,13 +34,9 @@ export class AddApprovalStatusToFile1771427000002 implements MigrationInterface 
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop approval status column
-    await queryRunner.query(
-      `ALTER TABLE "file_entity" DROP COLUMN IF EXISTS "approvalStatus"`,
-    );
+    await queryRunner.query(`ALTER TABLE "file_entity" DROP COLUMN IF EXISTS "approvalStatus"`);
 
     // Drop enum type
-    await queryRunner.query(
-      `DROP TYPE IF EXISTS "file_approval_enum"`,
-    );
+    await queryRunner.query(`DROP TYPE IF EXISTS "file_approval_enum"`);
   }
 }

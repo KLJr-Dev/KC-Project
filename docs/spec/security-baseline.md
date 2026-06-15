@@ -6,19 +6,53 @@ This document defines **what "secure" looks like** for KC-Project. Each control 
 
 ---
 
-## Current State (v0.4.x): Authorization Vulnerabilities
+## Current State (v1.0.0)
 
-As of v0.4.5, the authorization surface contains the following **intentional** vulnerabilities for testing and learning:
+v1.0.0 documents **59 CWE instances across 38 unique IDs**. Full inventory: [cwe-inventory.md](../security/cwe-inventory.md). Exploitable-state reference: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md).
+
+The tables below are a **subset** of v1.0.0 weaknesses by category. Remediation targets map to [Remediation/v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md).
+
+### Authentication & authorization (subset)
 
 | Vulnerability | CWE | Introduced | Details | Remediation (v2.0.0) |
 |---------------|-----|-----------|---------|----------------------|
 | JWT role trusted without DB re-validation | CWE-639 | v0.4.0 | `HasRoleGuard` extracts role from JWT, never checks database `users.role` | Load user from DB on every protected request; compare DB role, not JWT claim |
 | Client-controlled authorization via forged JWT | CWE-639 | v0.4.2 | Weak hardcoded secret `'kc-secret'` allows attacker to forge admin JWT | Upgrade to RS256 (asymmetric); disable HS256 |
-| Role hierarchy undefined (ternary ambiguity) | CWE-841 | v0.4.3 | Three roles (user/moderator/admin) with no explicit ranking or constants | Define `const ROLE_RANK = { user: 1, moderator: 2, admin: 3 }` and enforce rank checks |
-| Privilege escalation via role delegation | CWE-269 | v0.4.4 | Moderators can promote users to moderator indefinitely; cascading chains possible | Restrict escalation to admins only; implement depth limit on promotion chains |
-| Missing authorization on DELETE endpoint | CWE-862 | v0.4.5 | `DELETE /admin/users/:id` only has `JwtAuthGuard`, missing `@HasRole('admin')` | Add `@HasRole('admin')` to all admin endpoints; add test coverage for guard presence |
-| No audit trail for authorization changes | CWE-532 | v0.4.4 | Role changes logged to stdout only; lost on restart | Implement `AuditLog` entity with timestamp, actor, action, target, and result; emit events on role changes |
-| Inconsistent authorization checks | CWE-862 | v0.4.5 | Some endpoints guarded, others not; developer oversight | Enforce guard consistency via linting rules; audit all endpoints for guard presence |
+| Role hierarchy undefined (ternary ambiguity) | CWE-841 | v0.4.3 | Three roles (user/moderator/admin) with no explicit ranking or constants | Define `ROLE_RANK` constants and enforce rank checks |
+| Privilege escalation via role delegation | CWE-269 | v0.4.4 | Moderators can promote users to moderator indefinitely; cascading chains possible | Restrict escalation to admins only; implement depth limit |
+| Missing authorization on DELETE endpoint | CWE-862 | v0.4.5 | `DELETE /admin/users/:id` only has `JwtAuthGuard`, missing `@HasRole('admin')` | Add `@HasRole('admin')` to all admin endpoints |
+| Audit logs readable by any authed user | CWE-284 | v0.6.0 | `GET /admin/audit-logs` has JwtAuthGuard only, no HasRole | Require `@HasRole('admin')`; filter sensitive fields |
+| Inconsistent authorization checks | CWE-862 | v0.4.5 | Some endpoints guarded, others not; developer oversight | Enforce guard consistency via linting; audit all endpoints |
+
+### File handling (subset)
+
+| Vulnerability | CWE | Introduced | Details | Remediation (v2.0.0) |
+|---------------|-----|-----------|---------|----------------------|
+| Path traversal in upload/download/delete | CWE-22 | v0.3.0 | Client-supplied filename used as disk path | `path.resolve()` + base dir validation |
+| MIME type confusion | CWE-434 | v0.3.0 | Client Content-Type trusted | Magic-byte validation |
+| No file ownership checks (API) | CWE-639 | v0.3.2 | Any authed user can access any file ID | `WHERE owner_id = $1` on every operation |
+| Predictable share tokens | CWE-330 | v0.3.4 | Sequential `share-N` tokens | `crypto.randomBytes(32)` |
+| Product UI hides IDOR (client filter) | CWE-639 | v0.9.0 | `filesForUser()` scopes UI; API unchanged | Server-side ownership enforcement |
+
+### Infrastructure & client (subset)
+
+| Vulnerability | CWE | Introduced | Details | Remediation (v2.0.0) |
+|---------------|-----|-----------|---------|----------------------|
+| Default DB credentials | CWE-798 | v0.2.0 | `postgres`/`postgres` in compose | Docker secrets, strong password |
+| Permissive CORS | CWE-942 | v0.1.3 | `enableCors()` with no whitelist | Strict origin whitelist |
+| Token in localStorage | CWE-922 | v0.1.3 | `kc_auth` key, XSS-accessible | httpOnly secure cookie |
+| Client-side role guards | CWE-345 | v0.9.0 | `RequireRole` reads JWT from localStorage | Server-side RBAC only |
+| nginx 1 MB body limit | — | v0.7.1 | Accidental upload ceiling (413 before Multer) | Document or raise limit intentionally |
+| Demo creds in page source | CWE-615 | v0.9.0 | Quick-fill buttons expose passwords | Remove from production builds |
+
+### Remediation doc mapping
+
+| v1.0.0 source | v2.0.0 target |
+|---------------|---------------|
+| [cwe-inventory.md](../security/cwe-inventory.md) | Per-CWE fix checklist in remediation writeup |
+| [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) | Before-state evidence |
+| [v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md) | After-state evidence |
+| This document (control tables below) | Implementation specification |
 
 ---
 
@@ -115,98 +149,6 @@ All headers set by nginx (not the application) to ensure consistent enforcement.
 | Structured logging | Pino or Winston with JSON output | CWE-778 (insufficient logging) |
 | Sensitive field redaction | Password, token, and credential fields stripped from logs | CWE-532 (sensitive data in logs) |
 | Auth event audit trail | Log all login attempts (success/failure), registrations, logouts, role changes | CWE-778 (insufficient logging), CWE-532 (missing audit) |
-| Request ID correlation | Unique ID per request, propagated through all log entries | Debugging and incident response |
-
-
-
-| Control | Implementation | Remediates |
-|---------|---------------|------------|
-| Strong password hashing | bcrypt with cost factor 12+ | CWE-256 (plaintext/weak storage) |
-| Asymmetric token signing | RS256 (private key signs, public key verifies) | CWE-347 (weak symmetric secret) |
-| Short-lived access tokens | 15-minute TTL on access JWTs | CWE-613 (no expiration) |
-| Refresh token rotation | New refresh token on each use, old one invalidated | CWE-613 (token replay) |
-| Server-side token tracking | `refresh_tokens` table in database, deleted on logout | CWE-613 (no revocation) |
-| Generic error messages | All auth failures return "Authentication failed" | CWE-204 (user enumeration) |
-| Password strength validation | Minimum length, complexity requirements | CWE-521 (weak passwords) |
-
-## Session Management Controls
-
-| Control | Implementation | Remediates |
-|---------|---------------|------------|
-| httpOnly refresh cookie | `Set-Cookie: httpOnly; secure; sameSite=strict` | CWE-922 (localStorage XSS exposure) |
-| Access token in memory only | Short-lived token held in JavaScript variable, not persisted | CWE-922 (persistent storage) |
-| Session revocation on logout | Delete all refresh tokens for user from database | CWE-613 (cosmetic logout) |
-| Idle timeout | Refresh token expires after 7 days of inactivity | CWE-613 (infinite sessions) |
-
-## Authorisation Controls
-
-| Control | Implementation | Remediates |
-|---------|---------------|------------|
-| Server-side RBAC | Role read from database `users.role` column, never from client | CWE-285 (client role claims) |
-| Guards on every protected route | `@UseGuards(JwtAuthGuard, RolesGuard)` on all non-public endpoints | CWE-602 (frontend-only guards) |
-| Ownership validation on resources | `WHERE id = $1 AND owner_id = $2` on every data access query | CWE-639 (IDOR) |
-| Least privilege enforcement | Guards check `role >= required` before proceeding | CWE-269 (privilege escalation) |
-| Admin endpoint protection | All `/admin` routes require `admin` role, return 403 for regular users | CWE-639 (cross-role access) |
-
-## Input Validation Controls
-
-| Control | Implementation | Remediates |
-|---------|---------------|------------|
-| Parameterised queries | TypeORM/Knex with query parameters, zero string concatenation | CWE-89 (SQL injection) |
-| Input length limits | Maximum lengths on all text fields (email, username, password, filenames) | CWE-20 (improper input validation) |
-| Email format validation | Server-side regex + uniqueness check | CWE-20 (improper input validation) |
-| Generic error responses | Global exception filter strips stack traces and SQL details | CWE-209 (error information leakage) |
-
-## File Handling Controls
-
-| Control | Implementation | Remediates |
-|---------|---------------|------------|
-| MIME type validation | Validate via file magic bytes (file header), not client Content-Type | CWE-434 (MIME confusion) |
-| Path canonicalisation | `path.resolve()` + verify result starts with base upload directory | CWE-22 (path traversal) |
-| Upload size limits | Multer `limits: { fileSize: 10 * 1024 * 1024 }` (10 MB) | CWE-400 (resource exhaustion) |
-| File ownership checks | `files.owner_id = currentUser.id` on read, download, and delete | CWE-639 (IDOR on files) |
-| Filename sanitisation | Strip path separators, special characters, and null bytes from uploaded filenames | CWE-22 (path injection via filename) |
-
-## Transport Controls
-
-| Control | Implementation | Remediates |
-|---------|---------------|------------|
-| TLS termination | nginx terminates TLS 1.3 on port 443 | CWE-319 (plaintext transport) |
-| HSTS header | `Strict-Transport-Security: max-age=31536000; includeSubDomains` | CWE-319 (protocol downgrade) |
-| Secure cookies | `secure` flag on all cookies (only sent over HTTPS) | CWE-614 (sensitive cookie without secure flag) |
-| No plaintext ports | Only port 443 exposed externally. No HTTP (80), no direct backend/DB ports | CWE-319 (plaintext transport) |
-
-## Infrastructure Controls
-
-| Control | Implementation | Remediates |
-|---------|---------------|------------|
-| Non-root containers | `USER 1001:1001` in Dockerfiles, `user:` in docker-compose | CWE-250 (running as root) |
-| Read-only filesystems | `read_only: true` in docker-compose (except explicit volume mounts) | CWE-732 (incorrect permissions) |
-| Docker secrets | `POSTGRES_PASSWORD_FILE=/run/secrets/db_password` instead of env vars | CWE-798 (hardcoded credentials) |
-| Internal Docker network | `networks: internal` with `internal: true` (no external gateway) for DB | CWE-668 (exposed services) |
-| Resource limits | `deploy.resources.limits` for CPU and memory per container | CWE-770 (resource exhaustion) |
-| Health checks | Liveness probes on all services | Operational resilience |
-| Minimal base images | Alpine-based images, no unnecessary packages | CWE-1104 (unmaintained components) |
-
-## Security Headers
-
-| Header | Value | Purpose |
-|--------|-------|---------|
-| `Content-Security-Policy` | `default-src 'self'` | Prevent XSS via inline scripts and external resources |
-| `X-Frame-Options` | `DENY` | Prevent clickjacking |
-| `X-Content-Type-Options` | `nosniff` | Prevent MIME sniffing |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` | Limit referrer leakage |
-| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disable unnecessary browser APIs |
-
-All headers set by nginx (not the application) to ensure consistent enforcement.
-
-## Logging and Monitoring Controls
-
-| Control | Implementation | Remediates |
-|---------|---------------|------------|
-| Structured logging | Pino or Winston with JSON output | CWE-778 (insufficient logging) |
-| Sensitive field redaction | Password, token, and credential fields stripped from logs | CWE-532 (sensitive data in logs) |
-| Auth event audit trail | Log all login attempts (success/failure), registrations, logouts, role changes | CWE-778 (insufficient logging) |
 | Request ID correlation | Unique ID per request, propagated through all log entries | Debugging and incident response |
 
 ## Rate Limiting Controls

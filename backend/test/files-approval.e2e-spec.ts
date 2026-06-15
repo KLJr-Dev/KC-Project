@@ -49,11 +49,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
   /**
    * Helper: Register a user and return { userId, token }
    */
-  async function registerUser(
-    email: string,
-    username: string,
-    password = 'password123',
-  ) {
+  async function registerUser(email: string, username: string, password = 'password123') {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, username, password })
@@ -68,11 +64,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
   /**
    * Helper: Promote a user to moderator or admin via admin endpoint
    */
-  async function promoteUser(
-    userId: string,
-    role: 'moderator' | 'admin',
-    adminToken: string,
-  ) {
+  async function promoteUser(userId: string, role: 'moderator' | 'admin', adminToken: string) {
     const response = await request(app.getHttpServer())
       .put(`/admin/users/${userId}/role`)
       .set('Authorization', `Bearer ${adminToken}`)
@@ -85,11 +77,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
   /**
    * Helper: Forge a JWT with arbitrary role claim
    */
-  function forgeJwt(
-    userId: string,
-    email: string,
-    role: 'user' | 'moderator' | 'admin',
-  ): string {
+  function forgeJwt(userId: string, email: string, role: 'user' | 'moderator' | 'admin'): string {
     return jwtService.sign({
       sub: userId,
       email,
@@ -147,19 +135,11 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
     // Note: This will fail because fake admin doesn't exist, so let's use a different approach
     // Actually, let's create a legit admin user first
     const realAdmin = await registerUser('realadmin@example.com', 'admin');
-    const realAdminToken = forgeJwt(
-      realAdmin.userId,
-      'realadmin@example.com',
-      'admin',
-    );
+    const realAdminToken = forgeJwt(realAdmin.userId, 'realadmin@example.com', 'admin');
 
     await promoteUser(moderator.userId, 'moderator', realAdminToken);
 
-    const moderatorToken = forgeJwt(
-      moderator.userId,
-      'moderator@example.com',
-      'moderator',
-    );
+    const moderatorToken = forgeJwt(moderator.userId, 'moderator@example.com', 'moderator');
 
     // Upload file as regular user
     const uploadRes = await uploadFile(user.token);
@@ -212,11 +192,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
     const fileId = uploadRes.body.id;
 
     // Forge a moderator JWT (user has role='user' in DB, but JWT claims 'moderator')
-    const forgedModeratorToken = forgeJwt(
-      user.userId,
-      'regularuser@example.com',
-      'moderator',
-    );
+    const forgedModeratorToken = forgeJwt(user.userId, 'regularuser@example.com', 'moderator');
 
     // Try to approve file with forged token
     // This should succeed because HasRole(['admin', 'moderator']) trusts JWT (CWE-639)
@@ -256,11 +232,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
     const uploadRes = await uploadFile(uploader.token);
     const fileId = uploadRes.body.id;
 
-    const moderatorToken = forgeJwt(
-      moderatorUser.userId,
-      'mod@example.com',
-      'moderator',
-    );
+    const moderatorToken = forgeJwt(moderatorUser.userId, 'mod@example.com', 'moderator');
 
     // Moderator approves
     await request(app.getHttpServer())
@@ -309,11 +281,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
   it('Bonus: Moderator can reject files', async () => {
     // Create moderator and uploader
     const realAdmin = await registerUser('admin@example.com', 'admin');
-    const realAdminToken = forgeJwt(
-      realAdmin.userId,
-      'admin@example.com',
-      'admin',
-    );
+    const realAdminToken = forgeJwt(realAdmin.userId, 'admin@example.com', 'admin');
 
     const moderator = await registerUser('mod@example.com', 'mod');
     await promoteUser(moderator.userId, 'moderator', realAdminToken);

@@ -15,6 +15,8 @@ STRIDE was developed by Microsoft and categorises threats into six types:
 
 ## STRIDE per Attack Surface (v1.0.0)
 
+59 documented CWE instances across 38 unique IDs. Full inventory: [cwe-inventory.md](../security/cwe-inventory.md). Product UI client-filters; API is the security boundary.
+
 ### Identity Surface
 
 | STRIDE | Threat | CWE | OWASP |
@@ -74,9 +76,10 @@ STRIDE was developed by Microsoft and categorises threats into six types:
 | **Tampering** | Modify own role via API (no server-side validation) | CWE-269 | A01:2025 |
 | **Repudiation** | No audit log of admin actions (role changes, user management) | CWE-778 | A09:2025 |
 | **Info Disclosure** | Admin endpoints return data to non-admin users | CWE-639 | A01:2025 |
-| **EoP** | Regular user calls admin endpoints (no backend guard) | CWE-602 | A06:2025 |
-| **EoP** | Frontend hides admin UI but backend doesn't enforce | CWE-602 | A06:2025 |
-| **EoP** | Self-promote to admin via role modification endpoint | CWE-269 | A01:2025 |
+| **EoP** | `DELETE /admin/users/:id` — JwtAuthGuard only | CWE-862 | A01:2025 |
+| **EoP** | Frontend `RequireRole` from localStorage; forge JWT for mod/admin UI | CWE-345, CWE-639 | A06:2025 |
+| **EoP** | Self-promote via escalation endpoint; moderator cascade | CWE-269 | A01:2025 |
+| **EoP** | `GET /admin/audit-logs` without HasRole — any authed user | CWE-284 | A01:2025 |
 
 ### Infrastructure Surface
 
@@ -86,7 +89,7 @@ STRIDE was developed by Microsoft and categorises threats into six types:
 | **Tampering** | Modify database directly via exposed port 5432 | CWE-668 | A02:2025 |
 | **Tampering** | Container escape from root container to host | CWE-250 | A02:2025 |
 | **Repudiation** | Logs contain sensitive data but lack structure for forensics | CWE-532 | A09:2025 |
-| **Info Disclosure** | All ports exposed, services discoverable via port scan | CWE-668 | A02:2025 |
+| **Info Disclosure** | nginx at :8080 only externally; DB on :5433 for e2e | CWE-668 | A02:2025 |
 | **Info Disclosure** | Sensitive data (passwords, tokens) in application logs | CWE-532 | A09:2025 |
 | **Info Disclosure** | No TLS -- network traffic readable in plaintext | CWE-319 | A04:2025 |
 | **DoS** | No container resource limits -- exhaust host CPU/memory | CWE-770 | A02:2025 |
@@ -105,7 +108,7 @@ High-level view: which STRIDE categories apply to which surfaces.
 | **Repudiation** | No auth event logging | No change logs | No query logs | No file access logs | No admin action logs | Unstructured logs |
 | **Info Disclosure** | JWT payload, error messages, localStorage | Sequential IDs, IDOR reads, stack traces in logs (A10:2025) | SQL errors, SQL logging (CWE-532) | File IDOR, share tokens, traversal reads | Admin data to users, crash-test endpoint | Ports, logs, plaintext traffic, X-Powered-By, Swagger public |
 | **DoS** | Unlimited auth attempts | No query limits, unbounded list endpoints (CWE-400) | Heavy queries | Oversized uploads | -- | No resource limits |
-| **EoP** | Token replay, no expiry | Ownership bypass | -- | Cross-user file access | FE-only guards, self-promote | Root containers |
+| **EoP** | Token replay, no expiry | Ownership bypass | -- | Cross-user file access | Guard gaps, JWT forge, mod cascade, audit-logs | Root containers |
 
 ---
 

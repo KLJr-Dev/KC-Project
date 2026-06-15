@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { unlink } from 'fs/promises';
 import { FileEntity } from './entities/file.entity';
+import { SharingEntity } from '../sharing/entities/sharing.entity';
 import { FileResponseDto } from './dto/file-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { buildPaginatedResponse, resolvePagination } from '../common/pagination.util';
@@ -59,6 +60,8 @@ export class FilesService {
   constructor(
     @InjectRepository(FileEntity)
     private readonly fileRepo: Repository<FileEntity>,
+    @InjectRepository(SharingEntity)
+    private readonly shareRepo: Repository<SharingEntity>,
     private readonly auditService: AuditService,
   ) {}
 
@@ -146,6 +149,7 @@ export class FilesService {
       }
     }
 
+    await this.shareRepo.delete({ fileId: id });
     const result = await this.fileRepo.delete(id);
     return (result.affected ?? 0) > 0;
   }

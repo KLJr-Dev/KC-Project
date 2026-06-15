@@ -1,70 +1,128 @@
 # Infrastructure
 
-Deployment and infrastructure definitions for **KC-Project**.
+Deployment and infrastructure for **KC-Project** v1.0.0.
 
-Canonical deployment timeline: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x).
+Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+).
 
 ---
 
-## Current Status (v0.4.6 app / v0.7.x Docker planned)
+## Dual deploy paths
 
-**PostgreSQL only in compose.** The database runs in Docker; backend and frontend run natively (`npm run start:dev`) until v0.7.x ships full stack containerisation. Uploaded files live in `backend/uploads/`. See [ADR-020](../docs/decisions/ADR-020-docker-db-only.md) and [ADR-024](../docs/decisions/ADR-024-file-storage-strategy.md).
+| Path | Compose file | Use case | Entry |
+|------|--------------|----------|-------|
+| **Pentest (primary)** | `docker-compose.prod.yml` | Cycle-1 testing, VM deploy, smoke/journey | `http://localhost:8080` |
+| **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 
-### Quick Start (dev DB)
+```mermaid
+flowchart TB
+    subgraph pentest [Pentest path]
+        prodCompose[docker-compose.prod.yml]
+        nginx[nginx :8080]
+        prodCompose --> nginx
+    end
+    subgraph dev [Dev path]
+        devCompose[compose.yml PG only]
+        nativeBE[backend :4000]
+        devCompose --> nativeBE
+    end
+```
+
+**Warning:** Prod uses `pgdata_prod` / `kc_prod`. Dev uses `pgdata` / `kc_dev`. Mixing volumes causes `database "kc_prod" does not exist`.
+
+---
+
+## Quick start (pentest / production stack)
 
 ```bash
-# Start PostgreSQL
+cp infra/.env.example infra/.env
+docker compose -f infra/docker-compose.prod.yml up -d --build
+./infra/smoke-test.sh
+./infra/journey-test.sh
+```
+
+App: `http://localhost:8080` — API at `/api/*`.
+
+---
+
+## Quick start (native dev)
+
+```bash
 docker compose -f infra/compose.yml up -d
-
-# Stop (keep data)
-docker compose -f infra/compose.yml down
-
-# Stop + delete all data
-docker compose -f infra/compose.yml down -v
+cd backend && npm run start:dev   # :4000
+cd frontend && npm run dev        # :3000
 ```
-
-### What's Running (dev)
-
-| Service | Image | Port | Credentials |
-|---------|-------|------|-------------|
-| `kc-postgres` | `postgres:16` | `5432` | `postgres` / `postgres` |
-
-Database: `kc_dev`. Data persisted via named volume `pgdata`.
 
 ---
 
-## Migrations (v0.2.5+)
+## Environment (`.env.example`)
 
-TypeORM migrations have replaced `synchronize: true`. The app auto-runs pending migrations on start (`migrationsRun: true`).
+Copy to `infra/.env` before prod compose. Loaded via `env_file` in `docker-compose.prod.yml`.
+
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `DB_HOST` | `postgres` | Docker service name |
+| `DB_PORT` | `5432` | Internal port |
+| `DB_USER` / `DB_PASSWORD` | `postgres` | Intentional CWE-798 |
+| `DB_NAME` | `kc_prod` | Prod database |
+| `NEXT_PUBLIC_API_URL` | `/api` | Browser-relative API path |
+
+---
+
+## Verification scripts
 
 ```bash
-# Generate a migration after changing entities:
-cd backend && npm run migration:generate -- src/migrations/YourMigrationName
-
-# Run migrations manually (also happens on app start):
-cd backend && npm run migration:run
-
-# Revert the last migration:
-cd backend && npm run migration:revert
+chmod +x infra/*.sh
 ```
 
-See [ADR-022](../docs/decisions/ADR-022-typeorm-migrations.md).
+| Script | Prereq | Purpose |
+|--------|--------|---------|
+| `smoke-test.sh` | Full prod stack on `:8080` | Health → register → upload → list + demo login |
+| `journey-test.sh` | Full prod stack | 3 roles, share-1 API+UI, mod pending, admin files, IDOR baseline |
+| `e2e-docker.sh` | Docker available | 150 backend e2e tests vs `kc_prod` on host `:5433` |
+| `vm-setup.sh` | Ubuntu + sudo | Install Docker, clone repo, prod stack, smoke + journey |
+
+Env overrides: `BASE_URL` (default `http://localhost:8080/api`), `APP_URL` (default `http://localhost:8080`).
+
+### Full verify gate
+
+```bash
+docker compose -f infra/docker-compose.prod.yml up -d --build
+./infra/smoke-test.sh
+./infra/journey-test.sh
+./infra/e2e-docker.sh   # expect 150 passed
+```
+
+---
+
+## Security testing
+
+Pentest entry and artifacts: [docs/security/Cycle-1/README.md](../docs/security/Cycle-1/README.md)
+
+Ground truth: [v1.0.0-ground-truth.md](../docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md)
+
+---
 
 ## Contents
 
 | File | Purpose |
 |------|---------|
-| `compose.yml` | Dev PostgreSQL only (v0.2.0+) |
-| `docker-compose.prod.yml` | Full stack — planned v0.7.1 |
-| `vm-setup.sh` | Ubuntu VM provisioning — planned v0.7.2 |
-| `.env.example` | Production env template — planned v0.7.2 |
+| `compose.yml` | Dev PostgreSQL only (`kc_dev`, `:5432`) |
+| `docker-compose.prod.yml` | Full stack: postgres, backend, frontend, nginx |
+| `.env.example` | Prod env template → copy to `.env` |
+| `nginx.conf` | Reverse proxy `/api` → backend, `/` → frontend |
+| `smoke-test.sh` | Minimal API smoke |
+| `journey-test.sh` | Role + seed journey |
+| `e2e-docker.sh` | Full e2e vs Docker postgres |
+| `vm-setup.sh` | Ubuntu VM bootstrap |
 
-## Planned (v0.7.x)
+---
 
-Primary run path after v0.7.x:
+## Migrations
+
+TypeORM migrations run on backend start (`migrationsRun: true`).
 
 ```bash
-docker compose -f infra/docker-compose.prod.yml up -d
+cd backend && npm run migration:run
 ```
 
-Services: `postgres`, `backend`, `frontend`, `nginx` with persistent volumes (`pgdata`, `uploads`).
+See [ADR-022](../docs/decisions/ADR-022-typeorm-migrations.md).

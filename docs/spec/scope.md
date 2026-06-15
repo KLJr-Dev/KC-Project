@@ -23,7 +23,7 @@ The application implements five domain surfaces, each representing a realistic a
 | Domain | Functionality |
 |--------|--------------|
 | **User Management** | Registration, authentication, session handling, profile data |
-| **Role Management** | Multiple user roles (regular, admin), role-based access to functionality |
+| **Role Management** | Ternary RBAC (`user`, `moderator`, `admin`), role-based access to functionality |
 | **File Management** | Upload, view, download, and delete files owned by the authenticated user |
 | **File Sharing** | Generate sharing links, public access to shared files, mixed public/private access |
 | **Administration** | View user accounts, modify roles, access system-wide data (restricted by role) |
@@ -103,8 +103,10 @@ See [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) and [version-t
 - JWT-based session management (weak → secure across versions)
 - File upload, download, metadata management, and deletion
 - Public file sharing with link generation
-- Role-based access control (user and admin roles)
-- Administrative functions (user listing, role modification, system-wide views)
+- Role-based access control (user, moderator, and admin roles)
+- Moderator file approval workflow (`PUT /files/:id/approve`)
+- Administrative functions (user listing, role modification, stats, audit logs, system-wide views)
+- Product UI for end-user flows; API explorers at `/dev/*` for pentesters
 
 ### Security surfaces
 
@@ -118,11 +120,31 @@ See [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) and [version-t
 
 ### Infrastructure
 
-- Docker containers for frontend, backend, and database
-- docker-compose orchestration
+- Docker production stack (`infra/docker-compose.prod.yml`) — nginx at `:8080`, mandatory for v1.0.x pentest
+- Dev PostgreSQL only (`infra/compose.yml`) for native backend/frontend development
 - Ubuntu VM deployment
-- Volume-based persistence (file uploads, database data)
-- Self-hosted GitLab (v0.7.x+ per [ADR-014](../decisions/ADR-014-github-vcs.md))
+- Volume-based persistence (`pgdata_prod`, `uploads`)
+- GitHub version control (per [ADR-014](../decisions/ADR-014-github-vcs.md))
+
+### Product UI (v1.0.0)
+
+Role-aware pages (14 routes + 1 redirect):
+
+| Route | Role | Purpose |
+|-------|------|---------|
+| `/` | Public | Home, demo accounts, version string |
+| `/auth` | Public | Register / login |
+| `/files`, `/files/[id]` | User+ | Own files (client-filtered) |
+| `/sharing` | User+ | Own shares (client-filtered) |
+| `/share/[token]` | Public | Friendly public share landing |
+| `/moderator` | Mod/Admin | Pending file review queue |
+| `/admin` | Admin | Users, stats, audit, all files |
+| `/dev/*` | Public | Raw API explorers (no client filter) |
+| `/users` | — | Redirects to `/dev/users` |
+
+### Product UI vs API boundary
+
+The **product UI** filters files and shares by `ownerId` client-side for usability. The **API** is the real security boundary: `GET /files` and `GET /sharing` return all records to any authenticated user (CWE-639). Pentesters must test with `/dev`, Burp, or curl — not UI alone. See [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md).
 
 ### Security activities
 
@@ -137,6 +159,22 @@ See [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) and [version-t
 - System architecture and auth flow diagrams
 - Threat model and infrastructure topology diagrams
 - Formal requirements and security baseline specifications
+
+---
+
+## v1.0.0 Snapshot
+
+| Metric | Value |
+|--------|-------|
+| CWE instances / unique IDs | 59 / 38 |
+| E2E tests | 150 (`./infra/e2e-docker.sh`) |
+| Product + dev UI routes | 14 pages (+ 1 redirect) |
+| Live API endpoints | 28 (+ `/ping`, `/health`, `/admin/crash-test`, Swagger) |
+| Deploy entry | `http://localhost:8080` (Docker prod) |
+| Demo users | `user@kc.test`, `mod@kc.test`, `admin@kc.test`, `other@kc.test` |
+| Seeded share token | `share-1` (public, predictable) |
+
+Readiness gate: [v1.0.0-pentest-ready.md](../release/v1.0.0-pentest-ready.md). Ground truth: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md).
 
 ---
 

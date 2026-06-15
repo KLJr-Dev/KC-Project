@@ -10,11 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { HasRoleGuard, HasRole } from '../auth/guards/has-role.guard';
@@ -111,7 +107,7 @@ export class AdminController {
    * CWE-639: Role trust from JWT, multiplied by cascade effect
    * CWE-841: Unclear role hierarchy (moderator at same nominal level but can promote)
    *
-   * Design Flaw: 
+   * Design Flaw:
    * - Moderator can promote user → moderator
    * - New moderator can immediately promote another → moderator
    * - Exponential escalation possible (A→B→C→D cascade)
@@ -139,10 +135,7 @@ export class AdminController {
     status: 404,
     description: 'User not found',
   })
-  async escalateUserRole(
-    @Param('id') userId: string,
-    @CurrentUser() user: JwtPayload,
-  ) {
+  async escalateUserRole(@Param('id') userId: string, @CurrentUser() user: JwtPayload) {
     // CWE-639: Role extracted from JWT, no DB re-validation
     return this.adminService.escalateUserRole(
       userId,
@@ -237,11 +230,7 @@ export class AdminController {
     status: 404,
     description: 'User not found',
   })
-  async deleteUser(
-    @Param('id') userId: string,
-    @CurrentUser() user: JwtPayload,
-  ): Promise<void> {
+  async deleteUser(@Param('id') userId: string, @CurrentUser() user: JwtPayload): Promise<void> {
     return this.adminService.deleteUser(userId, user.sub);
   }
 }
-

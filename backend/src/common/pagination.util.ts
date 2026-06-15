@@ -1,10 +1,7 @@
 export const DEFAULT_TAKE = 20;
 export const MAX_TAKE = 100;
 
-export function resolvePagination(
-  skip?: string,
-  take?: string,
-): { skip: number; take: number } {
+export function resolvePagination(skip?: string, take?: string): { skip: number; take: number } {
   let parsedSkip = skip !== undefined ? Number(skip) : 0;
   let parsedTake = take !== undefined ? Number(take) : DEFAULT_TAKE;
 

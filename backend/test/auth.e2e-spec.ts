@@ -220,9 +220,7 @@ describe('AuthController GET /auth/me (e2e)', () => {
    * unauthenticated requests.
    */
   it('GET /auth/me returns 401 when no Authorization header is provided', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/auth/me')
-      .expect(401);
+    const response = await request(app.getHttpServer()).get('/auth/me').expect(401);
 
     expect(response.body.message).toContain('Missing Authorization header');
   });
@@ -300,9 +298,7 @@ describe('AuthController POST /auth/logout (e2e)', () => {
    * No Authorization header → 401.
    */
   it('POST /auth/logout returns 401 without Authorization header', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/auth/logout')
-      .expect(401);
+    const response = await request(app.getHttpServer()).post('/auth/logout').expect(401);
 
     expect(response.body.message).toContain('Missing Authorization header');
   });
@@ -673,9 +669,7 @@ describe('AuthController /auth/me role (v0.4.0 e2e)', () => {
     expect(parts.length).toBe(3);
 
     // Decode payload (base64url to JSON)
-    const payload = JSON.parse(
-      Buffer.from(parts[1], 'base64url').toString('utf8'),
-    );
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
 
     // Verify role is in the JWT payload
     expect(payload.role).toBe('user');
@@ -711,12 +705,9 @@ describe('AuthController /auth/me role (v0.4.0 e2e)', () => {
 
     // Decode JWT and verify role is included
     const parts = token.split('.');
-    const payload = JSON.parse(
-      Buffer.from(parts[1], 'base64url').toString('utf8'),
-    );
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
 
     expect(payload.role).toBe('user');
     expect(payload.sub).toBeDefined();
   });
 });
-

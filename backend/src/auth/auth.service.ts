@@ -118,17 +118,13 @@ export class AuthService {
     const user = await this.usersService.findEntityByEmail(email);
     if (!user) {
       // VULN: distinct error reveals that this email is not registered (CWE-204)
-      throw new UnauthorizedException(
-        `No user with that email (v0.1.2)`,
-      );
+      throw new UnauthorizedException(`No user with that email (v0.1.2)`);
     }
 
     // VULN: plaintext password comparison — no hashing (CWE-256)
     if (user.password !== password) {
       // VULN: distinct error reveals that the email IS registered (CWE-204)
-      throw new UnauthorizedException(
-        `Incorrect password (v0.1.2)`,
-      );
+      throw new UnauthorizedException(`Incorrect password (v0.1.2)`);
     }
 
     // VULN: JWT signed with weak hardcoded secret, no expiry (CWE-347, CWE-613)
@@ -154,9 +150,7 @@ export class AuthService {
   async getProfile(userId: string): Promise<UserResponseDto> {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new NotFoundException(
-        `User with ID ${userId} not found (v0.1.3)`,
-      );
+      throw new NotFoundException(`User with ID ${userId} not found (v0.1.3)`);
     }
     return user;
   }

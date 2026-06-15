@@ -38,3 +38,9 @@ Rationale:
 - **Positive:** v0.7.x scope remains distinct — it's about containerising the application, not the database.
 - **Negative:** Developers need Docker Desktop installed. Acceptable — Docker is a standard development tool.
 - **Negative:** `docker compose -f infra/compose.yml up -d` is slightly more typing than `brew services start postgresql`. Acceptable trade-off for isolation and reproducibility.
+
+---
+
+## Amendment (v0.7 / v0.9)
+
+Full application stack is now containerised in `infra/docker-compose.prod.yml` (postgres, backend, frontend, nginx). `infra/compose.yml` remains **dev DB only** for native `npm run start:dev`. Primary run path for v1.0.0 is Docker on port 8080. See [infra/README.md](../../infra/README.md) and [vm-deployment.md](../deploy/vm-deployment.md).

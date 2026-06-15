@@ -33,8 +33,13 @@ Each ADR follows a standard format: **Status**, **Context**, **Decision**, **Con
 | [023](ADR-023-error-handling-philosophy.md) | Error handling philosophy (insecure by design) | Accepted | v0.2.4 |
 | [024](ADR-024-file-storage-strategy.md) | File storage strategy | Accepted | v0.3.0 |
 | [025](ADR-025-rbac-strategy.md) | RBAC strategy (progressive multi-role system) | Accepted | v0.4.0 |
+| [025-design](ADR-025-rbac-design.md) | RBAC design detail (superseded by ADR-025 strategy for index) | Superseded | v0.4.0 |
 | [026](ADR-026-versioning-expansion-cycle.md) | Versioning & expansion cycle strategy (app-complete-first) | Accepted | v0.4.0 |
 | [027](ADR-027-strategy-canonical-roadmap.md) | STRATEGY.md as canonical roadmap authority | Accepted | v0.4.6 |
+| [028](ADR-028-product-ux-v09.md) | v0.9 product UX (/dev explorers, role-aware nav) | Accepted | v0.9.0 |
+| [029](ADR-029-demo-user-seeding.md) | Demo user seeding via migration | Accepted | v0.9.0 |
+| [030](ADR-030-demo-files-shares-seeding.md) | Demo files and shares seeding via migration | Accepted | v1.0.x |
+| [031](ADR-031-security-cycle-docs.md) | Security cycle documentation structure (`Cycle-N/`) | Accepted | v1.0.0 |
 
 ## Adding a New ADR
 

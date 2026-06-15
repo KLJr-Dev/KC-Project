@@ -33,19 +33,6 @@ export type CreateSharing = components['schemas']['CreateSharingDto'];
 export type UpdateSharing = components['schemas']['UpdateSharingDto'];
 export type SharingResponse = components['schemas']['SharingResponseDto'];
 
-// ── Admin ────────────────────────────────────────────────────────────
-
-export type CreateAdmin = components['schemas']['CreateAdminDto'];
-export type UpdateAdmin = components['schemas']['UpdateAdminDto'];
-export type AdminResponse = components['schemas']['AdminResponseDto'];
-
-// ── Infrastructure ───────────────────────────────────────────────────
-
-export interface PingResponse {
-  status: string;
-  service: string;
-}
-
 // ── Generic ──────────────────────────────────────────────────────────
 
 export interface DeleteResponse {

@@ -6,7 +6,7 @@ Complete attack surface map for v1.0.0 (insecure MVP) with dual CWE + OWASP Top 
 
 ## v1.0.0 Attack Surface Map
 
-Approximately 20 weaknesses across 6 attack surfaces. Every weakness exists by design and will be documented, exploited, and remediated through the v1.0.x pentest cycle.
+**59 documented CWE instances across 38 unique CWE IDs** across 6 attack surfaces. Full inventory: [cwe-inventory.md](../security/cwe-inventory.md). Product UI client-filters files/shares; the API is the security boundary — test with `/dev`, Burp, or curl.
 
 ```mermaid
 graph TD
@@ -55,10 +55,10 @@ graph TD
   subgraph infra ["Infrastructure Surface"]
     RootContainers["Root containers\nCWE-250\nA02:2025"]
     DefaultCreds["Default DB credentials\nCWE-798\nA07:2025"]
-    AllPortsExposed["All ports exposed to internet\nCWE-668\nA02:2025"]
+    NginxOnly["nginx :8080 entry\nDB :5433 e2e only\nCWE-668\nA02:2025"]
     NoTLS["No TLS (HTTP only)\nCWE-319\nA04:2025"]
     VerboseLogs["Sensitive data in logs\nCWE-532\nA09:2025"]
-    NoNetworkSeg["No network segmentation\nCWE-668\nA02:2025"]
+    NginxBodyLimit["nginx 1 MB body limit\naccidental 413\nA02:2025"]
   end
 ```
 
@@ -66,7 +66,7 @@ graph TD
 
 ## Weakness Reference Table
 
-Full inventory of v1.0.0 weaknesses with classification, surface, and version traceability.
+Representative v1.0.0 weaknesses (subset). **Authoritative count: 59 instances / 38 unique CWE IDs** — see [cwe-inventory.md](../security/cwe-inventory.md).
 
 | # | Weakness | CWE | OWASP Top 10 | Surface | Introduced | Remediated |
 |---|----------|-----|-------------|---------|------------|------------|

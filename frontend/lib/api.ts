@@ -35,18 +35,14 @@
  */
 
 import type {
-  AdminResponse,
   AuthResponse,
-  CreateAdmin,
   CreateSharing,
   CreateUser,
   DeleteResponse,
   FileResponse,
   LoginRequest,
-  PingResponse,
   RegisterRequest,
   SharingResponse,
-  UpdateAdmin,
   UpdateSharing,
   UpdateUser,
   UploadFileRequest,
@@ -172,6 +168,19 @@ export class ApiError extends Error {
   }
 }
 
+/** Paginated list shape returned by GET /files, /sharing, /users since v0.5.2. */
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+async function listItems<T>(path: string): Promise<T[]> {
+  const res = await request<PaginatedResponse<T>>(path);
+  return res.items ?? [];
+}
+
 /**
  * Core request helper. All API functions delegate to this.
  *
@@ -195,7 +204,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   } catch (err) {
     if (err instanceof TypeError) {
       throw new Error(
-        'Unable to reach the server. Make sure the backend is running on localhost:4000.',
+        `Unable to reach the server at ${API_BASE}. Make sure the backend is running.`,
       );
     }
     throw err;
@@ -236,18 +245,13 @@ function del<T>(path: string): Promise<T> {
   return request<T>(path, { method: 'DELETE' });
 }
 
-// ── Ping ─────────────────────────────────────────────────────────────
-// GET /ping — health check, confirms backend is reachable
-
-export const ping = () => request<PingResponse>('/ping');
-
 // ── Users ────────────────────────────────────────────────────────────
 // CRUD operations on /users. These are the raw user management endpoints
 // (separate from auth). Currently unprotected — no guard on the backend.
 
 export const usersCreate = (dto: CreateUser) => post<UserResponse>('/users', dto);
 
-export const usersList = () => request<UserResponse[]>('/users');
+export const usersList = () => listItems<UserResponse>('/users');
 
 export const usersGetById = (id: string) => request<UserResponse>(`/users/${id}`);
 
@@ -284,8 +288,7 @@ export const authMe = () => request<UserResponse>('/auth/me');
  *       Remediation (v2.0.0): POST /auth/logout deletes refresh token from DB.
  *       Frontend clears httpOnly cookie via Set-Cookie maxAge=0 from backend.
  */
-export const authLogout = () =>
-  request<{ message: string }>('/auth/logout', { method: 'POST' });
+export const authLogout = () => request<{ message: string }>('/auth/logout', { method: 'POST' });
 
 // ── Files ────────────────────────────────────────────────────────────
 // File management endpoints. Backed by real Multer multipart uploads
@@ -327,9 +330,12 @@ export async function filesUploadMultipart(
 
 export const filesGetById = (id: string) => request<FileResponse>(`/files/${id}`);
 
-export const filesList = () => request<FileResponse[]>('/files');
+export const filesList = () => listItems<FileResponse>('/files');
 
 export const filesDelete = (id: string) => del<DeleteResponse>(`/files/${id}`);
+
+export const filesApprove = (id: string, status: 'approved' | 'rejected') =>
+  put<FileResponse>(`/files/${id}/approve`, { status });
 
 /**
  * Download helper for GET /files/:id/download.
@@ -357,7 +363,7 @@ export async function filesDownload(id: string): Promise<Blob> {
 
 export const sharingCreate = (dto: CreateSharing) => post<SharingResponse>('/sharing', dto);
 
-export const sharingList = () => request<SharingResponse[]>('/sharing');
+export const sharingList = () => listItems<SharingResponse>('/sharing');
 
 export const sharingGetById = (id: string) => request<SharingResponse>(`/sharing/${id}`);
 
@@ -373,19 +379,13 @@ export const sharingDelete = (id: string) => del<DeleteResponse>(`/sharing/${id}
  */
 export const sharingPublicUrl = (token: string) => `${API_BASE}/sharing/public/${token}`;
 
-// ── Admin ────────────────────────────────────────────────────────────
-// Administrative endpoints. Currently stub routes on the backend.
-
-export const adminCreate = (dto: CreateAdmin) => post<AdminResponse>('/admin', dto);
-
-export const adminList = () => request<AdminResponse[]>('/admin');
-
-export const adminGetById = (id: string) => request<AdminResponse>(`/admin/${id}`);
-
-export const adminUpdate = (id: string, dto: UpdateAdmin) =>
-  put<AdminResponse>(`/admin/${id}`, dto);
-
-export const adminDelete = (id: string) => del<DeleteResponse>(`/admin/${id}`);
+/** Product UI: friendly landing page (frontend route, not API). */
+export const sharingFriendlyUrl = (token: string) => {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/share/${token}`;
+  }
+  return `/share/${token}`;
+};
 
 // ── Admin Users (v0.4.1) ──────────────────────────────────────────────
 // v0.4.1: User management endpoints (admin-only, weak authorization).
@@ -394,11 +394,13 @@ export const adminDelete = (id: string) => del<DeleteResponse>(`/admin/${id}`);
 // CWE-200: All user emails exposed.
 // CWE-400: Unbounded list.
 
+export type AdminRole = 'user' | 'moderator' | 'admin';
+
 export interface AdminUser {
   id: string;
   email: string;
   username: string;
-  role: 'user' | 'admin';
+  role: AdminRole;
   createdAt: string;
   updatedAt: string;
 }
@@ -429,14 +431,14 @@ export interface AuditLogEntry {
 }
 
 export interface UpdateUserRoleRequest {
-  role: 'user' | 'admin';
+  role: AdminRole;
 }
 
 export interface UpdateUserRoleResponse {
   id: string;
   email: string;
   username: string;
-  role: 'user' | 'admin';
+  role: AdminRole;
   createdAt: string;
   updatedAt: string;
 }
@@ -471,5 +473,12 @@ export const adminGetAuditLogs = () => request<AuditLogEntry[]>('/admin/audit-lo
  * CWE-862: No additional auth checks
  * CWE-532: No audit trail
  */
-export const adminUpdateUserRole = (userId: string, role: 'user' | 'admin') =>
+export const adminUpdateUserRole = (userId: string, role: AdminRole) =>
   put<UpdateUserRoleResponse>(`/admin/users/${userId}/role`, { role });
+
+/** PUT /admin/users/:id/role/escalate — moderator escalation chain (CWE-269) */
+export const adminEscalateUserRole = (userId: string) =>
+  put<UpdateUserRoleResponse>(`/admin/users/${userId}/role/escalate`, {});
+
+/** DELETE /admin/users/:id — missing HasRole guard (CWE-862) */
+export const adminDeleteUser = (userId: string) => del<DeleteResponse>(`/admin/users/${userId}`);

@@ -18,11 +18,7 @@ import { AuditModule } from '../audit/audit.module';
  * VULN (v0.4.1): Admin endpoints don't have rate limiting or audit trails.
  */
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, FileEntity, SharingEntity]),
-    AuthModule,
-    AuditModule,
-  ],
+  imports: [TypeOrmModule.forFeature([User, FileEntity, SharingEntity]), AuthModule, AuditModule],
   controllers: [AdminController],
   providers: [AdminService],
   exports: [AdminService],

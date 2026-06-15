@@ -13,15 +13,17 @@ People who work on, test, or learn from the project.
 - **Role:** Builds the system incrementally per the roadmap
 - **Goals:** Implement realistic web application features, introduce intentional security weaknesses at the right versions, maintain clean architecture and documentation
 - **Activities:** Writing code, creating ADRs, updating architecture docs, running tests
-- **Tooling:** IDE, Git/GitHub, Node.js, Docker (later versions)
+- **Tooling:** IDE, Git/GitHub, Node.js, Docker
+- **Cycle-1 artifacts:** [Dev/v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md), [cwe-inventory.md](../security/cwe-inventory.md)
 
 ### Penetration Tester
 
 - **Role:** Discovers and exploits weaknesses in each v1.N.0 insecure baseline
 - **Goals:** Identify all intentional (and unintentional) vulnerabilities, document findings with reproducible steps, validate that the threat model is accurate
 - **Activities:** Manual testing (browser DevTools, curl), automated scanning (Burp Suite, OWASP ZAP, nmap, sqlmap), writing pentest reports
-- **Tooling:** Kali Linux or equivalent, Burp Suite, OWASP ZAP, custom scripts
-- **Note:** May be the same person as the Developer. The role distinction matters for methodology — pentesting requires an adversarial mindset distinct from building.
+- **Tooling:** Kali Linux or equivalent, Burp Suite, OWASP ZAP, custom scripts; deploy via `docker-compose.prod.yml` at `:8080`
+- **Cycle-1 artifacts:** [PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md), [pentest-journeys.md](../deploy/pentest-journeys.md), [demo-users.md](../deploy/demo-users.md)
+- **Note:** May be the same person as the Developer. Test `/dev/*` and API directly — product UI client-filters hide IDOR from casual browsing.
 
 ### Security Engineer
 
@@ -29,6 +31,7 @@ People who work on, test, or learn from the project.
 - **Goals:** Apply security controls that address each documented CWE, verify that remediations are effective, document the delta between insecure and secure versions
 - **Activities:** Code hardening, infrastructure configuration, writing security tests, updating threat model
 - **Tooling:** Same as Developer, plus security-specific tools for verification
+- **Cycle-1 artifacts:** [Remediation/v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md), [security-baseline.md](security-baseline.md)
 - **Note:** May be the same person as the Developer and Pentester. The three roles represent the full secure SDLC cycle.
 
 ---
@@ -53,17 +56,29 @@ People (or agents) who interact with the running application.
   - `GET /sharing/:id` — view sharing details
 - **Trust level:** Authenticated but unprivileged. Should only access own resources.
 
+### Moderator User
+
+- **Description:** Intermediate role for content moderation (file approval workflow)
+- **Access level:** Authenticated, `moderator` role
+- **Demo account:** `mod@kc.test` / `ModPass123!` (seeded, see [demo-users.md](../deploy/demo-users.md))
+- **Goals:** Review pending file uploads, approve or reject files
+- **Actions:** Regular User actions, plus:
+  - `PUT /files/:id/approve` — approve or reject files
+  - `PUT /admin/users/:id/role/escalate` — promote users to moderator (CWE-269)
+- **Trust level:** Elevated over regular users but hierarchy vs admin is ambiguous (CWE-841)
+
 ### Admin User
 
 - **Description:** A privileged user with administrative access
 - **Access level:** Authenticated, `admin` role
-- **Goals:** View all users, modify user roles, access system-wide file data, perform administrative operations
+- **Demo account:** `admin@kc.test` / `AdminPass123!`
+- **Goals:** View all users, modify user roles, view stats and audit logs
 - **Actions:** All Regular User actions, plus:
-  - `GET /admin` — list all users
-  - `PUT /admin/:id` — modify user roles
-  - `GET /users` — view all user accounts
+  - `GET /admin/users` — list/search users
+  - `PUT /admin/users/:id/role` — modify user roles
+  - `GET /admin/stats`, `GET /admin/audit-logs`
 - **Trust level:** Elevated privileges. Should have access to administrative functions that regular users cannot reach.
-- **v1.0.0 weakness:** Admin endpoints may be reachable by regular users due to missing backend guards (CWE-285, CWE-602)
+- **v1.0.0 weakness:** Some admin endpoints inconsistently guarded (CWE-862); JWT role trusted (CWE-639)
 
 ### Unauthenticated Visitor
 
@@ -100,7 +115,8 @@ Which personas interact with which attack surfaces:
 
 | Persona | Identity | Data | File | Authorization | Infrastructure |
 |---------|----------|------|------|---------------|---------------|
-| Regular User | Register, login, session | Own data CRUD | Own files | User-level access | -- |
-| Admin User | Same as regular | All users' data | All files (v0.4.x) | Admin functions | -- |
+| Regular User | Register, login, session | Own data CRUD (UI) / all (API) | Own files (UI) / all (API) | User-level access | -- |
+| Moderator User | Same as regular | Pending queue (UI) | Approve/reject | Mod endpoints + escalation | -- |
+| Admin User | Same as regular | All users' data | All files | Admin functions | -- |
 | Unauthenticated | Registration, login | Public shared files | Public downloads | -- | -- |
-| Attacker | All auth attacks | IDOR, injection | Traversal, MIME | Escalation | Direct DB, ports, containers |
+| Attacker | All auth attacks | IDOR, injection | Traversal, MIME | Escalation, guard gaps | nginx, DB creds, containers |

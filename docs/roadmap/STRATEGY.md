@@ -1,8 +1,8 @@
 # KC-Project Development Strategy
 
-**Date**: March 5, 2026  
-**Target MVP**: v1.0.0 (Full-featured, 60–80 CWEs, Docker/VM mandatory)  
-**Post-MVP**: Rapid expansion cycle (v1.N.0 monthly, 10–15 CWEs per cycle)
+**Date**: March 5, 2026 (updated June 2026)  
+**Target MVP**: v1.0.0 — **pentest-ready** (59 instances / 38 CWE IDs; target 60–80 with v1.0.x discoveries)  
+**Post-MVP**: Phase 2 Cycle 1 pentest → v2.0.0 hardening → rapid expansion (v1.N.0 monthly, 10–15 CWEs per cycle)
 
 ---
 
@@ -343,15 +343,23 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 **Timeline**: ~8–12 weeks to v1.0.0.
 
-### Phase 2: v1.0.x (Pentesting)
+### Phase 2: v1.0.x (Pentesting — Cycle 1)
+
+**Status:** v1.0.0 pentest-ready gate passed ([v1.0.0-pentest-ready.md](../release/v1.0.0-pentest-ready.md)). Cycle 1 workspace live at [docs/security/Cycle-1/](../security/Cycle-1/README.md).
 
 | Version | Duration | Focus |
 |---------|----------|-------|
-| v1.0.1 | 1–2 weeks | Critical bug patches (RCE, major auth bypasses) |
-| v1.0.2 | 1–2 weeks | Moderate issue patches |
-| v1.0.x | 2–4 weeks total | Structured pentesting, documentation of findings |
+| v1.0.x | 2–4 weeks | Structured pentest; populate [PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) |
+| v1.0.1 | 1–2 weeks | Critical bug patches only (RCE, crash) |
+| v1.0.2+ | ongoing | Moderate patches; findings table in [security/README.md](../security/README.md) |
 
-**Outcome**: All 60–80 CWEs mapped, documented, exploitable. Release notes detail attack chains.
+**Cycle-1 gate (remaining):**
+
+- [ ] Pentest writeup complete (portfolio piece)
+- [ ] All 59 instances exercised with PoC evidence
+- [ ] Remediation draft in [Cycle-1/Remediation/v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md)
+
+**Outcome**: All 59/38 (+ v1.0.x discoveries toward 60–80) mapped, documented, exploitable. Attack chains in Cycle-1 PenTest artifacts.
 
 ### Phase 3: v1.1.0+ (Expansion Cycle)
 
@@ -378,7 +386,7 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 | **Database** | PostgreSQL 16, TypeORM, migrations |
 | **Features** | Auth, files, sharing, RBAC (User/Mod/Admin), audit logs, stats |
 | **Test Coverage** | 80+ e2e tests, 85%+ code coverage |
-| **Vulnerabilities** | 60–80 documented CWEs across 8 surfaces |
+| **Vulnerabilities** | 59 instances / 38 CWE IDs (target 60–80 with v1.0.x discoveries) |
 | **Documentation** | Architecture diagrams, ADRs, STRIDE threat model, API contract |
 | **Lifecycle** | Fully containerized, reproducibly deployable to Ubuntu VM |
 | **First Use Case** | Structured pentesting + learning platform |
@@ -387,8 +395,8 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 | Milestone | CWEs | Note |
 |-----------|------|------|
-| v1.0.0 | 60–80 | MVP baseline |
-| v1.0.x | 60–80 | (same, documentation only) |
+| v1.0.0 | 59 / 38 | MVP baseline (pentest-ready) |
+| v1.0.x | 59–80 | (+ discoveries, documentation in Cycle-1) |
 | v1.1.0 | ~75–95 | (+10–15 new client-side, secrets) |
 | v1.1.x | ~75–95 | (same, documentation) |
 | v1.2.0 | ~90–110 | (+10–15 new race conditions, caching) |

@@ -295,15 +295,64 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
       .expect(201);
 
     // Expired but still accessible
-    await request(httpServer)
-      .get(`/sharing/public/${share.body.publicToken}`)
-      .expect(200);
+    await request(httpServer).get(`/sharing/public/${share.body.publicToken}`).expect(200);
   });
 
   it('invalid public token returns 404', async () => {
     const httpServer = app.getHttpServer();
+    await request(httpServer).get('/sharing/public/nonexistent-token').expect(404);
+  });
+
+  it('PUT /sharing/:id with public true generates publicToken', async () => {
+    const httpServer = app.getHttpServer();
+    const user = await registerAndLogin(httpServer, 'upd@t.com', 'updshare', 'pass');
+
+    const upload = await request(httpServer)
+      .post('/files')
+      .set('Authorization', `Bearer ${user.token}`)
+      .attach('file', join(TEST_FIXTURES, 'test.txt'))
+      .expect(201);
+
+    const share = await request(httpServer)
+      .post('/sharing')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ fileId: upload.body.id, public: false })
+      .expect(201);
+
+    expect(share.body.publicToken).toBeFalsy();
+
+    const updated = await request(httpServer)
+      .put(`/sharing/${share.body.id}`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ public: true })
+      .expect(200);
+
+    expect(updated.body.publicToken).toMatch(/^share-/);
+
+    await request(httpServer).get(`/sharing/public/${updated.body.publicToken}`).expect(200);
+  });
+
+  it('DELETE /files/:id removes associated share records', async () => {
+    const httpServer = app.getHttpServer();
+    const user = await registerAndLogin(httpServer, 'del@t.com', 'delshare', 'pass');
+
+    const upload = await request(httpServer)
+      .post('/files')
+      .set('Authorization', `Bearer ${user.token}`)
+      .attach('file', join(TEST_FIXTURES, 'test.txt'))
+      .expect(201);
+
+    const share = await request(httpServer)
+      .post('/sharing')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ fileId: upload.body.id, public: true })
+      .expect(201);
+
     await request(httpServer)
-      .get('/sharing/public/nonexistent-token')
-      .expect(404);
+      .delete(`/files/${upload.body.id}`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(200);
+
+    await request(httpServer).get(`/sharing/public/${share.body.publicToken}`).expect(404);
   });
 });

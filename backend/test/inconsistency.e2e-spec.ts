@@ -39,13 +39,11 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
   const JWT_SECRET = 'kc-secret';
   let nextUserId = 5;
 
-  function buildUser(
-    partial: {
-      email: string;
-      username: string;
-      role: 'user' | 'moderator' | 'admin';
-    },
-  ) {
+  function buildUser(partial: {
+    email: string;
+    username: string;
+    role: 'user' | 'moderator' | 'admin';
+  }) {
     const now = new Date().toISOString();
     return {
       ...partial,
@@ -62,10 +60,7 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
     const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
     const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
     const message = `${encodedHeader}.${encodedPayload}`;
-    const signature = crypto
-      .createHmac('sha256', JWT_SECRET)
-      .update(message)
-      .digest('base64url');
+    const signature = crypto.createHmac('sha256', JWT_SECRET).update(message).digest('base64url');
     return `${message}.${signature}`;
   }
 
@@ -283,15 +278,11 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
    */
   describe('Test 4: Authentication Required (but not Authorization)', () => {
     it('should reject DELETE without token (401)', async () => {
-      await request(app.getHttpServer())
-        .delete(`/admin/users/${adminUserId}`)
-        .expect(401);
+      await request(app.getHttpServer()).delete(`/admin/users/${adminUserId}`).expect(401);
     });
 
     it('should reject GET /admin/users without token (401)', async () => {
-      await request(app.getHttpServer())
-        .get(`/admin/users`)
-        .expect(401);
+      await request(app.getHttpServer()).get(`/admin/users`).expect(401);
     });
   });
 
