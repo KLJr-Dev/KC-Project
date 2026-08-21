@@ -34,13 +34,20 @@ STATS=$(curl -sS -w "\n%{http_code}" -H "Authorization: Bearer ${ADMIN_TOKEN}" "
 [[ $(echo "$STATS" | tail -1) == "200" ]] || { echo "FAIL: admin stats"; exit 1; }
 echo "  OK"
 
-echo "Seeded public share (share-1 API)..."
-SHARE_CODE=$(curl -sS -o /dev/null -w "%{http_code}" "${BASE}/sharing/public/share-1")
-[[ "$SHARE_CODE" == "200" ]] || { echo "FAIL: share-1 public download (got ${SHARE_CODE})"; exit 1; }
+DEMO_SHARE_TOKEN="${DEMO_SHARE_TOKEN:-c8f3a1e9b72d4f06a5e18c903d6b47e2f1a0c9d8b7e6f5a4938271605f4e3d2c}"
+
+echo "Seeded public share (unguessable demo token API)..."
+SHARE_CODE=$(curl -sS -o /dev/null -w "%{http_code}" "${BASE}/sharing/public/${DEMO_SHARE_TOKEN}")
+[[ "$SHARE_CODE" == "200" ]] || { echo "FAIL: demo public download (got ${SHARE_CODE})"; exit 1; }
 echo "  OK"
 
-echo "Frontend share landing page (/share/share-1)..."
-curl -sf "${APP}/share/share-1" | grep -q 'Download' || { echo "FAIL: share landing page"; exit 1; }
+echo "Legacy share-1 must not work..."
+LEGACY_CODE=$(curl -sS -o /dev/null -w "%{http_code}" "${BASE}/sharing/public/share-1")
+[[ "$LEGACY_CODE" == "404" ]] || { echo "FAIL: share-1 should be 404 (got ${LEGACY_CODE})"; exit 1; }
+echo "  OK"
+
+echo "Frontend share landing page..."
+curl -sf "${APP}/share/${DEMO_SHARE_TOKEN}" | grep -q 'Download' || { echo "FAIL: share landing page"; exit 1; }
 echo "  OK"
 
 echo "Moderator pending queue (API)..."

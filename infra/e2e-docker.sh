@@ -1,29 +1,40 @@
 #!/usr/bin/env bash
-# v1.0.0 — Run backend e2e suite against Docker PostgreSQL (kc_prod).
-# Requires: docker compose prod stack postgres healthy on host :5433.
+# v2.0.0 — Run backend e2e suite against Docker PostgreSQL (kc_prod).
+# Publishes :5433 only via docker-compose.e2e.yml overlay (not default prod).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 COMPOSE_FILE="${ROOT}/infra/docker-compose.prod.yml"
+E2E_OVERLAY="${ROOT}/infra/docker-compose.e2e.yml"
 
-echo "Starting prod postgres (host port 5433 for e2e)..."
-docker compose -f "$COMPOSE_FILE" up -d postgres
+echo "Starting prod postgres with e2e host port 5433..."
+docker compose -f "$COMPOSE_FILE" -f "$E2E_OVERLAY" up -d postgres
 
 echo "Waiting for postgres..."
 for i in $(seq 1 30); do
-  if docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U postgres >/dev/null 2>&1; then
+  if docker compose -f "$COMPOSE_FILE" -f "$E2E_OVERLAY" exec -T postgres pg_isready -U postgres >/dev/null 2>&1; then
     break
   fi
   sleep 1
 done
-docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U postgres
+docker compose -f "$COMPOSE_FILE" -f "$E2E_OVERLAY" exec -T postgres pg_isready -U postgres
 
-echo "Running e2e (150 tests) against kc_prod on localhost:5433..."
+DB_PASSWORD="${DB_PASSWORD:-}"
+if [[ -z "$DB_PASSWORD" && -f "${ROOT}/infra/.env" ]]; then
+  # shellcheck disable=SC1091
+  set -a
+  # shellcheck source=/dev/null
+  source "${ROOT}/infra/.env"
+  set +a
+fi
+DB_PASSWORD="${DB_PASSWORD:-kc-change-me-prod}"
+
+echo "Running e2e against kc_prod on localhost:5433..."
 cd "${ROOT}/backend"
 DB_HOST=localhost \
 DB_PORT=5433 \
 DB_USER=postgres \
-DB_PASSWORD=postgres \
+DB_PASSWORD="$DB_PASSWORD" \
 DB_NAME=kc_prod \
 JWT_SECRET=test-e2e-jwt-secret \
 JWT_EXPIRES_IN=1h \

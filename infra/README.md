@@ -77,8 +77,8 @@ chmod +x infra/*.sh
 | Script | Prereq | Purpose |
 |--------|--------|---------|
 | `smoke-test.sh` | Full prod stack on `:8080` | Health → register → upload → list + demo login |
-| `journey-test.sh` | Full prod stack | 3 roles, share-1 API+UI, mod pending, admin files, IDOR baseline |
-| `e2e-docker.sh` | Docker available | 150 backend e2e tests vs `kc_prod` on host `:5433` |
+| `journey-test.sh` | Full prod stack | 3 roles, demo share token API+UI, mod pending, admin files, IDOR deny |
+| `e2e-docker.sh` | Docker available | Backend e2e vs `kc_prod` via `docker-compose.e2e.yml` host `:5433` |
 | `vm-setup.sh` | Ubuntu + sudo | Install Docker, clone repo, prod stack, smoke + journey |
 
 Env overrides: `BASE_URL` (default `http://localhost:8080/api`), `APP_URL` (default `http://localhost:8080`).

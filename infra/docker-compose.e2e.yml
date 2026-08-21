@@ -1,0 +1,10 @@
+# Overlay: publish Postgres to host :5433 for local e2e only (not default prod).
+# Usage:
+#   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.e2e.yml up -d postgres
+#
+# Existing containers keep old port mappings until recreated without this overlay:
+#   docker compose -f infra/docker-compose.prod.yml up -d --force-recreate postgres
+services:
+  postgres:
+    ports:
+      - '5433:5432'

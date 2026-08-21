@@ -261,9 +261,9 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
   // -- Public sharing tests --
 
   /**
-   * CWE-330 + CWE-285: Predictable public token grants unauthenticated access.
+   * Public share uses crypto-random token (not share-N).
    */
-  it('public share token grants unauthenticated download -- CWE-285, CWE-330', async () => {
+  it('public share token grants unauthenticated download', async () => {
     const httpServer = app.getHttpServer();
     const user = await registerAndLogin(httpServer, 'u@t.com', 'sharer', 'pass');
 
@@ -279,9 +279,9 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
       .send({ fileId: upload.body.id, public: true })
       .expect(201);
 
-    expect(share.body.publicToken).toMatch(/^share-/);
+    expect(share.body.publicToken).toMatch(/^[a-f0-9]{64}$/);
+    expect(share.body.publicToken).not.toMatch(/^share-/);
 
-    // Unauthenticated request using the predictable token
     const res = await request(httpServer)
       .get(`/sharing/public/${share.body.publicToken}`)
       .expect(200);
@@ -289,12 +289,9 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
     expect(res.text).toBe('hello world');
   });
 
-  /**
-   * CWE-613: Expired share is still accessible (expiresAt not checked).
-   */
-  it('expired share still accessible -- CWE-613', async () => {
+  it('expired public share returns 404', async () => {
     const httpServer = app.getHttpServer();
-    const user = await registerAndLogin(httpServer, 'u@t.com', 'expiry', 'pass');
+    const user = await registerAndLogin(httpServer, 'exp@t.com', 'expshare', 'pass');
 
     const upload = await request(httpServer)
       .post('/files')
@@ -309,8 +306,7 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
       .send({ fileId: upload.body.id, public: true, expiresAt: pastDate })
       .expect(201);
 
-    // Expired but still accessible
-    await request(httpServer).get(`/sharing/public/${share.body.publicToken}`).expect(200);
+    await request(httpServer).get(`/sharing/public/${share.body.publicToken}`).expect(404);
   });
 
   it('invalid public token returns 404', async () => {
@@ -342,7 +338,7 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
       .send({ public: true })
       .expect(200);
 
-    expect(updated.body.publicToken).toMatch(/^share-/);
+    expect(updated.body.publicToken).toMatch(/^[a-f0-9]{64}$/);
 
     await request(httpServer).get(`/sharing/public/${updated.body.publicToken}`).expect(200);
   });

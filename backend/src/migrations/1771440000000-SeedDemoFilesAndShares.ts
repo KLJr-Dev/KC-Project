@@ -1,6 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { mkdirSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { DEMO_WELCOME_SHARE_TOKEN } from '../sharing/demo-share.constants';
 
 /**
  * v1.0.x — Demo files and shares for reproducible pentest / UX journeys.
@@ -127,13 +128,13 @@ export class SeedDemoFilesAndShares1771440000000 implements MigrationInterface {
       await queryRunner.query(
         `INSERT INTO "sharing_entity"
           (id, "ownerId", "fileId", "publicToken", "public", "createdAt", "expiresAt")
-         VALUES ('1', '9001', '9101', 'share-1', true, $1, '')`,
+         VALUES ('1', '9001', '9101', '${DEMO_WELCOME_SHARE_TOKEN}', true, $1, '')`,
         [now],
       );
     } else {
       await queryRunner.query(
         `UPDATE "sharing_entity"
-         SET "ownerId" = '9001', "fileId" = '9101', "publicToken" = 'share-1', "public" = true
+         SET "ownerId" = '9001', "fileId" = '9101', "publicToken" = '${DEMO_WELCOME_SHARE_TOKEN}', "public" = true
          WHERE id = '1'`,
       );
     }
