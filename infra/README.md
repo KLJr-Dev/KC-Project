@@ -1,6 +1,7 @@
 # Infrastructure
 
-Deployment and infrastructure for **KC-Project** v1.0.0.
+Deployment and infrastructure for **KC-Project** **v2.0.0** (secure parallel).  
+Historical insecure baseline: tag `v1.0.0` / [Cycle-1 PenTest](../docs/security/Cycle-1/PenTest/v1.0.0-writeup.md).
 
 Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+).
 
@@ -10,8 +11,8 @@ Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+
 
 | Path | Compose file | Use case | Entry |
 |------|--------------|----------|-------|
-| **Pentest (primary)** | `docker-compose.prod.yml` | Cycle-1 testing, VM deploy, smoke/journey | `http://localhost:8080` |
-| **TLS gate (M7)** | `prod` + `docker-compose.tls.yml` | Pre-tag HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
+| **Secure / lab (primary)** | `docker-compose.prod.yml` | Day-to-day, journeys, smoke | `http://localhost:8080` |
+| **TLS profile** | `prod` + `docker-compose.tls.yml` | HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 
 ```mermaid
@@ -43,7 +44,7 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 
 App: `http://localhost:8080` — API at `/api/*`.
 
-### TLS profile (required before tag `v2.0.0`)
+### TLS profile
 
 ```bash
 chmod +x infra/scripts/gen-lab-certs.sh infra/tls-smoke.sh

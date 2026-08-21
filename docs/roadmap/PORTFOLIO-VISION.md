@@ -144,24 +144,24 @@ Cloud variants are **additional release lines**, not replacements — tags make 
 
 ## 5. Cycle roadmap (high level)
 
-### Cycle-1 — **NOW** (v1.0.0 → v2.0.0)
+### Cycle-1 — **CLOSED** (v1.0.0 → v2.0.0)
 
 | Item | Status |
 |------|--------|
-| v1.0.0 insecure MVP | Done (pentest-ready) |
+| v1.0.0 insecure MVP | Done · tag `v1.0.0` |
 | Ground truth | [Complete](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) |
-| Pentest writeup | In progress |
-| v2.0.0 remediation | Planned |
-| Git tag `v1.0.0` | Done when ready for external pentest handoff |
-| Git tag `v2.0.0` | After remediation + baseline + e2e |
+| Pentest writeup | [Complete](../security/Cycle-1/PenTest/v1.0.0-writeup.md) |
+| v2.0.0 remediation | Done · merged `main` |
+| Git tag `v1.0.0` | Done |
+| Git tag `v2.0.0` | Done |
 
-**Focus:** Finish offensive writeup, then implement v2.0.0 from [Remediation/v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md). Do not start v1.1.0 feature work until v2.0.0 is tagged.
+**Focus:** Design **v1.1.0** CTF from tag `v2.0.0` (misconfigure + flags; no new routes). Do not treat Cycle-1 docs as the live product state — `main` is secure.
 
-### Cycle-2 — v1.1.0 → v2.1.0 (after Cycle-1 closed)
+### Cycle-2 — v1.1.0 → v2.1.0 (**NEXT**)
 
-**Theme (draft):** Client-side & secrets — XSS, CSRF, leaked build-time secrets, weak JWT algorithms.
+**Theme (draft):** HTB/OSCP-style scenario — horizontal access to a planted user flag, then privilege escalation to an admin/DB flag. Re-open a **small** set of controls on the secure fork; no new API routes.
 
-**Scope:** Basic expansion only — one new surface, ~10 CWEs, same compose deploy.
+**Scope:** ~2 flags, 1–3 intentional misconfigs, Cycle-2 ground truth + writeup.
 
 ### Cycle-3 — v1.2.0 → v2.2.0
 

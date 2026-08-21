@@ -1,8 +1,9 @@
 # KC-Project Development Strategy
 
-**Date**: March 5, 2026 (updated June 2026)  
-**Target MVP**: v1.0.0 — **pentest-ready** (59 instances / 38 CWE IDs; target 60–80 with v1.0.x discoveries)  
-**Post-MVP**: Phase 2 Cycle 1 pentest (**done**) → v2.0.0 hardening (Wave 1 M0–M4 + Wave 2 M5–M9) → expansion (v1.N.0 from secure parallel, ~10–15 CWEs per cycle)
+**Date**: March 5, 2026 (updated August 2026)  
+**Current release**: **v2.0.0** secure parallel (tagged on `main`)  
+**Cycle-1 closed**: v1.0.0 insecure MVP → pentest → v2.0.0 harden  
+**Next**: v1.1.0 CTF fork from tag `v2.0.0` (misconfigure + flags; see Phase 3)
 
 ---
 
@@ -350,7 +351,7 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 | Version | Duration | Focus |
 |---------|----------|-------|
 | v1.0.x | Done | Structured pentest + evidence |
-| v2.0.0 | Gate (M9) | Secure parallel — Wave 1 M0–M4 + Wave 2 M5–M9 |
+| v2.0.0 | **Done** | Secure parallel — tagged on `main` |
 
 **Cycle-1 gate:**
 
@@ -358,11 +359,11 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 - [x] Critical/High PoCs evidenced (F-01…F-13; not every inventory instance — VA scope)
 - [x] Remediation map + Blue Team plan ([v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md), [blue-team-plan.md](../security/Cycle-1/Remediation/blue-team-plan.md))
 - [x] **M0–M8** code + docs (finding close-out + full baseline)
-- [x] **M9** secure-ready gate green (merge/tag operator)
-- [x] **CTF blocked** until tag exists
+- [x] **M9** secure-ready gate green + merge + tag `v2.0.0`
+- [x] Tag exists — CTF design unblocked
 
 **Outcome (Red):** Attack chains documented in Cycle-1 PenTest artifacts.  
-**Outcome (Blue, target):** Same product surface; PoCs deny; full baseline; tag `v2.0.0`.
+**Outcome (Blue):** Same product surface; PoCs deny; full baseline; tag `v2.0.0`.
 
 ### Phase 3: v2.0.0 hardening → v1.1.0+ (Expansion)
 
@@ -372,9 +373,9 @@ Hardening milestones (detail: [blue-team-plan.md](../security/Cycle-1/Remediatio
 |-----------|--------|
 | M0–M4 | Wave 1 — Cycle-1 finding close-out (**done**) |
 | M5–M8 | Wave 2 — baseline crypto/session/TLS/ops (**done**) |
-| M9 | Gate scripts + docs + merge/tag |
+| M9 | Gate + merge + tag `v2.0.0` (**done**) |
 
-**Only after `v2.0.0`:** fork-from-secure for CTF-style expansion (prefer fewer chained vulns than v1.0.0 kitchen-sink):
+**v1.1.0 (next):** fork tag `v2.0.0` for a **CTF-style** box — prefer misconfiguration + planted flags over new routes / kitchen-sink CWEs (narrower than v1.0.0):
 
 | Version | Duration | Approach | CWEs |
 |---------|----------|----------|------|

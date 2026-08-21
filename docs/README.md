@@ -13,7 +13,7 @@ Engineering and technical documentation for KC-Project.
 
 ### [architecture/](architecture/)
 
-- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — v1.0.0 system overview, Docker prod topology
+- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — system overview (v1.0.0 snapshot; `main` is v2.0.0 secure parallel)
 - [auth-flow.md](architecture/auth-flow.md) — auth/RBAC flows, guard inconsistencies
 - [data-model.md](architecture/data-model.md) — entities, demo seed IDs, AuditLog
 - [stride.md](architecture/stride.md) — STRIDE per attack surface
@@ -56,7 +56,8 @@ docs/security/Cycle-1/
 
 ### [release/](release/)
 
-- [v1.0.0.md](release/v1.0.0.md)
-- [v1.0.0-pentest-ready.md](release/v1.0.0-pentest-ready.md) — readiness gate
+- [v1.0.0.md](release/v1.0.0.md) — insecure MVP release notes
+- [v1.0.0-pentest-ready.md](release/v1.0.0-pentest-ready.md) — Red gate (passed)
+- [v2.0.0-secure-ready.md](release/v2.0.0-secure-ready.md) — Blue gate (signed; tag `v2.0.0`)
 
 ### [glossary.md](glossary.md)

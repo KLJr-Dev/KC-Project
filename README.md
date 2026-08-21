@@ -15,22 +15,31 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v1.0.0 — pentest-ready insecure MVP)
+## Current Status (v2.0.0 — secure parallel)
 
-**Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) (ADR-027). **Portfolio framing:** [PORTFOLIO-VISION.md](docs/roadmap/PORTFOLIO-VISION.md).
+**Tag:** `v2.0.0` on `main` · **Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) (ADR-027) · **Portfolio:** [PORTFOLIO-VISION.md](docs/roadmap/PORTFOLIO-VISION.md)
+
+Cycle-1 is **closed**: insecure MVP (`v1.0.0`) → pentest → secure parallel (`v2.0.0`).
+
+| Track | Artifact |
+|-------|----------|
+| Secure gate | [v2.0.0-secure-ready.md](docs/release/v2.0.0-secure-ready.md) |
+| Remediation | [v2.0.0-remediation.md](docs/security/Cycle-1/Remediation/v2.0.0-remediation.md) · [blue-team-plan.md](docs/security/Cycle-1/Remediation/blue-team-plan.md) |
+| Pentest (frozen) | [v1.0.0-writeup.md](docs/security/Cycle-1/PenTest/v1.0.0-writeup.md) on `pentest/cycle-1` |
+| Before-state | [v1.0.0-ground-truth.md](docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md) · tag `v1.0.0` |
 
 - **Docker (primary):** `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
-- **Demo users:** `user@kc.test`, `mod@kc.test`, `admin@kc.test` — see [demo-users.md](docs/deploy/demo-users.md)
-- **Product UI:** My Files, Sharing, Review (mod), Admin. API explorers at `/dev`
-- **Security cycle:** [Cycle-1](docs/security/Cycle-1/README.md) — Dev / PenTest / Remediation
-- **Ground truth:** [v1.0.0-ground-truth.md](docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md)
-- **Tests:** 150 e2e (`./infra/e2e-docker.sh`), smoke, journey — see [infra/README.md](infra/README.md)
-- **Security:** 59 documented CWE instances / 38 IDs — [cwe-inventory.md](docs/security/cwe-inventory.md)
+- **TLS lab profile:** `prod` + `docker-compose.tls.yml` → `https://localhost:8443` ([infra/README.md](infra/README.md))
+- **Demo users:** `user@kc.test` / `mod@kc.test` / `admin@kc.test` — [demo-users.md](docs/deploy/demo-users.md) (hashed at rest; lab UI gated in prod)
+- **Product UI:** My Files, Sharing, Review (mod), Admin — `/dev` gated unless lab flag
+- **Tests:** smoke · journey · e2e-docker (150) · tls-smoke
+- **Next:** **v1.1.0** CTF — fork tag `v2.0.0`, misconfigure + plant flags (no new routes); see ADR-013
 
-### Run locally (Docker — pentest path)
+### Run locally (Docker — secure stack)
 
 ```bash
 cp infra/.env.example infra/.env
+# set DB_PASSWORD etc.; source infra/.env before compose if needed
 docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh
 ./infra/journey-test.sh
@@ -48,15 +57,16 @@ cd frontend && npm run dev                  # :3000
 
 ```
 KC-PROJECT/
-├── backend/              # NestJS REST API (30 routes)
-├── frontend/             # Next.js product UI + /dev explorers
-├── infra/                # Docker compose, nginx, verify scripts
+├── backend/              # NestJS REST API
+├── frontend/             # Next.js product UI (+ gated /dev explorers)
+├── infra/                # Docker compose, nginx, TLS overlay, verify scripts
 ├── docs/                 # Engineering and project documentation
 │   ├── architecture/     # System architecture, auth flow, data model, STRIDE
 │   ├── decisions/        # ADRs 001–031
 │   ├── diagrams/         # Architecture, auth, infra, threats, timeline
 │   ├── roadmap/          # STRATEGY, ROADMAP, version summaries
 │   ├── security/         # Cycle-1 workspace, CWE inventory
+│   ├── release/          # v1.0.0 / v2.0.0 readiness gates
 │   ├── spec/             # Scope, requirements, personas, security baseline
 │   ├── glossary.md
 │   └── README.md
@@ -74,25 +84,26 @@ cd frontend && npm run format:check && npm run lint
 
 ## Documentation
 
-All engineering documentation lives in `/docs`. Security testing artifacts: [docs/security/Cycle-1/](docs/security/Cycle-1/README.md).
+All engineering documentation lives in `/docs`. Security cycle artifacts: [docs/security/Cycle-1/](docs/security/Cycle-1/README.md).
 
 ## Versioning
 
-- `v0.x` — Build phase
-- `v1.0.0` — Insecure MVP (pentest-ready)
-- `v1.0.x` — Pentest cycle patches
-- `v2.0.0` — Secure parallel
-- `v1.N.0` / `v2.N.0` — Perpetual expansion cycle
+| Tag | Meaning |
+|-----|---------|
+| `v0.x` | Build phase |
+| `v1.0.0` | Insecure MVP (pentest-ready) — **tagged** |
+| `v2.0.0` | Secure parallel (Cycle-1 remediated) — **tagged** |
+| `v1.1.0` / `v2.1.0` | Next expansion cycle (CTF fork from secure, then harden) |
 
 See [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md).
 
 ## Branching Strategy
 
 ```
-main          Stable releases only (squash-merged from dev)
- └── dev      Integration branch
-      ├── frontend    Frontend feature work
-      └── backend     Backend feature work
+main                    Stable releases (v2.0.0 secure parallel)
+ ├── remediation/v2.0.0  Merged — Cycle-1 Blue Team
+ ├── pentest/cycle-1     Frozen Red evidence (do not “fix” history)
+ └── ctf/v1.1.0          (planned) fork from tag v2.0.0
 ```
 
 ## Collaboration

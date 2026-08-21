@@ -13,7 +13,7 @@ Seeded automatically via migrations on backend startup (`migrationsRun: true`).
 | Admin | `admin@kc.test` | `AdminPass123!` | `demo_admin` | 9003 |
 | User (other) | `other@kc.test` | `OtherPass123!` | `demo_other` | 9004 |
 
-Passwords stored plaintext in v1.0.0 (intentional); v2.0.0 still uses demo accounts for journeys.
+Passwords are **bcrypt-hashed** in the DB (v2.0.0). Cleartext values above are for lab login only — never appear in the password column after seed migrations.
 
 ## Seeded files (migration `1771440000000-SeedDemoFilesAndShares`)
 

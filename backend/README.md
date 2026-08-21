@@ -1,8 +1,9 @@
 # Backend
 
-NestJS REST API for **KC-Project** v1.0.0 (pentest-ready insecure MVP).
+NestJS REST API for **KC-Project** **v2.0.0** (secure parallel on `main`).
 
-Intentional security weaknesses are documented in [v1.0.0 ground truth](../docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md).
+Cycle-1 before-state (intentional weaknesses): [v1.0.0 ground truth](../docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md).  
+Remediation map: [v2.0.0-remediation.md](../docs/security/Cycle-1/Remediation/v2.0.0-remediation.md).
 
 ---
 

@@ -1,29 +1,29 @@
-# Security & Penetration Testing (v1.0.0)
+# Security & Penetration Testing
 
 ## Cycle workspace
 
-**[Cycle-1/](Cycle-1/README.md)** — Phase 2 pentest and remediation artifacts
+**[Cycle-1/](Cycle-1/README.md)** — **Closed** (v1.0.0 → v2.0.0). Tag `v2.0.0` on `main`.
 
 | Team | Folder | Primary doc |
 |------|--------|-------------|
-| Developer | [Cycle-1/Dev/](Cycle-1/Dev/) | [v1.0.0-ground-truth.md](Cycle-1/Dev/v1.0.0-ground-truth.md) |
-| Offensive | [Cycle-1/PenTest/](Cycle-1/PenTest/) | [v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) |
+| Developer | [Cycle-1/Dev/](Cycle-1/Dev/) | [v1.0.0-ground-truth.md](Cycle-1/Dev/v1.0.0-ground-truth.md) (before-state) |
+| Offensive | [Cycle-1/PenTest/](Cycle-1/PenTest/) | [v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) (frozen) |
 | Defensive | [Cycle-1/Remediation/](Cycle-1/Remediation/) | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) · [blue-team-plan.md](Cycle-1/Remediation/blue-team-plan.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
 ## Cross-cycle references
 
-- [cwe-inventory.md](cwe-inventory.md) — 59 instances / 38 CWE IDs
-- [pentest-journeys.md](../deploy/pentest-journeys.md) — narrative exploit paths
+- [cwe-inventory.md](cwe-inventory.md) — 59 instances / 38 CWE IDs (v1.0.0 baseline)
+- [pentest-journeys.md](../deploy/pentest-journeys.md) — narrative exploit paths (v1.0.0)
 - [demo-users.md](../deploy/demo-users.md) — credentials and seeded artifact IDs
 - [v1.0.0-pentest-ready.md](../release/v1.0.0-pentest-ready.md) — Red readiness gate (**passed**)
-- [v2.0.0-secure-ready.md](../release/v2.0.0-secure-ready.md) — Blue readiness gate (**in progress**)
+- [v2.0.0-secure-ready.md](../release/v2.0.0-secure-ready.md) — Blue readiness gate (**signed**)
 - [security-baseline.md](../spec/security-baseline.md) — v2.0.0 control checklist
 
 ## Scope
 
-KC-Project Cycle 1: v1.0.0 insecure MVP pentested; v2.0.0 secure parallel on `remediation/v2.0.0`.
+KC-Project Cycle 1 complete. Live product = secure parallel. Next: Cycle-2 / **v1.1.0** CTF fork from tag `v2.0.0`.
 
 ## Tools
 

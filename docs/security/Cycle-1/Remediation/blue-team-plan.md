@@ -12,8 +12,8 @@
 | Cycle | 1 (ADR-013 / ADR-031) |
 | From | v1.0.0 insecure MVP (pentest complete) |
 | To | v2.0.0 secure parallel (**full** security-baseline) |
-| Current milestone | **M9 complete** (gate green; merge/tag pending operator) |
-| Code status | Wave 1 + Wave 2 landed; secure-ready signed pending merge/tag |
+| Current milestone | **Cycle-1 closed** — tag `v2.0.0` on `main` |
+| Code status | Wave 1 + Wave 2 merged; secure-ready signed |
 
 ---
 
@@ -73,7 +73,7 @@ v1.0.0 ──► pentest/cycle-1 (evidence frozen)
 | M6 | httpOnly refresh cookie; access JWT memory-only; CSRF header on refresh | **Done** |
 | M7 | `docker-compose.tls.yml`; certs script; HSTS; `tls-smoke.sh` | **Done** |
 | M8 | Rate limits; non-root; path containment; share ownership; Permissions-Policy; log redaction | **Done** |
-| M9 | Docs rewrite; full suite green; merge `main`; tag `v2.0.0` | **Gate green** (merge/tag pending) |
+| M9 | Docs rewrite; full suite green; merge `main`; tag `v2.0.0` | **Done** |
 
 ---
 
@@ -109,12 +109,12 @@ v1.0.0 ──► pentest/cycle-1 (evidence frozen)
 - [x] `v2.0.0-secure-ready.md` fully checked (M9 gate run 2026-08-21)
 - [x] smoke + journey + e2e-docker + tls-smoke green
 - [x] `pentest/cycle-1` left intact
-- [ ] Merge → `main` · tag **`v2.0.0`** (operator)
+- [x] Merge → `main` · tag **`v2.0.0`**
 - [x] CTF work not started until after tag
 
 ---
 
 ## Next after tag
 
-1. Merge `remediation/v2.0.0` → `main`, tag `v2.0.0`.  
-2. Only then: ADR-013 fork for **v1.1.0** CTF (narrower than v1.0.0 kitchen-sink).
+1. ~~Merge `remediation/v2.0.0` → `main`, tag `v2.0.0`.~~ **Done.**  
+2. Design **v1.1.0** CTF: fork tag `v2.0.0`, misconfigure + plant flags (no new routes); Cycle-2 workspace.
