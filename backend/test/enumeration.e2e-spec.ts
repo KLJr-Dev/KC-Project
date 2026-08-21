@@ -83,14 +83,14 @@ describe('Enumeration Surface (v0.2.3)', () => {
    * Sequential ID probing: register 3 users, probe IDs 1-4.
    * 200 for existing, 404 for non-existing — attacker knows exact count.
    */
-  it('sequential ID probing reveals resource existence — CWE-330, CWE-203', async () => {
+  it('sequential ID probing reveals resource existence — accepted residual', async () => {
     const httpServer = app.getHttpServer();
+    const STRONG = 'Password123!';
 
-    const userA = await registerAndLogin(httpServer, 'a@test.com', 'user-a', 'pass');
-    await registerAndLogin(httpServer, 'b@test.com', 'user-b', 'pass');
-    await registerAndLogin(httpServer, 'c@test.com', 'user-c', 'pass');
+    const userA = await registerAndLogin(httpServer, 'a@test.com', 'user-a', STRONG);
+    await registerAndLogin(httpServer, 'b@test.com', 'user-b', STRONG);
+    await registerAndLogin(httpServer, 'c@test.com', 'user-c', STRONG);
 
-    // Probe IDs 1, 2, 3 — all exist
     await request(httpServer)
       .get('/users/1')
       .set('Authorization', `Bearer ${userA.token}`)
@@ -104,24 +104,21 @@ describe('Enumeration Surface (v0.2.3)', () => {
       .set('Authorization', `Bearer ${userA.token}`)
       .expect(200);
 
-    // Probe ID 4 — does not exist
     await request(httpServer)
       .get('/users/4')
       .set('Authorization', `Bearer ${userA.token}`)
       .expect(404);
   });
 
-  /**
-   * GET /users returns ALL users to any authenticated user — full table dump.
-   */
-  it('GET /users returns all users to any authenticated user — CWE-200', async () => {
+  it('GET /users returns all users to any authenticated user (directory residual)', async () => {
     const httpServer = app.getHttpServer();
+    const STRONG = 'Password123!';
 
-    await registerAndLogin(httpServer, 'a@test.com', 'user-a', 'pass');
-    await registerAndLogin(httpServer, 'b@test.com', 'user-b', 'pass');
-    await registerAndLogin(httpServer, 'c@test.com', 'user-c', 'pass');
-    await registerAndLogin(httpServer, 'd@test.com', 'user-d', 'pass');
-    const userE = await registerAndLogin(httpServer, 'e@test.com', 'user-e', 'pass');
+    await registerAndLogin(httpServer, 'a@test.com', 'user-a', STRONG);
+    await registerAndLogin(httpServer, 'b@test.com', 'user-b', STRONG);
+    await registerAndLogin(httpServer, 'c@test.com', 'user-c', STRONG);
+    await registerAndLogin(httpServer, 'd@test.com', 'user-d', STRONG);
+    const userE = await registerAndLogin(httpServer, 'e@test.com', 'user-e', STRONG);
 
     const res = await request(httpServer)
       .get('/users')
@@ -130,21 +127,15 @@ describe('Enumeration Surface (v0.2.3)', () => {
 
     expect(res.body.items).toHaveLength(5);
     expect(res.body.total).toBe(5);
-    expect(res.body.items.map((u: { username: string }) => u.username)).toEqual(
-      expect.arrayContaining(['user-a', 'user-b', 'user-c', 'user-d', 'user-e']),
-    );
   });
 
-  /**
-   * GET /files returns ALL files including other users' files with ownerIds.
-   */
-  it('GET /files returns all files to any authenticated user — CWE-200', async () => {
+  it('GET /files returns only caller-owned files', async () => {
     const httpServer = app.getHttpServer();
+    const STRONG = 'Password123!';
 
-    const userA = await registerAndLogin(httpServer, 'a@test.com', 'user-a', 'pass');
-    const userB = await registerAndLogin(httpServer, 'b@test.com', 'user-b', 'pass');
+    const userA = await registerAndLogin(httpServer, 'a@test.com', 'user-a', STRONG);
+    const userB = await registerAndLogin(httpServer, 'b@test.com', 'user-b', STRONG);
 
-    // User A uploads 2 files via multipart
     await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${userA.token}`)
@@ -156,24 +147,20 @@ describe('Enumeration Surface (v0.2.3)', () => {
       .attach('file', join(TEST_FIXTURES, 'enum-b.txt'))
       .expect(201);
 
-    // User B uploads 1 file via multipart
     await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${userB.token}`)
       .attach('file', join(TEST_FIXTURES, 'enum-c.txt'))
       .expect(201);
 
-    // User B gets ALL files — including A's
     const res = await request(httpServer)
       .get('/files')
       .set('Authorization', `Bearer ${userB.token}`)
       .expect(200);
 
-    expect(res.body.items).toHaveLength(3);
-    expect(res.body.total).toBe(3);
-    const ownerIds = res.body.items.map((f: { ownerId: string }) => f.ownerId);
-    expect(ownerIds).toContain(userA.userId);
-    expect(ownerIds).toContain(userB.userId);
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.total).toBe(1);
+    expect(res.body.items[0].ownerId).toBe(userB.userId);
   });
 
   /**

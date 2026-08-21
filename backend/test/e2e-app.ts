@@ -25,3 +25,12 @@ export function configureE2eApp(app: INestApplication): void {
   );
   app.useGlobalFilters(new ValidationExceptionFilter());
 }
+
+/** Set DB role (HasRoleGuard trusts DB, not JWT claim). */
+export async function setUserRole(
+  dataSource: { query: (sql: string, params?: unknown[]) => Promise<unknown> },
+  userId: string,
+  role: 'user' | 'moderator' | 'admin',
+): Promise<void> {
+  await dataSource.query(`UPDATE "user" SET role = $1 WHERE id = $2`, [role, userId]);
+}

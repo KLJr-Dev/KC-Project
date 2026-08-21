@@ -78,11 +78,21 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
    * User A uploads a file (ownerId = A). User B, with a different JWT,
    * can read User A's file by knowing its ID. No ownership check.
    */
-  it("User B can read User A's file — CWE-639 IDOR", async () => {
+  it("User B cannot read User A's file — ownership enforced", async () => {
     const httpServer = app.getHttpServer();
 
-    const userA = await registerAndLogin(httpServer, 'a@example.com', 'user-a', 'pass-a');
-    const userB = await registerAndLogin(httpServer, 'b@example.com', 'user-b', 'pass-b');
+    const userA = await registerAndLogin(
+      httpServer,
+      'a@example.com',
+      'user-a',
+      'Password123!',
+    );
+    const userB = await registerAndLogin(
+      httpServer,
+      'b@example.com',
+      'user-b',
+      'Password123!',
+    );
 
     // User A uploads a file via multipart
     const uploadRes = await request(httpServer)
@@ -94,27 +104,32 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
     const fileId = uploadRes.body.id;
     expect(uploadRes.body.ownerId).toBe(userA.userId);
 
-    // User B reads User A's file — should be forbidden but isn't (IDOR)
-    const readRes = await request(httpServer)
+    // User B cannot read User A's file (ownership enforced)
+    await request(httpServer)
       .get(`/files/${fileId}`)
       .set('Authorization', `Bearer ${userB.token}`)
-      .expect(200);
-
-    expect(readRes.body.id).toBe(fileId);
-    expect(readRes.body.ownerId).toBe(userA.userId);
-    expect(readRes.body.filename).toBe('idor-test.txt');
+      .expect(403);
   });
 
   /**
    * IDOR: User B deletes User A's file — CWE-639
    */
-  it("User B can delete User A's file — CWE-639 IDOR", async () => {
+  it("User B cannot delete User A's file — ownership enforced", async () => {
     const httpServer = app.getHttpServer();
 
-    const userA = await registerAndLogin(httpServer, 'a@example.com', 'user-a', 'pass-a');
-    const userB = await registerAndLogin(httpServer, 'b@example.com', 'user-b', 'pass-b');
+    const userA = await registerAndLogin(
+      httpServer,
+      'a@example.com',
+      'user-a',
+      'Password123!',
+    );
+    const userB = await registerAndLogin(
+      httpServer,
+      'b@example.com',
+      'user-b',
+      'Password123!',
+    );
 
-    // User A uploads a file via multipart
     const uploadRes = await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${userA.token}`)
@@ -123,17 +138,15 @@ describe('IDOR — Identifier Trust Failures (v0.2.2)', () => {
 
     const fileId = uploadRes.body.id;
 
-    // User B deletes User A's file — should be forbidden but isn't (IDOR)
     await request(httpServer)
       .delete(`/files/${fileId}`)
       .set('Authorization', `Bearer ${userB.token}`)
-      .expect(200);
+      .expect(403);
 
-    // User A can no longer find the file
     await request(httpServer)
       .get(`/files/${fileId}`)
       .set('Authorization', `Bearer ${userA.token}`)
-      .expect(404);
+      .expect(200);
   });
 
   /**

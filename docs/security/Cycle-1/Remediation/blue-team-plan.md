@@ -3,6 +3,7 @@
 **Branch:** `remediation/v2.0.0`  
 **Secure-ready gate:** [v2.0.0-secure-ready.md](../../../release/v2.0.0-secure-ready.md)  
 **Finding → fix map:** [v2.0.0-remediation.md](v2.0.0-remediation.md)  
+**Accepted residuals:** [accepted-residuals-m8.md](accepted-residuals-m8.md)  
 **Pentest evidence (frozen):** [v1.0.0-writeup.md](../PenTest/v1.0.0-writeup.md) on `pentest/cycle-1`  
 **Control checklist:** [security-baseline.md](../../../spec/security-baseline.md)
 
@@ -10,28 +11,23 @@
 |-------|-------|
 | Cycle | 1 (ADR-013 / ADR-031) |
 | From | v1.0.0 insecure MVP (pentest complete) |
-| To | v2.0.0 secure parallel |
-| Current milestone | **M1 complete** → next **M2 (Wave B)** |
-| Code status | Wave A landed (ownership, admin HasRole, DB role, JWT env + exp) |
+| To | v2.0.0 secure parallel (**full** security-baseline) |
+| Current milestone | **M9 complete** (gate green; merge/tag pending operator) |
+| Code status | Wave 1 + Wave 2 landed; secure-ready signed pending merge/tag |
 
 ---
 
 ## Mission
 
-Ship a functionally equivalent **secure parallel** of KC-Project that **fails** Cycle-1 PoCs (file IDOR, JWT role forge, admin DELETE-as-user, open Swagger, published Postgres defaults, predictable shares, and supporting findings) while legitimate user / moderator / admin journeys still work.
+Ship a functionally equivalent **secure parallel** of KC-Project that **fails** Cycle-1 PoCs and meets [security-baseline.md](../../../spec/security-baseline.md), while legitimate user / moderator / admin journeys still work.
 
-**Success** = F-01…F-13 addressed · security-baseline authz/files/infra met · smoke / journey / e2e green under **deny** expectations · [v2.0.0-secure-ready.md](../../../release/v2.0.0-secure-ready.md) signed · tag `v2.0.0`.
+**Success** = F-01…F-13 addressed · baseline controls verified · smoke / journey / e2e / tls-smoke green · [v2.0.0-secure-ready.md](../../../release/v2.0.0-secure-ready.md) signed · tag `v2.0.0`.
+
+**CTF blocked** until after tag `v2.0.0` (ADR-013 fork-from-secure → v1.1.0).
 
 ---
 
-## How this mirrors the path to v1.0.0
-
-| v1.0.0 (build insecure) | v2.0.0 (harden) |
-|-------------------------|-----------------|
-| Phased versions toward freeze | Milestones **M0–M4** with exit gates |
-| `smoke` / `journey` / `e2e-docker` | Same scripts + **negative** re-PoCs |
-| [v1.0.0-pentest-ready.md](../../../release/v1.0.0-pentest-ready.md) | [v2.0.0-secure-ready.md](../../../release/v2.0.0-secure-ready.md) |
-| Tag `v1.0.0` | Tag `v2.0.0` |
+## Two waves
 
 ```text
 v1.0.0 ──► pentest/cycle-1 (evidence frozen)
@@ -39,17 +35,45 @@ v1.0.0 ──► pentest/cycle-1 (evidence frozen)
               ▼
          remediation/v2.0.0
               │
-     M0 docs ─► M1 authz ─► M2 infra ─► M3 disclosure ─► M4 baseline
-                                                              │
-                                                              ▼
-                                                    secure-ready gate
-                                                              │
-                                                              ▼
-                                                    merge main · tag v2.0.0
-                                                              │
-                                                              ▼
-                                                    later: v1.1.0 CTF (fork secure)
+   Wave 1: M0–M4 (Cycle-1 finding close-out)
+              │
+   Wave 2: M5–M9 (actual baseline → tag)
+              │
+              ▼
+         merge main · tag v2.0.0
+              │
+              ▼
+         later: v1.1.0 CTF (fork secure)
 ```
+
+| Wave | Milestones | Intent |
+|------|------------|--------|
+| **1** | M0–M4 | Close F-01…F-13; authz, shares, disclosure, RS256 refresh, CORS/headers |
+| **2** | M5–M9 | Full baseline: bcrypt, cookies, TLS profile, ops hardening, gate + tag |
+
+---
+
+## Wave 1 — Cycle-1 close-out (done)
+
+| Milestone | Focus | Status |
+|-----------|--------|--------|
+| M0 | Plans, remediation map, secure-ready scaffold | **Done** |
+| M1 | File ownership; admin HasRole; DB role; JWT env + exp | **Done** |
+| M2 | Postgres unpublished; random share tokens + expiry | **Done** |
+| M3 | Swagger/lab UI gates; generic auth errors | **Done** |
+| M4 | CORS; nginx headers; RS256 + refresh; upload sanitize/MIME | **Done** |
+
+---
+
+## Wave 2 — Actual baseline (M5–M9)
+
+| Milestone | Focus | Status |
+|-----------|--------|--------|
+| M5 | bcrypt 12+; password policy; prod RS-only boot; ROLE_RANK; SQL logging off in prod | **Done** |
+| M6 | httpOnly refresh cookie; access JWT memory-only; CSRF header on refresh | **Done** |
+| M7 | `docker-compose.tls.yml`; certs script; HSTS; `tls-smoke.sh` | **Done** |
+| M8 | Rate limits; non-root; path containment; share ownership; Permissions-Policy; log redaction | **Done** |
+| M9 | Docs rewrite; full suite green; merge `main`; tag `v2.0.0` | **Gate green** (merge/tag pending) |
 
 ---
 
@@ -57,141 +81,40 @@ v1.0.0 ──► pentest/cycle-1 (evidence frozen)
 
 | Rule | Practice |
 |------|----------|
-| Freeze Red evidence | Do not “fix” vulns or rewrite PoCs on `pentest/cycle-1` |
-| One milestone at a time | No skipping M1 for polish |
-| Small PRs | Suggested slices under each milestone |
-| Negative tests first | Assert **401/403/deny**; invert suites that today expect vuln success |
-| Secrets | No new hardcoded JWT/DB passwords; env + `.env.example` placeholders only |
-| Demo / `/dev` | Off in prod builds; optional `NEXT_PUBLIC_DEMO=1` for lab |
-| CTF later | **v1.1.0** only after tag `v2.0.0` (ADR-013 fork-from-secure) |
+| Freeze Red evidence | Do not rewrite PoCs on `pentest/cycle-1` |
+| Full baseline DoD | Tag only after Wave 2 + secure-ready signed |
+| Secrets | Env / file mounts; no new hardcoded JWT/DB passwords |
+| Demo / `/dev` | Off in prod builds (`NEXT_PUBLIC_ENABLE_LAB_UI`) |
+| CTF later | **v1.1.0** only after tag `v2.0.0` |
 
 ---
 
-## Defaults (locked)
+## Test / gate scripts
 
-| Topic | Decision |
-|-------|----------|
-| DoD | All pentest **F-01…F-13** + security-baseline authz / file ownership / infra exposure |
-| JWT in M1 | Strong `JWT_SECRET` from env + access `expiresIn` + **HasRoleGuard reads DB role** |
-| JWT in M4 | **RS256** + refresh tokens + logout revoke (baseline complete) |
-| Demo UX | Prod compose: demos off; flag for non-prod lab |
-| Share tokens | M2 replaces `share-N`; journeys/seeds updated |
-
----
-
-## Milestone board
-
-### M0 — Planning artifacts (docs)
-
-| Deliverable | Path | Status |
-|-------------|------|--------|
-| This plan (milestones) | `Remediation/blue-team-plan.md` | **Done** |
-| Finding → file map | `Remediation/v2.0.0-remediation.md` | **Done** |
-| Secure-ready gate scaffold | `docs/release/v2.0.0-secure-ready.md` | Scaffold open until ship |
-| Cycle-1 + STRATEGY sync | Cycle-1 README, STRATEGY Phase 2/3 | **Done** |
-| **M1 Wave A code** | authz / ownership / JWT | **Done** |
-
-**M0 exit:** Docs presentation-ready on `remediation/v2.0.0`. No application code required.
-
----
-
-### M1 — Wave A (P0 authz)
-
-Stops Critical/High kill chains: file IDOR, JWT admin, user DELETE.
-
-| Ticket | Finding | Change | Primary files | Acceptance |
-|--------|---------|--------|---------------|------------|
-| A1 | F-02 | Ownership on get / download / delete / list | `backend/src/files/files.service.ts`, `files.controller.ts` | User + file `9104` → **403**; own file **200** |
-| A2 | F-10 | `@HasRole('admin')` on audit-logs + DELETE | `backend/src/admin/admin.controller.ts` | User JWT → both **403** |
-| A3 | F-03 | `HasRoleGuard` loads role from DB by `sub` | `backend/src/auth/guards/has-role.guard.ts` | Forged `role:admin` → admin routes **403** |
-| A4 | F-03 / F-09 | Env `JWT_SECRET`; access `expiresIn`; remove `kc-secret` | `auth.module.ts`, `auth.service.ts`, `infra/.env.example` | Boots with env secret; expired token rejected |
-
-**PR slices:** `A2` → `A1` → `A3+A4`.
-
-**Test flips:** `backend/test/rbac.e2e-spec.ts`, `inconsistency.e2e-spec.ts`, `files.e2e-spec.ts`.
-
-**Re-PoC (expect deny):**
-
-```bash
-curl -sS -w "%{http_code}\n" -H "Authorization: Bearer $USER_TOKEN" \
-  http://127.0.0.1:8080/api/files/9104
-curl -sS -w "%{http_code}\n" -H "Authorization: Bearer $USER_TOKEN" \
-  http://127.0.0.1:8080/api/admin/audit-logs
-curl -sS -o /dev/null -w "%{http_code}\n" -X DELETE \
-  -H "Authorization: Bearer $USER_TOKEN" \
-  http://127.0.0.1:8080/api/admin/users/11
-```
-
-**M1 exit:** Manual denies above · targeted e2e green · smoke green · matrix rows F-02, F-10, F-03 (DB role + secret), F-09 (`exp`) marked Verified (partial where noted).
-
----
-
-### M2 — Wave B (P0 infra + shares)
-
-| Ticket | Finding | Change | Primary files | Acceptance |
-|--------|---------|--------|---------------|------------|
-| B1 | F-05 | Unpublish host `5433`; strong DB password via env | `infra/docker-compose.prod.yml`, `.env.example` | Host nmap: 5433 **closed**; stack healthy |
-| B2 | F-04 | Random share tokens; enforce `expiresAt` | `sharing.service.ts`, `sharing.controller.ts`, seeds | Guessable `share-1` fails; journeys updated |
-
-**M2 exit:** F-04, F-05 verified · smoke/journey updated for new share contract.
-
----
-
-### M3 — Wave C (P1 disclosure)
-
-| Ticket | Finding | Change | Primary files | Acceptance |
-|--------|---------|--------|---------------|------------|
-| C1 | F-01 | Swagger only non-prod / explicit flag | `backend/src/main.ts` | Prod `/api/docs` not public |
-| C2 | F-11 / F-12 | Gate demo passwords + `/dev` | `frontend/lib/demo-users.ts`, `app/dev/**`, landing/auth/footer | Prod build: no plaintext demos; `/dev` gated |
-| C3 | F-08 / F-13 | Generic auth errors; strip version/CWE from clients | `auth.service.ts`, guards, exception filter | Identical login failures; no `v0.1.x` in 401 bodies |
-
-**M3 exit:** F-01, F-08, F-11, F-12, F-13 verified.
-
----
-
-### M4 — Wave D (baseline polish) + ship
-
-| Ticket | Finding / control | Change | Primary files | Acceptance |
-|--------|-------------------|--------|---------------|------------|
-| D1 | F-07 | CORS allowlist | `backend/src/main.ts` | `Access-Control-Allow-Origin: *` gone |
-| D2 | F-06 | nginx security headers | `infra/nginx.conf` | CSP / XFO / nosniff present (lab-appropriate) |
-| D3 | F-09 + baseline | RS256 + refresh + logout revoke | auth module + migration | Logout invalidates refresh; short access TTL |
-| D4 | baseline files | Path sanitize + MIME magic bytes | files upload path | Traversal / Content-Type trust reduced |
-
-**Then:** complete every checkbox in [v2.0.0-secure-ready.md](../../../release/v2.0.0-secure-ready.md), append “After (v2.0.0)” to the remediation report, squash-merge to `main`, tag **`v2.0.0`**.
-
-**M4 exit:** Secure-ready gate signed · e2e-docker green · tag created.
-
----
-
-## Test plan
-
-| Suite / script | Action on this branch |
-|----------------|----------------------|
-| `backend/test/rbac.e2e-spec.ts` | Forge → **deny** |
-| `backend/test/inconsistency.e2e-spec.ts` | DELETE-as-user → **403** |
-| `backend/test/files.e2e-spec.ts` | IDOR → **403**; share token pattern update |
-| `backend/test/escalation.e2e-spec.ts` | Align with admin-only escalation |
-| `infra/smoke-test.sh` | Happy path remains green |
-| `infra/journey-test.sh` | Secure journeys (no intentional IDOR pass) |
-| `infra/e2e-docker.sh` | Green before tag `v2.0.0` |
-
-Manual: re-run Critical/High rows from the pentest Findings overview — all must **fail open**.
+| Script | Expectation |
+|--------|-------------|
+| `infra/smoke-test.sh` | Happy path green (HTTP `:8080`) |
+| `infra/journey-test.sh` | 3 roles + share + IDOR deny |
+| `infra/e2e-docker.sh` | Inverted / secure e2e green |
+| `infra/tls-smoke.sh` | HTTPS `:8443` + HSTS + Secure cookie (pre-tag) |
 
 ---
 
 ## Definition of Done (tag `v2.0.0`)
 
-- [ ] M1–M3 complete; M4 complete or residuals explicitly accepted in remediation report
-- [ ] Each F-01…F-13 **Verified** or **Accepted residual**
-- [ ] security-baseline authz / ownership / infra exposure checked
-- [ ] `v2.0.0-secure-ready.md` fully checked
-- [ ] e2e-docker green
-- [ ] `pentest/cycle-1` left intact as before-state evidence
+- [x] Wave 1 (M0–M4) complete
+- [x] Wave 2 code (M5–M8) complete
+- [x] Each F-01…F-13 **Verified** or **Accepted residual**
+- [x] Sequential IDs documented as accepted residual ([accepted-residuals-m8.md](accepted-residuals-m8.md))
+- [x] `v2.0.0-secure-ready.md` fully checked (M9 gate run 2026-08-21)
+- [x] smoke + journey + e2e-docker + tls-smoke green
+- [x] `pentest/cycle-1` left intact
+- [ ] Merge → `main` · tag **`v2.0.0`** (operator)
+- [x] CTF work not started until after tag
 
 ---
 
-## Next session
+## Next after tag
 
-1. **M2 / B1** — unpublish Postgres `:5433` on prod compose; strong DB password story.  
-2. **M2 / B2** — random share tokens + `expiresAt`.
+1. Merge `remediation/v2.0.0` → `main`, tag `v2.0.0`.  
+2. Only then: ADR-013 fork for **v1.1.0** CTF (narrower than v1.0.0 kitchen-sink).

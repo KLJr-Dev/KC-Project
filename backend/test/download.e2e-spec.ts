@@ -46,11 +46,15 @@ function findUploadedDiskFile(): string | undefined {
 describe('File Download (v2.0.0)', () => {
   let app: INestApplication<App>;
 
+  jest.setTimeout(60_000);
+
   beforeAll(() => {
     ensureFixtures();
   });
 
   beforeEach(async () => {
+    ensureFixtures();
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();

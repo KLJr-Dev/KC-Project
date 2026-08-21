@@ -2,7 +2,7 @@
 
 **Date**: March 5, 2026 (updated June 2026)  
 **Target MVP**: v1.0.0 — **pentest-ready** (59 instances / 38 CWE IDs; target 60–80 with v1.0.x discoveries)  
-**Post-MVP**: Phase 2 Cycle 1 pentest (**done**) → v2.0.0 hardening (M0–M4) → expansion (v1.N.0 from secure parallel, ~10–15 CWEs per cycle)
+**Post-MVP**: Phase 2 Cycle 1 pentest (**done**) → v2.0.0 hardening (Wave 1 M0–M4 + Wave 2 M5–M9) → expansion (v1.N.0 from secure parallel, ~10–15 CWEs per cycle)
 
 ---
 
@@ -350,19 +350,19 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 | Version | Duration | Focus |
 |---------|----------|-------|
 | v1.0.x | Done | Structured pentest + evidence |
-| v2.0.0 | In progress | Secure parallel (milestones M0–M4) |
+| v2.0.0 | Gate (M9) | Secure parallel — Wave 1 M0–M4 + Wave 2 M5–M9 |
 
 **Cycle-1 gate:**
 
 - [x] Pentest writeup complete (portfolio piece)
 - [x] Critical/High PoCs evidenced (F-01…F-13; not every inventory instance — VA scope)
 - [x] Remediation map + Blue Team plan ([v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md), [blue-team-plan.md](../security/Cycle-1/Remediation/blue-team-plan.md))
-- [x] **M0** planning / secure-ready scaffold ([v2.0.0-secure-ready.md](../release/v2.0.0-secure-ready.md))
-- [ ] **M1–M4** code + inverted e2e
-- [ ] Tag `v2.0.0` when [secure-ready](../release/v2.0.0-secure-ready.md) signed
+- [x] **M0–M8** code + docs (finding close-out + full baseline)
+- [x] **M9** secure-ready gate green (merge/tag operator)
+- [x] **CTF blocked** until tag exists
 
 **Outcome (Red):** Attack chains documented in Cycle-1 PenTest artifacts.  
-**Outcome (Blue, target):** Same product surface; PoCs deny; tag `v2.0.0`.
+**Outcome (Blue, target):** Same product surface; PoCs deny; full baseline; tag `v2.0.0`.
 
 ### Phase 3: v2.0.0 hardening → v1.1.0+ (Expansion)
 
@@ -370,11 +370,9 @@ Hardening milestones (detail: [blue-team-plan.md](../security/Cycle-1/Remediatio
 
 | Milestone | Focus |
 |-----------|--------|
-| M0 | Docs / gates (**done**) |
-| M1 | Wave A — P0 authz (**done**) |
-| M2 | Wave B — Postgres + shares |
-| M3 | Wave C — Swagger / `/dev` / errors |
-| M4 | Wave D — baseline polish + tag |
+| M0–M4 | Wave 1 — Cycle-1 finding close-out (**done**) |
+| M5–M8 | Wave 2 — baseline crypto/session/TLS/ops (**done**) |
+| M9 | Gate scripts + docs + merge/tag |
 
 **Only after `v2.0.0`:** fork-from-secure for CTF-style expansion (prefer fewer chained vulns than v1.0.0 kitchen-sink):
 
