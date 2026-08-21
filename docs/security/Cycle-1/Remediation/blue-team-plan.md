@@ -11,8 +11,8 @@
 | Cycle | 1 (ADR-013 / ADR-031) |
 | From | v1.0.0 insecure MVP (pentest complete) |
 | To | v2.0.0 secure parallel |
-| Current milestone | **M0 complete** → next **M1 (Wave A)** |
-| Code status | Not started |
+| Current milestone | **M1 complete** → next **M2 (Wave B)** |
+| Code status | Wave A landed (ownership, admin HasRole, DB role, JWT env + exp) |
 
 ---
 
@@ -86,9 +86,10 @@ v1.0.0 ──► pentest/cycle-1 (evidence frozen)
 | Deliverable | Path | Status |
 |-------------|------|--------|
 | This plan (milestones) | `Remediation/blue-team-plan.md` | **Done** |
-| Finding → file map | `Remediation/v2.0.0-remediation.md` | **Done** (milestone column added) |
-| Secure-ready gate scaffold | `docs/release/v2.0.0-secure-ready.md` | **Done** (checkboxes open until ship) |
+| Finding → file map | `Remediation/v2.0.0-remediation.md` | **Done** |
+| Secure-ready gate scaffold | `docs/release/v2.0.0-secure-ready.md` | Scaffold open until ship |
 | Cycle-1 + STRATEGY sync | Cycle-1 README, STRATEGY Phase 2/3 | **Done** |
+| **M1 Wave A code** | authz / ownership / JWT | **Done** |
 
 **M0 exit:** Docs presentation-ready on `remediation/v2.0.0`. No application code required.
 
@@ -192,8 +193,5 @@ Manual: re-run Critical/High rows from the pentest Findings overview — all mus
 
 ## Next session
 
-1. **M1 / A2** — add `@HasRole('admin')` to audit-logs + DELETE (smallest code win).  
-2. **M1 / A1** — file ownership.  
-3. **M1 / A3+A4** — DB role guard + env JWT + `expiresIn`.
-
-Do not start v1.1.0 CTF design until M1 has landed.
+1. **M2 / B1** — unpublish Postgres `:5433` on prod compose; strong DB password story.  
+2. **M2 / B2** — random share tokens + `expiresAt`.

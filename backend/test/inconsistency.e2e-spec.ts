@@ -5,38 +5,19 @@ import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 
 /**
- * Inconsistent Authorization E2E Tests (v0.4.5)
- *
- * CWE-862: Improper Access Control — Missing Authorization
- * CWE-639: Client-Controlled Authorization (JWT role trusted)
- *
- * Focus: Demonstrate inconsistent authorization enforcement across admin endpoints.
- *
- * Findings:
- * - GET /admin/users: Requires @HasRole('admin') — 403 for non-admin ✓ Secure
- * - PUT /admin/users/:id/role: Requires @HasRole('admin') — 403 for non-admin ✓ Secure
- * - PUT /admin/users/:id/role/escalate: Requires @HasRole(['moderator','admin']) — 403 for user ✓ Secure
- * - DELETE /admin/users/:id: ONLY @JwtAuthGuard — 204 for any auth user ✗ VULNERABLE (CWE-862)
- *
- * Attack Path:
- * 1. Regular user authenticates (JWT obtained)
- * 2. User calls DELETE /admin/users/:id on any target user
- * 3. HasRoleGuard sees no @HasRole metadata, allows access
- * 4. User successfully deletes other users without admin role
- * 5. File records orphaned (FilesEntity.userId no longer exists)
+ * Admin authorization consistency (v2.0.0)
+ * DELETE and audit-logs require admin; non-admin → 403.
  */
-describe('Admin Authorization Inconsistency (v0.4.5)', () => {
+describe('Admin Authorization Consistency (v2.0.0)', () => {
   let app: INestApplication;
   let dataSource: DataSource;
   let adminToken: string;
   let moderatorToken: string;
   let userToken: string;
   let adminUserId: string;
-  let moderatorUserId: string;
-  let userAId: string;
   let userBId: string;
 
-  const JWT_SECRET = 'kc-secret';
+  const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-change-me';
   let nextUserId = 5;
 
   function buildUser(partial: {
@@ -54,7 +35,7 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
     };
   }
 
-  function signJwt(payload: any): string {
+  function signJwt(payload: object): string {
     const crypto = require('crypto');
     const header = { alg: 'HS256', typ: 'JWT' };
     const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
@@ -65,6 +46,7 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
   }
 
   beforeAll(async () => {
+    process.env.JWT_SECRET = JWT_SECRET;
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -75,12 +57,11 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
     dataSource = moduleFixture.get<DataSource>(DataSource);
     await dataSource.synchronize(true);
 
-    // Create test users with different roles
     const usersData = [
-      { email: 'admin-auth@test.com', username: 'admin_auth', role: 'admin' },
-      { email: 'mod-auth@test.com', username: 'mod_auth', role: 'moderator' },
-      { email: 'userA-auth@test.com', username: 'userA_auth', role: 'user' },
-      { email: 'userB-auth@test.com', username: 'userB_auth', role: 'user' },
+      { email: 'admin-auth@test.com', username: 'admin_auth', role: 'admin' as const },
+      { email: 'mod-auth@test.com', username: 'mod_auth', role: 'moderator' as const },
+      { email: 'userA-auth@test.com', username: 'userA_auth', role: 'user' as const },
+      { email: 'userB-auth@test.com', username: 'userB_auth', role: 'user' as const },
     ];
 
     const userRepo = dataSource.getRepository('User');
@@ -103,14 +84,12 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
           role: 'admin',
         });
       } else if (userData.role === 'moderator') {
-        moderatorUserId = user.id;
         moderatorToken = signJwt({
           sub: user.id,
           email: user.email,
           role: 'moderator',
         });
       } else if (userData.username === 'userA_auth') {
-        userAId = user.id;
         userToken = signJwt({
           sub: user.id,
           email: user.email,
@@ -126,32 +105,23 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
     await app.close();
   });
 
-  /**
-   * Test 1: Missing Guard on DELETE endpoint
-   * Any authenticated user can delete any other user (CWE-862)
-   */
-  describe('Test 1: Missing Authorization Guard on DELETE', () => {
-    it('regular user should DELETE another user (vulnerability)', async () => {
-      // User A (role='user') attempts to delete User B
-      const response = await request(app.getHttpServer())
+  describe('DELETE requires admin', () => {
+    it('regular user cannot DELETE another user', async () => {
+      await request(app.getHttpServer())
         .delete(`/admin/users/${userBId}`)
         .set('Authorization', `Bearer ${userToken}`)
-        .expect(204); // User gets deleted without error
+        .expect(403);
 
-      // Verify user is actually deleted by trying to fetch them
       const getUserResponse = await request(app.getHttpServer())
         .get(`/admin/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      const deletedUser = getUserResponse.body.users.find((u: any) => u.id === userBId);
-      expect(deletedUser).toBeUndefined(); // User B is actually gone
-
-      // CWE-862: Data point — successful deletion by non-admin
+      const stillThere = getUserResponse.body.users.find((u: { id: string }) => u.id === userBId);
+      expect(stillThere).toBeDefined();
     });
 
-    it('moderator should also be able to DELETE users', async () => {
-      // Create a new user to delete
+    it('moderator cannot DELETE users', async () => {
       const userRepo = dataSource.getRepository('User');
       const tempUser = await userRepo.save(
         buildUser({
@@ -161,42 +131,45 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
         }),
       );
 
-      // Moderator attempts delete
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .delete(`/admin/users/${tempUser.id}`)
         .set('Authorization', `Bearer ${moderatorToken}`)
-        .expect(204);
+        .expect(403);
+    });
 
-      // Verify deletion
-      const getResponse = await request(app.getHttpServer())
-        .get(`/admin/users`)
+    it('admin can DELETE a user', async () => {
+      const userRepo = dataSource.getRepository('User');
+      const tempUser = await userRepo.save(
+        buildUser({
+          email: 'admin-deletes@test.com',
+          username: 'admin_deletes',
+          role: 'user',
+        }),
+      );
+
+      await request(app.getHttpServer())
+        .delete(`/admin/users/${tempUser.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .expect(200);
-
-      const verifyDeleted = getResponse.body.users.find((u: any) => u.id === tempUser.id);
-      expect(verifyDeleted).toBeUndefined();
-
-      // CWE-862: Moderator can delete, even though they lack explicit admin role
+        .expect(204);
     });
   });
 
-  /**
-   * Test 2: Consistency Check — Other Endpoints Require Authorization
-   * Compare DELETE behavior against other admin endpoints
-   */
-  describe('Test 2: Authorization Inconsistency Across Endpoints', () => {
-    it('GET /admin/users should reject non-admin (403)', async () => {
-      // User tries to list all users
+  describe('Other admin endpoints', () => {
+    it('GET /admin/users rejects non-admin (403)', async () => {
       await request(app.getHttpServer())
         .get(`/admin/users`)
         .set('Authorization', `Bearer ${userToken}`)
-        .expect(403); // Actually rejected
-
-      // CWE-862 contrast: This guard works, but DELETE guard is missing
+        .expect(403);
     });
 
-    it('PUT /admin/users/:id/role should reject non-admin (403)', async () => {
-      // Create a throwaway user to modify
+    it('GET /admin/audit-logs rejects non-admin (403)', async () => {
+      await request(app.getHttpServer())
+        .get(`/admin/audit-logs`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(403);
+    });
+
+    it('PUT /admin/users/:id/role rejects non-admin (403)', async () => {
       const userRepo = dataSource.getRepository('User');
       const throwawayUser = await userRepo.save(
         buildUser({
@@ -206,95 +179,29 @@ describe('Admin Authorization Inconsistency (v0.4.5)', () => {
         }),
       );
 
-      // User tries to change role
       await request(app.getHttpServer())
         .put(`/admin/users/${throwawayUser.id}/role`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ role: 'admin' })
-        .expect(403); // Rejected as expected
-
-      // CWE-862 contrast: Role change endpoint has guard, delete doesn't
-    });
-
-    it('DELETE /admin/users/:id should ALLOW non-admin (204)', async () => {
-      // Create a throwaway user to delete
-      const userRepo = dataSource.getRepository('User');
-      const throwawayUser = await userRepo.save(
-        buildUser({
-          email: 'throwaway2@test.com',
-          username: 'throwaway2',
-          role: 'user',
-        }),
-      );
-
-      // User deletes (no guard!)
-      await request(app.getHttpServer())
-        .delete(`/admin/users/${throwawayUser.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
-        .expect(204); // Allowed!
-
-      // CWE-862: DELETE endpoint missing authorization check
+        .expect(403);
     });
   });
 
-  /**
-   * Test 3: Privilege Escalation via Delete
-   * Attacker can delete their superior (admin) to eliminate opposition
-   */
-  describe('Test 3: Lateral Escalation — Delete Superiors', () => {
-    it('non-admin user should be able to delete admin user', async () => {
-      // Create a new admin to delete
-      const userRepo = dataSource.getRepository('User');
-      const targetAdmin = await userRepo.save(
-        buildUser({
-          email: 'target-admin@test.com',
-          username: 'target_admin',
-          role: 'admin',
-        }),
-      );
-
-      // Regular user deletes the admin
-      const response = await request(app.getHttpServer())
-        .delete(`/admin/users/${targetAdmin.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
-        .expect(204);
-
-      // Verify admin is gone
-      const allUsers = await request(app.getHttpServer())
-        .get(`/admin/users`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(200);
-
-      const stillExists = allUsers.body.users.find((u: any) => u.id === targetAdmin.id);
-      expect(stillExists).toBeUndefined();
-
-      // CWE-862: Non-admin deleted admin, disrupting authorization model
-    });
-  });
-
-  /**
-   * Test 4: Unauthenticated requests still rejected
-   * Only authentication is required, not authorization
-   */
-  describe('Test 4: Authentication Required (but not Authorization)', () => {
-    it('should reject DELETE without token (401)', async () => {
+  describe('Auth required', () => {
+    it('rejects DELETE without token (401)', async () => {
       await request(app.getHttpServer()).delete(`/admin/users/${adminUserId}`).expect(401);
     });
 
-    it('should reject GET /admin/users without token (401)', async () => {
+    it('rejects GET /admin/users without token (401)', async () => {
       await request(app.getHttpServer()).get(`/admin/users`).expect(401);
     });
   });
 
-  /**
-   * Test 5: 404 handling (user doesn't exist)
-   */
-  describe('Test 5: Not Found Handling', () => {
-    it('should return 404 for non-existent user deletion', async () => {
-      const fakeId = '99999';
+  describe('Not found', () => {
+    it('admin gets 404 for non-existent user deletion', async () => {
       await request(app.getHttpServer())
-        .delete(`/admin/users/${fakeId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .delete(`/admin/users/99999`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
     });
   });

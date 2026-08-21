@@ -58,7 +58,7 @@ export class SharingController {
     const share = await this.sharingService.findByPublicToken(token);
     if (!share) throw new NotFoundException();
 
-    const fileMeta = await this.filesService.getFileMeta(share.fileId);
+    const fileMeta = await this.filesService.getFileMetaById(share.fileId);
     if (!fileMeta || !fileMeta.storagePath) throw new NotFoundException();
     if (!existsSync(fileMeta.storagePath)) throw new NotFoundException();
 

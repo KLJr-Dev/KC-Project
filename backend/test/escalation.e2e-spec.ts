@@ -26,8 +26,8 @@ describe('PUT /admin/users/:id/role/escalate (e2e)', () => {
   let userBId: string;
   let userCId: string;
 
-  // Hardcoded JWT secret (same as backend)
-  const JWT_SECRET = 'kc-secret';
+  // Hardcoded JWT secret (must match AuthModule / JWT_SECRET)
+  const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-change-me';
 
   // Helper: Sign a JWT token with given role
   function signJwt(payload: any): string {
@@ -200,10 +200,9 @@ describe('PUT /admin/users/:id/role/escalate (e2e)', () => {
   });
 
   /**
-   * Test 4: Persistent audit logs (v0.6.0)
-   * CWE-284: Any authenticated user can read audit logs (weak guard).
+   * Test 4: Persistent audit logs (v2.0.0 — admin only)
    */
-  describe('Test 4: Audit logs endpoint (v0.6.0)', () => {
+  describe('Test 4: Audit logs endpoint (v2.0.0)', () => {
     it('admin should retrieve audit logs after escalation', async () => {
       await request(app.getHttpServer())
         .put(`/admin/users/${userAId}/role/escalate`)
@@ -220,11 +219,11 @@ describe('PUT /admin/users/:id/role/escalate (e2e)', () => {
       expect(response.body[0]).toHaveProperty('action', 'escalate');
     });
 
-    it('non-admin can also read audit logs (CWE-284 weak guard)', async () => {
+    it('non-admin cannot read audit logs', async () => {
       await request(app.getHttpServer())
         .get('/admin/audit-logs')
         .set('Authorization', `Bearer ${moderatorToken}`)
-        .expect(200);
+        .expect(403);
     });
   });
 

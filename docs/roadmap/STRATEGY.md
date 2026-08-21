@@ -371,7 +371,7 @@ Hardening milestones (detail: [blue-team-plan.md](../security/Cycle-1/Remediatio
 | Milestone | Focus |
 |-----------|--------|
 | M0 | Docs / gates (**done**) |
-| M1 | Wave A — P0 authz |
+| M1 | Wave A — P0 authz (**done**) |
 | M2 | Wave B — Postgres + shares |
 | M3 | Wave C — Swagger / `/dev` / errors |
 | M4 | Wave D — baseline polish + tag |

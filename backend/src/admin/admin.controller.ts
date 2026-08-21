@@ -158,13 +158,13 @@ export class AdminController {
   }
 
   /**
-   * GET /admin/audit-logs — Persistent audit trail (v0.6.0)
-   * CWE-284: JwtAuthGuard only — any authenticated user can read audit logs.
+   * GET /admin/audit-logs — Persistent audit trail (admin only).
    */
   @Get('audit-logs')
+  @HasRole('admin')
   @ApiOperation({
-    summary: 'Get audit logs (any authenticated user — CWE-284)',
-    description: 'Returns persisted audit log entries. Weak guard: no admin role required.',
+    summary: 'Get audit logs (admin only)',
+    description: 'Returns persisted audit log entries. Requires admin role.',
   })
   @ApiResponse({
     status: 200,
@@ -183,40 +183,14 @@ export class AdminController {
   }
 
   /**
-   * DELETE /admin/users/:id — Delete a user (v0.4.5 — MISSING AUTHORIZATION)
-   *
-   * Guarded by: JwtAuthGuard ONLY (NO @HasRole decoration)
-   * CWE-862: Improper Access Control — Missing Authorization Check
-   *
-   * Vulnerability:
-   * - Any authenticated user (not just admin) can delete ANY other user
-   * - No role check on this endpoint (inconsistent with other admin endpoints)
-   * - No ownership validation (can delete anyone, not just self)
-   * - No soft-delete or audit trail (permanent deletion logged to stdout only)
-   * - Orphans file records in FilesEntity (userId no longer exists)
-   *
-   * Comparison with other endpoints (showing inconsistency):
-   * - GET /admin/users — requires @HasRole('admin')
-   * - PUT /admin/users/:id/role — requires @HasRole('admin')
-   * - PUT /admin/users/:id/role/escalate — requires @HasRole(['moderator', 'admin'])
-   * - DELETE /admin/users/:id — @HasRole MISSING (only JwtAuthGuard) ← CWE-862
-   *
-   * This demonstrates CWE-862 in a real codebase: developers forgot to add the guard
-   * on one endpoint, allowing lateral privilege escalation.
-   *
-   * Remediation (v1.0.0 or v2.0.0):
-   * - Add @HasRole('admin') decorator
-   * - Validate caller is not deleting themselves or their superiors
-   * - Implement soft-delete with deletion timestamp
-   * - Log deletion to persistent audit trail with requester identity
-   * - Cascade delete or reassign orphaned file records
+   * DELETE /admin/users/:id — Delete a user (admin only).
    */
   @Delete('users/:id')
+  @HasRole('admin')
   @HttpCode(204)
   @ApiOperation({
-    summary: 'Delete a user (VULNERABILITY: Missing Authorization)',
-    description:
-      'Delete a user by ID. INTENTIONALLY MISSING @HasRole(admin) — any authenticated user can delete any other user. Demonstrates CWE-862.',
+    summary: 'Delete a user (admin only)',
+    description: 'Delete a user by ID. Requires admin role.',
   })
   @ApiResponse({
     status: 204,
@@ -225,6 +199,10 @@ export class AdminController {
   @ApiResponse({
     status: 401,
     description: 'Unauthorized (no token)',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden (not admin)',
   })
   @ApiResponse({
     status: 404,

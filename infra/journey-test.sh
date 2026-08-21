@@ -53,9 +53,12 @@ FILE_COUNT=$(curl -sS -H "Authorization: Bearer ${ADMIN_TOKEN}" "${BASE}/files" 
 [[ "$FILE_COUNT" -ge 4 ]] || { echo "FAIL: expected >= 4 seeded files (got ${FILE_COUNT})"; exit 1; }
 echo "  OK (${FILE_COUNT} files)"
 
-echo "User files scoped in API (IDOR still returns all)..."
-ALL_FILES=$(curl -sS -H "Authorization: Bearer ${USER_TOKEN}" "${BASE}/files")
-echo "$ALL_FILES" | grep -q 'other-user-secret' || { echo "FAIL: IDOR baseline — other user file missing from API"; exit 1; }
-echo "  OK (API returns all files — product UI filters client-side)"
+echo "User files scoped to owner (no IDOR)..."
+USER_FILES=$(curl -sS -H "Authorization: Bearer ${USER_TOKEN}" "${BASE}/files")
+echo "$USER_FILES" | grep -q 'other-user-secret' && { echo "FAIL: IDOR — other user file visible to user"; exit 1; }
+echo "$USER_FILES" | grep -q 'welcome' || { echo "FAIL: user should see own welcome file"; exit 1; }
+IDOR_CODE=$(curl -sS -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${USER_TOKEN}" "${BASE}/files/9104")
+[[ "$IDOR_CODE" == "403" ]] || { echo "FAIL: expected 403 on other-user file (got ${IDOR_CODE})"; exit 1; }
+echo "  OK (list scoped; cross-user get denied)"
 
-echo "Journey test passed (3 roles + demo seed + share landing)."
+echo "Journey test passed (3 roles + demo seed + share landing + ownership)."

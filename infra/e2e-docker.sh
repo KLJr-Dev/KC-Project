@@ -25,6 +25,8 @@ DB_PORT=5433 \
 DB_USER=postgres \
 DB_PASSWORD=postgres \
 DB_NAME=kc_prod \
+JWT_SECRET=test-e2e-jwt-secret \
+JWT_EXPIRES_IN=1h \
 npm run test:e2e
 
 echo "E2E passed against Docker postgres."

@@ -194,9 +194,9 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
   });
 
   /**
-   * CWE-639: User B downloads User A's file via IDOR on download endpoint.
+   * Cross-user download is denied (ownership).
    */
-  it('User B downloads User A file -- CWE-639 IDOR', async () => {
+  it('User B cannot download User A file', async () => {
     const httpServer = app.getHttpServer();
     const userA = await registerAndLogin(httpServer, 'a@t.com', 'owner', 'pass');
     const userB = await registerAndLogin(httpServer, 'b@t.com', 'attacker', 'pass');
@@ -207,12 +207,27 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
       .attach('file', join(TEST_FIXTURES, 'test.txt'))
       .expect(201);
 
-    const res = await request(httpServer)
+    await request(httpServer)
       .get(`/files/${upload.body.id}/download`)
       .set('Authorization', `Bearer ${userB.token}`)
-      .expect(200);
+      .expect(403);
+  });
 
-    expect(res.text).toBe('hello world');
+  it('User B cannot read User A file metadata', async () => {
+    const httpServer = app.getHttpServer();
+    const userA = await registerAndLogin(httpServer, 'a2@t.com', 'owner2', 'pass');
+    const userB = await registerAndLogin(httpServer, 'b2@t.com', 'attacker2', 'pass');
+
+    const upload = await request(httpServer)
+      .post('/files')
+      .set('Authorization', `Bearer ${userA.token}`)
+      .attach('file', join(TEST_FIXTURES, 'test.txt'))
+      .expect(201);
+
+    await request(httpServer)
+      .get(`/files/${upload.body.id}`)
+      .set('Authorization', `Bearer ${userB.token}`)
+      .expect(403);
   });
 
   // -- Delete tests --

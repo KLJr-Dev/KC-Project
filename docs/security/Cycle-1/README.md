@@ -8,7 +8,7 @@ Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure
 |---------|------|--------|
 | v1.0.0 | Insecure baseline (59 CWE instances / 38 IDs) | **Pentest complete** |
 | v1.0.x | Accidental critical patches only (this cycle) | N/A — no crash/RCE patches required |
-| v2.0.0 | Secure parallel — Cycle-1 findings remediated | **Blue Team — M0 done, M1 next** |
+| v2.0.0 | Secure parallel — Cycle-1 findings remediated | **Blue Team — M1 done, M2 next** |
 
 ## Team workspaces
 
@@ -25,7 +25,7 @@ Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure
 | Ground truth | [Dev/v1.0.0-ground-truth.md](Dev/v1.0.0-ground-truth.md) | Complete |
 | Pentest writeup | [PenTest/v1.0.0-writeup.md](PenTest/v1.0.0-writeup.md) | **Complete** (OSCP-style; 13 findings) |
 | Remediation map | [Remediation/v2.0.0-remediation.md](Remediation/v2.0.0-remediation.md) | **Complete** (milestone-tracked) |
-| Blue Team plan | [Remediation/blue-team-plan.md](Remediation/blue-team-plan.md) | **M0 complete** — M1–M4 pending |
+| Blue Team plan | [Remediation/blue-team-plan.md](Remediation/blue-team-plan.md) | **M1 complete** — M2–M4 pending |
 | Secure-ready gate | [v2.0.0-secure-ready.md](../../release/v2.0.0-secure-ready.md) | Scaffold open until ship |
 | CWE inventory | [../cwe-inventory.md](../cwe-inventory.md) | Cross-cycle |
 

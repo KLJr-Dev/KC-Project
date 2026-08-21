@@ -1,73 +1,57 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  SetMetadata,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 import { JwtPayload } from '../jwt-payload.interface';
 
 /**
- * HasRole Guard — Authorization by Role Claim
+ * HasRole Guard — Authorization by database role (v2.0.0)
  *
- * Trusts the `role` claim in the JWT payload without re-validating against the database.
- * This is an intentional security weakness (CWE-639: Client-Controlled Authorization).
- *
- * Usage:
- *   @HasRole('admin')
- *   async handler() { ... }
- *
- *   @HasRole(['admin', 'moderator'])  // v0.4.3: Array form for multiple allowed roles
- *   async handler() { ... }
- *
- * Role Support (v0.4.3):
- *   - 'user': Regular user, minimal permissions
- *   - 'moderator': Intermediate level, can approve files (v0.4.3+)
- *   - 'admin': Full administrative access
- *
- * CWE-639: The role claim is trusted as-is from the JWT. If an attacker can forge a JWT
- * (e.g., by knowing the hardcoded secret 'kc-secret' from v0.1.3), they can add any role
- * claim and this guard will accept it. The guard does NOT re-check the database.
- *
- * v0.4.3 CWE-841 (Role Hierarchy Ambiguity): The ternary role system (user/moderator/admin)
- * does not define explicit hierarchy or precedence. @HasRole(['admin', 'moderator'])
- * treats roles as equals with no ranking. This is intentional — the ambiguity serves as
- * a vulnerability surface for testing. In reality:
- *   - Is 'moderator' subordinate to 'admin'? (yes, should be)
- *   - Can 'moderator' revoke 'admin' decisions? (ambiguous, leads to permission confusion)
- *   - What if an attacker forges role='admin' when database has 'user'? (CWE-639: succeeds)
+ * Loads the caller's role from the database using JWT `sub`, then compares
+ * to `@HasRole(...)` metadata. The JWT `role` claim is not authoritative.
  */
 @Injectable()
 export class HasRoleGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
-
-    if (!requiredRoles || requiredRoles.length === 0) {
-      // No roles required, allow access
-      return true;
-    }
-
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user = request.user as JwtPayload & { sub: string };
 
-    if (!user || !user.role) {
-      throw new ForbiddenException('No role found in token (CWE-639)');
+    if (user?.sub) {
+      const dbUser = await this.userRepo.findOne({ where: { id: user.sub } });
+      if (!dbUser) {
+        throw new ForbiddenException('Insufficient permissions');
+      }
+      request.user = { ...user, role: dbUser.role };
     }
 
-    if (!requiredRoles.includes(user.role)) {
+    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+    if (!requiredRoles || requiredRoles.length === 0) {
+      return true;
+    }
+
+    const effective = request.user as JwtPayload & { sub: string };
+    if (!effective?.role || !requiredRoles.includes(effective.role)) {
       throw new ForbiddenException(
-        `Insufficient permissions. Required role(s): ${requiredRoles.join(
-          ', ',
-        )}, but user has role: ${user.role} (CWE-862)`,
+        `Insufficient permissions. Required role(s): ${requiredRoles.join(', ')}`,
       );
     }
 
     return true;
   }
 }
-
-/**
- * Decorator: Mark a handler as requiring specific roles
- * Usage: @HasRole('admin') or @HasRole(['admin', 'moderator'])
- */
-import { SetMetadata } from '@nestjs/common';
 
 export const HasRole = (roles: string | string[]) =>
   SetMetadata('roles', Array.isArray(roles) ? roles : [roles]);
