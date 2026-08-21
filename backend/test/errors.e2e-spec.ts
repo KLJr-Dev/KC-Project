@@ -47,10 +47,10 @@ describe('v0.5.3 — Error Response Standardization (e2e)', () => {
   it('returns 404 with unified shape for unknown user', async () => {
     await request(app.getHttpServer())
       .post('/auth/register')
-      .send({ email: 'err@t.com', username: 'erruser', password: 'pass' });
+      .send({ email: 'err@t.com', username: 'erruser', password: 'Password123!' });
     const login = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: 'err@t.com', password: 'pass' });
+      .send({ email: 'err@t.com', password: 'Password123!' });
 
     const res = await request(app.getHttpServer())
       .get('/users/99999')

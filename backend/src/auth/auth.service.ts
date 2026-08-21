@@ -1,3 +1,20 @@
+/**
+ * M5 / v2.0.0 — AuthService (register / login / refresh / logout).
+ *
+ * Security measures:
+ * - CWE-256: Passwords hashed with bcrypt (cost ≥ 12) via UsersService.create;
+ *   login uses verifyPassword — never string-equals plaintext.
+ * - CWE-208 / CWE-203: Unknown-user login burns bcrypt compare budget then
+ *   returns the same UnauthorizedException message as bad password (M3).
+ * - CWE-613: Access JWT short-lived (expiresIn from jwt-config); refresh
+ *   tokens stored hashed and rotated (M4).
+ * - CWE-532: Prefer truncateSecret for any token fields in logs; never log
+ *   raw passwords (request body still may appear in TypeORM SQL logs until
+ *   logging is disabled in production — see AppModule M5).
+ *
+ * Session issuance still returns refreshToken in JSON until M6 moves it to
+ * an httpOnly cookie.
+ */
 import {
   BadRequestException,
   ConflictException,
@@ -17,6 +34,7 @@ import { UserResponseDto } from '../users/dto/user-response.dto';
 import { logAuthEvent, truncateSecret } from '../common/logging.util';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { hashRefreshToken, newRefreshTokenRaw, refreshExpiresAtIso } from './refresh.util';
+import { burnPasswordCompareBudget, verifyPassword } from './password.util';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +45,10 @@ export class AuthService {
     private readonly refreshRepo: Repository<RefreshToken>,
   ) {}
 
+  /**
+   * Issue access JWT + persisted refresh token (hash-at-rest).
+   * Role claim is informational; HasRoleGuard re-loads role from DB (M1).
+   */
   private async issueSession(userId: string, role: string): Promise<AuthResponseDto> {
     const token = this.jwtService.sign({ sub: userId, role });
     const refreshRaw = newRefreshTokenRaw();
@@ -46,6 +68,10 @@ export class AuthService {
     };
   }
 
+  /**
+   * Register a new user. Password strength already enforced by RegisterDto.
+   * UsersService hashes before INSERT.
+   */
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
     const { email, username, password } = dto;
 
@@ -55,6 +81,7 @@ export class AuthService {
 
     const existing = await this.usersService.findByEmail(email);
     if (existing) {
+      // Generic conflict — avoid confirming which field collided (enum adjacent).
       throw new ConflictException('Unable to register with the provided details');
     }
 
@@ -64,10 +91,14 @@ export class AuthService {
       password,
     });
 
-    const session = await this.issueSession(created.id, created.role);
+    const session = await this.issueSession(created.id, created.role ?? 'user');
     return { ...session, message: 'Registration success' };
   }
 
+  /**
+   * Authenticate with email + password.
+   * Fail closed on non-bcrypt stored credentials (post-migration invariant).
+   */
   async login(dto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = dto;
 
@@ -76,11 +107,17 @@ export class AuthService {
     }
 
     const user = await this.usersService.findEntityByEmail(email);
-    if (!user || user.password !== password) {
+    if (!user) {
+      await burnPasswordCompareBudget(password);
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const session = await this.issueSession(user.id, user.role);
+    const ok = await verifyPassword(password, user.password);
+    if (!ok) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const session = await this.issueSession(user.id, user.role ?? 'user');
     logAuthEvent('login', {
       userId: user.id,
       email: user.email,
@@ -105,7 +142,7 @@ export class AuthService {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    // Rotate: revoke old, issue new pair
+    // Rotate: revoke old, issue new pair (limits replay window of stolen refresh).
     stored.revoked = true;
     await this.refreshRepo.save(stored);
 

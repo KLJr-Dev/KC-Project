@@ -100,24 +100,13 @@ export class AdminController {
   }
 
   /**
-   * PUT /admin/users/:id/role/escalate — Escalate user role (moderator can promote)
-   *
-   * Guarded by: JwtAuthGuard + HasRoleGuard (requires 'moderator' or 'admin')
-   * CWE-269: Privilege Escalation via Role Delegation
-   * CWE-639: Role trust from JWT, multiplied by cascade effect
-   * CWE-841: Unclear role hierarchy (moderator at same nominal level but can promote)
-   *
-   * Design Flaw:
-   * - Moderator can promote user → moderator
-   * - New moderator can immediately promote another → moderator
-   * - Exponential escalation possible (A→B→C→D cascade)
+   * PUT /admin/users/:id/role/escalate — Promote user → moderator (admin only).
    */
   @Put('users/:id/role/escalate')
-  @HasRole(['moderator', 'admin'])
+  @HasRole('admin')
   @ApiOperation({
-    summary: 'Escalate user role (moderator or admin)',
-    description:
-      'Promote a user to moderator role if not already. Only moderators and admins can call this. CWE-269 enabled: moderator can create more moderators immediately.',
+    summary: 'Escalate user role (admin only)',
+    description: 'Promote a user to moderator. Admin-only (v2.0.0).',
   })
   @ApiResponse({
     status: 200,
@@ -129,14 +118,13 @@ export class AdminController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden (not moderator or admin)',
+    description: 'Forbidden (not admin)',
   })
   @ApiResponse({
     status: 404,
     description: 'User not found',
   })
   async escalateUserRole(@Param('id') userId: string, @CurrentUser() user: JwtPayload) {
-    // CWE-639: Role extracted from JWT, no DB re-validation
     return this.adminService.escalateUserRole(
       userId,
       user.role as 'user' | 'moderator' | 'admin',

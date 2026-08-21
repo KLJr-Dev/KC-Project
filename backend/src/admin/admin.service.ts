@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -11,13 +11,22 @@ import { resolvePagination } from '../common/pagination.util';
 import { logAdminEvent } from '../common/logging.util';
 import { AuditService } from './audit.service';
 import { AuditLog } from './entities/audit-log.entity';
+import {
+  canAssignRole,
+  canEscalateUserToModerator,
+  roleRank,
+} from '../auth/roles';
 
 /**
- * AdminService — Administrative Business Logic (v0.4.1: User Management)
+ * AdminService — Administrative Business Logic.
  *
- * CWE-400: getAllUsers() returns all users without pagination or limits.
- * CWE-200: User emails and roles are exposed to any authenticated admin.
- * CWE-862: No audit trail or confirmation mechanism on role changes.
+ * M5 security measures:
+ * - CWE-841: ROLE_RANK via auth/roles.ts — role mutations check actor rank
+ *   from the DB (not JWT alone) before assign/escalate.
+ * - CWE-269: Escalate is admin-capable only (actor must outrank moderator).
+ * - Audit: role_change / escalate still recorded (M1+).
+ *
+ * Residual: sequential IDs, broad admin list (pagination exists), etc. — later milestones.
  */
 @Injectable()
 export class AdminService {
@@ -78,27 +87,44 @@ export class AdminService {
   }
 
   /**
-   * Update a user's role
-   * CWE-862: No additional authorization checks beyond "is admin"
-   * CWE-639: Role change is permanent immediately; no confirmation or audit
-   * @throws NotFoundException if user not found
+   * Update a user's role (admin path).
+   * Loads actor from DB and enforces ROLE_RANK (actorRank >= newRoleRank).
+   *
+   * @throws NotFoundException if target or actor missing
+   * @throws ForbiddenException if actor cannot assign newRole per ROLE_RANK
    */
   async updateUserRole(
     userId: string,
     newRole: 'user' | 'moderator' | 'admin',
     actorId: string,
   ): Promise<UserListItemDto> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    const actor = await this.usersRepository.findOne({ where: { id: actorId } });
+    if (!actor) {
+      throw new ForbiddenException('Insufficient permissions');
+    }
+    if (!canAssignRole(actor.role, newRole)) {
+      throw new ForbiddenException('Cannot assign a role above your rank');
+    }
 
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with id "${userId}" not found`);
+    }
+
+    // Optional hardening: cannot change a peer/higher target unless you outrank them.
+    if (roleRank(actor.role) < roleRank(user.role)) {
+      throw new ForbiddenException('Cannot modify a user with a higher role');
     }
 
     user.role = newRole;
     await this.usersRepository.save(user);
 
-    // CWE-532: No audit of role changes — no persistent log of who changed what, when
-    logAdminEvent('role_change', { actorId, targetUserId: userId, newRole });
+    logAdminEvent('role_change', {
+      actorId,
+      targetUserId: userId,
+      newRole,
+      actorRank: roleRank(actor.role),
+    });
     await this.auditService.record(actorId, 'role_change', userId, {
       newRole,
       email: user.email,
@@ -108,48 +134,45 @@ export class AdminService {
   }
 
   /**
-   * Escalate a user's role (moderator can promote user → moderator)
-   * CWE-269: Improper Access Control via Role Escalation
-   * CWE-639: JWT role trusted without DB re-validation
-   * CWE-862: No additional checks on which user can be promoted
-   * CWE-841: Role hierarchy ambiguity (moderator="moderator" but no explicit rank)
+   * Escalate user → moderator only when ROLE_RANK allows (admin outranks moderator).
+   * Actor role is loaded from DB — JWT role argument is ignored for the decision.
    *
-   * Design Flaw: Allows cascade.
-   * - Moderator A promotes User → Moderator B
-   * - Moderator B immediately can promote User → Moderator C
-   * - Exponential escalation possible
-   *
-   * @param userId - User to promote
-   * @param currentUserRole - Caller's role (from JWT, untrusted)
-   * @throws NotFoundException if user not found
-   * @throws ForbiddenException if currentUserRole is not 'moderator' or 'admin'
+   * @throws ForbiddenException if actor cannot escalate per canEscalateUserToModerator
+   * @throws NotFoundException if target missing
    */
   async escalateUserRole(
     userId: string,
-    currentUserRole: 'user' | 'moderator' | 'admin',
+    _currentUserRole: 'user' | 'moderator' | 'admin',
     actorId: string,
   ): Promise<UserListItemDto> {
-    // CWE-269: Weak escalation check — just verifies caller is elevated, not admin
-    if (currentUserRole !== 'moderator' && currentUserRole !== 'admin') {
-      throw new Error('Only moderators and admins can escalate roles');
+    const actor = await this.usersRepository.findOne({ where: { id: actorId } });
+    if (!actor) {
+      throw new ForbiddenException('Insufficient permissions');
     }
 
     const user = await this.usersRepository.findOne({ where: { id: userId } });
-
     if (!user) {
       throw new NotFoundException(`User with id "${userId}" not found`);
     }
 
-    // CWE-269: Allow moderator→moderator escalation (cascade)
-    // A moderator can promote any user to moderator
-    if (user.role === 'user') {
-      user.role = 'moderator';
-      await this.usersRepository.save(user);
-
-      // CWE-532: No audit trail — just console log, lost on restart
-      logAdminEvent('escalate', { actorId, targetUserId: userId, byRole: currentUserRole });
-      await this.auditService.record(actorId, 'escalate', userId, { newRole: 'moderator' });
+    if (user.role === 'moderator') {
+      // Idempotent: already at escalate target rank
+      return this.mapUserToDto(user);
     }
+
+    if (!canEscalateUserToModerator(actor.role, user.role)) {
+      throw new ForbiddenException('Insufficient permissions');
+    }
+
+    user.role = 'moderator';
+    await this.usersRepository.save(user);
+    logAdminEvent('escalate', {
+      actorId,
+      targetUserId: userId,
+      byRole: actor.role,
+      actorRank: roleRank(actor.role),
+    });
+    await this.auditService.record(actorId, 'escalate', userId, { newRole: 'moderator' });
 
     return this.mapUserToDto(user);
   }

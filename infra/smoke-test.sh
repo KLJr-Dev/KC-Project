@@ -5,7 +5,7 @@ set -euo pipefail
 BASE="${BASE_URL:-http://localhost:8080/api}"
 EMAIL="smoke-$(date +%s)@test.com"
 USERNAME="smoke$(date +%s | tail -c 8)"
-TMPFILE="$(mktemp)"
+TMPFILE="$(mktemp /tmp/kc-smoke-XXXXXX.txt)"
 echo "smoke-test-$(date +%s)" > "$TMPFILE"
 trap 'rm -f "$TMPFILE"' EXIT
 
@@ -15,9 +15,18 @@ fail() {
 }
 
 echo "Health check → ${BASE}/health"
-HEALTH=$(curl -sS -w "\n%{http_code}" "${BASE}/health" 2>&1) || fail "curl error — is nginx up on :8080? backend running?"
-HTTP_CODE=$(echo "$HEALTH" | tail -1)
-BODY=$(echo "$HEALTH" | sed '$d')
+HEALTH=""
+HTTP_CODE=""
+BODY=""
+for i in $(seq 1 30); do
+  HEALTH=$(curl -sS -w "\n%{http_code}" "${BASE}/health" 2>&1) || true
+  HTTP_CODE=$(echo "$HEALTH" | tail -1)
+  BODY=$(echo "$HEALTH" | sed '$d')
+  if [[ "$HTTP_CODE" == "200" ]] && echo "$BODY" | grep -q '"status":"ok"'; then
+    break
+  fi
+  sleep 1
+done
 if [[ "$HTTP_CODE" != "200" ]]; then
   echo "Response ($HTTP_CODE): $BODY" >&2
   fail "health check returned $HTTP_CODE (backend likely down — check: docker compose -f infra/docker-compose.prod.yml logs backend)"
@@ -28,7 +37,7 @@ echo "  OK"
 echo "Register..."
 REG=$(curl -sS -X POST "${BASE}/auth/register" \
   -H 'Content-Type: application/json' \
-  -d "{\"email\":\"${EMAIL}\",\"username\":\"${USERNAME}\",\"password\":\"pass\"}") \
+  -d "{\"email\":\"${EMAIL}\",\"username\":\"${USERNAME}\",\"password\":\"Password123!\"}") \
   || fail "register request failed"
 TOKEN=$(echo "$REG" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
 [[ -n "$TOKEN" ]] || fail "no token in response: $REG"

@@ -1,3 +1,21 @@
+/**
+ * M5 / v2.0.0 — JWT runtime key loading (RS256 preferred).
+ *
+ * Security measures:
+ * - CWE-798 / CWE-321: No hardcoded production signing secret.
+ * - CWE-347 / CWE-639: Production requires RS256 asymmetric keys so a stolen
+ *   access token cannot be forged with a shared HS256 secret from source.
+ * - Fail-closed boot: NODE_ENV=production without private+public keys throws
+ *   before the app serves traffic (no silent HS256 fallback in prod).
+ * - Non-production may fall back to HS256 + JWT_SECRET for local/e2e only;
+ *   never rely on that path for compose “prod” profiles (keys mounted under
+ *   infra/keys from M4).
+ *
+ * Key sources (first match wins per key):
+ * 1. JWT_PRIVATE_KEY / JWT_PUBLIC_KEY env PEM (literal, `\n` escaped OK)
+ * 2. JWT_PRIVATE_KEY_PATH / JWT_PUBLIC_KEY_PATH file paths
+ * 3. Default ../infra/keys/jwt-private.pem + jwt-public.pem relative to cwd
+ */
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -19,7 +37,14 @@ function readPem(envValue: string | undefined, pathEnv: string | undefined): str
   return undefined;
 }
 
-/** Resolve RS256 keys (preferred) or HS256 secret fallback for local/e2e. */
+function isProductionRuntime(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
+/**
+ * Resolve signing/verification material for JwtModule.
+ * @throws Error when production lacks both RS256 PEMs (fail closed).
+ */
 export function loadJwtRuntimeConfig(): JwtRuntimeConfig {
   const expiresIn = process.env.JWT_EXPIRES_IN || '15m';
   const defaultKeyDir = join(process.cwd(), '..', 'infra', 'keys');
@@ -36,6 +61,14 @@ export function loadJwtRuntimeConfig(): JwtRuntimeConfig {
     return { algorithm: 'RS256', privateKey, publicKey, expiresIn };
   }
 
+  if (isProductionRuntime()) {
+    throw new Error(
+      'JWT RS256 keys required in production. Set JWT_PRIVATE_KEY and JWT_PUBLIC_KEY ' +
+        '(or JWT_PRIVATE_KEY_PATH / JWT_PUBLIC_KEY_PATH). HS256 fallback is disabled when NODE_ENV=production.',
+    );
+  }
+
+  // Local / e2e only — weak default secret is intentional for offline tests.
   return {
     algorithm: 'HS256',
     secret: process.env.JWT_SECRET || 'dev-only-change-me',

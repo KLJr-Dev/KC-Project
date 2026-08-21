@@ -31,10 +31,10 @@ import { AdminModule } from './admin/admin.module';
  *       CWE-1188 (Insecure Default Initialization of Resource) | A02:2025
  *       Remediation (v2.0.0): Manual migration execution, migration review gate.
  *
- * VULN: logging: true prints all SQL statements to stdout, including
- *       queries containing plaintext passwords and user data.
- *       CWE-532 (Insertion of Sensitive Information into Log File) | A09:2025
- *       Remediation (v2.0.0): Disable query logging or redact sensitive fields.
+ * M5: TypeORM `logging` is off when NODE_ENV=production so INSERT/UPDATE
+ *       parameters (password hashes, tokens) are not mirrored to stdout
+ *       (CWE-532). Non-prod keeps SQL logging for lab debugging unless
+ *       TYPEORM_LOGGING=false.
  *
  * VULN (v0.2.1 expanded v0.2.4): No global exception filter. ALL
  *       unhandled exceptions — TypeORM QueryFailedError, plain Error,
@@ -60,7 +60,9 @@ import { AdminModule } from './admin/admin.module';
       synchronize: false, // v0.2.5: replaced with migrations (was true, CWE-1188 partial fix)
       migrations: [__dirname + '/migrations/*{.ts,.js}'],
       migrationsRun: true, // VULN: auto-runs migrations on start (CWE-1188 still partial)
-      logging: true, // VULN: logs all SQL including sensitive data (CWE-532)
+      // M5 / CWE-532: never log SQL (with bound params) in production
+      logging:
+        process.env.NODE_ENV !== 'production' && process.env.TYPEORM_LOGGING !== 'false',
     }),
     AuthModule,
     UsersModule,

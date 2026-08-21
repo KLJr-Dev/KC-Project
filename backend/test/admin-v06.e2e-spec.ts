@@ -30,7 +30,7 @@ describe('v0.6.x Admin Polish (e2e)', () => {
   async function register(email: string, username: string) {
     const res = await request(app.getHttpServer())
       .post('/auth/register')
-      .send({ email, username, password: 'pass' })
+      .send({ email, username, password: 'Password123!' })
       .expect(201);
     return { userId: res.body.userId as string, token: res.body.token as string };
   }

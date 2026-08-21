@@ -1,3 +1,14 @@
+/**
+ * M5 / v2.0.0 — UsersService (persistence for accounts).
+ *
+ * Security measures:
+ * - CWE-256: create() / update() hash passwords with bcrypt before write;
+ *   responses never include password (toResponse strips it).
+ * - CWE-330: Sequential string IDs remain an accepted residual until M8/M9
+ *   evaluation — not changed in M5.
+ *
+ * findEntityByEmail is auth-only (includes password hash for verifyPassword).
+ */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,33 +18,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { buildPaginatedResponse, resolvePagination } from '../common/pagination.util';
+import { hashPassword } from '../auth/password.util';
 
-/**
- * v0.2.1 — Persisted Authentication
- *
- * Users service. Data is now persisted in PostgreSQL via TypeORM.
- * All methods are async (return Promises) because repository operations
- * hit the database.
- *
- * ID generation: Sequential string from `count + 1`. This can produce
- * duplicates after deletions — same intentional weakness from ADR-008,
- * now persisted permanently.
- * CWE-330 (Use of Insufficiently Random Values) | A04:2025
- *
- * VULN: Passwords stored as plaintext in the password column (CWE-256).
- * VULN: No unique constraint on email — duplicate check is application-level only.
- *
- * VULN (v0.2.1): Unhandled TypeORM QueryFailedError exceptions (e.g. duplicate
- *       PK from the count+1 ID strategy) crash the request with a generic 500.
- *       The raw error — including PG table name, constraint name, and the full
- *       INSERT SQL with parameters — is logged to stdout via TypeORM's
- *       `logging: true` (CWE-532). The 500 itself confirms to an attacker
- *       that a database-level constraint was violated.
- *       CWE-209 (Generation of Error Message Containing Sensitive Information) | A02:2025
- *       Remediation (v2.0.0): Global exception filter that catches
- *       QueryFailedError, logs a sanitised message, and returns a
- *       user-friendly error without database internals.
- */
 @Injectable()
 export class UsersService {
   constructor(
@@ -41,38 +27,32 @@ export class UsersService {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  /** Map a User entity to a UserResponseDto (strips password). */
+  /** Map a User entity to a UserResponseDto (strips password hash). */
   private toResponse(user: User): UserResponseDto {
     const dto = new UserResponseDto();
     dto.id = user.id;
     dto.email = user.email;
     dto.username = user.username;
-    dto.role = user.role; // v0.4.0: include role in response
+    dto.role = user.role;
     dto.createdAt = user.createdAt;
     dto.updatedAt = user.updatedAt;
     return dto;
   }
 
   /**
-   * POST /users — create a new user, persist to database.
-   *
-   * Uses insert() (pure INSERT) instead of save() (upsert) so that a
-   * duplicate PK from the count+1 strategy actually fails with a raw
-   * PostgreSQL error instead of silently overwriting an existing user.
-   *
-   * VULN (v0.2.1): The unhandled QueryFailedError from a duplicate PK
-   *       collision leaks PG table name, constraint name, and SQL in the
-   *       500 response body (CWE-209).
+   * POST /users — create a new user with bcrypt-hashed password.
+   * Uses insert() so duplicate PK from count+1 fails loudly.
    */
   async create(dto: CreateUserDto): Promise<UserResponseDto> {
     const count = await this.userRepo.count();
     const id = String(count + 1);
+    const passwordHash = await hashPassword(dto.password ?? '');
     const user = this.userRepo.create({
       id,
       email: dto.email ?? '',
       username: dto.username ?? '',
-      password: dto.password ?? '',
-      role: 'user', // v0.4.0: default all new users to 'user' role
+      password: passwordHash,
+      role: 'user',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -86,12 +66,12 @@ export class UsersService {
     return user ? this.toResponse(user) : null;
   }
 
-  /** Find a user by email, return raw entity (includes password). Used by auth login. */
+  /** Find a user by email, return raw entity (includes password hash). Used by auth login. */
   async findEntityByEmail(email: string): Promise<User | null> {
     return this.userRepo.findOne({ where: { email } });
   }
 
-  /** GET /users — paginated user list (v0.5.2). */
+  /** GET /users — paginated user list. */
   async findAll(query: PaginationQueryDto = {}) {
     const { skip, take } = resolvePagination(query.skip, query.take);
     const [users, total] = await this.userRepo.findAndCount({
@@ -113,13 +93,18 @@ export class UsersService {
     return user ? this.toResponse(user) : null;
   }
 
-  /** PUT /users/:id — update entity in place, return DTO or null. */
+  /**
+   * PUT /users/:id — update entity; re-hash password when provided.
+   * Strength already enforced by UpdateUserDto when password is present.
+   */
   async update(id: string, dto: UpdateUserDto): Promise<UserResponseDto | null> {
     const user = await this.userRepo.findOne({ where: { id } });
     if (!user) return null;
     if (dto.email !== undefined) user.email = dto.email;
     if (dto.username !== undefined) user.username = dto.username;
-    if (dto.password !== undefined) user.password = dto.password;
+    if (dto.password !== undefined) {
+      user.password = await hashPassword(dto.password);
+    }
     user.updatedAt = new Date().toISOString();
     const saved = await this.userRepo.save(user);
     return this.toResponse(saved);

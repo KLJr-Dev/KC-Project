@@ -39,7 +39,7 @@ describe('RBAC & JWT Forgery (v2.0.0 secure)', () => {
     await app.close();
   });
 
-  async function registerUser(email: string, username: string, password = 'password123') {
+  async function registerUser(email: string, username: string, password = 'Password123!') {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, username, password })
@@ -90,7 +90,7 @@ describe('RBAC & JWT Forgery (v2.0.0 secure)', () => {
     await promoteToAdmin(bootstrap.userId);
     const bootstrapLogin = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: 'bootstrap-admin@example.com', password: 'password123' })
+      .send({ email: 'bootstrap-admin@example.com', password: 'Password123!' })
       .expect(201);
     const adminToken = bootstrapLogin.body.token;
 
@@ -108,7 +108,7 @@ describe('RBAC & JWT Forgery (v2.0.0 secure)', () => {
       .post('/auth/login')
       .send({
         email: 'persistent@example.com',
-        password: 'password123',
+        password: 'Password123!',
       })
       .expect(201);
 
@@ -156,7 +156,7 @@ describe('RBAC & JWT Forgery (v2.0.0 secure)', () => {
     await promoteToAdmin(admin.userId);
     const login = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: 'admin@example.com', password: 'password123' })
+      .send({ email: 'admin@example.com', password: 'Password123!' })
       .expect(201);
 
     const targetUser = await registerUser('target@example.com', 'target');

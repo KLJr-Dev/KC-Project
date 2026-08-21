@@ -1,23 +1,25 @@
 /**
- * v0.5.0 — Input Validation Pipeline: RegisterDto
+ * M5 / v2.0.0 — RegisterDto (POST /auth/register).
  *
- * Request body for POST /auth/register.
+ * Security measures:
+ * - CWE-20: Email format + username length bounds via class-validator.
+ * - CWE-521: Password strength policy (min 12, max 128, complexity) — see
+ *   password-policy.ts. Weak passwords are rejected at the ValidationPipe
+ *   before AuthService runs (400 with field errors).
+ * - CWE-400: Max lengths prevent oversized payload abuse on hot auth paths.
  *
- * v0.5.0 adds class-validator decorators for field-level validation:
- * - email: @IsEmail (format validation, CWE-20 partial mitigation)
- * - username: @IsString, @MinLength(3), @MaxLength(50) (strong constraints)
- * - password: @IsString, @MinLength(1) ONLY (CWE-521 Weak Passwords — intentional)
- *
- * ValidationPipe (registered in main.ts) validates all incoming requests;
- * malformed input returns 400 Bad Request with field-level error details.
- *
- * VULN (Intentional):
- *   - CWE-521: Password requires only 1 character minimum; no complexity, no max length
- *   - CWE-20: Email format validated, but usernames not enumerated, no rate limiting
- *   - CWE-1025: Type mismatch exposure — if client sends "username" as number,
- *     strict validation rejects it (no auto-convert)
+ * Password is still transmitted in the JSON body until M6/M7 (httpOnly + TLS);
+ * hashing at rest is AuthService / UsersService (bcrypt), not this DTO.
  */
-import { IsEmail, IsString, MinLength, MaxLength, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsNotEmpty, Matches } from 'class-validator';
+import {
+  PASSWORD_COMPLEXITY_MESSAGE,
+  PASSWORD_COMPLEXITY_REGEX,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MAX_LENGTH_MESSAGE,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MIN_LENGTH_MESSAGE,
+} from '../password-policy';
 
 export class RegisterDto {
   @IsEmail({}, { message: 'email must be a valid email address' })
@@ -25,7 +27,9 @@ export class RegisterDto {
   email!: string;
 
   @IsString({ message: 'password must be a string' })
-  @MinLength(1, { message: 'password must be at least 1 character' })
+  @MinLength(PASSWORD_MIN_LENGTH, { message: PASSWORD_MIN_LENGTH_MESSAGE })
+  @MaxLength(PASSWORD_MAX_LENGTH, { message: PASSWORD_MAX_LENGTH_MESSAGE })
+  @Matches(PASSWORD_COMPLEXITY_REGEX, { message: PASSWORD_COMPLEXITY_MESSAGE })
   @IsNotEmpty({ message: 'password is required' })
   password!: string;
 

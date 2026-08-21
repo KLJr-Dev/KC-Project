@@ -23,5 +23,6 @@ export default new DataSource({
   entities: [User, FileEntity, SharingEntity, AuditLog],
   migrations: ['src/migrations/*.ts'],
   synchronize: false,
-  logging: true,
+  // CLI migrations: keep SQL visible locally; prod app path uses AppModule gate
+  logging: process.env.TYPEORM_LOGGING !== 'false',
 });

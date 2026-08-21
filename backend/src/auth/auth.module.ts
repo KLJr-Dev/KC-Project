@@ -1,3 +1,9 @@
+/**
+ * M4/M5 — AuthModule wires JWT + refresh entity + role guard.
+ *
+ * M5: loadJwtRuntimeConfig() fails closed in production without RS256 PEMs
+ * (see jwt-config.ts). Local/e2e may still use HS256 for convenience.
+ */
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';

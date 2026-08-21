@@ -49,7 +49,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
   /**
    * Helper: Register a user and return { userId, token }
    */
-  async function registerUser(email: string, username: string, password = 'password123') {
+  async function registerUser(email: string, username: string, password = 'Password123!') {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, username, password })
@@ -115,7 +115,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
     // Verify JWT for moderator contains correct role
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: 'user@example.com', password: 'password123' })
+      .send({ email: 'user@example.com', password: 'Password123!' })
       .expect(201);
 
     expect(loginRes.body.token).toMatch(JWT_REGEX);

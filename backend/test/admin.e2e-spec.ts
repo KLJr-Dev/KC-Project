@@ -48,7 +48,7 @@ describe('AdminController /admin/* (e2e)', () => {
   /**
    * Helper: Register a user and return { userId, token }
    */
-  async function registerUser(email: string, username: string, password = 'password123') {
+  async function registerUser(email: string, username: string, password = 'Password123!') {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, username, password })
