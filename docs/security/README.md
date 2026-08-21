@@ -1,16 +1,18 @@
-# Security & Penetration Testing (v1.0.0)
+# Security & Penetration Testing
 
 ## Cycle workspace
 
-**[Cycle-1/](Cycle-1/README.md)** — Phase 2 pentest and remediation artifacts
+**[Cycle-1/](Cycle-1/README.md)** — Closed path: v1.0.0 → v2.0.0 (tag `v2.0.0`).
 
-| Team | Folder | Primary doc |
-|------|--------|-------------|
-| Developer | [Cycle-1/Dev/](Cycle-1/Dev/) | [v1.0.0-ground-truth.md](Cycle-1/Dev/v1.0.0-ground-truth.md) |
-| Offensive | [Cycle-1/PenTest/](Cycle-1/PenTest/) | [v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) |
-| Defensive | [Cycle-1/Remediation/](Cycle-1/Remediation/) | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) · [blue-team-plan.md](Cycle-1/Remediation/blue-team-plan.md) |
+**[Cycle-2/](Cycle-2/README.md)** — **Active:** v1.1.0 CTF box on branch `ctf/v1.1.0` (fork of `v2.0.0`).  
+Start here: [Cycle-2/Dev/v1.1.0-box-plan.md](Cycle-2/Dev/v1.1.0-box-plan.md).
 
-Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
+| Cycle | Dev | PenTest | Remediation |
+|-------|-----|---------|-------------|
+| 1 | [v1.0.0-ground-truth.md](Cycle-1/Dev/v1.0.0-ground-truth.md) | [v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) |
+| 2 | [v1.1.0-box-plan.md](Cycle-2/Dev/v1.1.0-box-plan.md) · [ground-truth](Cycle-2/Dev/v1.1.0-ground-truth.md) | [v1.1.0-writeup.md](Cycle-2/PenTest/v1.1.0-writeup.md) | [v2.1.0-remediation.md](Cycle-2/Remediation/v2.1.0-remediation.md) |
+
+Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → Cycle-1 ground truth
 
 ## Cross-cycle references
 
@@ -23,7 +25,8 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground tru
 
 ## Scope
 
-KC-Project Cycle 1: v1.0.0 insecure MVP pentested; v2.0.0 secure parallel on `remediation/v2.0.0`.
+- **Cycle 1:** complete (insecure MVP → secure parallel `v2.0.0`).
+- **Cycle 2:** OSCP-style CTF on `ctf/v1.1.0` — see [Cycle-2 box plan](Cycle-2/Dev/v1.1.0-box-plan.md).
 
 ## Tools
 
