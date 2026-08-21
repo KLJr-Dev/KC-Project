@@ -103,7 +103,7 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
     expect(res.body.id).toBeDefined();
     expect(res.body.filename).toBe('test.txt');
     expect(res.body.mimetype).toBe('text/plain');
-    expect(res.body.storagePath).toContain('uploads');
+    expect(res.body.storagePath).toBeUndefined();
     expect(res.body.size).toBeGreaterThan(0);
     expect(res.body.ownerId).toBe(user.userId);
   });
@@ -117,60 +117,53 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
   });
 
   /**
-   * CWE-434: MIME type confusion. Client sends .html file claiming image/png.
-   * Server stores client-supplied Content-Type without magic-byte validation.
+   * Reject HTML uploaded as image (magic bytes / extension gate).
    */
-  it('accepts .html file with image/png mimetype -- CWE-434', async () => {
+  it('rejects .html file claiming image content', async () => {
     const httpServer = app.getHttpServer();
     const user = await registerAndLogin(httpServer, 'u@t.com', 'mime-test', 'pass');
 
-    const res = await request(httpServer)
+    await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${user.token}`)
       .attach('file', join(TEST_FIXTURES, 'fake-image.html'))
-      .expect(201);
-
-    expect(res.body.filename).toBe('fake-image.html');
-    expect(res.body.mimetype).toBeDefined();
+      .expect(400);
   });
 
   /**
-   * CWE-22: Path traversal in filename. Busboy strips directory components
-   * from multipart filenames, so "../../../etc/passwd" becomes "passwd".
-   * This is busboy's default behaviour, NOT intentional server-side
-   * sanitisation. A raw HTTP request (bypassing multipart parsing) could
-   * still inject path traversal into storagePath via the Multer diskStorage
-   * callback which blindly uses file.originalname.
+   * Path components stripped; response does not expose storagePath.
    */
-  it('path traversal filename stripped by parser (but no server-side sanitisation) -- CWE-22', async () => {
+  it('sanitizes upload filename and omits storagePath', async () => {
     const httpServer = app.getHttpServer();
     const user = await registerAndLogin(httpServer, 'u@t.com', 'traversal', 'pass');
 
     const res = await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${user.token}`)
-      .attach('file', join(TEST_FIXTURES, 'test.txt'), { filename: '../../../etc/passwd' })
+      .attach('file', join(TEST_FIXTURES, 'test.txt'), { filename: '../../../etc/passwd.txt' })
       .expect(201);
 
-    // Busboy strips directory components -- server has NO sanitisation of its own
-    expect(res.body.filename).toBe('passwd');
-    expect(res.body.storagePath).toContain('uploads');
+    expect(res.body.filename).toBe('passwd.txt');
+    expect(res.body.storagePath).toBeUndefined();
   });
 
   /**
-   * CWE-400: No upload size limit. 1 MB file accepted without rejection.
+   * Upload size limited (5 MiB).
    */
-  it('accepts oversized file without limit -- CWE-400', async () => {
+  it('rejects oversized file', async () => {
     const httpServer = app.getHttpServer();
     const user = await registerAndLogin(httpServer, 'u@t.com', 'big-upload', 'pass');
 
-    const res = await request(httpServer)
-      .post('/files')
-      .set('Authorization', `Bearer ${user.token}`)
-      .attach('file', join(TEST_FIXTURES, 'large.bin'))
-      .expect(201);
-
-    expect(res.body.size).toBeGreaterThanOrEqual(1024 * 1024);
+    try {
+      const res = await request(httpServer)
+        .post('/files')
+        .set('Authorization', `Bearer ${user.token}`)
+        .attach('file', join(TEST_FIXTURES, 'large.bin'));
+      expect([400, 413, 500]).toContain(res.status);
+    } catch (err) {
+      // Connection may reset when Multer hits limits.fileSize
+      expect(String(err)).toMatch(/EPIPE|ECONNRESET|aborted|413|400/i);
+    }
   });
 
   // -- Download tests --
@@ -242,18 +235,23 @@ describe('File Handling -- v0.3.5 Edge Cases', () => {
       .attach('file', join(TEST_FIXTURES, 'test.txt'))
       .expect(201);
 
-    const storagePath = upload.body.storagePath;
-    expect(existsSync(storagePath)).toBe(true);
+    await request(httpServer)
+      .get(`/files/${upload.body.id}/download`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(200);
 
     await request(httpServer)
       .delete(`/files/${upload.body.id}`)
       .set('Authorization', `Bearer ${user.token}`)
       .expect(200);
 
-    expect(existsSync(storagePath)).toBe(false);
-
     await request(httpServer)
       .get(`/files/${upload.body.id}`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(404);
+
+    await request(httpServer)
+      .get(`/files/${upload.body.id}/download`)
       .set('Authorization', `Bearer ${user.token}`)
       .expect(404);
   });

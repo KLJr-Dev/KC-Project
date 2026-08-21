@@ -24,8 +24,12 @@ import { HasRole, HasRoleGuard } from '../auth/guards/has-role.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { join } from 'path';
-import { existsSync } from 'fs';
+import { existsSync, unlinkSync } from 'fs';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import {
+  sanitizeUploadFilename,
+  UPLOAD_FILE_SIZE_LIMIT,
+} from './upload-security';
 
 /**
  * v0.5.0 -- Real Multipart File Upload
@@ -103,10 +107,15 @@ export class FilesController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
+      limits: { fileSize: UPLOAD_FILE_SIZE_LIMIT },
       storage: diskStorage({
         destination: join(process.cwd(), 'uploads'),
         filename: (_req, file, cb) => {
-          cb(null, file.originalname);
+          try {
+            cb(null, sanitizeUploadFilename(file.originalname));
+          } catch (err) {
+            cb(err as Error, '');
+          }
         },
       }),
     }),
@@ -116,7 +125,14 @@ export class FilesController {
     @Body() dto: UploadFileDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.filesService.upload(file, dto, user.sub);
+    try {
+      return await this.filesService.upload(file, dto, user.sub);
+    } catch (err) {
+      if (file?.path && existsSync(file.path)) {
+        unlinkSync(file.path);
+      }
+      throw err;
+    }
   }
 
   /** GET /files -- paginated file list (scoped by role). */

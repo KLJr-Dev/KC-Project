@@ -330,10 +330,9 @@ describe('AuthController POST /auth/logout (e2e)', () => {
   });
 
   /**
-   * TOKEN REPLAY AFTER LOGOUT — CWE-613.
-   * Proves the JWT still works after logout.
+   * After logout, refresh tokens are revoked (access JWT expires naturally).
    */
-  it('token remains valid after logout — CWE-613 token replay', async () => {
+  it('refresh token is revoked after logout', async () => {
     const httpServer = app.getHttpServer();
 
     await request(httpServer).post('/auth/register').send({
@@ -347,25 +346,17 @@ describe('AuthController POST /auth/logout (e2e)', () => {
       .send({ email: 'replay-test@example.com', password: 'password123' })
       .expect(201);
 
-    const token = loginRes.body.token;
+    const { token, refreshToken } = loginRes.body;
 
     await request(httpServer)
       .post('/auth/logout')
       .set('Authorization', `Bearer ${token}`)
       .expect(201);
 
-    const meRes = await request(httpServer)
-      .get('/auth/me')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
+    await request(httpServer).post('/auth/refresh').send({ refreshToken }).expect(401);
 
-    expect(meRes.body).toEqual(
-      expect.objectContaining({
-        id: expect.any(String),
-        email: 'replay-test@example.com',
-        username: 'replay-user',
-      }),
-    );
+    // Short-lived access JWT remains valid until exp (residual); refresh cannot renew.
+    await request(httpServer).get('/auth/me').set('Authorization', `Bearer ${token}`).expect(200);
   });
 });
 

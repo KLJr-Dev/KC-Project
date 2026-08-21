@@ -494,6 +494,7 @@ export interface components {
     };
     AuthResponseDto: {
       token: string;
+      refreshToken: string;
       userId: string;
       message?: string;
     };

@@ -38,8 +38,13 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
       NODE_ENV: production
       ENABLE_SWAGGER: ${ENABLE_SWAGGER:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://127.0.0.1:8080,http://localhost:8080}
+      JWT_PRIVATE_KEY_PATH: /run/secrets/jwt-private.pem
+      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt-public.pem
     volumes:
       - uploads:/app/uploads
+      - ../infra/keys/jwt-private.pem:/run/secrets/jwt-private.pem:ro
+      - ../infra/keys/jwt-public.pem:/run/secrets/jwt-public.pem:ro
     expose:
       - '4000'
 

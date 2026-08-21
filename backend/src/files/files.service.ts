@@ -2,12 +2,14 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { unlink } from 'fs/promises';
+import { basename } from 'path';
 import { FileEntity } from './entities/file.entity';
 import { SharingEntity } from '../sharing/entities/sharing.entity';
 import { FileResponseDto } from './dto/file-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { buildPaginatedResponse, resolvePagination } from '../common/pagination.util';
 import { AuditService } from '../admin/audit.service';
+import { assertSafeUpload } from './upload-security';
 import { UploadFileDto } from './dto/upload-file.dto';
 
 /**
@@ -30,7 +32,7 @@ export class FilesService {
     dto.ownerId = entity.ownerId;
     dto.filename = entity.filename;
     dto.mimetype = entity.mimetype;
-    dto.storagePath = entity.storagePath;
+    // storagePath intentionally omitted from API responses (CWE-200)
     dto.description = entity.description;
     dto.size = entity.size;
     dto.approvalStatus = entity.approvalStatus;
@@ -55,15 +57,17 @@ export class FilesService {
     dto: UploadFileDto,
     ownerId: string,
   ): Promise<FileResponseDto> {
+    const verified = assertSafeUpload(file.path, file.mimetype);
+
     const count = await this.fileRepo.count();
     const id = String(count + 1);
     const entity = this.fileRepo.create({
       id,
       ownerId,
-      filename: file.originalname,
-      mimetype: file.mimetype,
+      filename: basename(file.originalname || 'upload'),
+      mimetype: verified.mimetype,
       storagePath: file.path,
-      size: file.size,
+      size: verified.size,
       description: dto.description,
       uploadedAt: new Date().toISOString(),
     });

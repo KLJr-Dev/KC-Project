@@ -19,10 +19,17 @@ async function bootstrap() {
 
   app.useGlobalFilters(new ValidationExceptionFilter(), new HttpExceptionFilter());
 
-  /**
-   * CORS remains open until M4 (F-07).
-   */
-  app.enableCors();
+  const origins = (process.env.CORS_ORIGINS || 'http://127.0.0.1:8080,http://localhost:8080')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+  app.enableCors({
+    origin: origins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    credentials: true,
+  });
 
   const enableSwagger =
     process.env.ENABLE_SWAGGER === 'true' || process.env.NODE_ENV !== 'production';

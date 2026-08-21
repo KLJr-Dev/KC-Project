@@ -59,8 +59,9 @@ import { authLogout } from './api';
 /** Shape of auth state stored in React state and localStorage. */
 interface AuthState {
   token: string | null;
+  refreshToken: string | null;
   userId: string | null;
-  role?: 'user' | 'moderator' | 'admin'; // v0.4.3: ternary role system
+  role?: 'user' | 'moderator' | 'admin';
 }
 
 /** Full context value exposed to consumers via useAuth(). */
@@ -86,18 +87,19 @@ const STORAGE_KEY = 'kc_auth';
  * user appears logged out. No error is surfaced to the UI.
  */
 function loadFromStorage(): AuthState {
-  if (typeof window === 'undefined') return { token: null, userId: null };
+  if (typeof window === 'undefined') return { token: null, refreshToken: null, userId: null };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { token: null, userId: null };
+    if (!raw) return { token: null, refreshToken: null, userId: null };
     const parsed = JSON.parse(raw) as AuthState;
     return {
       token: parsed.token ?? null,
+      refreshToken: parsed.refreshToken ?? null,
       userId: parsed.userId ?? null,
       role: parsed.role,
     };
   } catch {
-    return { token: null, userId: null };
+    return { token: null, refreshToken: null, userId: null };
   }
 }
 
@@ -127,7 +129,12 @@ const AuthContext = createContext<AuthContextValue | null>(null);
  * update React state AND localStorage to keep them in sync.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AuthState>({ token: null, userId: null, role: undefined });
+  const [state, setState] = useState<AuthState>({
+    token: null,
+    refreshToken: null,
+    userId: null,
+    role: undefined,
+  });
 
   useEffect(() => {
     setState(loadFromStorage());
@@ -153,31 +160,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback((response: AuthResponse) => {
     const next: AuthState = {
       token: response.token,
+      refreshToken: response.refreshToken ?? null,
       userId: response.userId,
       role: parseRoleFromToken(response.token) ?? 'user',
     };
     setState(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); // VULN: CWE-922
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   }, []);
 
-  /**
-   * Logout — fire-and-forget POST /auth/logout, then clear client state.
-   *
-   * The backend call is intentionally fire-and-forget: we don't await it
-   * because (a) the backend does nothing with it in v0.1.4, and (b) even
-   * in a secure version, the client should clear local state regardless of
-   * whether the server request succeeds.
-   *
-   * VULN: The backend does not revoke the JWT. After this function runs,
-   *       the token is gone from THIS browser's localStorage, but any copy
-   *       of the token (e.g. from DevTools, XSS exfiltration, network
-   *       interception) remains fully valid.
-   *       CWE-613 (Insufficient Session Expiration) | A07:2025
-   */
   const logout = useCallback(() => {
-    // Fire-and-forget: tell the backend we're "logging out" (it does nothing)
-    authLogout().catch(() => {}); // VULN: no-op on backend (CWE-613)
-    setState({ token: null, userId: null, role: undefined });
+    authLogout().catch(() => {});
+    setState({ token: null, refreshToken: null, userId: null, role: undefined });
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
