@@ -1,3 +1,20 @@
+/**
+ * M5 / v2.0.0 — AuthService (register / login / refresh / logout).
+ *
+ * Security measures:
+ * - CWE-256: Passwords hashed with bcrypt (cost ≥ 12) via UsersService.create;
+ *   login uses verifyPassword — never string-equals plaintext.
+ * - CWE-208 / CWE-203: Unknown-user login burns bcrypt compare budget then
+ *   returns the same UnauthorizedException message as bad password (M3).
+ * - CWE-613: Access JWT short-lived (expiresIn from jwt-config); refresh
+ *   tokens stored hashed and rotated (M4).
+ * - CWE-532: Prefer truncateSecret for any token fields in logs; never log
+ *   raw passwords (request body still may appear in TypeORM SQL logs until
+ *   logging is disabled in production — see AppModule M5).
+ *
+ * Session issuance returns refreshToken to the controller, which sets an
+ * httpOnly cookie and strips it from the JSON body (M6).
+ */
 import {
   BadRequestException,
   ConflictException,
@@ -6,165 +23,153 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { randomUUID } from 'crypto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 import { logAuthEvent, truncateSecret } from '../common/logging.util';
+import { RefreshToken } from './entities/refresh-token.entity';
+import { hashRefreshToken, newRefreshTokenRaw, refreshExpiresAtIso } from './refresh.util';
+import { burnPasswordCompareBudget, verifyPassword } from './password.util';
 
-/**
- * v0.2.0 — Database Introduction (Local)
- *
- * Core authentication business logic. All methods are now async because
- * UsersService methods hit PostgreSQL via TypeORM repositories.
- *
- * Handles:
- *   - register()    → create user + issue JWT          (POST /auth/register)
- *   - login()       → verify credentials + issue JWT   (POST /auth/login)
- *   - getProfile()  → look up user by ID from token    (GET /auth/me)
- *   - logout()      → intentionally does nothing        (POST /auth/logout)
- *
- * --- Intentional vulnerabilities (carried from v0.1.x, now persistent) ---
- *
- * VULN (v0.1.1): Passwords stored as plaintext in the database.
- *       CWE-256 (Plaintext Storage of a Password) | A07:2025
- *
- * VULN (v0.1.2): Passwords compared as plaintext (=== operator).
- *       CWE-256 | A07:2025
- *
- * VULN (v0.1.2): Distinct error messages enable user enumeration.
- *       CWE-204 (Observable Response Discrepancy) | A07:2025
- *
- * VULN (v0.1.3): JWTs signed with hardcoded weak secret, no expiration.
- *       CWE-347 | A04:2025, CWE-613 | A07:2025
- *
- * VULN (v0.1.4): logout() does nothing server-side. Token replay possible.
- *       CWE-613 | A07:2025
- *
- * VULN (v0.1.5): No rate limiting, no account lockout, weak passwords accepted.
- *       CWE-307 | A07:2025, CWE-521 | A07:2025
- *
- * VULN (v0.4.0): Role claim included in JWT payload and trusted without
- *       server-side re-validation (CWE-639). An attacker knowing the weak
- *       JWT secret ('kc-secret') can forge a JWT with 'admin' role.
- *       Remediation (v2.4.0): Guards re-validate role from the database.
- */
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    @InjectRepository(RefreshToken)
+    private readonly refreshRepo: Repository<RefreshToken>,
   ) {}
 
   /**
-   * POST /auth/register — Create a new user and issue a JWT.
-   *
-   * Now persists the user to PostgreSQL. Plaintext password is written
-   * directly to the database column (CWE-256).
-   *
-   * v0.4.0: JWT payload includes role claim (CWE-639).
+   * Issue access JWT + persisted refresh token (hash-at-rest).
+   * Role claim is informational; HasRoleGuard re-loads role from DB (M1).
+   */
+  private async issueSession(userId: string, role: string): Promise<AuthResponseDto> {
+    const token = this.jwtService.sign({ sub: userId, role });
+    const refreshRaw = newRefreshTokenRaw();
+    const entity = this.refreshRepo.create({
+      id: randomUUID(),
+      userId,
+      tokenHash: hashRefreshToken(refreshRaw),
+      expiresAt: refreshExpiresAtIso(),
+      revoked: false,
+      createdAt: new Date().toISOString(),
+    });
+    await this.refreshRepo.save(entity);
+    return {
+      token,
+      refreshToken: refreshRaw,
+      userId,
+    };
+  }
+
+  /**
+   * Register a new user. Password strength already enforced by RegisterDto.
+   * UsersService hashes before INSERT.
    */
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
     const { email, username, password } = dto;
 
     if (!email || !username || !password) {
-      throw new BadRequestException(
-        'Missing required registration fields: email, username, and password are all required (v0.1.1)',
-      );
+      throw new BadRequestException('Missing required registration fields');
     }
 
     const existing = await this.usersService.findByEmail(email);
     if (existing) {
-      // VULN: error message includes the email — information disclosure (CWE-209)
-      throw new ConflictException(
-        `User with email ${email} already exists (weak duplicate check, v0.1.1)`,
-      );
+      // Generic conflict — avoid confirming which field collided (enum adjacent).
+      throw new ConflictException('Unable to register with the provided details');
     }
 
     const created = await this.usersService.create({
       email,
       username,
-      password, // VULN: stored as plaintext in PostgreSQL (CWE-256)
+      password,
     });
 
-    // VULN: JWT signed with weak hardcoded secret, no expiry (CWE-347, CWE-613)
-    // VULN (v0.4.0): role included in JWT payload, trusted without re-validation (CWE-639)
-    const token = this.jwtService.sign({ sub: created.id, role: created.role });
-
-    return {
-      token,
-      userId: created.id,
-      message: 'Registration success (v0.4.0)',
-    };
+    const session = await this.issueSession(created.id, created.role ?? 'user');
+    return { ...session, message: 'Registration success' };
   }
 
   /**
-   * POST /auth/login — Verify credentials and issue a JWT.
-   *
-   * Reads plaintext password from PostgreSQL and compares with ===.
-   *
-   * v0.4.0: JWT payload includes role claim (CWE-639).
+   * Authenticate with email + password.
+   * Fail closed on non-bcrypt stored credentials (post-migration invariant).
    */
   async login(dto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = dto;
 
     if (!email || !password) {
-      throw new BadRequestException(
-        'Missing required login fields: email and password are both required (v0.1.2)',
-      );
+      throw new BadRequestException('Missing required login fields');
     }
 
     const user = await this.usersService.findEntityByEmail(email);
     if (!user) {
-      // VULN: distinct error reveals that this email is not registered (CWE-204)
-      throw new UnauthorizedException(`No user with that email (v0.1.2)`);
+      await burnPasswordCompareBudget(password);
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    // VULN: plaintext password comparison — no hashing (CWE-256)
-    if (user.password !== password) {
-      // VULN: distinct error reveals that the email IS registered (CWE-204)
-      throw new UnauthorizedException(`Incorrect password (v0.1.2)`);
+    const ok = await verifyPassword(password, user.password);
+    if (!ok) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    // VULN: JWT signed with weak hardcoded secret, no expiry (CWE-347, CWE-613)
-    // VULN (v0.4.0): role included in JWT payload, trusted without re-validation (CWE-639)
-    const token = this.jwtService.sign({ sub: user.id, role: user.role });
-
+    const session = await this.issueSession(user.id, user.role ?? 'user');
     logAuthEvent('login', {
       userId: user.id,
       email: user.email,
-      token: truncateSecret(token),
+      token: truncateSecret(session.token),
     });
 
-    return {
-      token,
-      userId: user.id,
-      message: 'Login success (v0.4.0)',
-    };
+    return { ...session, message: 'Login success' };
   }
 
-  /**
-   * GET /auth/me — Retrieve the profile of the currently authenticated user.
-   */
+  async refresh(refreshToken: string): Promise<AuthResponseDto> {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const tokenHash = hashRefreshToken(refreshToken);
+    const stored = await this.refreshRepo.findOne({ where: { tokenHash } });
+    if (!stored || stored.revoked) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    if (Date.parse(stored.expiresAt) < Date.now()) {
+      stored.revoked = true;
+      await this.refreshRepo.save(stored);
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    // Rotate: revoke old, issue new pair (limits replay window of stolen refresh).
+    stored.revoked = true;
+    await this.refreshRepo.save(stored);
+
+    const user = await this.usersService.findById(stored.userId);
+    if (!user) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.issueSession(user.id, user.role ?? 'user');
+  }
+
   async getProfile(userId: string): Promise<UserResponseDto> {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found (v0.1.3)`);
+      throw new NotFoundException('User not found');
     }
     return user;
   }
 
-  /**
-   * POST /auth/logout — Intentionally does NOT invalidate the JWT.
-   *
-   * VULN: No server-side session tracking or token revocation.
-   *       CWE-613 (Insufficient Session Expiration) | A07:2025
-   */
-  logout(): { message: string } {
-    logAuthEvent('logout', { note: 'client-side only, token still valid' });
-    return {
-      message: 'Logged out (client-side only, token still valid) (v0.1.4)',
-    };
+  /** Revoke all refresh tokens for the user. Access JWT expires naturally. */
+  async logout(userId: string): Promise<{ message: string }> {
+    await this.refreshRepo
+      .createQueryBuilder()
+      .update(RefreshToken)
+      .set({ revoked: true })
+      .where('"userId" = :userId AND revoked = false', { userId })
+      .execute();
+    logAuthEvent('logout', { userId, note: 'refresh tokens revoked' });
+    return { message: 'Logged out' };
   }
 }

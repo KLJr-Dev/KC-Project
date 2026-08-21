@@ -1,10 +1,14 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { mkdirSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import * as bcrypt from 'bcrypt';
+import { DEMO_WELCOME_SHARE_TOKEN } from '../sharing/demo-share.constants';
 
 /**
- * v1.0.x — Demo files and shares for reproducible pentest / UX journeys.
+ * v1.0.x / M5 — Demo files and shares for reproducible pentest / UX journeys.
  * See docs/deploy/demo-users.md and docs/deploy/pentest-journeys.md.
+ *
+ * M5: `other@kc.test` password is bcrypt-hashed before INSERT (CWE-256).
  */
 export class SeedDemoFilesAndShares1771440000000 implements MigrationInterface {
   private readonly otherUser = {
@@ -70,6 +74,7 @@ export class SeedDemoFilesAndShares1771440000000 implements MigrationInterface {
       [this.otherUser.email],
     );
     if (otherExists.length === 0) {
+      const passwordHash = await bcrypt.hash(this.otherUser.password, 12);
       await queryRunner.query(
         `INSERT INTO "user" (id, email, username, password, role, "createdAt", "updatedAt")
          VALUES ($1, $2, $3, $4, $5::user_role_enum, $6, $6)`,
@@ -77,7 +82,7 @@ export class SeedDemoFilesAndShares1771440000000 implements MigrationInterface {
           this.otherUser.id,
           this.otherUser.email,
           this.otherUser.username,
-          this.otherUser.password,
+          passwordHash,
           this.otherUser.role,
           now,
         ],
@@ -127,13 +132,13 @@ export class SeedDemoFilesAndShares1771440000000 implements MigrationInterface {
       await queryRunner.query(
         `INSERT INTO "sharing_entity"
           (id, "ownerId", "fileId", "publicToken", "public", "createdAt", "expiresAt")
-         VALUES ('1', '9001', '9101', 'share-1', true, $1, '')`,
+         VALUES ('1', '9001', '9101', '${DEMO_WELCOME_SHARE_TOKEN}', true, $1, '')`,
         [now],
       );
     } else {
       await queryRunner.query(
         `UPDATE "sharing_entity"
-         SET "ownerId" = '9001', "fileId" = '9101', "publicToken" = 'share-1', "public" = true
+         SET "ownerId" = '9001', "fileId" = '9101', "publicToken" = '${DEMO_WELCOME_SHARE_TOKEN}', "public" = true
          WHERE id = '1'`,
       );
     }

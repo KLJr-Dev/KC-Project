@@ -1,18 +1,22 @@
 import { BadRequestException, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Repository } from 'typeorm';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
+import { RefreshToken } from './entities/refresh-token.entity';
 
-/**
- * v0.2.0 — Database Introduction (Local)
- *
- * Unit tests for AuthService. UsersService and JwtService are mocked.
- * All methods are now async — tests use await.
- */
+jest.mock('./password.util', () => ({
+  verifyPassword: jest.fn(async (plain: string, stored: string) => plain === 'password123' && !!stored),
+  burnPasswordCompareBudget: jest.fn(async () => undefined),
+  hashPassword: jest.fn(async (p: string) => `hashed:${p}`),
+  isBcryptHash: jest.fn(() => true),
+  BCRYPT_COST: 12,
+}));
 
 let service: AuthService;
 let usersService: jest.Mocked<UsersService>;
 let jwtService: jest.Mocked<JwtService>;
+let refreshRepo: jest.Mocked<Repository<RefreshToken>>;
 
 beforeEach(() => {
   usersService = {
@@ -30,7 +34,14 @@ beforeEach(() => {
     verify: jest.fn(),
   } as unknown as jest.Mocked<JwtService>;
 
-  service = new AuthService(usersService, jwtService);
+  refreshRepo = {
+    create: jest.fn((x) => x),
+    save: jest.fn(async (x) => x),
+    findOne: jest.fn(),
+    createQueryBuilder: jest.fn(),
+  } as unknown as jest.Mocked<Repository<RefreshToken>>;
+
+  service = new AuthService(usersService, jwtService, refreshRepo);
 });
 
 describe('AuthService.register', () => {
@@ -40,6 +51,7 @@ describe('AuthService.register', () => {
       id: '2',
       email: 'new@example.com',
       username: 'new-user',
+      role: 'user',
       createdAt: 'now',
       updatedAt: 'now',
     });
@@ -58,6 +70,7 @@ describe('AuthService.register', () => {
     });
     expect(result.userId).toBe('2');
     expect(result.token).toBe('mock-jwt-token');
+    expect(result.refreshToken).toBeDefined();
   });
 
   it('rejects duplicate email with ConflictException', async () => {
@@ -92,6 +105,7 @@ describe('AuthService.login', () => {
     email: 'test@example.com',
     username: 'testuser',
     password: 'password123',
+    role: 'user' as const,
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
   };
@@ -107,6 +121,7 @@ describe('AuthService.login', () => {
     expect(usersService.findEntityByEmail).toHaveBeenCalledWith('test@example.com');
     expect(result.userId).toBe('1');
     expect(result.token).toBe('mock-jwt-token');
+    expect(result.refreshToken).toBeDefined();
     expect(result.message).toContain('Login success');
   });
 

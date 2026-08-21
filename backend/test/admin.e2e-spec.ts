@@ -5,6 +5,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
+import { setUserRole } from './e2e-app';
 
 /**
  * v0.4.1 — Admin Endpoints & Weak Authorization Guards
@@ -48,7 +49,7 @@ describe('AdminController /admin/* (e2e)', () => {
   /**
    * Helper: Register a user and return { userId, token }
    */
-  async function registerUser(email: string, username: string, password = 'password123') {
+  async function registerUser(email: string, username: string, password = 'Password123!') {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, username, password })
@@ -61,10 +62,10 @@ describe('AdminController /admin/* (e2e)', () => {
   }
 
   /**
-   * Helper: Create an admin JWT token for a given user ID.
-   * This simulates a user who has admin role in the JWT payload.
+   * Helper: grant admin in DB (required — HasRoleGuard ignores forged JWT role).
    */
   async function createAdminToken(userId: string): Promise<string> {
+    await setUserRole(dataSource, userId, 'admin');
     return jwtService.sign({
       sub: userId,
       email: 'admin@test.com',
@@ -207,23 +208,19 @@ describe('AdminController /admin/* (e2e)', () => {
   });
 
   // ============================================================================
-  // Test 8: CWE-639 — JWT role trusted without DB re-validation
+  // Test 8: Forged JWT admin role alone must fail (DB role authoritative)
   // ============================================================================
-  it('Admin access succeeds with JWT role alone (CWE-639: JWT trusted without DB re-check)', async () => {
-    // Register a user
+  it('Admin access denied when JWT claims admin but DB role is user', async () => {
     const user = await registerUser('user@example.com', 'user');
+    const forgedAdminToken = jwtService.sign({
+      sub: user.userId,
+      email: 'user@example.com',
+      role: 'admin',
+    });
 
-    // Create an admin token for this user (JWT says admin, DB says user)
-    // HasRoleGuard will trust the JWT role without checking DB
-    const adminToken = await createAdminToken(user.userId);
-
-    // This should succeed because HasRoleGuard trusts JWT (CWE-639)
-    const response = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .get('/admin/users')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .expect(200);
-
-    expect(response.body.users).toBeDefined();
-    expect(Array.isArray(response.body.users)).toBe(true);
+      .set('Authorization', `Bearer ${forgedAdminToken}`)
+      .expect(403);
   });
 });

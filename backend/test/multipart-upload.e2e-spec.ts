@@ -4,30 +4,16 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { join } from 'path';
-import { writeFileSync, mkdirSync, existsSync, rmSync, readFileSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, rmSync, readFileSync, readdirSync } from 'fs';
 import { AppModule } from '../src/app.module';
 
 /**
- * v0.5.0 -- Real Multipart File Upload
+ * v2.0.0 — Secure Multipart File Upload
  *
- * End-to-end tests specifically targeting the multipart/form-data file upload
- * surface introduced in v0.5.0. Covers Multer diskStorage, client-supplied
- * filenames, MIME type handling, file size tracking, and on-disk persistence.
- *
- * CWE-22  (Path Traversal via filename) | A01:2025
- * CWE-434 (MIME Type Confusion) | A06:2025
- * CWE-400 (Uncontrolled Resource Consumption — no size limit) | A06:2025
- * CWE-639 (IDOR on download/delete — no ownership check) | A01:2025
- * CWE-200 (Exposure of storagePath in responses) | A01:2025
- *
- * Multipart upload flow:
- * 1. POST /files with file field + optional description field
- * 2. Multer FileInterceptor saves to ./uploads/ with client-supplied filename
- * 3. FilesService.upload() stores metadata: filename, mimetype, storagePath, size
- * 4. FileResponseDto returned to client with all metadata (including storagePath CWE-200)
- * 5. GET /files/:id/download streams file from storagePath (no path validation CWE-22)
- * 6. GET /files/:id/download uses stored mimetype for Content-Type (CWE-434)
- * 7. DELETE /files/:id removes file from disk via fs.unlink(storagePath) (CWE-22, CWE-639)
+ * End-to-end tests for multipart/form-data upload, download, listing, and
+ * deletion with v2.0.0 security controls: filename sanitisation, magic-byte
+ * MIME detection, upload size limits, ownership enforcement, and no
+ * storagePath leakage in API responses.
  *
  * Requires: docker compose -f infra/compose.yml up -d
  */
@@ -52,14 +38,24 @@ async function registerAndLogin(
 function ensureFixtures() {
   if (!existsSync(TEST_FIXTURES)) mkdirSync(TEST_FIXTURES, { recursive: true });
   writeFileSync(join(TEST_FIXTURES, 'test.txt'), 'hello world');
-  writeFileSync(join(TEST_FIXTURES, 'image.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47])); // PNG magic
+  writeFileSync(join(TEST_FIXTURES, 'image.png'), Buffer.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+  ]));
   writeFileSync(join(TEST_FIXTURES, 'fake-image.html'), '<script>alert(1)</script>');
   writeFileSync(join(TEST_FIXTURES, 'large.bin'), Buffer.alloc(10 * 1024 * 1024, 'A')); // 10MB
 }
 
-describe('v0.5.0 -- Real Multipart File Upload', () => {
+function listUploadDiskFiles(): string[] {
+  if (!existsSync(UPLOADS_DIR)) return [];
+  return readdirSync(UPLOADS_DIR).filter((f) => f !== '.gitkeep');
+}
+
+function findDiskFileForBasename(basename: string): string | undefined {
+  return listUploadDiskFiles().find((f) => f.endsWith(`-${basename}`) || f === basename);
+}
+
+describe('v2.0.0 — Secure Multipart File Upload', () => {
   let app: INestApplication<App>;
-  let dataSource: DataSource;
 
   beforeAll(() => {
     ensureFixtures();
@@ -73,17 +69,14 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    dataSource = app.get(DataSource);
-    await dataSource.synchronize(true);
+    await app.get(DataSource).synchronize(true);
   });
 
   afterEach(async () => {
     await app.close();
 
-    // Clean up uploaded files
     if (existsSync(UPLOADS_DIR)) {
-      const files = require('fs').readdirSync(UPLOADS_DIR);
-      for (const f of files) {
+      for (const f of readdirSync(UPLOADS_DIR)) {
         if (f !== '.gitkeep') {
           try {
             rmSync(join(UPLOADS_DIR, f));
@@ -102,7 +95,7 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
   // ============================================================
 
   describe('multipart/form-data upload', () => {
-    it('uploads a file and returns metadata with storagePath (CWE-200)', async () => {
+    it('uploads a file and returns metadata without storagePath', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(httpServer, 'user@test.com', 'uploader', 'password');
 
@@ -115,8 +108,8 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
       expect(res.body).toHaveProperty('id');
       expect(res.body).toHaveProperty('filename', 'test.txt');
-      expect(res.body).toHaveProperty('mimetype');
-      expect(res.body).toHaveProperty('storagePath'); // CWE-200: exposes FS path
+      expect(res.body).toHaveProperty('mimetype', 'text/plain');
+      expect(res.body.storagePath).toBeUndefined();
       expect(res.body).toHaveProperty('size');
       expect(res.body).toHaveProperty('ownerId', user.userId);
       expect(res.body).toHaveProperty('uploadedAt');
@@ -131,20 +124,24 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
         .expect(401);
     });
 
-    it('stores file on disk in uploads/ directory', async () => {
+    it('stores file on disk in uploads/ directory with UUID-prefixed name', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(httpServer, 'user2@test.com', 'uploader2', 'password');
 
-      const res = await request(httpServer)
+      await request(httpServer)
         .post('/files')
         .set('Authorization', `Bearer ${user.token}`)
         .attach('file', join(TEST_FIXTURES, 'test.txt'))
         .expect(201);
 
-      const storagePath = res.body.storagePath;
-      expect(storagePath).toContain('uploads');
-      expect(existsSync(storagePath)).toBe(true);
-      expect(readFileSync(storagePath, 'utf-8')).toBe('hello world');
+      const diskName = findDiskFileForBasename('test.txt');
+      expect(diskName).toBeDefined();
+      expect(diskName).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-test\.txt$/,
+      );
+      const diskPath = join(UPLOADS_DIR, diskName!);
+      expect(existsSync(diskPath)).toBe(true);
+      expect(readFileSync(diskPath, 'utf-8')).toBe('hello world');
     });
 
     it('includes optional description field in metadata', async () => {
@@ -161,38 +158,36 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
       expect(res.body.description).toBe('My custom description');
     });
 
-    it('uses client-supplied filename as disk filename (CWE-22)', async () => {
+    it('sanitizes client filename to basename for display', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(httpServer, 'user4@test.com', 'uploader4', 'password');
 
       const res = await request(httpServer)
         .post('/files')
         .set('Authorization', `Bearer ${user.token}`)
-        .attach('file', join(TEST_FIXTURES, 'test.txt'))
+        .attach('file', join(TEST_FIXTURES, 'test.txt'), '../../../etc/passwd.txt')
         .expect(201);
 
-      // Vulnerable: client filename used directly
-      expect(res.body.filename).toBe('test.txt');
-      expect(res.body.storagePath).toContain('test.txt');
+      expect(res.body.filename).toBe('passwd.txt');
+      expect(res.body.storagePath).toBeUndefined();
+      const diskName = findDiskFileForBasename('passwd.txt');
+      expect(diskName).toMatch(/^[0-9a-f-]+-passwd\.txt$/);
     });
 
-    it('stores client-supplied MIME type without validation (CWE-434)', async () => {
+    it('detects MIME type from magic bytes', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(httpServer, 'user5@test.com', 'uploader5', 'password');
 
-      // Upload HTML file but claim it's an image
       const res = await request(httpServer)
         .post('/files')
         .set('Authorization', `Bearer ${user.token}`)
-        .attach('file', join(TEST_FIXTURES, 'fake-image.html'))
+        .attach('file', join(TEST_FIXTURES, 'image.png'))
         .expect(201);
 
-      // Multer may guess from extension, but no validation happens
-      expect(res.body).toHaveProperty('mimetype');
-      // Vulnerable: no magic-byte validation, client could have forced image/png
+      expect(res.body.mimetype).toBe('image/png');
     });
 
-    it('tracks file size from Multer stats', async () => {
+    it('tracks file size from verified content', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(httpServer, 'user6@test.com', 'uploader6', 'password');
 
@@ -211,11 +206,11 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
   // ============================================================
 
   describe('file listing', () => {
-    it('lists all uploaded files (unbounded, CWE-400)', async () => {
+    it('lists owner uploaded files only', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(httpServer, 'lister@test.com', 'lister', 'password');
+      const other = await registerAndLogin(httpServer, 'other@test.com', 'other', 'password');
 
-      // Upload two files
       await request(httpServer)
         .post('/files')
         .set('Authorization', `Bearer ${user.token}`)
@@ -226,14 +221,23 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
         .set('Authorization', `Bearer ${user.token}`)
         .attach('file', join(TEST_FIXTURES, 'image.png'));
 
+      await request(httpServer)
+        .post('/files')
+        .set('Authorization', `Bearer ${other.token}`)
+        .attach('file', join(TEST_FIXTURES, 'test.txt'));
+
       const res = await request(httpServer)
         .get('/files')
         .set('Authorization', `Bearer ${user.token}`)
         .expect(200);
 
       expect(Array.isArray(res.body.items)).toBe(true);
-      expect(res.body.items.length).toBeGreaterThanOrEqual(2);
-      expect(res.body.total).toBeGreaterThanOrEqual(2);
+      expect(res.body.items.length).toBe(2);
+      expect(res.body.total).toBe(2);
+      for (const item of res.body.items) {
+        expect(item.ownerId).toBe(user.userId);
+        expect(item.storagePath).toBeUndefined();
+      }
     });
 
     it('retrieves file metadata by ID', async () => {
@@ -254,6 +258,7 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
       expect(getRes.body.id).toBe(fileId);
       expect(getRes.body.filename).toBe('test.txt');
+      expect(getRes.body.storagePath).toBeUndefined();
     });
 
     it('returns 404 for non-existent file ID', async () => {
@@ -272,7 +277,7 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
   // ============================================================
 
   describe('file download', () => {
-    it('downloads file and returns stored MIME type (CWE-434)', async () => {
+    it('downloads file with magic-byte detected MIME type', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(
         httpServer,
@@ -288,25 +293,20 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
         .expect(201);
 
       const fileId = uploadRes.body.id;
-      const originalMimetype = uploadRes.body.mimetype;
 
       const downloadRes = await request(httpServer)
         .get(`/files/${fileId}/download`)
         .set('Authorization', `Bearer ${user.token}`)
         .expect(200);
 
-      // Content-Type is set from stored mimetype (client-controlled, CWE-434)
-      if (originalMimetype) {
-        expect(downloadRes.headers['content-type']).toContain(originalMimetype);
-      }
+      expect(downloadRes.headers['content-type']).toContain('image/png');
     });
 
-    it('streams file without ownership check (CWE-639 IDOR)', async () => {
+    it('denies cross-user download (ownership enforced)', async () => {
       const httpServer = app.getHttpServer();
       const user1 = await registerAndLogin(httpServer, 'attacker@test.com', 'attacker', 'password');
       const user2 = await registerAndLogin(httpServer, 'victim@test.com', 'victim', 'password');
 
-      // User2 uploads a file
       const uploadRes = await request(httpServer)
         .post('/files')
         .set('Authorization', `Bearer ${user2.token}`)
@@ -315,13 +315,10 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
       const fileId = uploadRes.body.id;
 
-      // User1 (attacker) can download user2's file (no ownership check)
-      const downloadRes = await request(httpServer)
+      await request(httpServer)
         .get(`/files/${fileId}/download`)
         .set('Authorization', `Bearer ${user1.token}`)
-        .expect(200);
-
-      expect(downloadRes.text).toBe('hello world');
+        .expect(403);
     });
 
     it('sets Content-Disposition with filename', async () => {
@@ -382,28 +379,25 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
         .expect(201);
 
       const fileId = uploadRes.body.id;
-      const storagePath = uploadRes.body.storagePath;
+      const diskName = findDiskFileForBasename('test.txt');
+      expect(diskName).toBeDefined();
+      const diskPath = join(UPLOADS_DIR, diskName!);
+      expect(existsSync(diskPath)).toBe(true);
 
-      // Verify file exists on disk
-      expect(existsSync(storagePath)).toBe(true);
-
-      // Delete file
       await request(httpServer)
         .delete(`/files/${fileId}`)
         .set('Authorization', `Bearer ${user.token}`)
         .expect(200);
 
-      // File should be gone from disk
-      expect(existsSync(storagePath)).toBe(false);
+      expect(existsSync(diskPath)).toBe(false);
 
-      // Metadata should be gone from DB
       await request(httpServer)
         .get(`/files/${fileId}`)
         .set('Authorization', `Bearer ${user.token}`)
         .expect(404);
     });
 
-    it('deletes file without ownership check (CWE-639 IDOR)', async () => {
+    it('denies cross-user delete (ownership enforced)', async () => {
       const httpServer = app.getHttpServer();
       const user1 = await registerAndLogin(
         httpServer,
@@ -413,7 +407,6 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
       );
       const user2 = await registerAndLogin(httpServer, 'victim2@test.com', 'victim2', 'password');
 
-      // User2 uploads a file
       const uploadRes = await request(httpServer)
         .post('/files')
         .set('Authorization', `Bearer ${user2.token}`)
@@ -422,17 +415,15 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
 
       const fileId = uploadRes.body.id;
 
-      // User1 (attacker) can delete user2's file (no ownership check)
       await request(httpServer)
         .delete(`/files/${fileId}`)
         .set('Authorization', `Bearer ${user1.token}`)
-        .expect(200);
+        .expect(403);
 
-      // File is deleted
       await request(httpServer)
         .get(`/files/${fileId}`)
         .set('Authorization', `Bearer ${user2.token}`)
-        .expect(404);
+        .expect(200);
     });
 
     it('returns 404 for non-existent file on delete', async () => {
@@ -447,11 +438,11 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
   });
 
   // ============================================================
-  // Path Traversal & Filename Sanitisation Tests (CWE-22)
+  // Filename Sanitisation Tests
   // ============================================================
 
-  describe('path traversal vulnerability (CWE-22)', () => {
-    it('allows path traversal in filename when client supplies "../" (vulnerable)', async () => {
+  describe('filename sanitisation', () => {
+    it('strips path traversal components from client filename', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(
         httpServer,
@@ -460,24 +451,20 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
         'password',
       );
 
-      // Simulate client supplying filename with "../" traversal attempt
-      // Note: Multer's diskStorage receives the originalname from the client
-      // and passes it directly as the filename, creating the vulnerability
       const res = await request(httpServer)
         .post('/files')
         .set('Authorization', `Bearer ${user.token}`)
-        // Attach with traversal sequence in the filename
         .attach('file', Buffer.from('traversal attempt'), '../../../sensitive_file.txt')
         .expect(201);
 
-      // File is created with the traversal path in filename (CWE-22 vulnerable)
-      // Multer's diskStorage uses the originalname directly without sanitization
-      expect(res.body.filename).toContain('sensitive_file.txt');
-      // The storagePath may or may not contain ".." depending on how Node.js path normalization works
-      // The key vulnerability is that the client-supplied filename is used directly
+      expect(res.body.filename).toBe('sensitive_file.txt');
+      expect(res.body.storagePath).toBeUndefined();
+      const diskName = findDiskFileForBasename('sensitive_file.txt');
+      expect(diskName).toMatch(/^[0-9a-f-]+-sensitive_file\.txt$/);
+      expect(existsSync(join(UPLOADS_DIR, diskName!))).toBe(true);
     });
 
-    it('stores absolute storagePath, exposing directory structure (CWE-200)', async () => {
+    it('does not expose storagePath in API responses', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(
         httpServer,
@@ -492,34 +479,27 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
         .attach('file', join(TEST_FIXTURES, 'test.txt'))
         .expect(201);
 
-      // storagePath is absolute path on server (CWE-200)
-      expect(res.body.storagePath).toMatch(/^\//); // Unix absolute path
-      expect(res.body.storagePath).toContain('uploads');
+      expect(res.body.storagePath).toBeUndefined();
     });
   });
 
   // ============================================================
-  // MIME Type Confusion Tests (CWE-434)
+  // MIME Type Validation Tests
   // ============================================================
 
-  describe('MIME type confusion (CWE-434)', () => {
-    it('accepts and stores client-supplied Content-Type without validation', async () => {
+  describe('MIME type validation', () => {
+    it('rejects disallowed file extensions such as .html', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(httpServer, 'mimefool@test.com', 'mimefool', 'password');
 
-      // Upload HTML but claim it's JSON
-      const res = await request(httpServer)
+      await request(httpServer)
         .post('/files')
         .set('Authorization', `Bearer ${user.token}`)
         .attach('file', join(TEST_FIXTURES, 'fake-image.html'))
-        .expect(201);
-
-      // Mimetype stored without validation (could be faked)
-      expect(res.body).toHaveProperty('mimetype');
-      // Vulnerable: no magic-byte validation
+        .expect(400);
     });
 
-    it('download returns stored MIME type to client', async () => {
+    it('download returns verified MIME type', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(
         httpServer,
@@ -531,28 +511,27 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
       const uploadRes = await request(httpServer)
         .post('/files')
         .set('Authorization', `Bearer ${user.token}`)
-        .attach('file', join(TEST_FIXTURES, 'fake-image.html'))
+        .attach('file', join(TEST_FIXTURES, 'test.txt'))
         .expect(201);
 
+      expect(uploadRes.body.mimetype).toBe('text/plain');
       const fileId = uploadRes.body.id;
 
-      // Download uses stored MIME type for Content-Type header
       const downloadRes = await request(httpServer)
         .get(`/files/${fileId}/download`)
         .set('Authorization', `Bearer ${user.token}`)
         .expect(200);
 
-      // Content-Type reflects stored mimetype (client-controlled, CWE-434)
-      expect(downloadRes.headers['content-type']).toBeDefined();
+      expect(downloadRes.headers['content-type']).toContain('text/plain');
     });
   });
 
   // ============================================================
-  // File Size Limits Tests (CWE-400)
+  // File Size Limits Tests
   // ============================================================
 
-  describe('file size limits (CWE-400)', () => {
-    it('allows unbounded file uploads (no size limit configured)', async () => {
+  describe('file size limits', () => {
+    it('rejects uploads exceeding 5 MiB', async () => {
       const httpServer = app.getHttpServer();
       const user = await registerAndLogin(
         httpServer,
@@ -561,14 +540,15 @@ describe('v0.5.0 -- Real Multipart File Upload', () => {
         'password',
       );
 
-      // Attempt to upload a 10MB file
-      const res = await request(httpServer)
-        .post('/files')
-        .set('Authorization', `Bearer ${user.token}`)
-        .attach('file', join(TEST_FIXTURES, 'large.bin'))
-        .expect(201); // Vulnerable: no size limit, upload succeeds
-
-      expect(res.body.size).toBe(10 * 1024 * 1024);
+      try {
+        const res = await request(httpServer)
+          .post('/files')
+          .set('Authorization', `Bearer ${user.token}`)
+          .attach('file', join(TEST_FIXTURES, 'large.bin'));
+        expect([400, 413, 500]).toContain(res.status);
+      } catch (err) {
+        expect(String(err)).toMatch(/EPIPE|ECONNRESET|aborted|413|400/i);
+      }
     });
   });
 

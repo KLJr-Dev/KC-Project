@@ -1,18 +1,21 @@
-# v1.0.0 — Pentest/production Docker stack (mandatory for Cycle-1)
+# v2.0.0 — production Docker stack (secure parallel)
 # Usage: cp infra/.env.example infra/.env && docker compose -f infra/docker-compose.prod.yml up -d --build
+# Postgres is NOT published on the host (F-05). For Jest e2e from the host, also pass docker-compose.e2e.yml.
+#
+# M8: mem_limit per service (CWE-770). Prefer Docker secrets (*_FILE) over plaintext
+# env in real deployments — see .env.example.
 services:
   postgres:
     image: postgres:16-alpine
-    ports:
-      - '5433:5432' # host access for e2e-docker.sh; backend uses internal network
     env_file:
       - .env
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kc-change-me-prod}
       POSTGRES_DB: ${DB_NAME:-kc_prod}
     volumes:
       - pgdata_prod:/var/lib/postgresql/data
+    mem_limit: 512m
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
@@ -32,23 +35,37 @@ services:
       DB_HOST: ${DB_HOST:-postgres}
       DB_PORT: ${DB_PORT:-5432}
       DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-kc-change-me-prod}
       DB_NAME: ${DB_NAME:-kc_prod}
       PORT: ${PORT:-4000}
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-secret}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      NODE_ENV: production
+      ENABLE_SWAGGER: ${ENABLE_SWAGGER:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://127.0.0.1:8080,http://localhost:8080}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      REFRESH_COOKIE_PATH: ${REFRESH_COOKIE_PATH:-/api/auth}
+      JWT_PRIVATE_KEY_PATH: /run/secrets/jwt-private.pem
+      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt-public.pem
     volumes:
       - uploads:/app/uploads
+      - ../infra/keys/jwt-private.pem:/run/secrets/jwt-private.pem:ro
+      - ../infra/keys/jwt-public.pem:/run/secrets/jwt-public.pem:ro
     expose:
       - '4000'
+    mem_limit: 512m
 
   frontend:
     build:
       context: ../frontend
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+        NEXT_PUBLIC_ENABLE_LAB_UI: ${NEXT_PUBLIC_ENABLE_LAB_UI:-false}
     depends_on:
       - backend
     expose:
       - '3000'
+    mem_limit: 256m
 
   nginx:
     image: nginx:alpine
@@ -59,6 +76,7 @@ services:
     depends_on:
       - frontend
       - backend
+    mem_limit: 128m
 
 volumes:
   pgdata_prod:

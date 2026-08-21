@@ -19,25 +19,21 @@
  *   - Browser memory (until garbage collected after unmount)
  *   - Network tab (sent as JSON in the POST body over plain HTTP)
  * There is no way to avoid holding the password in state for a controlled
- * input, but in v2.0.0 TLS ensures it's encrypted in transit.
+ * input, but in v2.0.0 TLS (M7) encrypts it in transit; M6 moves refresh to
+ * httpOnly cookies.
  *
  * Client-side validation: validateEmail() provides UX convenience only —
  * it is NOT a security control. The backend is the authority for validation.
  * An attacker can bypass client-side validation trivially (DevTools console,
  * curl, Postman) and send arbitrary data to the API.
  *
- * VULN (v0.1.5): No password strength validation. The frontend does not
- *       enforce minimum length, complexity, or any password requirements.
- *       A user can register with "a" as their password. The backend also
- *       has no requirements (CWE-521), so there is zero password strength
- *       enforcement anywhere in the stack.
- *       CWE-521 (Weak Password Requirements) | A07:2025
- *       Remediation (v2.0.0): Client-side strength meter (UX only) +
- *       server-side validation via class-validator (@MinLength(12), etc.)
+ * M5: Backend RegisterDto enforces password policy (min 12, complexity) —
+ * CWE-521 remediations. This page may still submit a weak password; the API
+ * returns 400. Client-side strength UX remains optional (not required for M5).
  *
  * Form data in Network tab: The full request payload { email, username,
  * password } is visible in the browser's Network tab as a JSON body. In
- * v0.1.x (plain HTTP), this is also readable by any network observer.
+ * plain HTTP, this is also readable by any network observer (M7 TLS).
  * CWE-319 (Cleartext Transmission) | A04:2025
  *
  * Auth response handling: On successful register/login, the response
@@ -52,6 +48,7 @@ import { authRegister, authLogin } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import { ValidationError } from '../../lib/api';
 import { DEMO_USERS } from '../../lib/demo-users';
+import { isLabUiEnabled } from '../../lib/lab-flags';
 import FormInput from '../components/ui/form-input';
 import SubmitButton from '../components/ui/submit-button';
 import ErrorBanner from '../components/ui/error-banner';
@@ -341,38 +338,40 @@ function AuthPageContent() {
           </form>
         )}
 
-        <div className="rounded-lg border border-border p-4">
-          <button
-            type="button"
-            onClick={() => setShowDemo(!showDemo)}
-            className="text-sm font-medium text-foreground"
-          >
-            {showDemo ? 'Hide' : 'Show'} demo accounts
-          </button>
-          {showDemo && (
-            <div className="mt-3 space-y-2">
-              {DEMO_USERS.map((d) => (
-                <button
-                  key={d.email}
-                  type="button"
-                  onClick={() => {
-                    setMode('login');
-                    setLoginEmail(d.email);
-                    setLoginPassword(d.password);
-                    setLoginError(null);
-                  }}
-                  className="block w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/30"
-                >
-                  <span className="font-medium">{d.label}</span>
-                  <span className="ml-2 text-muted">{d.email}</span>
-                </button>
-              ))}
-              <p className="text-xs text-muted">
-                Seeded on Docker startup. See docs/deploy/demo-users.md
-              </p>
-            </div>
-          )}
-        </div>
+        {isLabUiEnabled() && DEMO_USERS.length > 0 && (
+          <div className="rounded-lg border border-border p-4">
+            <button
+              type="button"
+              onClick={() => setShowDemo(!showDemo)}
+              className="text-sm font-medium text-foreground"
+            >
+              {showDemo ? 'Hide' : 'Show'} demo accounts
+            </button>
+            {showDemo && (
+              <div className="mt-3 space-y-2">
+                {DEMO_USERS.map((d) => (
+                  <button
+                    key={d.email}
+                    type="button"
+                    onClick={() => {
+                      setMode('login');
+                      setLoginEmail(d.email);
+                      setLoginPassword(d.password);
+                      setLoginError(null);
+                    }}
+                    className="block w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/30"
+                  >
+                    <span className="font-medium">{d.label}</span>
+                    <span className="ml-2 text-muted">{d.email}</span>
+                  </button>
+                ))}
+                <p className="text-xs text-muted">
+                  Seeded on Docker startup. See docs/deploy/demo-users.md
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

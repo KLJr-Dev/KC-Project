@@ -5,6 +5,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
+import { setUserRole } from './e2e-app';
 
 /**
  * v0.4.3 — File Approval & Ternary Roles (CWE-639 Extended, CWE-841, CWE-862)
@@ -49,7 +50,7 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
   /**
    * Helper: Register a user and return { userId, token }
    */
-  async function registerUser(email: string, username: string, password = 'password123') {
+  async function registerUser(email: string, username: string, password = 'Password123!') {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ email, username, password })
@@ -59,6 +60,13 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
       userId: response.body.userId,
       token: response.body.token,
     };
+  }
+
+  async function registerAdmin(email = 'admin@example.com', username = 'admin') {
+    const admin = await registerUser(email, username);
+    await setUserRole(dataSource, admin.userId, 'admin');
+    const adminToken = forgeJwt(admin.userId, email, 'admin');
+    return { ...admin, token: adminToken };
   }
 
   /**
@@ -101,21 +109,17 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
   // Test 1: Moderator Creation
   // ============================================================================
   it('Test 1: Can promote user to moderator via admin endpoint', async () => {
-    // Create admin and regular user
-    const admin = await registerUser('admin@example.com', 'admin');
-    const adminToken = forgeJwt(admin.userId, 'admin@example.com', 'admin');
-
+    const admin = await registerAdmin();
     const user = await registerUser('user@example.com', 'regularuser');
 
-    // Promote user to moderator
-    const promoted = await promoteUser(user.userId, 'moderator', adminToken);
+    const promoted = await promoteUser(user.userId, 'moderator', admin.token);
 
     expect(promoted.role).toBe('moderator');
 
     // Verify JWT for moderator contains correct role
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: 'user@example.com', password: 'password123' })
+      .send({ email: 'user@example.com', password: 'Password123!' })
       .expect(201);
 
     expect(loginRes.body.token).toMatch(JWT_REGEX);
@@ -126,26 +130,16 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
   // Test 2: File Approval by Moderator
   // ============================================================================
   it('Test 2: Moderator can approve files via PUT /files/:id/approve', async () => {
-    // Create two users: moderator and regular
     const moderator = await registerUser('moderator@example.com', 'mod');
     const user = await registerUser('uploader@example.com', 'uploader');
+    const admin = await registerAdmin('realadmin@example.com', 'admin');
 
-    // Promote moderator
-    const adminToken = forgeJwt('fake-admin-id', 'fake@example.com', 'admin');
-    // Note: This will fail because fake admin doesn't exist, so let's use a different approach
-    // Actually, let's create a legit admin user first
-    const realAdmin = await registerUser('realadmin@example.com', 'admin');
-    const realAdminToken = forgeJwt(realAdmin.userId, 'realadmin@example.com', 'admin');
-
-    await promoteUser(moderator.userId, 'moderator', realAdminToken);
-
+    await promoteUser(moderator.userId, 'moderator', admin.token);
     const moderatorToken = forgeJwt(moderator.userId, 'moderator@example.com', 'moderator');
 
-    // Upload file as regular user
     const uploadRes = await uploadFile(user.token);
     const fileId = uploadRes.body.id;
 
-    // Approve file as moderator (JWT role claim, not registration token)
     const approveRes = await request(app.getHttpServer())
       .put(`/files/${fileId}/approve`)
       .set('Authorization', `Bearer ${moderatorToken}`)
@@ -155,104 +149,64 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
     expect(approveRes.body.approvalStatus).toBe('approved');
   });
 
-  // ============================================================================
-  // Test 3: Admin Can Also Approve Files
-  // ============================================================================
   it('Test 3: Admin can also approve files', async () => {
-    // Create admin and regular user
-    const admin = await registerUser('admin@example.com', 'admin');
+    const admin = await registerAdmin();
     const user = await registerUser('uploader@example.com', 'uploader');
 
-    // Create token with admin role for admin user
-    const adminToken = forgeJwt(admin.userId, 'admin@example.com', 'admin');
-
-    // Upload file as regular user
     const uploadRes = await uploadFile(user.token);
     const fileId = uploadRes.body.id;
 
-    // Approve file as admin
     const approveRes = await request(app.getHttpServer())
       .put(`/files/${fileId}/approve`)
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Authorization', `Bearer ${admin.token}`)
       .send({ status: 'approved' })
       .expect(200);
 
     expect(approveRes.body.approvalStatus).toBe('approved');
   });
 
-  // ============================================================================
-  // Test 4: Forged Moderator JWT Gains Access (CWE-639 Extended)
-  // ============================================================================
-  it('Test 4: VULN CWE-639 Extended: Forged moderator JWT approves files', async () => {
-    // Create a regular user
+  it('Test 4: Forged moderator JWT cannot approve files (DB role authoritative)', async () => {
     const user = await registerUser('regularuser@example.com', 'regular');
-
-    // Upload a file
     const uploadRes = await uploadFile(user.token);
     const fileId = uploadRes.body.id;
 
-    // Forge a moderator JWT (user has role='user' in DB, but JWT claims 'moderator')
     const forgedModeratorToken = forgeJwt(user.userId, 'regularuser@example.com', 'moderator');
 
-    // Try to approve file with forged token
-    // This should succeed because HasRole(['admin', 'moderator']) trusts JWT (CWE-639)
-    const approveRes = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .put(`/files/${fileId}/approve`)
       .set('Authorization', `Bearer ${forgedModeratorToken}`)
       .send({ status: 'approved' })
-      .expect(200);
+      .expect(403);
 
-    expect(approveRes.body.approvalStatus).toBe('approved');
-
-    // Proof: Database still shows user as 'user', not 'moderator'
     const userRepo = dataSource.getRepository('User');
     const dbUser = await userRepo.findOne({ where: { id: user.userId } });
     expect(dbUser?.role).toBe('user');
-
-    // But the file was approved anyway → CWE-639 extended
   });
 
-  // ============================================================================
-  // Test 5: Role Hierarchy Confusion - Moderator vs Admin
-  // ============================================================================
-  it('Test 5: Role Hierarchy Ambiguity: Moderator and admin can conflict', async () => {
-    // Create moderator and admin
-    const admin = await registerUser('admin@example.com', 'admin');
+  it('Test 5: Moderator and admin can both set approval status', async () => {
+    const admin = await registerAdmin();
     const moderatorUser = await registerUser('mod@example.com', 'mod');
+    await promoteUser(moderatorUser.userId, 'moderator', admin.token);
 
-    const adminToken = forgeJwt(admin.userId, 'admin@example.com', 'admin');
-
-    // Promote user to moderator
-    await promoteUser(moderatorUser.userId, 'moderator', adminToken);
-
-    // Create an uploader
     const uploader = await registerUser('uploader@example.com', 'uploader');
-
-    // Upload a file
     const uploadRes = await uploadFile(uploader.token);
     const fileId = uploadRes.body.id;
 
     const moderatorToken = forgeJwt(moderatorUser.userId, 'mod@example.com', 'moderator');
 
-    // Moderator approves
     await request(app.getHttpServer())
       .put(`/files/${fileId}/approve`)
       .set('Authorization', `Bearer ${moderatorToken}`)
       .send({ status: 'approved' })
       .expect(200);
 
-    // Admin rejects (override)
     const rejectRes = await request(app.getHttpServer())
       .put(`/files/${fileId}/approve`)
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Authorization', `Bearer ${admin.token}`)
       .send({ status: 'rejected' })
       .expect(200);
 
     expect(rejectRes.body.approvalStatus).toBe('rejected');
-
-    // VULN: No conflict detection, no audit trail, no indication that moderator
-    // already approved. This is CWE-841 (role hierarchy ambiguity).
-    // In a real system, you'd want approval workflow states and audit logs.
   });
 
   // ============================================================================
@@ -279,22 +233,15 @@ describe('File Approval & Ternary Roles (v0.4.3)', () => {
   // Bonus Test: File Rejection by Moderator
   // ============================================================================
   it('Bonus: Moderator can reject files', async () => {
-    // Create moderator and uploader
-    const realAdmin = await registerUser('admin@example.com', 'admin');
-    const realAdminToken = forgeJwt(realAdmin.userId, 'admin@example.com', 'admin');
-
+    const admin = await registerAdmin();
     const moderator = await registerUser('mod@example.com', 'mod');
-    await promoteUser(moderator.userId, 'moderator', realAdminToken);
-
+    await promoteUser(moderator.userId, 'moderator', admin.token);
     const moderatorToken = forgeJwt(moderator.userId, 'mod@example.com', 'moderator');
 
     const uploader = await registerUser('uploader@example.com', 'uploader');
-
-    // Upload file
     const uploadRes = await uploadFile(uploader.token);
     const fileId = uploadRes.body.id;
 
-    // Moderator rejects
     const rejectRes = await request(app.getHttpServer())
       .put(`/files/${fileId}/approve`)
       .set('Authorization', `Bearer ${moderatorToken}`)

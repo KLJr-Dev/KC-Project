@@ -7,7 +7,7 @@
  * - Valid requests pass validation and reach controllers
  * - Strict type checking works (no auto-conversion)
  * - Unbounded fields expose CWE-400
- * - Weak password patterns expose CWE-521
+ * - Password policy enforces CWE-521 remediations (reject weak passwords)
  *
  * Covers all surfaces: auth, users, files, sharing, admin
  */
@@ -16,6 +16,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 import { ValidationExceptionFilter } from '../src/common/filters/validation-exception.filter';
 
@@ -58,7 +59,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           .send({
             email: uniqueEmail,
             username: 'testuser',
-            password: 'p',
+            password: 'Password123!',
           })
           .expect(201);
         expect(res.body).toHaveProperty('token');
@@ -69,7 +70,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           .post('/auth/register')
           .send({
             username: 'testuser',
-            password: 'pass',
+            password: 'Password123!',
           })
           .expect(400);
         expect(res.body).toHaveProperty('errors.email');
@@ -82,7 +83,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           .send({
             email: 'not-an-email',
             username: 'testuser',
-            password: 'pass',
+            password: 'Password123!',
           })
           .expect(400);
         expect(res.body).toHaveProperty('errors.email');
@@ -94,14 +95,14 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           .send({
             email: 'test2@example.com',
             username: 'ab',
-            password: 'pass',
+            password: 'Password123!',
           })
           .expect(400);
         expect(res.body).toHaveProperty('errors.username');
         expect(res.body.errors.username[0]).toContain('at least 3 characters');
       });
 
-      it('should accept password with 1 character (CWE-521)', async () => {
+      it('should reject password with 1 character (CWE-521 remediations)', async () => {
         const uniqueEmail = `pwd-test${Date.now()}@example.com`;
         const res = await request(app.getHttpServer())
           .post('/auth/register')
@@ -110,8 +111,8 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
             username: 'testuser3',
             password: 'a',
           })
-          .expect(201);
-        expect(res.body).toHaveProperty('token');
+          .expect(400);
+        expect(res.body).toHaveProperty('errors.password');
       });
 
       it('should reject unknown fields (strict whitelist)', async () => {
@@ -120,7 +121,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           .send({
             email: 'test4@example.com',
             username: 'testuser4',
-            password: 'pass',
+            password: 'Password123!',
             extraField: 'should-be-rejected',
           })
           .expect(400);
@@ -150,7 +151,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
         await request(app.getHttpServer()).post('/auth/register').send({
           email: uniqueEmail,
           username: 'loginuser',
-          password: 'pass',
+          password: 'Password123!',
         });
 
         // Then login
@@ -158,7 +159,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           .post('/auth/login')
           .send({
             email: uniqueEmail,
-            password: 'pass',
+            password: 'Password123!',
           })
           .expect(201); // login endpoint returns 201 Created
         expect(res.body).toHaveProperty('token');
@@ -168,7 +169,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
         const res = await request(app.getHttpServer())
           .post('/auth/login')
           .send({
-            password: 'pass',
+            password: 'Password123!',
           })
           .expect(400);
         expect(res.body).toHaveProperty('errors.email');
@@ -179,7 +180,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
           .post('/auth/login')
           .send({
             email: 'not-email',
-            password: 'pass',
+            password: 'Password123!',
           })
           .expect(400);
         expect(res.body).toHaveProperty('errors.email');
@@ -197,11 +198,15 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
         .send({
           email: `fileuser${Date.now()}@example.com`,
           username: `fileuser${Date.now()}`,
-          password: 'pass',
+          password: 'Password123!',
         });
+      // HasRoleGuard loads role from DB (M1) — JWT claim alone is not enough
+      const dataSource = app.get(DataSource);
+      await dataSource.query(`UPDATE "user" SET role = 'moderator' WHERE id = $1`, [
+        registerRes.body.userId,
+      ]);
       moderatorToken = jwtService.sign({
         sub: registerRes.body.userId,
-        email: `fileuser${Date.now()}@example.com`,
         role: 'moderator',
       });
     });
@@ -284,7 +289,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
         .send({
           email: 12345,
           username: 'user',
-          password: 'pass',
+          password: 'Password123!',
         })
         .expect(400);
       expect(res.body).toHaveProperty('errors');
@@ -296,7 +301,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
         .send({
           email: 'test@example.com',
           username: 123,
-          password: 'pass',
+          password: 'Password123!',
         })
         .expect(400);
       expect(res.body).toHaveProperty('errors');
@@ -331,7 +336,7 @@ describe('v0.5.0 — Input Validation Pipeline (e2e)', () => {
         .send({
           email: 'test@example.com',
           username: 'ab',
-          password: 'pass',
+          password: 'Password123!',
         })
         .expect(400);
 

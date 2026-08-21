@@ -2,7 +2,7 @@
 
 **Date**: March 5, 2026 (updated June 2026)  
 **Target MVP**: v1.0.0 — **pentest-ready** (59 instances / 38 CWE IDs; target 60–80 with v1.0.x discoveries)  
-**Post-MVP**: Phase 2 Cycle 1 pentest → v2.0.0 hardening → rapid expansion (v1.N.0 monthly, 10–15 CWEs per cycle)
+**Post-MVP**: Phase 2 Cycle 1 pentest (**done**) → v2.0.0 hardening (Wave 1 M0–M4 + Wave 2 M5–M9) → expansion (v1.N.0 from secure parallel, ~10–15 CWEs per cycle)
 
 ---
 
@@ -345,34 +345,45 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 ### Phase 2: v1.0.x (Pentesting — Cycle 1)
 
-**Status:** v1.0.0 pentest-ready gate passed ([v1.0.0-pentest-ready.md](../release/v1.0.0-pentest-ready.md)). Cycle 1 workspace live at [docs/security/Cycle-1/](../security/Cycle-1/README.md).
+**Status:** v1.0.0 pentest-ready gate **passed** ([v1.0.0-pentest-ready.md](../release/v1.0.0-pentest-ready.md)). Structured pentest **complete** on `pentest/cycle-1` ([PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) — 13 findings, OSCP-style). Blue Team hardening on `remediation/v2.0.0`.
 
 | Version | Duration | Focus |
 |---------|----------|-------|
-| v1.0.x | 2–4 weeks | Structured pentest; populate [PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) |
-| v1.0.1 | 1–2 weeks | Critical bug patches only (RCE, crash) |
-| v1.0.2+ | ongoing | Moderate patches; findings table in [security/README.md](../security/README.md) |
+| v1.0.x | Done | Structured pentest + evidence |
+| v2.0.0 | Gate (M9) | Secure parallel — Wave 1 M0–M4 + Wave 2 M5–M9 |
 
-**Cycle-1 gate (remaining):**
+**Cycle-1 gate:**
 
-- [ ] Pentest writeup complete (portfolio piece)
-- [ ] All 59 instances exercised with PoC evidence
-- [ ] Remediation draft in [Cycle-1/Remediation/v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md)
+- [x] Pentest writeup complete (portfolio piece)
+- [x] Critical/High PoCs evidenced (F-01…F-13; not every inventory instance — VA scope)
+- [x] Remediation map + Blue Team plan ([v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md), [blue-team-plan.md](../security/Cycle-1/Remediation/blue-team-plan.md))
+- [x] **M0–M8** code + docs (finding close-out + full baseline)
+- [x] **M9** secure-ready gate green (merge/tag operator)
+- [x] **CTF blocked** until tag exists
 
-**Outcome**: All 59/38 (+ v1.0.x discoveries toward 60–80) mapped, documented, exploitable. Attack chains in Cycle-1 PenTest artifacts.
+**Outcome (Red):** Attack chains documented in Cycle-1 PenTest artifacts.  
+**Outcome (Blue, target):** Same product surface; PoCs deny; full baseline; tag `v2.0.0`.
 
-### Phase 3: v1.1.0+ (Expansion Cycle)
+### Phase 3: v2.0.0 hardening → v1.1.0+ (Expansion)
+
+Hardening milestones (detail: [blue-team-plan.md](../security/Cycle-1/Remediation/blue-team-plan.md)):
+
+| Milestone | Focus |
+|-----------|--------|
+| M0–M4 | Wave 1 — Cycle-1 finding close-out (**done**) |
+| M5–M8 | Wave 2 — baseline crypto/session/TLS/ops (**done**) |
+| M9 | Gate scripts + docs + merge/tag |
+
+**Only after `v2.0.0`:** fork-from-secure for CTF-style expansion (prefer fewer chained vulns than v1.0.0 kitchen-sink):
 
 | Version | Duration | Approach | CWEs |
 |---------|----------|----------|------|
-| v1.1.0 | 2–3 weeks | Fork v1.0.0, add client-side + secrets vulns | +10–15 |
+| v1.1.0 | 2–3 weeks | Fork **v2.0.0**, add focused attack surfaces | ~10–15 |
 | v1.1.x | 1–2 weeks | Pentest findings | (discovery) |
-| v1.2.0 | 2–3 weeks | Fork v1.1.0, add race conditions + caching | +10–15 |
-| v1.2.x | 1–2 weeks | Pentest findings | (discovery) |
-| v1.3.0 | 2–3 weeks | Fork v1.2.0, add cloud misconfigs | +10–15 |
-| ... | | (repeat indefinitely) | |
+| v1.2.0 | 2–3 weeks | Fork v2.1.0, next surface wave | ~10–15 |
+| … | | (repeat per ADR-013) | |
 
-**Cadence**: New v1.N.0 feature version every month, followed by 1–2 week pentest iteration.
+**Cadence:** New insecure baseline only after its secure parallel exists.
 
 ---
 

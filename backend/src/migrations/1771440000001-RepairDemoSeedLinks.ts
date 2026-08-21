@@ -1,10 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { mkdirSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { DEMO_WELCOME_SHARE_TOKEN } from '../sharing/demo-share.constants';
 
 /**
- * Ensures demo share-1 points at seeded welcome.txt (9101) even on DBs that
- * already had a stale share-1 from prior testing.
+ * Ensures demo welcome share points at seeded welcome.txt (9101) with
+ * the unguessable DEMO_WELCOME_SHARE_TOKEN (v2.0.0).
  */
 export class RepairDemoSeedLinks1771440000001 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -25,22 +26,30 @@ export class RepairDemoSeedLinks1771440000001 implements MigrationInterface {
 
     await queryRunner.query(
       `UPDATE "sharing_entity"
-       SET "ownerId" = '9001', "fileId" = '9101', "publicToken" = 'share-1', "public" = true
+       SET "ownerId" = '9001', "fileId" = '9101', "publicToken" = $1, "public" = true
        WHERE id = '1'`,
+      [DEMO_WELCOME_SHARE_TOKEN],
     );
 
     const share1: unknown[] = await queryRunner.query(
-      `SELECT 1 FROM "sharing_entity" WHERE "publicToken" = 'share-1' LIMIT 1`,
+      `SELECT 1 FROM "sharing_entity" WHERE "publicToken" = $1 LIMIT 1`,
+      [DEMO_WELCOME_SHARE_TOKEN],
     );
     if (share1.length === 0) {
       const now = new Date().toISOString();
       await queryRunner.query(
         `INSERT INTO "sharing_entity"
           (id, "ownerId", "fileId", "publicToken", "public", "createdAt", "expiresAt")
-         VALUES ('1', '9001', '9101', 'share-1', true, $1, '')`,
-        [now],
+         VALUES ('1', '9001', '9101', $1, true, $2, '')`,
+        [DEMO_WELCOME_SHARE_TOKEN, now],
       );
     }
+
+    // Drop legacy predictable token if still present on another row
+    await queryRunner.query(
+      `UPDATE "sharing_entity" SET "publicToken" = NULL, "public" = false
+       WHERE "publicToken" = 'share-1'`,
+    );
   }
 
   public async down(): Promise<void> {

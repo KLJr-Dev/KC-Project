@@ -4,14 +4,14 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { join } from 'path';
-import { writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, rmSync, readdirSync } from 'fs';
 import { AppModule } from '../src/app.module';
 
 /**
- * v0.5.1 — File Download & Streaming Tests
+ * v2.0.0 — File Download & Streaming Tests
  *
- * End-to-end tests for GET /files/:id/download.
- * Uses the same API contract as files.e2e-spec.ts (POST /files, /auth/register).
+ * End-to-end tests for GET /files/:id/download with ownership enforcement,
+ * verified MIME types, and no storagePath leakage in metadata responses.
  */
 
 const UPLOADS_DIR = join(process.cwd(), 'uploads');
@@ -34,17 +34,27 @@ async function registerAndLogin(
 function ensureFixtures() {
   if (!existsSync(TEST_FIXTURES)) mkdirSync(TEST_FIXTURES, { recursive: true });
   writeFileSync(join(TEST_FIXTURES, 'test.txt'), 'hello world');
-  writeFileSync(join(TEST_FIXTURES, 'large.bin'), Buffer.alloc(5 * 1024 * 1024, 'x'));
+  writeFileSync(join(TEST_FIXTURES, 'large.txt'), Buffer.alloc(4 * 1024 * 1024, 'x'));
 }
 
-describe('File Download (v0.5.1)', () => {
+function findUploadedDiskFile(): string | undefined {
+  if (!existsSync(UPLOADS_DIR)) return undefined;
+  const files = readdirSync(UPLOADS_DIR).filter((f) => f !== '.gitkeep');
+  return files[0];
+}
+
+describe('File Download (v2.0.0)', () => {
   let app: INestApplication<App>;
+
+  jest.setTimeout(60_000);
 
   beforeAll(() => {
     ensureFixtures();
   });
 
   beforeEach(async () => {
+    ensureFixtures();
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -59,7 +69,7 @@ describe('File Download (v0.5.1)', () => {
   afterEach(async () => {
     await app.close();
     if (existsSync(UPLOADS_DIR)) {
-      for (const f of require('fs').readdirSync(UPLOADS_DIR)) {
+      for (const f of readdirSync(UPLOADS_DIR)) {
         if (f !== '.gitkeep') {
           try {
             rmSync(join(UPLOADS_DIR, f));
@@ -89,7 +99,7 @@ describe('File Download (v0.5.1)', () => {
       .expect(200);
 
     expect(downloadRes.text).toBe('hello world');
-    expect(downloadRes.headers['content-type']).toBeDefined();
+    expect(downloadRes.headers['content-type']).toContain('text/plain');
   });
 
   it('includes Content-Disposition header', async () => {
@@ -108,9 +118,10 @@ describe('File Download (v0.5.1)', () => {
       .expect(200);
 
     expect(downloadRes.headers['content-disposition']).toMatch(/attachment/);
+    expect(downloadRes.headers['content-disposition']).toContain('report.pdf');
   });
 
-  it('allows User B to download User A file (CWE-639 IDOR)', async () => {
+  it('denies User B from downloading User A file', async () => {
     const httpServer = app.getHttpServer();
     const userA = await registerAndLogin(httpServer, 'a-dl@t.com', 'ownerdl', 'pass');
     const userB = await registerAndLogin(httpServer, 'b-dl@t.com', 'attackerdl', 'pass');
@@ -121,12 +132,10 @@ describe('File Download (v0.5.1)', () => {
       .attach('file', join(TEST_FIXTURES, 'test.txt'))
       .expect(201);
 
-    const downloadRes = await request(httpServer)
+    await request(httpServer)
       .get(`/files/${upload.body.id}/download`)
       .set('Authorization', `Bearer ${userB.token}`)
-      .expect(200);
-
-    expect(downloadRes.text).toBe('hello world');
+      .expect(403);
   });
 
   it('returns 404 for non-existent file ID', async () => {
@@ -149,14 +158,9 @@ describe('File Download (v0.5.1)', () => {
       .attach('file', join(TEST_FIXTURES, 'test.txt'))
       .expect(201);
 
-    const getRes = await request(httpServer)
-      .get(`/files/${upload.body.id}`)
-      .set('Authorization', `Bearer ${user.token}`)
-      .expect(200);
-
-    if (existsSync(getRes.body.storagePath)) {
-      rmSync(getRes.body.storagePath, { force: true });
-    }
+    const diskName = findUploadedDiskFile();
+    expect(diskName).toBeDefined();
+    rmSync(join(UPLOADS_DIR, diskName!), { force: true });
 
     await request(httpServer)
       .get(`/files/${upload.body.id}/download`)
@@ -177,14 +181,14 @@ describe('File Download (v0.5.1)', () => {
     await request(httpServer).get(`/files/${upload.body.id}/download`).expect(401);
   });
 
-  it('streams large file', async () => {
+  it('streams large file within size limit', async () => {
     const httpServer = app.getHttpServer();
     const user = await registerAndLogin(httpServer, 'lg@t.com', 'largeuser', 'pass');
 
     const upload = await request(httpServer)
       .post('/files')
       .set('Authorization', `Bearer ${user.token}`)
-      .attach('file', join(TEST_FIXTURES, 'large.bin'))
+      .attach('file', join(TEST_FIXTURES, 'large.txt'))
       .expect(201);
 
     const downloadRes = await request(httpServer)
@@ -192,10 +196,10 @@ describe('File Download (v0.5.1)', () => {
       .set('Authorization', `Bearer ${user.token}`)
       .expect(200);
 
-    expect(downloadRes.body.length).toBe(5 * 1024 * 1024);
+    expect(downloadRes.text.length).toBe(4 * 1024 * 1024);
   });
 
-  it('exposes storagePath in metadata (CWE-200)', async () => {
+  it('does not expose storagePath in metadata', async () => {
     const httpServer = app.getHttpServer();
     const user = await registerAndLogin(httpServer, 'sp@t.com', 'spathuser', 'pass');
 
@@ -210,6 +214,6 @@ describe('File Download (v0.5.1)', () => {
       .set('Authorization', `Bearer ${user.token}`)
       .expect(200);
 
-    expect(getRes.body.storagePath).toMatch(/uploads/);
+    expect(getRes.body.storagePath).toBeUndefined();
   });
 });

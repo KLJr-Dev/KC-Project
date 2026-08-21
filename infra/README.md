@@ -11,6 +11,7 @@ Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+
 | Path | Compose file | Use case | Entry |
 |------|--------------|----------|-------|
 | **Pentest (primary)** | `docker-compose.prod.yml` | Cycle-1 testing, VM deploy, smoke/journey | `http://localhost:8080` |
+| **TLS gate (M7)** | `prod` + `docker-compose.tls.yml` | Pre-tag HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 
 ```mermaid
@@ -41,6 +42,17 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ```
 
 App: `http://localhost:8080` — API at `/api/*`.
+
+### TLS profile (required before tag `v2.0.0`)
+
+```bash
+chmod +x infra/scripts/gen-lab-certs.sh infra/tls-smoke.sh
+./infra/scripts/gen-lab-certs.sh
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.tls.yml up -d --build
+./infra/tls-smoke.sh
+```
+
+App: `https://127.0.0.1:8443` (HTTP `:8080` redirects). Certs live in `infra/certs/` (gitignored).
 
 ---
 
@@ -77,8 +89,10 @@ chmod +x infra/*.sh
 | Script | Prereq | Purpose |
 |--------|--------|---------|
 | `smoke-test.sh` | Full prod stack on `:8080` | Health → register → upload → list + demo login |
-| `journey-test.sh` | Full prod stack | 3 roles, share-1 API+UI, mod pending, admin files, IDOR baseline |
-| `e2e-docker.sh` | Docker available | 150 backend e2e tests vs `kc_prod` on host `:5433` |
+| `journey-test.sh` | Full prod stack | 3 roles, demo share token API+UI, mod pending, admin files, IDOR deny |
+| `tls-smoke.sh` | Prod + `docker-compose.tls.yml` on `:8443` | HTTPS health, HSTS, HTTP→HTTPS redirect, Secure cookie |
+| `scripts/gen-lab-certs.sh` | mkcert or openssl | Write `infra/certs/localhost*.pem` |
+| `e2e-docker.sh` | Docker available | Backend e2e vs `kc_prod` via `docker-compose.e2e.yml` host `:5433` |
 | `vm-setup.sh` | Ubuntu + sudo | Install Docker, clone repo, prod stack, smoke + journey |
 
 Env overrides: `BASE_URL` (default `http://localhost:8080/api`), `APP_URL` (default `http://localhost:8080`).

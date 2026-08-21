@@ -116,7 +116,7 @@ describe('Error & Metadata Leakage (v0.2.4)', () => {
     // The act of registering logs the full INSERT including the password
     const res = await request(httpServer)
       .post('/auth/register')
-      .send({ email: 'leak@test.com', username: 'leaker', password: 'my-secret-pass' })
+      .send({ email: 'leak@test.com', username: 'leaker', password: 'Password123!' })
       .expect(201);
 
     expect(res.body.token).toBeDefined();

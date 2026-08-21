@@ -1,20 +1,18 @@
 /**
- * v0.5.0 — Input Validation Pipeline: UpdateUserDto
+ * M5 / v2.0.0 — UpdateUserDto (PUT /users/:id).
  *
- * Request body for PUT /users/:id. All fields optional (partial shape).
- *
- * v0.5.0 adds class-validator decorators:
- * - email: @IsEmail (if provided)
- * - username: @IsString, @MinLength(3), @MaxLength(50) (if provided)
- * - password: @IsString, @MinLength(1) (if provided, CWE-521 weak)
- *
- * @IsOptional allows field omission; if provided, field constraints apply.
- *
- * VULN (Intentional):
- *   - CWE-20: Optional fields allow selective updates
- *   - CWE-521: Password (if updated) requires only 1 char minimum
+ * When `password` is present, the same strength rules as registration apply
+ * (CWE-521). Omitted fields remain optional (@IsOptional).
  */
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsOptional, Matches } from 'class-validator';
+import {
+  PASSWORD_COMPLEXITY_MESSAGE,
+  PASSWORD_COMPLEXITY_REGEX,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MAX_LENGTH_MESSAGE,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MIN_LENGTH_MESSAGE,
+} from '../../auth/password-policy';
 
 export class UpdateUserDto {
   @IsEmail({}, { message: 'email must be a valid email address' })
@@ -28,7 +26,9 @@ export class UpdateUserDto {
   username?: string;
 
   @IsString({ message: 'password must be a string' })
-  @MinLength(1, { message: 'password must be at least 1 character' })
+  @MinLength(PASSWORD_MIN_LENGTH, { message: PASSWORD_MIN_LENGTH_MESSAGE })
+  @MaxLength(PASSWORD_MAX_LENGTH, { message: PASSWORD_MAX_LENGTH_MESSAGE })
+  @Matches(PASSWORD_COMPLEXITY_REGEX, { message: PASSWORD_COMPLEXITY_MESSAGE })
   @IsOptional()
   password?: string;
 }

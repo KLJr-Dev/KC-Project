@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import { configureE2eApp } from './e2e-app';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -34,6 +35,7 @@ describe('AuthController /auth/register (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureE2eApp(app);
     await app.init();
 
     // Truncate all tables for test isolation
@@ -54,7 +56,7 @@ describe('AuthController /auth/register (e2e)', () => {
       .send({
         email: 'new-user@example.com',
         username: 'new-user',
-        password: 'password123',
+        password: 'Password123!',
       })
       .expect(201);
 
@@ -77,7 +79,7 @@ describe('AuthController /auth/register (e2e)', () => {
     await request(httpServer).post('/auth/register').send({
       email: 'duplicate@example.com',
       username: 'first-user',
-      password: 'password123',
+      password: 'Password123!',
     });
 
     const response = await request(httpServer)
@@ -85,11 +87,11 @@ describe('AuthController /auth/register (e2e)', () => {
       .send({
         email: 'duplicate@example.com',
         username: 'second-user',
-        password: 'password123',
+        password: 'Password123!',
       })
       .expect(409);
 
-    expect(response.body.message).toContain('already exists');
+    expect(response.body.message).toContain('Unable to register');
   });
 
   /** Missing fields return 400 — basic input validation. */
@@ -102,7 +104,8 @@ describe('AuthController /auth/register (e2e)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toContain('Missing required registration fields');
+    // ValidationPipe rejects before AuthService (password required / email empty)
+    expect(response.body.errors || response.body.message).toBeDefined();
   });
 });
 
@@ -115,6 +118,7 @@ describe('AuthController /auth/login (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureE2eApp(app);
     await app.init();
 
     const dataSource = app.get(DataSource);
@@ -134,12 +138,12 @@ describe('AuthController /auth/login (e2e)', () => {
     await request(httpServer).post('/auth/register').send({
       email: 'login-test@example.com',
       username: 'login-user',
-      password: 'secret123',
+      password: 'Password123!',
     });
 
     const response = await request(httpServer)
       .post('/auth/login')
-      .send({ email: 'login-test@example.com', password: 'secret123' })
+      .send({ email: 'login-test@example.com', password: 'Password123!' })
       .expect(201);
 
     expect(response.body).toEqual(
@@ -158,15 +162,14 @@ describe('AuthController /auth/login (e2e)', () => {
   it('POST /auth/login returns 401 for non-existent email', async () => {
     const response = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: 'nobody@example.com', password: 'password123' })
+      .send({ email: 'nobody@example.com', password: 'Password123!' })
       .expect(401);
 
-    expect(response.body.message).toContain('No user with that email');
+    expect(response.body.message).toContain('Invalid credentials');
   });
 
   /**
-   * Wrong password returns 401 with a DIFFERENT distinct message.
-   * Combined with the above test, this confirms user enumeration (CWE-204).
+   * Wrong password returns the same generic 401 message (no enumeration).
    */
   it('POST /auth/login returns 401 for wrong password', async () => {
     const httpServer = app.getHttpServer();
@@ -174,7 +177,7 @@ describe('AuthController /auth/login (e2e)', () => {
     await request(httpServer).post('/auth/register').send({
       email: 'wrongpw@example.com',
       username: 'wrongpw-user',
-      password: 'correct-password',
+      password: 'Password123!',
     });
 
     const response = await request(httpServer)
@@ -182,7 +185,7 @@ describe('AuthController /auth/login (e2e)', () => {
       .send({ email: 'wrongpw@example.com', password: 'wrong-password' })
       .expect(401);
 
-    expect(response.body.message).toContain('Incorrect password');
+    expect(response.body.message).toContain('Invalid credentials');
   });
 
   /** Missing fields return 400 — basic input validation. */
@@ -192,7 +195,8 @@ describe('AuthController /auth/login (e2e)', () => {
       .send({ email: '' })
       .expect(400);
 
-    expect(response.body.message).toContain('Missing required login fields');
+    // ValidationPipe / DTO rejects empty email before AuthService message
+    expect(response.body.errors || response.body.message).toBeDefined();
   });
 });
 
@@ -205,6 +209,7 @@ describe('AuthController GET /auth/me (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureE2eApp(app);
     await app.init();
 
     const dataSource = app.get(DataSource);
@@ -222,7 +227,7 @@ describe('AuthController GET /auth/me (e2e)', () => {
   it('GET /auth/me returns 401 when no Authorization header is provided', async () => {
     const response = await request(app.getHttpServer()).get('/auth/me').expect(401);
 
-    expect(response.body.message).toContain('Missing Authorization header');
+    expect(response.body.message).toContain('Unauthorized');
   });
 
   /**
@@ -234,7 +239,7 @@ describe('AuthController GET /auth/me (e2e)', () => {
       .set('Authorization', 'Bearer this-is-not-a-valid-jwt')
       .expect(401);
 
-    expect(response.body.message).toContain('Invalid or expired token');
+    expect(response.body.message).toContain('Unauthorized');
   });
 
   /**
@@ -247,12 +252,12 @@ describe('AuthController GET /auth/me (e2e)', () => {
     await request(httpServer).post('/auth/register').send({
       email: 'me-test@example.com',
       username: 'me-user',
-      password: 'mypassword',
+      password: 'Password123!',
     });
 
     const loginRes = await request(httpServer)
       .post('/auth/login')
-      .send({ email: 'me-test@example.com', password: 'mypassword' })
+      .send({ email: 'me-test@example.com', password: 'Password123!' })
       .expect(201);
 
     const token = loginRes.body.token;
@@ -284,6 +289,7 @@ describe('AuthController POST /auth/logout (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureE2eApp(app);
     await app.init();
 
     const dataSource = app.get(DataSource);
@@ -300,7 +306,7 @@ describe('AuthController POST /auth/logout (e2e)', () => {
   it('POST /auth/logout returns 401 without Authorization header', async () => {
     const response = await request(app.getHttpServer()).post('/auth/logout').expect(401);
 
-    expect(response.body.message).toContain('Missing Authorization header');
+    expect(response.body.message).toContain('Unauthorized');
   });
 
   /**
@@ -312,12 +318,12 @@ describe('AuthController POST /auth/logout (e2e)', () => {
     await request(httpServer).post('/auth/register').send({
       email: 'logout-test@example.com',
       username: 'logout-user',
-      password: 'password123',
+      password: 'Password123!',
     });
 
     const loginRes = await request(httpServer)
       .post('/auth/login')
-      .send({ email: 'logout-test@example.com', password: 'password123' })
+      .send({ email: 'logout-test@example.com', password: 'Password123!' })
       .expect(201);
 
     const token = loginRes.body.token;
@@ -331,42 +337,88 @@ describe('AuthController POST /auth/logout (e2e)', () => {
   });
 
   /**
-   * TOKEN REPLAY AFTER LOGOUT — CWE-613.
-   * Proves the JWT still works after logout.
+   * After logout, refresh cookie / body token is revoked (access JWT expires naturally).
    */
-  it('token remains valid after logout — CWE-613 token replay', async () => {
+  it('refresh token is revoked after logout', async () => {
     const httpServer = app.getHttpServer();
 
     await request(httpServer).post('/auth/register').send({
       email: 'replay-test@example.com',
       username: 'replay-user',
-      password: 'password123',
+      password: 'Password123!',
     });
 
     const loginRes = await request(httpServer)
       .post('/auth/login')
-      .send({ email: 'replay-test@example.com', password: 'password123' })
+      .send({ email: 'replay-test@example.com', password: 'Password123!' })
       .expect(201);
 
-    const token = loginRes.body.token;
+    const token = loginRes.body.token as string;
+    expect(loginRes.body.refreshToken).toBeUndefined();
+    const setCookie = loginRes.headers['set-cookie'];
+    expect(setCookie).toBeDefined();
+    const cookieHeader = Array.isArray(setCookie) ? setCookie.join('; ') : String(setCookie);
+    const refreshMatch = /kc_refresh=([^;]+)/.exec(cookieHeader);
+    expect(refreshMatch).toBeTruthy();
+    const refreshRaw = refreshMatch![1];
 
     await request(httpServer)
       .post('/auth/logout')
       .set('Authorization', `Bearer ${token}`)
       .expect(201);
 
-    const meRes = await request(httpServer)
-      .get('/auth/me')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
+    await request(httpServer)
+      .post('/auth/refresh')
+      .set('X-Requested-With', 'XMLHttpRequest')
+      .set('Cookie', `kc_refresh=${refreshRaw}`)
+      .send({})
+      .expect(401);
 
-    expect(meRes.body).toEqual(
-      expect.objectContaining({
-        id: expect.any(String),
-        email: 'replay-test@example.com',
-        username: 'replay-user',
-      }),
-    );
+    // Short-lived access JWT remains valid until exp (residual); refresh cannot renew.
+    await request(httpServer).get('/auth/me').set('Authorization', `Bearer ${token}`).expect(200);
+  });
+
+  it('login sets httpOnly refresh cookie and omits refreshToken from JSON', async () => {
+    const httpServer = app.getHttpServer();
+    await request(httpServer).post('/auth/register').send({
+      email: 'cookie-test@example.com',
+      username: 'cookie-user',
+      password: 'Password123!',
+    });
+
+    const loginRes = await request(httpServer)
+      .post('/auth/login')
+      .send({ email: 'cookie-test@example.com', password: 'Password123!' })
+      .expect(201);
+
+    expect(loginRes.body.token).toMatch(JWT_REGEX);
+    expect(loginRes.body.refreshToken).toBeUndefined();
+    const setCookie = String(loginRes.headers['set-cookie'] ?? '');
+    expect(setCookie).toMatch(/kc_refresh=/);
+    expect(setCookie.toLowerCase()).toMatch(/httponly/);
+  });
+
+  it('refresh requires CSRF header and rotates via cookie', async () => {
+    const httpServer = app.getHttpServer();
+    const reg = await request(httpServer).post('/auth/register').send({
+      email: 'csrf-refresh@example.com',
+      username: 'csrf-refresh',
+      password: 'Password123!',
+    });
+    const setCookie = reg.headers['set-cookie'];
+    const cookieHeader = Array.isArray(setCookie) ? setCookie[0] : String(setCookie);
+
+    await request(httpServer).post('/auth/refresh').set('Cookie', cookieHeader).send({}).expect(403);
+
+    const refreshed = await request(httpServer)
+      .post('/auth/refresh')
+      .set('Cookie', cookieHeader)
+      .set('X-Requested-With', 'XMLHttpRequest')
+      .send({})
+      .expect(201);
+
+    expect(refreshed.body.token).toMatch(JWT_REGEX);
+    expect(refreshed.body.refreshToken).toBeUndefined();
   });
 });
 
@@ -379,6 +431,7 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureE2eApp(app);
     await app.init();
 
     const dataSource = app.get(DataSource);
@@ -399,7 +452,7 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
     await request(httpServer).post('/auth/register').send({
       email: 'brute-target@example.com',
       username: 'brute-target',
-      password: 'correct-password',
+      password: 'Password123!',
     });
 
     for (let i = 0; i < 10; i++) {
@@ -408,7 +461,7 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
         .send({ email: 'brute-target@example.com', password: `wrong-${i}` })
         .expect(401);
 
-      expect(res.body.message).toContain('Incorrect password');
+      expect(res.body.message).toContain('Invalid credentials');
     }
   });
 
@@ -422,7 +475,7 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
     await request(httpServer).post('/auth/register').send({
       email: 'lockout-target@example.com',
       username: 'lockout-target',
-      password: 'real-password',
+      password: 'Password123!',
     });
 
     for (let i = 0; i < 10; i++) {
@@ -434,17 +487,17 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
 
     const loginRes = await request(httpServer)
       .post('/auth/login')
-      .send({ email: 'lockout-target@example.com', password: 'real-password' })
+      .send({ email: 'lockout-target@example.com', password: 'Password123!' })
       .expect(201);
 
     expect(loginRes.body.token).toMatch(JWT_REGEX);
   });
 
   /**
-   * WEAK PASSWORD ACCEPTED — CWE-521
-   * Password "a" accepted for both register and login.
+   * WEAK PASSWORD REJECTED — CWE-521 remediations (M5)
+   * Password "a" fails ValidationPipe (min length + complexity).
    */
-  it('accepts single-character password — CWE-521 weak password', async () => {
+  it('rejects single-character password — CWE-521 password policy', async () => {
     const httpServer = app.getHttpServer();
 
     const registerRes = await request(httpServer)
@@ -454,22 +507,15 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
         username: 'weak-pw-user',
         password: 'a',
       })
-      .expect(201);
+      .expect(400);
 
-    expect(registerRes.body.token).toMatch(JWT_REGEX);
-
-    const loginRes = await request(httpServer)
-      .post('/auth/login')
-      .send({ email: 'weak-pw@example.com', password: 'a' })
-      .expect(201);
-
-    expect(loginRes.body.token).toMatch(JWT_REGEX);
+    expect(registerRes.body.errors?.password || registerRes.body.message).toBeDefined();
   });
 
   /**
-   * USER ENUMERATION VIA DISTINCT ERRORS — CWE-204
+   * Login failures use one generic message (no email enumeration).
    */
-  it('distinct error messages reveal email registration status — CWE-204 enumeration', async () => {
+  it('login failures use identical messages — no email enumeration', async () => {
     const httpServer = app.getHttpServer();
     const targetEmail = 'enum-test@example.com';
 
@@ -478,12 +524,12 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
       .send({ email: targetEmail, password: 'anything' })
       .expect(401);
 
-    expect(notRegistered.body.message).toContain('No user with that email');
+    expect(notRegistered.body.message).toContain('Invalid credentials');
 
     await request(httpServer).post('/auth/register').send({
       email: targetEmail,
       username: 'enum-user',
-      password: 'secret',
+      password: 'Password123!',
     });
 
     const wrongPassword = await request(httpServer)
@@ -491,9 +537,8 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
       .send({ email: targetEmail, password: 'wrong' })
       .expect(401);
 
-    expect(wrongPassword.body.message).toContain('Incorrect password');
-
-    expect(notRegistered.body.message).not.toEqual(wrongPassword.body.message);
+    expect(wrongPassword.body.message).toContain('Invalid credentials');
+    expect(notRegistered.body.message).toEqual(wrongPassword.body.message);
   });
 });
 
@@ -516,6 +561,7 @@ describe('Verbose DB Errors (v0.2.1)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureE2eApp(app);
     await app.init();
 
     const dataSource = app.get(DataSource);
@@ -550,13 +596,13 @@ describe('Verbose DB Errors (v0.2.1)', () => {
     const regA = await request(httpServer).post('/auth/register').send({
       email: 'user-a@example.com',
       username: 'user-a',
-      password: 'password123',
+      password: 'Password123!',
     });
 
     await request(httpServer).post('/auth/register').send({
       email: 'user-b@example.com',
       username: 'user-b',
-      password: 'password123',
+      password: 'Password123!',
     });
 
     // Step 3: delete user A — count drops from 2 to 1
@@ -572,7 +618,7 @@ describe('Verbose DB Errors (v0.2.1)', () => {
       .send({
         email: 'user-c@example.com',
         username: 'user-c',
-        password: 'password123',
+        password: 'Password123!',
       })
       .expect(500);
 
@@ -604,6 +650,7 @@ describe('AuthController /auth/me role (v0.4.0 e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureE2eApp(app);
     await app.init();
 
     const dataSource = app.get(DataSource);
@@ -627,7 +674,7 @@ describe('AuthController /auth/me role (v0.4.0 e2e)', () => {
       .send({
         email: 'role-test@example.com',
         username: 'role-test',
-        password: 'password123',
+        password: 'Password123!',
       })
       .expect(201);
 
@@ -658,7 +705,7 @@ describe('AuthController /auth/me role (v0.4.0 e2e)', () => {
       .send({
         email: 'jwt-role-test@example.com',
         username: 'jwt-role-test',
-        password: 'password123',
+        password: 'Password123!',
       })
       .expect(201);
 
@@ -688,7 +735,7 @@ describe('AuthController /auth/me role (v0.4.0 e2e)', () => {
       .send({
         email: 'login-role-test@example.com',
         username: 'login-role-test',
-        password: 'password123',
+        password: 'Password123!',
       })
       .expect(201);
 
@@ -697,7 +744,7 @@ describe('AuthController /auth/me role (v0.4.0 e2e)', () => {
       .post('/auth/login')
       .send({
         email: 'login-role-test@example.com',
-        password: 'password123',
+        password: 'Password123!',
       })
       .expect(201);
 

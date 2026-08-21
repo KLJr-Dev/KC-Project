@@ -1,18 +1,20 @@
 /**
- * v0.0.6 — Backend API Shape Definition
+ * M6 / v2.0.0 — Auth success response.
  *
- * Response shape for POST /auth/register and POST /auth/login. Stub only;
- * no real token or persistence. Same shape for both so clients can treat
- * “successful auth” uniformly (e.g. store token, redirect).
- *
- * --- Why one response for register and login? ---
- * Both endpoints typically return a session indicator (token or session id).
- * Using one DTO keeps the contract simple; we can split later if register
- * needs to return extra fields (e.g. emailVerified). token is a placeholder
- * until v0.1.3 (sessions/JWT).
+ * Access JWT is returned in JSON for the SPA memory store.
+ * Refresh token is delivered via httpOnly Set-Cookie only (not in body) —
+ * CWE-922: JS / XSS must not be able to read the refresh secret from the
+ * response payload. Optional `refreshToken` remains on the type for internal
+ * service use before the controller strips it.
  */
 export class AuthResponseDto {
+  /** Short-lived access JWT (Bearer) — client keeps in memory only. */
   token!: string;
+  /**
+   * Opaque refresh token. Set on the httpOnly cookie by AuthController;
+   * omitted from the HTTP JSON body for browser clients.
+   */
+  refreshToken?: string;
   userId!: string;
   message?: string;
 }

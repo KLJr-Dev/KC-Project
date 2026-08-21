@@ -3,24 +3,26 @@
 import Link from 'next/link';
 import { useAuth } from '../lib/auth-context';
 import { DEMO_USERS } from '../lib/demo-users';
+import { isLabUiEnabled } from '../lib/lab-flags';
 
 const FEATURES = [
   {
     title: 'Identity & Auth',
-    description: 'Registration, login, JWT sessions — built with intentional gaps.',
+    description: 'Registration, login, and JWT sessions with hardened authorization.',
   },
   {
     title: 'File Management',
-    description: 'Upload, download, and share files with deliberately weak access controls.',
+    description: 'Upload, download, and share files with ownership and token controls.',
   },
   {
     title: 'Admin Surface',
-    description: 'Role-based boundaries designed to be bypassed and escalated.',
+    description: 'Role-based admin and moderator workflows backed by database roles.',
   },
 ];
 
 export default function HomePage() {
   const { isAuthenticated, isAdmin, isModerator, role } = useAuth();
+  const labUi = isLabUiEnabled();
 
   return (
     <div className="space-y-16">
@@ -29,8 +31,8 @@ export default function HomePage() {
           KC-Project
         </h1>
         <p className="mx-auto max-w-2xl text-lg text-muted">
-          A full-stack web application built to be broken. Designed insecure, tested through
-          structured penetration testing, then hardened.
+          A full-stack web application built to be broken, then hardened through structured
+          remediation cycles.
         </p>
         {!isAuthenticated ? (
           <div className="flex items-center justify-center gap-4 pt-2">
@@ -83,27 +85,33 @@ export default function HomePage() {
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-md border border-border p-6 space-y-3">
           <h2 className="text-sm font-medium text-muted">Current Version</h2>
-          <p className="text-lg font-semibold text-foreground">
-            v1.0.0 — Pentest-Ready Insecure MVP
-          </p>
+          <p className="text-lg font-semibold text-foreground">v2.0.0 — Secure parallel</p>
           <p className="text-sm text-muted">
-            Full auth, files, sharing, ternary RBAC, admin polish, Docker stack. 150 e2e tests, 59
-            documented CWE instances.
+            Hardened authz, shares, and disclosure controls on the remediation branch.
           </p>
         </div>
-        <div className="rounded-md border border-border p-6 space-y-3">
-          <h2 className="text-sm font-medium text-muted">Demo accounts</h2>
-          <ul className="text-sm space-y-1 text-muted">
-            {DEMO_USERS.map((d) => (
-              <li key={d.email}>
-                <span className="font-medium text-foreground">{d.label}:</span> {d.email}
-              </li>
-            ))}
-          </ul>
-          <Link href="/dev" className="text-sm text-foreground underline">
-            API Explorer for pentesters →
-          </Link>
-        </div>
+        {labUi ? (
+          <div className="rounded-md border border-border p-6 space-y-3">
+            <h2 className="text-sm font-medium text-muted">Demo accounts</h2>
+            <ul className="text-sm space-y-1 text-muted">
+              {DEMO_USERS.map((d) => (
+                <li key={d.email}>
+                  <span className="font-medium text-foreground">{d.label}:</span> {d.email}
+                </li>
+              ))}
+            </ul>
+            <Link href="/dev" className="text-sm text-foreground underline">
+              API Explorer →
+            </Link>
+          </div>
+        ) : (
+          <div className="rounded-md border border-border p-6 space-y-3">
+            <h2 className="text-sm font-medium text-muted">Accounts</h2>
+            <p className="text-sm text-muted">
+              Register a new account or sign in with credentials issued by your operator.
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="space-y-6">

@@ -1,59 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { unlink } from 'fs/promises';
+import { basename } from 'path';
 import { FileEntity } from './entities/file.entity';
 import { SharingEntity } from '../sharing/entities/sharing.entity';
 import { FileResponseDto } from './dto/file-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { buildPaginatedResponse, resolvePagination } from '../common/pagination.util';
 import { AuditService } from '../admin/audit.service';
+import { assertSafeUpload } from './upload-security';
 import { UploadFileDto } from './dto/upload-file.dto';
 
 /**
- * v0.5.0 -- Real Multipart File Upload
- *
- * Files service. Real file I/O via Multer multipart uploads.
- * Files stored on local filesystem in ./uploads/ with client-supplied
- * filenames (no sanitisation). Metadata persisted to file_entity table
- * with full records for each file: filename, mimetype, storagePath, size,
- * description, approvalStatus, uploadedAt, ownerId.
- *
- * MULTIPART FLOW DETAILS (v0.5.0):
- * 1. upload() receives Express.Multer.File from FileInterceptor
- * 2. File already written to disk by Multer at file.path
- * 3. Service creates FileEntity with:
- *    - id: sequential count (vulnerable to enumeration)
- *    - filename: file.originalname (no sanitisation, CWE-22)
- *    - mimetype: file.mimetype (client-supplied, CWE-434)
- *    - storagePath: file.path (absolute FS path, CWE-200)
- *    - size: file.size (from Multer, no quota checks)
- *    - ownerId: user.sub (stored but never re-checked, CWE-639)
- *    - approvalStatus: 'pending' (v0.4.3 carryover, no enforcement v0.5.0)
- * 4. Entity saved to DB, returned as FileResponseDto
- * 5. storagePath exposed in response (CWE-200)
- *
- * VULN (v0.2.2 - CWE-639): ownerId stored but never verified on read/delete.
- *       Any authenticated user can access or delete any file (IDOR).
- *       CWE-639 | A01:2025, CWE-862 | A01:2025
- *
- * VULN (v0.5.0 - CWE-200): storagePath exposed in FileResponseDto,
- *       revealing server directory structure to any authenticated user.
- *       CWE-200 | A01:2025
- *
- * VULN (v0.5.0 - CWE-22): delete() removes file from disk using storagePath
- *       with no path canonicalisation. If storagePath contains "..",
- *       files outside uploads/ can be deleted.
- *       CWE-22 | A01:2025
- *
- * VULN (v0.5.0 - CWE-22): getFileMeta() returns storagePath for download
- *       endpoint to use. download() endpoint calls res.sendFile(storagePath)
- *       with no path validation (trusts DB value).
- *
- * VULN (v0.5.0 - CWE-434): mimetype from client header, stored and returned
- *       on download. Download endpoint sets Content-Type to this value.
- *
- * VULN (v0.5.0 - CWE-400): No upload size limits. Unbounded file I/O.
+ * Files service (v2.0.0) — ownership enforced on read/download/delete;
+ * list scoped to owner unless caller is admin or moderator.
  */
 @Injectable()
 export class FilesService {
@@ -71,7 +32,7 @@ export class FilesService {
     dto.ownerId = entity.ownerId;
     dto.filename = entity.filename;
     dto.mimetype = entity.mimetype;
-    dto.storagePath = entity.storagePath;
+    // storagePath intentionally omitted from API responses (CWE-200)
     dto.description = entity.description;
     dto.size = entity.size;
     dto.approvalStatus = entity.approvalStatus;
@@ -79,21 +40,34 @@ export class FilesService {
     return dto;
   }
 
-  /** POST /files -- persist file metadata + Multer wrote the file to disk. */
+  private assertCanRead(entity: FileEntity, callerId: string, callerRole: string): void {
+    if (entity.ownerId === callerId) return;
+    if (callerRole === 'admin' || callerRole === 'moderator') return;
+    throw new ForbiddenException('You do not have access to this file');
+  }
+
+  private assertCanDelete(entity: FileEntity, callerId: string, callerRole: string): void {
+    if (entity.ownerId === callerId) return;
+    if (callerRole === 'admin') return;
+    throw new ForbiddenException('You do not have access to this file');
+  }
+
   async upload(
     file: Express.Multer.File,
     dto: UploadFileDto,
     ownerId: string,
   ): Promise<FileResponseDto> {
+    const verified = assertSafeUpload(file.path, file.mimetype);
+
     const count = await this.fileRepo.count();
     const id = String(count + 1);
     const entity = this.fileRepo.create({
       id,
       ownerId,
-      filename: file.originalname,
-      mimetype: file.mimetype,
+      filename: basename(file.originalname || 'upload'),
+      mimetype: verified.mimetype,
       storagePath: file.path,
-      size: file.size,
+      size: verified.size,
       description: dto.description,
       uploadedAt: new Date().toISOString(),
     });
@@ -101,10 +75,18 @@ export class FilesService {
     return this.toResponse(saved);
   }
 
-  /** GET /files -- paginated file list (v0.5.2). */
-  async findAll(query: PaginationQueryDto = {}) {
+  async findAll(
+    query: PaginationQueryDto = {},
+    callerId?: string,
+    callerRole: string = 'user',
+  ) {
     const { skip, take } = resolvePagination(query.skip, query.take);
+    const where =
+      callerRole === 'admin' || callerRole === 'moderator' || !callerId
+        ? undefined
+        : { ownerId: callerId };
     const [entities, total] = await this.fileRepo.findAndCount({
+      where,
       skip,
       take,
       order: { uploadedAt: 'DESC' },
@@ -117,14 +99,35 @@ export class FilesService {
     );
   }
 
-  /** GET /files/:id -- return file metadata or null. */
-  async getById(id: string): Promise<FileResponseDto | null> {
+  async getById(
+    id: string,
+    callerId: string,
+    callerRole: string,
+  ): Promise<FileResponseDto | null> {
     const entity = await this.fileRepo.findOne({ where: { id } });
-    return entity ? this.toResponse(entity) : null;
+    if (!entity) return null;
+    this.assertCanRead(entity, callerId, callerRole);
+    return this.toResponse(entity);
   }
 
-  /** Get raw file metadata for download/streaming. */
+  /** Authenticated download path — ownership enforced. */
   async getFileMeta(
+    id: string,
+    callerId: string,
+    callerRole: string,
+  ): Promise<{ storagePath?: string; filename: string; mimetype?: string } | null> {
+    const entity = await this.fileRepo.findOne({ where: { id } });
+    if (!entity) return null;
+    this.assertCanRead(entity, callerId, callerRole);
+    return {
+      storagePath: entity.storagePath,
+      filename: entity.filename,
+      mimetype: entity.mimetype,
+    };
+  }
+
+  /** Internal/public-share path — no ownership check (token gate is elsewhere). */
+  async getFileMetaById(
     id: string,
   ): Promise<{ storagePath?: string; filename: string; mimetype?: string } | null> {
     const entity = await this.fileRepo.findOne({ where: { id } });
@@ -136,10 +139,10 @@ export class FilesService {
     };
   }
 
-  /** DELETE /files/:id -- remove file from disk and DB record. */
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, callerId: string, callerRole: string): Promise<boolean> {
     const entity = await this.fileRepo.findOne({ where: { id } });
     if (!entity) return false;
+    this.assertCanDelete(entity, callerId, callerRole);
 
     if (entity.storagePath) {
       try {
@@ -154,12 +157,6 @@ export class FilesService {
     return (result.affected ?? 0) > 0;
   }
 
-  /**
-   * PUT /files/:id/approve -- Moderator or admin approves/rejects file (v0.4.3).
-   * VULN (v0.4.3): No ownership check. Any moderator/admin can approve any file.
-   *       Combined with CWE-639 (forged JWT role), unauthorized approval possible.
-   *       CWE-862 (Missing Authorization) | A01:2025
-   */
   async approveFile(
     id: string,
     status: 'pending' | 'approved' | 'rejected',

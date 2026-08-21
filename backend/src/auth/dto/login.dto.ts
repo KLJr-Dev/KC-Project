@@ -1,20 +1,14 @@
 /**
- * v0.5.0 — Input Validation Pipeline: LoginDto
+ * M5 / v2.0.0 — LoginDto (POST /auth/login).
  *
- * Request body for POST /auth/login.
- *
- * v0.5.0 adds class-validator decorators:
- * - email: @IsEmail (format validation)
- * - password: @IsString (type check, no constraints — CWE-521 weak)
- *
- * ValidationPipe enforces field presence and format; malformed requests
- * return 400 Bad Request with error details.
- *
- * VULN (Intentional):
- *   - CWE-521: Password has no min/max length constraints
- *   - CWE-639: No rate limiting; accounts enumerable via timing attacks
+ * Security measures:
+ * - CWE-20: Email format validated.
+ * - CWE-400: Password max length 128 bounds bcrypt CPU on absurd payloads
+ *   (login does not enforce strength — users already registered under policy).
+ * - Rate limiting remains M8; generic auth errors remain M3.
  */
-import { IsEmail, IsString, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsString, IsNotEmpty, MaxLength } from 'class-validator';
+import { PASSWORD_MAX_LENGTH, PASSWORD_MAX_LENGTH_MESSAGE } from '../password-policy';
 
 export class LoginDto {
   @IsEmail({}, { message: 'email must be a valid email address' })
@@ -22,6 +16,7 @@ export class LoginDto {
   email!: string;
 
   @IsString({ message: 'password must be a string' })
+  @MaxLength(PASSWORD_MAX_LENGTH, { message: PASSWORD_MAX_LENGTH_MESSAGE })
   @IsNotEmpty({ message: 'password is required' })
   password!: string;
 }

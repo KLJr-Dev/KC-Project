@@ -34,13 +34,20 @@ STATS=$(curl -sS -w "\n%{http_code}" -H "Authorization: Bearer ${ADMIN_TOKEN}" "
 [[ $(echo "$STATS" | tail -1) == "200" ]] || { echo "FAIL: admin stats"; exit 1; }
 echo "  OK"
 
-echo "Seeded public share (share-1 API)..."
-SHARE_CODE=$(curl -sS -o /dev/null -w "%{http_code}" "${BASE}/sharing/public/share-1")
-[[ "$SHARE_CODE" == "200" ]] || { echo "FAIL: share-1 public download (got ${SHARE_CODE})"; exit 1; }
+DEMO_SHARE_TOKEN="${DEMO_SHARE_TOKEN:-c8f3a1e9b72d4f06a5e18c903d6b47e2f1a0c9d8b7e6f5a4938271605f4e3d2c}"
+
+echo "Seeded public share (unguessable demo token API)..."
+SHARE_CODE=$(curl -sS -o /dev/null -w "%{http_code}" "${BASE}/sharing/public/${DEMO_SHARE_TOKEN}")
+[[ "$SHARE_CODE" == "200" ]] || { echo "FAIL: demo public download (got ${SHARE_CODE})"; exit 1; }
 echo "  OK"
 
-echo "Frontend share landing page (/share/share-1)..."
-curl -sf "${APP}/share/share-1" | grep -q 'Download' || { echo "FAIL: share landing page"; exit 1; }
+echo "Legacy share-1 must not work..."
+LEGACY_CODE=$(curl -sS -o /dev/null -w "%{http_code}" "${BASE}/sharing/public/share-1")
+[[ "$LEGACY_CODE" == "404" ]] || { echo "FAIL: share-1 should be 404 (got ${LEGACY_CODE})"; exit 1; }
+echo "  OK"
+
+echo "Frontend share landing page..."
+curl -sf "${APP}/share/${DEMO_SHARE_TOKEN}" | grep -q 'Download' || { echo "FAIL: share landing page"; exit 1; }
 echo "  OK"
 
 echo "Moderator pending queue (API)..."
@@ -53,9 +60,12 @@ FILE_COUNT=$(curl -sS -H "Authorization: Bearer ${ADMIN_TOKEN}" "${BASE}/files" 
 [[ "$FILE_COUNT" -ge 4 ]] || { echo "FAIL: expected >= 4 seeded files (got ${FILE_COUNT})"; exit 1; }
 echo "  OK (${FILE_COUNT} files)"
 
-echo "User files scoped in API (IDOR still returns all)..."
-ALL_FILES=$(curl -sS -H "Authorization: Bearer ${USER_TOKEN}" "${BASE}/files")
-echo "$ALL_FILES" | grep -q 'other-user-secret' || { echo "FAIL: IDOR baseline — other user file missing from API"; exit 1; }
-echo "  OK (API returns all files — product UI filters client-side)"
+echo "User files scoped to owner (no IDOR)..."
+USER_FILES=$(curl -sS -H "Authorization: Bearer ${USER_TOKEN}" "${BASE}/files")
+echo "$USER_FILES" | grep -q 'other-user-secret' && { echo "FAIL: IDOR — other user file visible to user"; exit 1; }
+echo "$USER_FILES" | grep -q 'welcome' || { echo "FAIL: user should see own welcome file"; exit 1; }
+IDOR_CODE=$(curl -sS -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${USER_TOKEN}" "${BASE}/files/9104")
+[[ "$IDOR_CODE" == "403" ]] || { echo "FAIL: expected 403 on other-user file (got ${IDOR_CODE})"; exit 1; }
+echo "  OK (list scoped; cross-user get denied)"
 
-echo "Journey test passed (3 roles + demo seed + share landing)."
+echo "Journey test passed (3 roles + demo seed + share landing + ownership)."

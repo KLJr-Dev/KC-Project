@@ -24,15 +24,15 @@ Primary stakeholders (developer, pentester, security engineer) and in-app user p
 
 ### [security-baseline.md](security-baseline.md)
 
-Target security controls for v2.0.0 (the hardened counterpart). The "done" checklist that v1.N.x pentesting works toward. Each control references the CWE it remediates.
+Target security controls for v2.0.0 (the hardened counterpart). The "done" checklist Blue Team works toward on `remediation/v2.0.0`. Gate: [v2.0.0-secure-ready.md](../release/v2.0.0-secure-ready.md).
 
 ---
 
 ## Cycle-1 artifact pairing (ADR-031)
 
-| Insecure version | Dev artifact | PenTest artifact | Secure version | Remediation artifact |
+| Insecure version | Dev artifact | PenTest artifact | Secure version | Remediation artifacts |
 |------------------|--------------|------------------|----------------|----------------------|
-| v1.0.0 | [Dev/v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) | [PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) | v2.0.0 | [Remediation/v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md) |
+| v1.0.0 | [Dev/v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) | [PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) | v2.0.0 | [v2.0.0-remediation.md](../security/Cycle-1/Remediation/v2.0.0-remediation.md) · [blue-team-plan.md](../security/Cycle-1/Remediation/blue-team-plan.md) · [v2.0.0-secure-ready.md](../release/v2.0.0-secure-ready.md) |
 
 Shared cross-cycle: [cwe-inventory.md](../security/cwe-inventory.md), [security-baseline.md](security-baseline.md).
 
