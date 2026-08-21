@@ -6,9 +6,9 @@ Cycle 1 covers the insecure MVP baseline and its secure parallel.
 
 | Version | Role | Status |
 |---------|------|--------|
-| v1.0.0 | Insecure baseline (59 CWE instances / 38 IDs) | Pentest-ready |
-| v1.0.x | Pentest patches on same surface | Phase 2 (in progress) |
-| v2.0.0 | Secure parallel — all Cycle-1 CWEs remediated | Planned |
+| v1.0.0 | Insecure baseline (59 CWE instances / 38 IDs) | **Pentest complete** (Cycle-1 offensive) |
+| v1.0.x | Pentest patches on same surface | N/A this cycle |
+| v2.0.0 | Secure parallel — Cycle-1 findings remediated | **Blue Team in progress** |
 
 ## Team workspaces
 
@@ -16,16 +16,28 @@ Cycle 1 covers the insecure MVP baseline and its secure parallel.
 |--------|-------|---------|
 | [Dev/](Dev/) | Developer | Ground truth — exploitable state, repro steps, endpoint matrix |
 | [PenTest/](PenTest/) | Offensive | Pentest writeup, notes, screenshots (portfolio piece) |
-| [Remediation/](Remediation/) | Defensive | Hardening writeup mapping findings → v2.0.0 fixes |
+| [Remediation/](Remediation/) | Defensive | Finding → fix map + Blue Team implementation plan |
 
 ## Artifacts
 
 | Artifact | Path | Status |
 |----------|------|--------|
 | Ground truth | [Dev/v1.0.0-ground-truth.md](Dev/v1.0.0-ground-truth.md) | Complete |
-| Pentest writeup | [PenTest/v1.0.0-writeup.md](PenTest/v1.0.0-writeup.md) | Template |
-| Remediation writeup | [Remediation/v2.0.0-remediation.md](Remediation/v2.0.0-remediation.md) | Template |
+| Pentest writeup | [PenTest/v1.0.0-writeup.md](PenTest/v1.0.0-writeup.md) | **Complete** (OSCP-style; 13 findings) |
+| Remediation map | [Remediation/v2.0.0-remediation.md](Remediation/v2.0.0-remediation.md) | **Handoff ready** |
+| Blue Team plan | [Remediation/blue-team-plan.md](Remediation/blue-team-plan.md) | Written on `remediation/v2.0.0` |
 | CWE inventory | [../cwe-inventory.md](../cwe-inventory.md) | Cross-cycle |
+
+## Handoff gate (Cycle-1)
+
+- [x] Offensive writeup + evidence (Critical/High proven)
+- [x] Findings → fix intent → **files to change**
+- [x] PenTest branch artifacts committed (`pentest/cycle-1`)
+- [ ] Cut / work `remediation/v2.0.0` — implement Wave A+
+- [ ] Tag v2.0.0 when baseline + e2e green
+- [ ] Design v1.1.0 CTF (narrower) after secure parallel exists
+
+**Offensive → Defensive handoff: APPROVED** (2026-08-21). Remediation mapping is the Blue Team input; implementation happens on `remediation/v2.0.0`, not by editing vuln history on the pentest branch.
 
 ## Pre-pentest verification
 
