@@ -39,6 +39,8 @@ services:
       NODE_ENV: production
       ENABLE_SWAGGER: ${ENABLE_SWAGGER:-false}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://127.0.0.1:8080,http://localhost:8080}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      REFRESH_COOKIE_PATH: ${REFRESH_COOKIE_PATH:-/api/auth}
       JWT_PRIVATE_KEY_PATH: /run/secrets/jwt-private.pem
       JWT_PUBLIC_KEY_PATH: /run/secrets/jwt-public.pem
     volumes:

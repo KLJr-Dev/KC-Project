@@ -337,7 +337,7 @@ describe('AuthController POST /auth/logout (e2e)', () => {
   });
 
   /**
-   * After logout, refresh tokens are revoked (access JWT expires naturally).
+   * After logout, refresh cookie / body token is revoked (access JWT expires naturally).
    */
   it('refresh token is revoked after logout', async () => {
     const httpServer = app.getHttpServer();
@@ -353,17 +353,72 @@ describe('AuthController POST /auth/logout (e2e)', () => {
       .send({ email: 'replay-test@example.com', password: 'Password123!' })
       .expect(201);
 
-    const { token, refreshToken } = loginRes.body;
+    const token = loginRes.body.token as string;
+    expect(loginRes.body.refreshToken).toBeUndefined();
+    const setCookie = loginRes.headers['set-cookie'];
+    expect(setCookie).toBeDefined();
+    const cookieHeader = Array.isArray(setCookie) ? setCookie.join('; ') : String(setCookie);
+    const refreshMatch = /kc_refresh=([^;]+)/.exec(cookieHeader);
+    expect(refreshMatch).toBeTruthy();
+    const refreshRaw = refreshMatch![1];
 
     await request(httpServer)
       .post('/auth/logout')
       .set('Authorization', `Bearer ${token}`)
       .expect(201);
 
-    await request(httpServer).post('/auth/refresh').send({ refreshToken }).expect(401);
+    await request(httpServer)
+      .post('/auth/refresh')
+      .set('X-Requested-With', 'XMLHttpRequest')
+      .set('Cookie', `kc_refresh=${refreshRaw}`)
+      .send({})
+      .expect(401);
 
     // Short-lived access JWT remains valid until exp (residual); refresh cannot renew.
     await request(httpServer).get('/auth/me').set('Authorization', `Bearer ${token}`).expect(200);
+  });
+
+  it('login sets httpOnly refresh cookie and omits refreshToken from JSON', async () => {
+    const httpServer = app.getHttpServer();
+    await request(httpServer).post('/auth/register').send({
+      email: 'cookie-test@example.com',
+      username: 'cookie-user',
+      password: 'Password123!',
+    });
+
+    const loginRes = await request(httpServer)
+      .post('/auth/login')
+      .send({ email: 'cookie-test@example.com', password: 'Password123!' })
+      .expect(201);
+
+    expect(loginRes.body.token).toMatch(JWT_REGEX);
+    expect(loginRes.body.refreshToken).toBeUndefined();
+    const setCookie = String(loginRes.headers['set-cookie'] ?? '');
+    expect(setCookie).toMatch(/kc_refresh=/);
+    expect(setCookie.toLowerCase()).toMatch(/httponly/);
+  });
+
+  it('refresh requires CSRF header and rotates via cookie', async () => {
+    const httpServer = app.getHttpServer();
+    const reg = await request(httpServer).post('/auth/register').send({
+      email: 'csrf-refresh@example.com',
+      username: 'csrf-refresh',
+      password: 'Password123!',
+    });
+    const setCookie = reg.headers['set-cookie'];
+    const cookieHeader = Array.isArray(setCookie) ? setCookie[0] : String(setCookie);
+
+    await request(httpServer).post('/auth/refresh').set('Cookie', cookieHeader).send({}).expect(403);
+
+    const refreshed = await request(httpServer)
+      .post('/auth/refresh')
+      .set('Cookie', cookieHeader)
+      .set('X-Requested-With', 'XMLHttpRequest')
+      .send({})
+      .expect(201);
+
+    expect(refreshed.body.token).toMatch(JWT_REGEX);
+    expect(refreshed.body.refreshToken).toBeUndefined();
   });
 });
 

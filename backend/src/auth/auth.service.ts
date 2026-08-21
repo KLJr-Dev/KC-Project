@@ -12,8 +12,8 @@
  *   raw passwords (request body still may appear in TypeORM SQL logs until
  *   logging is disabled in production — see AppModule M5).
  *
- * Session issuance still returns refreshToken in JSON until M6 moves it to
- * an httpOnly cookie.
+ * Session issuance returns refreshToken to the controller, which sets an
+ * httpOnly cookie and strips it from the JSON body (M6).
  */
 import {
   BadRequestException,

@@ -1,39 +1,15 @@
 /**
- * v0.1.5 — Authentication Edge Cases
+ * M6 / v2.0.0 — Frontend API client.
  *
- * CWE-615 WARNING: This file is client-side rendered ('use client' in consuming
- * components). All comments, function names, string literals, and the API_BASE
- * URL are shipped to the browser and visible in DevTools (Sources tab, Network
- * tab). In v1.0.0+ this constitutes information disclosure to attackers who can
- * read the full API surface, auth header logic, and vulnerability annotations
- * directly from the bundled JavaScript.
- * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A02:2025
- * Remediation (v2.0.0): Strip comments via terser (comments: false), disable
- * source maps in production, move sensitive docs to server-side only.
+ * Security measures:
+ * - CWE-922: Access JWT read from in-memory holder (access-token.ts), not localStorage.
+ * - CWE-922 / CWE-1004: `credentials: 'include'` so the browser sends the httpOnly
+ *   refresh cookie; JS never reads that cookie.
+ * - CWE-352: Refresh calls send `X-Requested-With: XMLHttpRequest` (CSRF header).
+ * - CWE-613: On 401, one silent refresh then retry; logout clears memory + cookie via API.
  *
- * --- Purpose ---
- * Typed fetch wrappers for every backend route. One exported function per
- * controller endpoint. All functions use the shared request() helper which
- * handles headers, error propagation, and JSON parsing.
- *
- * --- Architecture ---
- * This module is the ONLY place the frontend communicates with the backend.
- * Components never call fetch() directly — they import functions from here.
- * This centralises:
- *   - The base URL (API_BASE)
- *   - Header construction (Content-Type + Authorization Bearer)
- *   - Error handling (network errors, HTTP errors)
- *   - Response typing (generics ensure callers get typed data)
- *
- * --- Auth header flow (v0.1.4) ---
- * getHeaders() reads the JWT from localStorage (key: 'kc_auth') and attaches
- * it as an Authorization: Bearer header on every request. This means:
- *   - All API calls are automatically authenticated if a token exists
- *   - The token is read from localStorage on every request (not cached in JS)
- *   - Public endpoints (register, login) also send the header — harmless but
- *     unnecessary (the backend ignores it on unprotected routes)
+ * API_BASE is `/api` behind nginx (same-site). TLS cleartext residual until M7.
  */
-
 import type {
   AuthResponse,
   CreateSharing,
@@ -48,74 +24,29 @@ import type {
   UploadFileRequest,
   UserResponse,
 } from './types';
+import { clearAccessToken, getAccessToken, setAccessToken } from './access-token';
 
-/**
- * Backend base URL. Hardcoded to localhost:4000 for development.
- *
- * VULN: No TLS — all requests (including those carrying JWT tokens and
- * plaintext passwords in POST bodies) are sent over plain HTTP.
- * CWE-319 (Cleartext Transmission of Sensitive Information) | A04:2025
- * Remediation (v2.0.0): HTTPS via nginx TLS termination, HSTS header.
- */
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-// ── Helpers ──────────────────────────────────────────────────────────
+/** CSRF header required by POST /auth/refresh (M6). */
+const CSRF_HEADERS = { 'X-Requested-With': 'XMLHttpRequest' } as const;
 
-/**
- * Build request headers, attaching the JWT Bearer token if one exists
- * in localStorage.
- *
- * VULN: Token is read directly from localStorage. Any XSS payload running
- * in the same origin can call localStorage.getItem('kc_auth') and steal
- * the JWT. There is no integrity check on the stored value.
- * CWE-922 (Insecure Storage of Sensitive Information) | A07:2025
- * Remediation (v2.0.0): Store refresh token in httpOnly secure cookie
- * (inaccessible to JS). Keep short-lived access token in memory only.
- *
- * VULN: No validation or expiry check on the token before sending. A
- * tampered or corrupted token is attached blindly — the backend will
- * reject it, but the client doesn't know until the 401 comes back.
- *
- * VULN: Token is sent over plain HTTP (see API_BASE above).
- * CWE-319 | A04:2025
- */
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem('kc_auth');
-      if (raw) {
-        const { token } = JSON.parse(raw) as { token?: string };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-      }
-    } catch {
-      // Silently ignore parse errors — corrupted localStorage entry
-      // results in an unauthenticated request, not a crash
-    }
+  const token = getAccessToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
   return headers;
 }
 
-/**
- * Build auth-only headers (Authorization only, no Content-Type).
- *
- * Used for multipart/form-data requests where the browser must set the
- * Content-Type boundary itself. Reuses the same JWT lookup as getHeaders().
- */
 function getAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem('kc_auth');
-      if (raw) {
-        const { token } = JSON.parse(raw) as { token?: string };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-      }
-    } catch {
-      // Ignore corrupted localStorage entries
-    }
+  const token = getAccessToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
   return headers;
 }
@@ -194,12 +125,18 @@ async function listItems<T>(path: string): Promise<T[]> {
  * Note: the ...init spread means caller-provided headers would override
  * getHeaders(). Currently no callers pass custom headers, so this is fine.
  */
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, allowRefresh = true): Promise<T> {
+  const headers = {
+    ...getHeaders(),
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, {
-      headers: getHeaders(),
       ...init,
+      headers,
+      credentials: 'include',
     });
   } catch (err) {
     if (err instanceof TypeError) {
@@ -209,6 +146,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
     throw err;
   }
+
+  // Silent refresh once on expired access JWT (refresh cookie + CSRF header).
+  if (res.status === 401 && allowRefresh && path !== '/auth/refresh' && path !== '/auth/login') {
+    try {
+      const refreshed = await authRefresh();
+      setAccessToken(refreshed.token);
+      return request<T>(path, init, false);
+    } catch {
+      clearAccessToken();
+    }
+  }
+
   if (!res.ok) {
     const body = await res.text();
     try {
@@ -260,35 +209,51 @@ export const usersUpdate = (id: string, dto: UpdateUser) => put<UserResponse>(`/
 export const usersDelete = (id: string) => del<DeleteResponse>(`/users/${id}`);
 
 // ── Auth ─────────────────────────────────────────────────────────────
-// Authentication endpoints. register and login are public (no token needed).
-// /auth/me is protected by JwtAuthGuard on the backend — requires a valid
-// Bearer token which getHeaders() attaches automatically.
+// register/login set httpOnly refresh cookie (Set-Cookie) and return access JWT.
+// Access token is stored in memory by AuthProvider / setAccessToken.
 
-export const authRegister = (dto: RegisterRequest) => post<AuthResponse>('/auth/register', dto);
+async function captureAccess(session: AuthResponse): Promise<AuthResponse> {
+  setAccessToken(session.token);
+  return session;
+}
 
-export const authLogin = (dto: LoginRequest) => post<AuthResponse>('/auth/login', dto);
+export const authRegister = async (dto: RegisterRequest) =>
+  captureAccess(await post<AuthResponse>('/auth/register', dto));
 
-/** GET /auth/me — fetch the currently authenticated user's profile using the stored JWT. */
+export const authLogin = async (dto: LoginRequest) =>
+  captureAccess(await post<AuthResponse>('/auth/login', dto));
+
+/**
+ * POST /auth/refresh — cookie + CSRF header; rotates refresh, returns new access JWT.
+ */
+export async function authRefresh(): Promise<AuthResponse> {
+  const session = await request<AuthResponse>(
+    '/auth/refresh',
+    {
+      method: 'POST',
+      headers: { ...CSRF_HEADERS, 'Content-Type': 'application/json' },
+      body: '{}',
+    },
+    false,
+  );
+  setAccessToken(session.token);
+  return session;
+}
+
+/** GET /auth/me — requires in-memory access JWT. */
 export const authMe = () => request<UserResponse>('/auth/me');
 
 /**
- * POST /auth/logout — calls the backend logout endpoint.
- *
- * The backend does NOTHING with this request (v0.1.4). It returns a cosmetic
- * success message but does not revoke the JWT, update a deny-list, or clear
- * any server-side session. The token remains cryptographically valid and
- * replayable by any attacker who intercepted it.
- *
- * The frontend calls this fire-and-forget (does not await or handle errors)
- * before clearing localStorage. Even if the backend were to revoke the token
- * in the future, the client would still need to clear local state anyway.
- *
- * VULN: Cosmetic logout — server confirms "logged out" but the JWT lives on.
- *       CWE-613 (Insufficient Session Expiration) | A07:2025
- *       Remediation (v2.0.0): POST /auth/logout deletes refresh token from DB.
- *       Frontend clears httpOnly cookie via Set-Cookie maxAge=0 from backend.
+ * POST /auth/logout — revokes refresh rows and clears httpOnly cookie.
+ * Caller should clearAccessToken() / AuthProvider state afterward.
  */
-export const authLogout = () => request<{ message: string }>('/auth/logout', { method: 'POST' });
+export async function authLogout(): Promise<{ message: string }> {
+  try {
+    return await request<{ message: string }>('/auth/logout', { method: 'POST' }, false);
+  } finally {
+    clearAccessToken();
+  }
+}
 
 // ── Files ────────────────────────────────────────────────────────────
 // File management endpoints. Backed by real Multer multipart uploads
@@ -318,6 +283,7 @@ export async function filesUploadMultipart(
     method: 'POST',
     headers: getAuthHeaders(),
     body: form,
+    credentials: 'include',
   });
 
   if (!res.ok) {
@@ -347,6 +313,7 @@ export async function filesDownload(id: string): Promise<Blob> {
   const res = await fetch(`${API_BASE}/files/${id}/download`, {
     method: 'GET',
     headers: getAuthHeaders(),
+    credentials: 'include',
   });
 
   if (!res.ok) {

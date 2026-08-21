@@ -5,6 +5,14 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RefreshToken } from './entities/refresh-token.entity';
 
+jest.mock('./password.util', () => ({
+  verifyPassword: jest.fn(async (plain: string, stored: string) => plain === 'password123' && !!stored),
+  burnPasswordCompareBudget: jest.fn(async () => undefined),
+  hashPassword: jest.fn(async (p: string) => `hashed:${p}`),
+  isBcryptHash: jest.fn(() => true),
+  BCRYPT_COST: 12,
+}));
+
 let service: AuthService;
 let usersService: jest.Mocked<UsersService>;
 let jwtService: jest.Mocked<JwtService>;
