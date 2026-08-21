@@ -4,3 +4,7 @@
 .idea/
 .vscode/
 infra/.env
+# M7 lab TLS material (private keys)
+infra/certs/*.pem
+infra/certs/*-key.pem
+infra/certs/*.key
