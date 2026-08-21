@@ -33,11 +33,11 @@ Cycle 1 covers the insecure MVP baseline and its secure parallel.
 - [x] Offensive writeup + evidence (Critical/High proven)
 - [x] Findings → fix intent → **files to change**
 - [x] PenTest branch artifacts committed (`pentest/cycle-1`)
-- [ ] Cut / work `remediation/v2.0.0` — implement Wave A+
+- [x] Cut / work `remediation/v2.0.0` — plan written; implement Wave A+
 - [ ] Tag v2.0.0 when baseline + e2e green
 - [ ] Design v1.1.0 CTF (narrower) after secure parallel exists
 
-**Offensive → Defensive handoff: APPROVED** (2026-08-21). Remediation mapping is the Blue Team input; implementation happens on `remediation/v2.0.0`, not by editing vuln history on the pentest branch.
+**Offensive → Defensive handoff: APPROVED** (2026-08-21). Implementation lives on `remediation/v2.0.0` ([blue-team-plan.md](Remediation/blue-team-plan.md)).
 
 ## Pre-pentest verification
 
