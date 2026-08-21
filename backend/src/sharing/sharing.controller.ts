@@ -1,3 +1,11 @@
+/**
+ * M8 / v2.0.0 — Sharing API.
+ *
+ * Security measures:
+ * - CWE-639: PUT/DELETE require owner or admin (caller from JWT + DB role via guard path).
+ * - CWE-22: Public download uses assertPathInsideUploads before sendFile.
+ * - Public token route still unauthenticated by design (unguessable token + expiry from M2).
+ */
 import {
   Body,
   Controller,
@@ -21,23 +29,8 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { existsSync } from 'fs';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { assertPathInsideUploads } from '../files/storage-path.util';
 
-/**
- * v0.3.4 -- Public File Sharing
- *
- * Sharing controller. Authenticated CRUD at /sharing, plus an
- * unauthenticated public download at /sharing/public/:token.
- *
- * VULN (v0.2.2): ownerId recorded but never checked. CWE-639 | A01:2025
- * VULN (v0.2.3): GET /sharing returns everything unbounded. CWE-200 | A01:2025
- *
- * VULN (v0.3.4): GET /sharing/public/:token requires no authentication.
- *       Anyone with a valid (predictable) token can download any shared file.
- *       CWE-285 (Improper Authorization) | A01:2025
- *       CWE-330 (tokens are sequential) | A01:2025
- *       CWE-613 (expiresAt not checked) | A07:2025
- *       Remediation (v2.0.0): Require crypto-random tokens, check expiry.
- */
 @Controller('sharing')
 export class SharingController {
   constructor(
@@ -46,12 +39,8 @@ export class SharingController {
   ) {}
 
   /**
-   * GET /sharing/public/:token -- unauthenticated file download.
-   * VULN: no auth required (CWE-285), sequential tokens (CWE-330),
-   * expiry not checked (CWE-613).
-   *
-   * IMPORTANT: This route must be declared before :id routes to avoid
-   * "public" being captured as an id parameter.
+   * GET /sharing/public/:token — unauthenticated download (token + expiry gate).
+   * Path containment under uploads/ before sendFile (CWE-22).
    */
   @Get('public/:token')
   async publicDownload(@Param('token') token: string, @Res() res: Response) {
@@ -60,28 +49,30 @@ export class SharingController {
 
     const fileMeta = await this.filesService.getFileMetaById(share.fileId);
     if (!fileMeta || !fileMeta.storagePath) throw new NotFoundException();
-    if (!existsSync(fileMeta.storagePath)) throw new NotFoundException();
+
+    const safePath = assertPathInsideUploads(fileMeta.storagePath);
+    if (!existsSync(safePath)) throw new NotFoundException();
 
     res.set('Content-Type', fileMeta.mimetype || 'application/octet-stream');
     res.set('Content-Disposition', `attachment; filename="${fileMeta.filename}"`);
-    res.sendFile(fileMeta.storagePath);
+    res.sendFile(safePath);
   }
 
-  /** POST /sharing -- create share record. ownerId from JWT. */
+  /** POST /sharing — create share; ownerId from JWT. */
   @Post()
   @UseGuards(JwtAuthGuard)
   async create(@Body() dto: CreateSharingDto, @CurrentUser() user: JwtPayload) {
     return this.sharingService.create(dto, user.sub);
   }
 
-  /** GET /sharing -- paginated share list (v0.5.2). */
+  /** GET /sharing — paginated share list. */
   @Get()
   @UseGuards(JwtAuthGuard)
   async read(@Query() query: PaginationQueryDto) {
     return this.sharingService.read(query);
   }
 
-  /** GET /sharing/:id -- single share or 404. */
+  /** GET /sharing/:id — single share or 404. */
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async getById(@Param('id') id: string) {
@@ -90,20 +81,27 @@ export class SharingController {
     return share;
   }
 
-  /** PUT /sharing/:id -- update share or 404. */
+  /**
+   * PUT /sharing/:id — owner or admin only (CWE-639).
+   * Cross-user attempts → 403 (prefer over 404 existence oracle for mutate).
+   */
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  async update(@Param('id') id: string, @Body() dto: UpdateSharingDto) {
-    const share = await this.sharingService.update(id, dto);
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateSharingDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const share = await this.sharingService.update(id, dto, user.sub, user.role || 'user');
     if (!share) throw new NotFoundException();
     return share;
   }
 
-  /** DELETE /sharing/:id -- remove share or 404. */
+  /** DELETE /sharing/:id — owner or admin only (CWE-639). */
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async delete(@Param('id') id: string) {
-    const ok = await this.sharingService.delete(id);
+  async delete(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    const ok = await this.sharingService.delete(id, user.sub, user.role || 'user');
     if (!ok) throw new NotFoundException();
     return { deleted: id };
   }

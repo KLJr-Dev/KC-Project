@@ -1,4 +1,12 @@
-import { Injectable } from '@nestjs/common';
+/**
+ * M8 / v2.0.0 — SharingService.
+ *
+ * Security measures:
+ * - CWE-639: update/delete assert caller is share owner or admin.
+ * - CWE-330 residual: sequential share IDs remain (documented accepted residual).
+ * - Public tokens: crypto-random + expiry (M2).
+ */
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomBytes } from 'crypto';
@@ -44,7 +52,19 @@ export class SharingService {
     return !Number.isNaN(exp) && exp < Date.now();
   }
 
-  /** POST /sharing -- persist share; public tokens are crypto-random. */
+  /** Owner or admin may mutate; others get 403. */
+  private assertCanMutate(
+    entity: SharingEntity,
+    callerId: string,
+    callerRole: string,
+  ): void {
+    if (entity.ownerId === callerId || callerRole === 'admin') {
+      return;
+    }
+    throw new ForbiddenException('Insufficient permissions');
+  }
+
+  /** POST /sharing — persist share; public tokens are crypto-random. */
   async create(dto: CreateSharingDto, ownerId: string): Promise<SharingResponseDto> {
     const count = await this.shareRepo.count();
     const id = String(count + 1);
@@ -83,9 +103,16 @@ export class SharingService {
     return entity ? this.toResponse(entity) : null;
   }
 
-  async update(id: string, dto: UpdateSharingDto): Promise<SharingResponseDto | null> {
+  async update(
+    id: string,
+    dto: UpdateSharingDto,
+    callerId: string,
+    callerRole: string,
+  ): Promise<SharingResponseDto | null> {
     const entity = await this.shareRepo.findOne({ where: { id } });
     if (!entity) return null;
+    this.assertCanMutate(entity, callerId, callerRole);
+
     if (dto.public !== undefined) {
       entity.public = dto.public;
       if (dto.public && !entity.publicToken) {
@@ -102,7 +129,10 @@ export class SharingService {
     return this.toResponse(saved);
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, callerId: string, callerRole: string): Promise<boolean> {
+    const entity = await this.shareRepo.findOne({ where: { id } });
+    if (!entity) return false;
+    this.assertCanMutate(entity, callerId, callerRole);
     const result = await this.shareRepo.delete(id);
     return (result.affected ?? 0) > 0;
   }

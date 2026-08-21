@@ -26,6 +26,7 @@ import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { join } from 'path';
 import { existsSync, unlinkSync } from 'fs';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { assertPathInsideUploads } from './storage-path.util';
 import {
   sanitizeUploadFilename,
   UPLOAD_FILE_SIZE_LIMIT,
@@ -150,8 +151,8 @@ export class FilesController {
   }
 
   /**
-   * GET /files/:id/download -- Stream file from disk to client.
-   * Ownership enforced (owner, admin, or moderator).
+   * GET /files/:id/download — stream file from disk.
+   * Ownership enforced (service) + path containment under uploads/ (CWE-22).
    */
   @Get(':id/download')
   async download(
@@ -162,11 +163,12 @@ export class FilesController {
     const meta = await this.filesService.getFileMeta(id, user.sub, user.role || 'user');
     if (!meta || !meta.storagePath) throw new NotFoundException();
 
-    if (!existsSync(meta.storagePath)) throw new NotFoundException();
+    const safePath = assertPathInsideUploads(meta.storagePath);
+    if (!existsSync(safePath)) throw new NotFoundException();
 
     res.set('Content-Type', meta.mimetype || 'application/octet-stream');
     res.set('Content-Disposition', `attachment; filename="${meta.filename}"`);
-    res.sendFile(meta.storagePath);
+    res.sendFile(safePath);
   }
 
   /**

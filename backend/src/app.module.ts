@@ -1,66 +1,46 @@
+/**
+ * M8 / v2.0.0 — Root AppModule.
+ *
+ * Security measures (M5/M8):
+ * - CWE-532: TypeORM SQL logging off in production.
+ * - CWE-307: Global ThrottlerGuard (loose) + tighter @Throttle on auth routes.
+ * - CWE-798 residual: DB defaults still env-backed with weak lab fallbacks;
+ *   prefer Docker secrets (*_FILE) documented in infra/.env.example.
+ */
 import { Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
+import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
 import { AppController } from './app.controller';
-
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { FilesModule } from './files/files.module';
 import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
 
-/**
- * v0.2.5 — Persistence Refactoring
- *
- * Root application module. Composes feature modules and configures the
- * PostgreSQL connection via TypeORM.
- *
- * VULN: Database credentials are hardcoded directly in source code.
- *       Anyone who reads the repo knows the superuser password.
- *       CWE-798 (Use of Hard-coded Credentials) | A07:2025
- *       Remediation (v2.0.0): Load from environment variables or
- *       Docker secrets, never commit credentials to source.
- *
- * VULN (v0.2.5 partial remediation): synchronize: true replaced with
- *       explicit TypeORM migrations + migrationsRun: true. Migrations
- *       are better than auto-sync, but migrationsRun: true means any
- *       migration file injected into the repo executes automatically
- *       on app start — still a design weakness.
- *       CWE-1188 (Insecure Default Initialization of Resource) | A02:2025
- *       Remediation (v2.0.0): Manual migration execution, migration review gate.
- *
- * M5: TypeORM `logging` is off when NODE_ENV=production so INSERT/UPDATE
- *       parameters (password hashes, tokens) are not mirrored to stdout
- *       (CWE-532). Non-prod keeps SQL logging for lab debugging unless
- *       TYPEORM_LOGGING=false.
- *
- * VULN (v0.2.1 expanded v0.2.4): No global exception filter. ALL
- *       unhandled exceptions — TypeORM QueryFailedError, plain Error,
- *       TypeError from malformed input — are caught by NestJS default
- *       ExceptionsHandler which returns generic 500 to the client but
- *       logs the full stack trace (file paths, line numbers, PG table
- *       names, constraint names, SQL with parameters) to stdout.
- *       CWE-209 (Error Message Info Leak) | A02:2025, A10:2025
- *       CWE-532 (Sensitive Info in Logs) | A09:2025
- *       Remediation (v2.0.0): Global ExceptionFilter that catches all
- *       errors, logs sanitised messages, and returns user-friendly responses.
- */
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        // Loose global ceiling; auth routes override via @Throttle
+        ttl: 60_000,
+        limit: Number(process.env.THROTTLE_GLOBAL_LIMIT || 300),
+      },
+    ]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST ?? 'localhost',
       port: Number(process.env.DB_PORT ?? 5432),
-      username: process.env.DB_USER ?? 'postgres', // VULN: hardcoded defaults (CWE-798)
-      password: process.env.DB_PASSWORD ?? 'postgres', // VULN: hardcoded defaults (CWE-798)
+      username: process.env.DB_USER ?? 'postgres',
+      password: process.env.DB_PASSWORD ?? 'postgres',
       database: process.env.DB_NAME ?? 'kc_dev',
       autoLoadEntities: true,
-      synchronize: false, // v0.2.5: replaced with migrations (was true, CWE-1188 partial fix)
+      synchronize: false,
       migrations: [__dirname + '/migrations/*{.ts,.js}'],
-      migrationsRun: true, // VULN: auto-runs migrations on start (CWE-1188 still partial)
-      // M5 / CWE-532: never log SQL (with bound params) in production
+      migrationsRun: true,
       logging:
         process.env.NODE_ENV !== 'production' && process.env.TYPEORM_LOGGING !== 'false',
     }),
@@ -70,7 +50,10 @@ import { AdminModule } from './admin/admin.module';
     SharingModule,
     AdminModule,
   ],
-  controllers: [AppController], // infrastructure-only (/ping)
-  providers: [{ provide: APP_INTERCEPTOR, useClass: RequestLoggingInterceptor }],
+  controllers: [AppController],
+  providers: [
+    { provide: APP_INTERCEPTOR, useClass: RequestLoggingInterceptor },
+    { provide: APP_GUARD, useClass: AppThrottlerGuard },
+  ],
 })
 export class AppModule {}

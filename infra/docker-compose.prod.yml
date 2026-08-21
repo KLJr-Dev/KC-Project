@@ -1,6 +1,9 @@
 # v2.0.0 — production Docker stack (secure parallel)
 # Usage: cp infra/.env.example infra/.env && docker compose -f infra/docker-compose.prod.yml up -d --build
 # Postgres is NOT published on the host (F-05). For Jest e2e from the host, also pass docker-compose.e2e.yml.
+#
+# M8: mem_limit per service (CWE-770). Prefer Docker secrets (*_FILE) over plaintext
+# env in real deployments — see .env.example.
 services:
   postgres:
     image: postgres:16-alpine
@@ -12,6 +15,7 @@ services:
       POSTGRES_DB: ${DB_NAME:-kc_prod}
     volumes:
       - pgdata_prod:/var/lib/postgresql/data
+    mem_limit: 512m
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
@@ -49,6 +53,7 @@ services:
       - ../infra/keys/jwt-public.pem:/run/secrets/jwt-public.pem:ro
     expose:
       - '4000'
+    mem_limit: 512m
 
   frontend:
     build:
@@ -60,6 +65,7 @@ services:
       - backend
     expose:
       - '3000'
+    mem_limit: 256m
 
   nginx:
     image: nginx:alpine
@@ -70,6 +76,7 @@ services:
     depends_on:
       - frontend
       - backend
+    mem_limit: 128m
 
 volumes:
   pgdata_prod:
