@@ -18,12 +18,11 @@ export class AppController {
     };
   }
 
-  /** GET /health — public version probe (v0.6.3, CWE-200) */
+  /** GET /health — liveness (no version/build disclosure). */
   @Get('health')
   health() {
     return {
       status: 'ok',
-      version: '1.0.0',
       service: 'kc-backend',
       timestamp: new Date().toISOString(),
     };

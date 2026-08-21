@@ -69,33 +69,26 @@ export class AuthService {
     const { email, username, password } = dto;
 
     if (!email || !username || !password) {
-      throw new BadRequestException(
-        'Missing required registration fields: email, username, and password are all required (v0.1.1)',
-      );
+      throw new BadRequestException('Missing required registration fields');
     }
 
     const existing = await this.usersService.findByEmail(email);
     if (existing) {
-      // VULN: error message includes the email — information disclosure (CWE-209)
-      throw new ConflictException(
-        `User with email ${email} already exists (weak duplicate check, v0.1.1)`,
-      );
+      throw new ConflictException('Unable to register with the provided details');
     }
 
     const created = await this.usersService.create({
       email,
       username,
-      password, // VULN: stored as plaintext in PostgreSQL (CWE-256)
+      password, // plaintext until later hardening waves
     });
 
-    // VULN: JWT signed with weak hardcoded secret, no expiry (CWE-347, CWE-613)
-    // VULN (v0.4.0): role included in JWT payload, trusted without re-validation (CWE-639)
     const token = this.jwtService.sign({ sub: created.id, role: created.role });
 
     return {
       token,
       userId: created.id,
-      message: 'Registration success (v0.4.0)',
+      message: 'Registration success',
     };
   }
 
@@ -110,25 +103,15 @@ export class AuthService {
     const { email, password } = dto;
 
     if (!email || !password) {
-      throw new BadRequestException(
-        'Missing required login fields: email and password are both required (v0.1.2)',
-      );
+      throw new BadRequestException('Missing required login fields');
     }
 
     const user = await this.usersService.findEntityByEmail(email);
-    if (!user) {
-      // VULN: distinct error reveals that this email is not registered (CWE-204)
-      throw new UnauthorizedException(`No user with that email (v0.1.2)`);
+    // Identical message for unknown email and wrong password (no enumeration).
+    if (!user || user.password !== password) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    // VULN: plaintext password comparison — no hashing (CWE-256)
-    if (user.password !== password) {
-      // VULN: distinct error reveals that the email IS registered (CWE-204)
-      throw new UnauthorizedException(`Incorrect password (v0.1.2)`);
-    }
-
-    // VULN: JWT signed with weak hardcoded secret, no expiry (CWE-347, CWE-613)
-    // VULN (v0.4.0): role included in JWT payload, trusted without re-validation (CWE-639)
     const token = this.jwtService.sign({ sub: user.id, role: user.role });
 
     logAuthEvent('login', {
@@ -140,7 +123,7 @@ export class AuthService {
     return {
       token,
       userId: user.id,
-      message: 'Login success (v0.4.0)',
+      message: 'Login success',
     };
   }
 
@@ -150,21 +133,18 @@ export class AuthService {
   async getProfile(userId: string): Promise<UserResponseDto> {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found (v0.1.3)`);
+      throw new NotFoundException('User not found');
     }
     return user;
   }
 
   /**
-   * POST /auth/logout — Intentionally does NOT invalidate the JWT.
-   *
-   * VULN: No server-side session tracking or token revocation.
-   *       CWE-613 (Insufficient Session Expiration) | A07:2025
+   * POST /auth/logout — Client-side clear only until M4 refresh revoke.
    */
   logout(): { message: string } {
-    logAuthEvent('logout', { note: 'client-side only, token still valid' });
+    logAuthEvent('logout', { note: 'client-side only until refresh revoke' });
     return {
-      message: 'Logged out (client-side only, token still valid) (v0.1.4)',
+      message: 'Logged out',
     };
   }
 }

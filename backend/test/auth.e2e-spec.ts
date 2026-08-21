@@ -89,7 +89,7 @@ describe('AuthController /auth/register (e2e)', () => {
       })
       .expect(409);
 
-    expect(response.body.message).toContain('already exists');
+    expect(response.body.message).toContain('Unable to register');
   });
 
   /** Missing fields return 400 — basic input validation. */
@@ -161,12 +161,11 @@ describe('AuthController /auth/login (e2e)', () => {
       .send({ email: 'nobody@example.com', password: 'password123' })
       .expect(401);
 
-    expect(response.body.message).toContain('No user with that email');
+    expect(response.body.message).toContain('Invalid credentials');
   });
 
   /**
-   * Wrong password returns 401 with a DIFFERENT distinct message.
-   * Combined with the above test, this confirms user enumeration (CWE-204).
+   * Wrong password returns the same generic 401 message (no enumeration).
    */
   it('POST /auth/login returns 401 for wrong password', async () => {
     const httpServer = app.getHttpServer();
@@ -182,7 +181,7 @@ describe('AuthController /auth/login (e2e)', () => {
       .send({ email: 'wrongpw@example.com', password: 'wrong-password' })
       .expect(401);
 
-    expect(response.body.message).toContain('Incorrect password');
+    expect(response.body.message).toContain('Invalid credentials');
   });
 
   /** Missing fields return 400 — basic input validation. */
@@ -222,7 +221,7 @@ describe('AuthController GET /auth/me (e2e)', () => {
   it('GET /auth/me returns 401 when no Authorization header is provided', async () => {
     const response = await request(app.getHttpServer()).get('/auth/me').expect(401);
 
-    expect(response.body.message).toContain('Missing Authorization header');
+    expect(response.body.message).toContain('Unauthorized');
   });
 
   /**
@@ -234,7 +233,7 @@ describe('AuthController GET /auth/me (e2e)', () => {
       .set('Authorization', 'Bearer this-is-not-a-valid-jwt')
       .expect(401);
 
-    expect(response.body.message).toContain('Invalid or expired token');
+    expect(response.body.message).toContain('Unauthorized');
   });
 
   /**
@@ -300,7 +299,7 @@ describe('AuthController POST /auth/logout (e2e)', () => {
   it('POST /auth/logout returns 401 without Authorization header', async () => {
     const response = await request(app.getHttpServer()).post('/auth/logout').expect(401);
 
-    expect(response.body.message).toContain('Missing Authorization header');
+    expect(response.body.message).toContain('Unauthorized');
   });
 
   /**
@@ -408,7 +407,7 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
         .send({ email: 'brute-target@example.com', password: `wrong-${i}` })
         .expect(401);
 
-      expect(res.body.message).toContain('Incorrect password');
+      expect(res.body.message).toContain('Invalid credentials');
     }
   });
 
@@ -467,9 +466,9 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
   });
 
   /**
-   * USER ENUMERATION VIA DISTINCT ERRORS — CWE-204
+   * Login failures use one generic message (no email enumeration).
    */
-  it('distinct error messages reveal email registration status — CWE-204 enumeration', async () => {
+  it('login failures use identical messages — no email enumeration', async () => {
     const httpServer = app.getHttpServer();
     const targetEmail = 'enum-test@example.com';
 
@@ -478,7 +477,7 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
       .send({ email: targetEmail, password: 'anything' })
       .expect(401);
 
-    expect(notRegistered.body.message).toContain('No user with that email');
+    expect(notRegistered.body.message).toContain('Invalid credentials');
 
     await request(httpServer).post('/auth/register').send({
       email: targetEmail,
@@ -491,9 +490,8 @@ describe('Authentication Edge Cases (v0.1.5)', () => {
       .send({ email: targetEmail, password: 'wrong' })
       .expect(401);
 
-    expect(wrongPassword.body.message).toContain('Incorrect password');
-
-    expect(notRegistered.body.message).not.toEqual(wrongPassword.body.message);
+    expect(wrongPassword.body.message).toContain('Invalid credentials');
+    expect(notRegistered.body.message).toEqual(wrongPassword.body.message);
   });
 });
 

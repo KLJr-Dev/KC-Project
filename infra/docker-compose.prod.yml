@@ -36,6 +36,8 @@ services:
       PORT: ${PORT:-4000}
       JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-secret}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      NODE_ENV: production
+      ENABLE_SWAGGER: ${ENABLE_SWAGGER:-false}
     volumes:
       - uploads:/app/uploads
     expose:
@@ -46,6 +48,7 @@ services:
       context: ../frontend
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+        NEXT_PUBLIC_ENABLE_LAB_UI: ${NEXT_PUBLIC_ENABLE_LAB_UI:-false}
     depends_on:
       - backend
     expose:

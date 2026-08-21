@@ -10,7 +10,7 @@ export function formatUserError(err: unknown): string {
   if (err instanceof Error) {
     const msg = err.message;
     if (msg.includes('413')) {
-      return 'File too large (max 1 MB through the proxy). See /dev for API details.';
+      return 'File too large (max 1 MB through the proxy).';
     }
     if (msg.includes('Failed to fetch') || msg.includes('Unable to reach')) {
       return 'Cannot reach the server. Is the backend running?';

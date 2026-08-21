@@ -32,22 +32,29 @@ describe('v0.6.x Admin Polish (e2e)', () => {
       .post('/auth/register')
       .send({ email, username, password: 'pass' })
       .expect(201);
-    return { userId: res.body.userId, token: res.body.token };
+    return { userId: res.body.userId as string, token: res.body.token as string };
+  }
+
+  async function registerAdmin(email: string, username: string) {
+    const user = await register(email, username);
+    const dataSource = app.get(DataSource);
+    await dataSource.query(`UPDATE "user" SET role = 'admin' WHERE id = $1`, [user.userId]);
+    const token = jwtService.sign({
+      sub: user.userId,
+      email,
+      role: 'admin',
+    });
+    return { userId: user.userId, token };
   }
 
   it('GET /admin/users?search= filters by email', async () => {
-    const admin = await register('admin-s@t.com', 'adminsearch');
-    const adminToken = jwtService.sign({
-      sub: admin.userId,
-      email: 'admin-s@t.com',
-      role: 'admin',
-    });
+    const admin = await registerAdmin('admin-s@t.com', 'adminsearch');
     await register('findme@t.com', 'findable');
     await register('other@t.com', 'otheruser');
 
     const res = await request(app.getHttpServer())
       .get('/admin/users?search=findme')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Authorization', `Bearer ${admin.token}`)
       .expect(200);
 
     expect(res.body.items.length).toBe(1);
@@ -55,16 +62,11 @@ describe('v0.6.x Admin Polish (e2e)', () => {
   });
 
   it('GET /admin/stats returns counts', async () => {
-    const admin = await register('stats@t.com', 'statsadmin');
-    const adminToken = jwtService.sign({
-      sub: admin.userId,
-      email: 'stats@t.com',
-      role: 'admin',
-    });
+    const admin = await registerAdmin('stats@t.com', 'statsadmin');
 
     const res = await request(app.getHttpServer())
       .get('/admin/stats')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Authorization', `Bearer ${admin.token}`)
       .expect(200);
 
     expect(res.body.userCount).toBeGreaterThanOrEqual(1);
@@ -76,6 +78,6 @@ describe('v0.6.x Admin Polish (e2e)', () => {
   it('GET /health is public', async () => {
     const res = await request(app.getHttpServer()).get('/health').expect(200);
     expect(res.body.status).toBe('ok');
-    expect(res.body.version).toBeDefined();
+    expect(res.body.version).toBeUndefined();
   });
 });

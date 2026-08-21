@@ -52,6 +52,7 @@ import { authRegister, authLogin } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import { ValidationError } from '../../lib/api';
 import { DEMO_USERS } from '../../lib/demo-users';
+import { isLabUiEnabled } from '../../lib/lab-flags';
 import FormInput from '../components/ui/form-input';
 import SubmitButton from '../components/ui/submit-button';
 import ErrorBanner from '../components/ui/error-banner';
@@ -341,38 +342,40 @@ function AuthPageContent() {
           </form>
         )}
 
-        <div className="rounded-lg border border-border p-4">
-          <button
-            type="button"
-            onClick={() => setShowDemo(!showDemo)}
-            className="text-sm font-medium text-foreground"
-          >
-            {showDemo ? 'Hide' : 'Show'} demo accounts
-          </button>
-          {showDemo && (
-            <div className="mt-3 space-y-2">
-              {DEMO_USERS.map((d) => (
-                <button
-                  key={d.email}
-                  type="button"
-                  onClick={() => {
-                    setMode('login');
-                    setLoginEmail(d.email);
-                    setLoginPassword(d.password);
-                    setLoginError(null);
-                  }}
-                  className="block w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/30"
-                >
-                  <span className="font-medium">{d.label}</span>
-                  <span className="ml-2 text-muted">{d.email}</span>
-                </button>
-              ))}
-              <p className="text-xs text-muted">
-                Seeded on Docker startup. See docs/deploy/demo-users.md
-              </p>
-            </div>
-          )}
-        </div>
+        {isLabUiEnabled() && DEMO_USERS.length > 0 && (
+          <div className="rounded-lg border border-border p-4">
+            <button
+              type="button"
+              onClick={() => setShowDemo(!showDemo)}
+              className="text-sm font-medium text-foreground"
+            >
+              {showDemo ? 'Hide' : 'Show'} demo accounts
+            </button>
+            {showDemo && (
+              <div className="mt-3 space-y-2">
+                {DEMO_USERS.map((d) => (
+                  <button
+                    key={d.email}
+                    type="button"
+                    onClick={() => {
+                      setMode('login');
+                      setLoginEmail(d.email);
+                      setLoginPassword(d.password);
+                      setLoginError(null);
+                    }}
+                    className="block w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/30"
+                  >
+                    <span className="font-medium">{d.label}</span>
+                    <span className="ml-2 text-muted">{d.email}</span>
+                  </button>
+                ))}
+                <p className="text-xs text-muted">
+                  Seeded on Docker startup. See docs/deploy/demo-users.md
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

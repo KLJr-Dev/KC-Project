@@ -177,9 +177,10 @@ describe('Enumeration Surface (v0.2.3)', () => {
   });
 
   /**
-   * Swagger JSON spec is accessible without authentication.
+   * When Swagger is mounted (non-prod / ENABLE_SWAGGER), docs-json is unauthenticated.
+   * Production bootstrap skips SwaggerModule.setup (F-01).
    */
-  it('Swagger spec accessible without authentication — CWE-200', async () => {
+  it('Swagger spec accessible when mounted (lab only)', async () => {
     const httpServer = app.getHttpServer();
 
     const res = await request(httpServer).get('/api/docs-json').expect(200);

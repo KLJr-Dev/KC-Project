@@ -5,35 +5,9 @@ import { AppModule } from './app.module';
 import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
-/**
- * v0.5.0+ — Foundation Refinement: Input Validation, Error Standardization, Logging
- *
- * Application entry point. Creates the NestJS app, configures CORS,
- * Swagger, ValidationPipe (global), and exception filters. Starts on port 4000.
- *
- * Requires: docker compose -f infra/compose.yml up -d (PostgreSQL)
- *
- * v0.5.0 (v0.5.0+ phase): Global ValidationPipe with @nestjs/class-validator
- *   - All DTOs validated: @IsEmail, @IsString, @MinLength, @IsEnum, etc.
- *   - Malformed requests return 400 Bad Request with field-level error details
- *   - Response transforms disabled (strict types, no auto-conversion)
- *   - CWE-20 (Improper Input Validation): validation enforced but patterns remain weak
- *   - CWE-1025 (Comparison Using Wrong Factors): type mismatch exposure (no conversion)
- *   - CWE-269 (Privilege Escalation): admin escalation allowed in validator rules
- *   - CWE-400 (Uncontrolled Resource Consumption): unbounded file descriptions, pagination enforced on lists
- *
- * Earlier VULNs still present: X-Powered-By header, public Swagger, hardcoded secrets, etc.
- */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // v0.5.0: Global ValidationPipe for DTO validation on all endpoints
-  // Configuration:
-  //   whitelist: true — remove unknown properties
-  //   forbidNonWhitelisted: true — reject requests with unknown fields (strict schema)
-  //   transform: false — NO implicit type conversion (client sends exact types)
-  //   skipMissingProperties: false — require all fields, expose errors for debugging
-  // Result: CWE-1025 (type mismatch) exposed; client must match exact types
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -43,33 +17,25 @@ async function bootstrap() {
     }),
   );
 
-  // v0.5.0: Global exception filter for validation errors
-  // Formats BadRequestException responses with field-level constraint details
-  // Response format: { statusCode, message, errors: { field: [...constraints] }, timestamp }
   app.useGlobalFilters(new ValidationExceptionFilter(), new HttpExceptionFilter());
 
   /**
-   * VULN (v0.0.5): enableCors() with no options allows ALL origins,
-   * ALL methods, and ALL headers. Any website can make authenticated
-   * requests to this API if the user has a valid token in localStorage.
-   * CWE-942 (Overly Permissive Cross-domain Whitelist) | A02:2025 Security Misconfiguration
-   * Remediation (v2.0.0): Restrict origin to the frontend's domain,
-   * limit methods to GET/POST/PUT/DELETE, set credentials: true with
-   * explicit allowedHeaders.
+   * CORS remains open until M4 (F-07).
    */
   app.enableCors();
 
-  // OpenAPI/Swagger spec — auto-generated from controller/DTO metadata
-  // via @nestjs/swagger CLI plugin (see ADR-018)
-  const config = new DocumentBuilder()
-    .setTitle('KC-Project API')
-    .setDescription(
-      'v1.0.0 — Insecure MVP (pentest-ready). 30 routes, intentional CWEs across auth, files, sharing, RBAC, admin. See docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md.',
-    )
-    .setVersion('1.0.0')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  const enableSwagger =
+    process.env.ENABLE_SWAGGER === 'true' || process.env.NODE_ENV !== 'production';
+
+  if (enableSwagger) {
+    const config = new DocumentBuilder()
+      .setTitle('KC-Project API')
+      .setDescription('KC-Project HTTP API')
+      .setVersion('2.0.0')
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   await app.listen(process.env.PORT ?? 4000);
 }

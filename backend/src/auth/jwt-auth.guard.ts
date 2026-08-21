@@ -76,31 +76,21 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers.authorization;
 
-    // No Authorization header at all
     if (!authHeader) {
-      throw new UnauthorizedException('Missing Authorization header (v0.1.3)');
+      throw new UnauthorizedException('Unauthorized');
     }
 
-    // Header present but not in "Bearer <token>" format
     if (!authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Authorization header must use Bearer scheme (v0.1.3)');
+      throw new UnauthorizedException('Unauthorized');
     }
 
-    const token = authHeader.slice(7); // Strip "Bearer " prefix
+    const token = authHeader.slice(7);
 
     try {
-      // Verify signature and decode payload
-      // VULN: uses hardcoded secret from JwtModule (CWE-798)
-      // VULN: no expiry check because tokens have no exp claim (CWE-613)
       const payload = this.jwtService.verify<JwtPayload>(token);
-
-      // Attach decoded payload to request for downstream use
-      // VULN: no check that payload.sub maps to an existing user (CWE-613)
       (request as Request & { user: JwtPayload }).user = payload;
     } catch {
-      // jwtService.verify() throws on invalid signature, malformed token,
-      // or expired token (if exp claim existed, which it doesn't here)
-      throw new UnauthorizedException('Invalid or expired token (v0.1.3)');
+      throw new UnauthorizedException('Unauthorized');
     }
 
     return true;
