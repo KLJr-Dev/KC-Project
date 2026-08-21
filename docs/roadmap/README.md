@@ -22,6 +22,9 @@ This directory contains the KC-Project development roadmap.
 - [v0.8.x-summary.md](v0.8.x-summary.md) — API lock, CWE inventory, e2e hardening.
 - [v0.9.x-summary.md](v0.9.x-summary.md) — MVP freeze, product UX, release candidate.
 
-## Phase 2 — Cycle 1 pentest
+## Phase 2 — Cycle 1 (pentest → harden)
 
-- [Cycle-1/README.md](../security/Cycle-1/README.md) — v1.0.0 → v2.0.0 workspace (Dev / PenTest / Remediation)
+- [Cycle-1/README.md](../security/Cycle-1/README.md) — v1.0.0 → v2.0.0 workspace
+- [v1.0.0-pentest-ready.md](../release/v1.0.0-pentest-ready.md) — Red gate (passed)
+- [v2.0.0-secure-ready.md](../release/v2.0.0-secure-ready.md) — Blue gate (in progress)
+- [blue-team-plan.md](../security/Cycle-1/Remediation/blue-team-plan.md) — milestones M0–M4

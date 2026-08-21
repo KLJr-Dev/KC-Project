@@ -8,7 +8,7 @@
 |------|--------|-------------|
 | Developer | [Cycle-1/Dev/](Cycle-1/Dev/) | [v1.0.0-ground-truth.md](Cycle-1/Dev/v1.0.0-ground-truth.md) |
 | Offensive | [Cycle-1/PenTest/](Cycle-1/PenTest/) | [v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) |
-| Defensive | [Cycle-1/Remediation/](Cycle-1/Remediation/) | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) |
+| Defensive | [Cycle-1/Remediation/](Cycle-1/Remediation/) | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) · [blue-team-plan.md](Cycle-1/Remediation/blue-team-plan.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -17,12 +17,13 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground tru
 - [cwe-inventory.md](cwe-inventory.md) — 59 instances / 38 CWE IDs
 - [pentest-journeys.md](../deploy/pentest-journeys.md) — narrative exploit paths
 - [demo-users.md](../deploy/demo-users.md) — credentials and seeded artifact IDs
-- [v1.0.0-pentest-ready.md](../release/v1.0.0-pentest-ready.md) — readiness gate
+- [v1.0.0-pentest-ready.md](../release/v1.0.0-pentest-ready.md) — Red readiness gate (**passed**)
+- [v2.0.0-secure-ready.md](../release/v2.0.0-secure-ready.md) — Blue readiness gate (**in progress**)
 - [security-baseline.md](../spec/security-baseline.md) — v2.0.0 control checklist
 
 ## Scope
 
-KC-Project v1.0.0 insecure MVP: full-stack web app with intentional CWEs across auth, files, sharing, RBAC, admin, and infrastructure.
+KC-Project Cycle 1: v1.0.0 insecure MVP pentested; v2.0.0 secure parallel on `remediation/v2.0.0`.
 
 ## Tools
 
