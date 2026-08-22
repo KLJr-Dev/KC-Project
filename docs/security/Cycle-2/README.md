@@ -6,7 +6,7 @@ Fewer chained findings than Cycle-1 kitchen-sink; proof = **identity + flag cont
 | Version | Role | Status |
 |---------|------|--------|
 | v2.0.0 | Secure fork point | Tagged on `main` |
-| **v1.1.0** | CTF / insecure scenario | **In progress** — branch `ctf/v1.1.0` |
+| **v1.1.0** | CTF / insecure scenario | **Implemented** — branch `ctf/v1.1.0` |
 | v1.1.x | Playtest / writeup | Planned |
 | v2.1.0 | Secure parallel (re-close planted breaks) | After writeup |
 
@@ -47,6 +47,7 @@ Fewer chained findings than Cycle-1 kitchen-sink; proof = **identity + flag cont
 
 ## References
 
+- [CTF exam methodologies](../ctf-methodologies.md) — OSCP+ layout, KC mapping, future formats
 - [ADR-013](../../decisions/ADR-013-expansion-cycle-versioning.md)
 - [ADR-031](../../decisions/ADR-031-security-cycle-docs.md)
 - Cycle-1 (closed): [../Cycle-1/README.md](../Cycle-1/README.md)

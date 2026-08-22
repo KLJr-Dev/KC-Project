@@ -16,6 +16,7 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → Cycle-1 gr
 
 ## Cross-cycle references
 
+- [ctf-methodologies.md](ctf-methodologies.md) — OSCP+ exam structure, KC mapping, future CTF formats
 - [cwe-inventory.md](cwe-inventory.md) — 59 instances / 38 CWE IDs
 - [pentest-journeys.md](../deploy/pentest-journeys.md) — narrative exploit paths
 - [demo-users.md](../deploy/demo-users.md) — credentials and seeded artifact IDs

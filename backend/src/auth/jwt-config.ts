@@ -47,6 +47,17 @@ function isProductionRuntime(): boolean {
  */
 export function loadJwtRuntimeConfig(): JwtRuntimeConfig {
   const expiresIn = process.env.JWT_EXPIRES_IN || '15m';
+
+  if (process.env.CTF_MODE === 'true') {
+    const secret = process.env.JWT_SECRET?.trim();
+    if (!secret) {
+      throw new Error(
+        'CTF_MODE requires JWT_SECRET (HS256). Set a lab secret in docker-compose.ctf.yml.',
+      );
+    }
+    return { algorithm: 'HS256', secret, expiresIn };
+  }
+
   const defaultKeyDir = join(process.cwd(), '..', 'infra', 'keys');
   const privateKey = readPem(
     process.env.JWT_PRIVATE_KEY,

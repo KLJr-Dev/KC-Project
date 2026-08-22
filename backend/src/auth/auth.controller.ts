@@ -24,6 +24,7 @@ import type { JwtPayload } from './jwt-payload.interface';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { clearRefreshCookie, REFRESH_COOKIE_NAME, setRefreshCookie } from './cookie.util';
 import { assertCsrfHeader } from './csrf.util';
+import { AUTH_ROUTE_THROTTLE } from './auth-throttle.constants';
 
 @Controller('auth')
 export class AuthController {
@@ -42,7 +43,7 @@ export class AuthController {
   }
 
   @Post('register')
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Throttle(AUTH_ROUTE_THROTTLE)
   async register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
@@ -52,7 +53,7 @@ export class AuthController {
   }
 
   @Post('login')
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Throttle(AUTH_ROUTE_THROTTLE)
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -67,7 +68,7 @@ export class AuthController {
    * require the header unconditionally so posture is consistent.
    */
   @Post('refresh')
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Throttle(AUTH_ROUTE_THROTTLE)
   async refresh(
     @Body() dto: RefreshDto,
     @Req() req: Request,

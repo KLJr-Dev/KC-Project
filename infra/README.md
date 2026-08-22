@@ -1,18 +1,20 @@
 # Infrastructure
 
-Deployment and infrastructure for **KC-Project** v1.0.0.
+Deployment and infrastructure for **KC-Project** **v2.0.0** secure parallel + **v1.1.0 CTF** overlay.
 
 Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+).
 
 ---
 
-## Dual deploy paths
+## Deploy paths
 
 | Path | Compose file | Use case | Entry |
 |------|--------------|----------|-------|
-| **Pentest (primary)** | `docker-compose.prod.yml` | Cycle-1 testing, VM deploy, smoke/journey | `http://localhost:8080` |
-| **TLS gate (M7)** | `prod` + `docker-compose.tls.yml` | Pre-tag HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
-| **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
+| **Secure (primary)** | `docker-compose.prod.yml` | Day-to-day, smoke/journey | `http://localhost:8080` |
+| **CTF box (v1.1.0)** | `prod` + `docker-compose.ctf.yml` | Cycle-2 OSCP-style lab | `http://localhost:8080` + `:5433` PG |
+| **TLS profile** | `prod` + `docker-compose.tls.yml` | HTTPS / HSTS | `https://localhost:8443` |
+| **E2E Postgres** | `prod` + `docker-compose.e2e.yml` | Host Jest only | `:5433` |
+| **Native dev** | `compose.yml` (DB only) | `npm run start:dev` | `:4000` API, `:3000` UI |
 
 ```mermaid
 flowchart TB
@@ -43,7 +45,19 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 
 App: `http://localhost:8080` — API at `/api/*`.
 
-### TLS profile (required before tag `v2.0.0`)
+### CTF box (v1.1.0)
+
+```bash
+cp infra/.env.example infra/.env
+# Set DB_PASSWORD=KcCtfDbPr0of2026! (or export before compose) — see ground truth
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf.yml up -d --build
+./infra/ctf-examiner.sh   # dry-run (requires stack up)
+./infra/e2e-ctf-docker.sh  # CTF_MODE e2e (2 tests; uses :5433 postgres)
+```
+
+See [Cycle-2 box plan](../docs/security/Cycle-2/Dev/v1.1.0-box-plan.md). **Do not** deploy CTF overlay on production paths.
+
+### TLS profile
 
 ```bash
 chmod +x infra/scripts/gen-lab-certs.sh infra/tls-smoke.sh
@@ -93,6 +107,8 @@ chmod +x infra/*.sh
 | `tls-smoke.sh` | Prod + `docker-compose.tls.yml` on `:8443` | HTTPS health, HSTS, HTTP→HTTPS redirect, Secure cookie |
 | `scripts/gen-lab-certs.sh` | mkcert or openssl | Write `infra/certs/localhost*.pem` |
 | `e2e-docker.sh` | Docker available | Backend e2e vs `kc_prod` via `docker-compose.e2e.yml` host `:5433` |
+| `e2e-ctf-docker.sh` | Docker available | CTF-mode e2e (`test:e2e:ctf`, 2 tests) |
+| `ctf-examiner.sh` | CTF stack on `:8080` | Full kill-chain dry-run (hydra → IDOR → forge → DB) |
 | `vm-setup.sh` | Ubuntu + sudo | Install Docker, clone repo, prod stack, smoke + journey |
 
 Env overrides: `BASE_URL` (default `http://localhost:8080/api`), `APP_URL` (default `http://localhost:8080`).

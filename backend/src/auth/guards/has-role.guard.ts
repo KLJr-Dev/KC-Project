@@ -10,12 +10,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { JwtPayload } from '../jwt-payload.interface';
+import { isCtfMode } from '../../ctf/ctf-mode';
 
 /**
  * HasRole Guard — Authorization by database role (v2.0.0)
  *
  * Loads the caller's role from the database using JWT `sub`, then compares
  * to `@HasRole(...)` metadata. The JWT `role` claim is not authoritative.
+ *
+ * v1.1.0 CTF: when CTF_MODE=true, trusts JWT `role` (intentional priv-esc path).
  */
 @Injectable()
 export class HasRoleGuard implements CanActivate {
@@ -29,7 +32,7 @@ export class HasRoleGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user as JwtPayload & { sub: string };
 
-    if (user?.sub) {
+    if (user?.sub && !isCtfMode()) {
       const dbUser = await this.userRepo.findOne({ where: { id: user.sub } });
       if (!dbUser) {
         throw new ForbiddenException('Insufficient permissions');

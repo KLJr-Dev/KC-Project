@@ -11,6 +11,7 @@ import { buildPaginatedResponse, resolvePagination } from '../common/pagination.
 import { AuditService } from '../admin/audit.service';
 import { assertSafeUpload } from './upload-security';
 import { UploadFileDto } from './dto/upload-file.dto';
+import { isCtfMode } from '../ctf/ctf-mode';
 
 /**
  * Files service (v2.0.0) — ownership enforced on read/download/delete;
@@ -41,6 +42,7 @@ export class FilesService {
   }
 
   private assertCanRead(entity: FileEntity, callerId: string, callerRole: string): void {
+    if (isCtfMode()) return;
     if (entity.ownerId === callerId) return;
     if (callerRole === 'admin' || callerRole === 'moderator') return;
     throw new ForbiddenException('You do not have access to this file');

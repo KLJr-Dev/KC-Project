@@ -1,0 +1,29 @@
+# v1.1.0 CTF overlay — OSCP-style box (fork v2.0.0).
+# Usage:
+#   cp infra/.env.example infra/.env
+#   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf.yml up -d --build
+#
+# Publishes Postgres :5433 (nmap foreshadow; creds only after admin loot).
+# CTF_MODE enables intentional breaks — never use on production main path.
+
+services:
+  postgres:
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-KcCtfDbPr0of2026!}
+
+  backend:
+    environment:
+      CTF_MODE: 'true'
+      JWT_SECRET: ${JWT_SECRET:-kc-ctf-lab-jwt-secret}
+      DB_PASSWORD: ${DB_PASSWORD:-KcCtfDbPr0of2026!}
+      ENABLE_SWAGGER: 'true'
+      JWT_PRIVATE_KEY_PATH: ''
+      JWT_PUBLIC_KEY_PATH: ''
+    volumes:
+      - uploads:/app/uploads
+
+  nginx:
+    volumes:
+      - ./nginx-ctf.conf:/etc/nginx/conf.d/default.conf:ro
