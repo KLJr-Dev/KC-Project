@@ -15,19 +15,30 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v1.0.0 — pentest-ready insecure MVP)
+## Current Status
+
+**Secure product (`main`):** tag **`v2.0.0`** — Cycle-1 remediation.  
+**CTF lab (replayable):** branch / tag **`v1.1.0`** on `ctf/v1.1.0` — Cycle-2 OSCP-style box.
 
 **Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) (ADR-027). **Portfolio framing:** [PORTFOLIO-VISION.md](docs/roadmap/PORTFOLIO-VISION.md).
 
-- **Docker (primary):** `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
-- **Demo users:** `user@kc.test`, `mod@kc.test`, `admin@kc.test` — see [demo-users.md](docs/deploy/demo-users.md)
-- **Product UI:** My Files, Sharing, Review (mod), Admin. API explorers at `/dev`
-- **Security cycle:** [Cycle-1](docs/security/Cycle-1/README.md) — Dev / PenTest / Remediation
-- **Ground truth:** [v1.0.0-ground-truth.md](docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md)
-- **Tests:** 150 e2e (`./infra/e2e-docker.sh`), smoke, journey — see [infra/README.md](infra/README.md)
-- **Security:** 59 documented CWE instances / 38 IDs — [cwe-inventory.md](docs/security/cwe-inventory.md)
+| Track | Entry |
+|-------|--------|
+| Secure demo | `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080` |
+| **CTF box (Cycle-2)** | [Player brief](docs/security/Cycle-2/Dev/v1.1.0-player-brief.md) · [Cycle-2 index](docs/security/Cycle-2/README.md) · gate [v1.1.0-ctf-ready](docs/release/v1.1.0-ctf-ready.md) |
+| Cycle-2 writeup | [v1.1.0-writeup.md](docs/security/Cycle-2/PenTest/v1.1.0-writeup.md) (spoilers) |
+| Cycle-1 archive | [Cycle-1](docs/security/Cycle-1/README.md) |
 
-### Run locally (Docker — pentest path)
+### Run CTF box (v1.1.0)
+
+```bash
+git checkout ctf/v1.1.0   # or v1.1.0 after tag
+cp infra/.env.example infra/.env
+# Set DB_PASSWORD per Cycle-2 ground truth / .env.example CTF comments
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf.yml up -d --build
+```
+
+### Run secure stack (v2.0.0)
 
 ```bash
 cp infra/.env.example infra/.env
@@ -56,7 +67,7 @@ KC-PROJECT/
 │   ├── decisions/        # ADRs 001–031
 │   ├── diagrams/         # Architecture, auth, infra, threats, timeline
 │   ├── roadmap/          # STRATEGY, ROADMAP, version summaries
-│   ├── security/         # Cycle-1 workspace, CWE inventory
+│   ├── security/         # Cycle-1 + Cycle-2 workspaces, CWE inventory
 │   ├── spec/             # Scope, requirements, personas, security baseline
 │   ├── glossary.md
 │   └── README.md
@@ -74,14 +85,14 @@ cd frontend && npm run format:check && npm run lint
 
 ## Documentation
 
-All engineering documentation lives in `/docs`. Security testing artifacts: [docs/security/Cycle-1/](docs/security/Cycle-1/README.md).
+All engineering documentation lives in `/docs`. Security: [Cycle-1](docs/security/Cycle-1/README.md) · [Cycle-2](docs/security/Cycle-2/README.md).
 
 ## Versioning
 
-- `v0.x` — Build phase
-- `v1.0.0` — Insecure MVP (pentest-ready)
-- `v1.0.x` — Pentest cycle patches
-- `v2.0.0` — Secure parallel
+- `v1.0.0` — Insecure MVP (Cycle-1)
+- `v2.0.0` — Secure parallel (Cycle-1)
+- `v1.1.0` — CTF box (Cycle-2, branch `ctf/v1.1.0`)
+- `v2.1.0` — Secure parallel after Cycle-2 (planned)
 - `v1.N.0` / `v2.N.0` — Perpetual expansion cycle
 
 See [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md).
