@@ -11,10 +11,12 @@ import { buildPaginatedResponse, resolvePagination } from '../common/pagination.
 import { AuditService } from '../admin/audit.service';
 import { assertSafeUpload } from './upload-security';
 import { UploadFileDto } from './dto/upload-file.dto';
+import { isCtfMode } from '../ctf/ctf-mode';
 
 /**
  * Files service (v2.0.0) — ownership enforced on read/download/delete;
  * list scoped to owner unless caller is admin or moderator.
+ * Cycle-3 CTF_MODE: optional q concatenated into SQL (CWE-89 lab only).
  */
 @Injectable()
 export class FilesService {
@@ -81,6 +83,12 @@ export class FilesService {
     callerRole: string = 'user',
   ) {
     const { skip, take } = resolvePagination(query.skip, query.take);
+
+    // Secure path: ignore q (parameterized search not required on this CTF branch).
+    if (isCtfMode() && typeof query.q === 'string' && query.q.length > 0) {
+      return this.findAllCtfUnsafe(query.q, skip, take, callerId, callerRole);
+    }
+
     const where =
       callerRole === 'admin' || callerRole === 'moderator' || !callerId
         ? undefined
@@ -97,6 +105,55 @@ export class FilesService {
       skip,
       take,
     );
+  }
+
+  /**
+   * INTENTIONAL CWE-89 — CTF_MODE only. String-concat `q` into ILIKE for sqlmap.
+   * SELECT list uses ::text so UNION payloads match without enum/type friction.
+   */
+  private async findAllCtfUnsafe(
+    q: string,
+    skip: number,
+    take: number,
+    callerId: string | undefined,
+    callerRole: string,
+  ) {
+    const ownerClause =
+      callerRole === 'admin' || callerRole === 'moderator' || !callerId
+        ? 'TRUE'
+        : `"ownerId" = '${callerId.replace(/'/g, "''")}'`;
+
+    // Single concat site; no wrapping % so classic `' UNION … --` works (sqlmap-friendly).
+    // Keep each statement on one line so `--` comments out the trailing quote.
+    const listSql =
+      `SELECT id::text AS id, "ownerId"::text AS "ownerId", filename::text AS filename, ` +
+      `mimetype::text AS mimetype, description::text AS description, size::int AS size, ` +
+      `"approvalStatus"::text AS "approvalStatus", "uploadedAt"::text AS "uploadedAt" ` +
+      `FROM file_entity WHERE ${ownerClause} AND filename::text ILIKE '${q}' ` +
+      `ORDER BY "uploadedAt" DESC OFFSET ${Number(skip)} LIMIT ${Number(take)}`;
+
+    // No separate COUNT — UNION payloads break single-column COUNT arity.
+    const rows = (await this.fileRepo.query(listSql)) as Array<Record<string, unknown>>;
+    const total = rows.length;
+
+    const items = rows.map((r) => {
+      const dto = new FileResponseDto();
+      dto.id = String(r.id ?? '');
+      dto.ownerId = String(r.ownerId ?? '');
+      dto.filename = String(r.filename ?? '');
+      dto.mimetype = r.mimetype != null ? String(r.mimetype) : undefined;
+      dto.description = r.description != null ? String(r.description) : undefined;
+      dto.size = Number(r.size ?? 0);
+      const status = String(r.approvalStatus ?? 'pending');
+      dto.approvalStatus =
+        status === 'approved' || status === 'rejected' || status === 'pending'
+          ? status
+          : 'pending';
+      dto.uploadedAt = String(r.uploadedAt ?? '');
+      return dto;
+    });
+
+    return buildPaginatedResponse(items, total, skip, take);
   }
 
   async getById(

@@ -81,6 +81,15 @@ $$`);
   await admin.query(`ALTER ROLE ${role} NOSUPERUSER NOCREATEDB NOCREATEROLE`);
   console.log(`[migrate-and-grant] granted DML on public to ${appUser}`);
 
+  // Cycle-3 CTF: keep SELECT on ctf_flags for SQLi local path; strip writes if table exists.
+  const flags = (await admin.query(
+    `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'ctf_flags'`,
+  )) as unknown[];
+  if (flags.length > 0) {
+    await admin.query(`REVOKE INSERT, UPDATE, DELETE ON TABLE "ctf_flags" FROM ${role}`);
+    console.log(`[migrate-and-grant] revoked writes on ctf_flags from ${appUser}`);
+  }
+
   await admin.destroy();
 }
 
