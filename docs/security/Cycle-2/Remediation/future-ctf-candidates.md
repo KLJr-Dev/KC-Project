@@ -41,7 +41,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | ID | Status |
 |----|--------|
 | FC-01 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
-| FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Red frozen; Blue on `remediation/cycle-3-leak-crack-db` |
+| FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
 | FC-12 … FC-16 | Available (later tracks) |
 
 ---

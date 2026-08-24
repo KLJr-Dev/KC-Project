@@ -1,12 +1,12 @@
-# Security Cycle 3 — leak-crack-db (Blue / main track)
+# Security Cycle 3 — leak-crack-db
 
-**Status:** Blue Team **in progress** on `remediation/cycle-3-leak-crack-db` · Red evidence **frozen** on `ctf/leak-crack-db`
+**Status:** **Closed** · Red frozen on `ctf/leak-crack-db` · Blue merged to `main` (PR #20) · frozen `remediation/cycle-3-leak-crack-db`
 
 | Track | Role | Status |
 |-------|------|--------|
-| `v2.1.0` / `main` | Secure product | Baseline |
+| `v2.1.0` / `main` | Secure product | Baseline + Cycle-3 regression |
 | **`ctf/leak-crack-db`** | CTF + Red writeup | **Frozen** (do not merge CTF into main) |
-| **`remediation/cycle-3-leak-crack-db`** | Blue close-out | **This branch** |
+| **`remediation/cycle-3-leak-crack-db`** | Blue close-out archive | **Frozen** after merge |
 
 **Policy:** No product version bump ([ADR-032](../../decisions/ADR-032-post-v2.1.0-versioning.md)).
 
@@ -18,7 +18,7 @@
 |----------|------------|-----------|
 | **Player / try the box** | branch `ctf/leak-crack-db` → Dev player brief | No |
 | **Read the engagement** | `ctf/leak-crack-db` → [PenTest writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/leak-crack-db/docs/security/Cycle-3/PenTest/v1-leak-crack-db-writeup.md) | Yes |
-| **Blue Team** | [Remediation/](Remediation/) on this branch | Yes |
+| **Blue Team** | [Remediation/](Remediation/) on `main` | Yes |
 
 ## Chain closed on secure (one line)
 

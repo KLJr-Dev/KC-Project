@@ -6,13 +6,13 @@
 
 **[Cycle-2/](Cycle-2/README.md)** — **Closed** (v1.1.0 CTF → v2.1.0). Live product = tag **`v2.1.0`** on `main`.
 
-**[Cycle-3/](Cycle-3/README.md)** — Blue close-out in progress (`ctf/leak-crack-db` → `remediation/cycle-3-leak-crack-db`). No product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)).
+**[Cycle-3/](Cycle-3/README.md)** — **Closed** (`ctf/leak-crack-db` → Blue on `main`). No product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)).
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
 | 1 | [PenTest/v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) · frozen `remediation/v2.0.0` |
 | 2 | branch/tag `ctf/v1.1.0` (PenTest/Dev on that branch) | [v2.1.0-remediation.md](Cycle-2/Remediation/v2.1.0-remediation.md) · frozen `remediation/v2.1.0` |
-| 3 | branch `ctf/leak-crack-db` (PenTest on that branch) | [cycle-3-leak-crack-db-remediation.md](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) · `remediation/cycle-3-leak-crack-db` |
+| 3 | branch `ctf/leak-crack-db` (PenTest on that branch) | [cycle-3-leak-crack-db-remediation.md](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) · frozen `remediation/cycle-3-leak-crack-db` |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -25,13 +25,13 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground tru
 - [v2.0.0-secure-ready.md](../release/v2.0.0-secure-ready.md) — Cycle-1 Blue gate (**signed**)
 - [v1.1.0-ctf-ready.md](../release/v1.1.0-ctf-ready.md) — Cycle-2 CTF gate
 - [v2.1.0-secure-ready.md](../release/v2.1.0-secure-ready.md) — Cycle-2 Blue gate (**signed**)
-- [cycle-3-leak-crack-db-secure-ready.md](../release/cycle-3-leak-crack-db-secure-ready.md) — Cycle-3 Blue gate (this remediation)
+- [cycle-3-leak-crack-db-secure-ready.md](../release/cycle-3-leak-crack-db-secure-ready.md) — Cycle-3 Blue gate (**signed**)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
 - [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — post-v2.1.0 CTFs without product version bumps
 
 ## Scope
 
-Cycles 1–2 complete; Cycle-3 Blue close-out on `remediation/cycle-3-leak-crack-db` (no product bump). Live product stays **v2.1.0**. Next security work = another `ctf/<scenario>` fork and/or SoftDev surface expansion ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)).
+Cycles 1–3 complete. Live product = **v2.1.0** secure stack. Next = SoftDev surface expansion (version bump) and/or another `ctf/<scenario>` ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md); [future-ctf-candidates.md](Cycle-2/Remediation/future-ctf-candidates.md)).
 
 ## Tools
 

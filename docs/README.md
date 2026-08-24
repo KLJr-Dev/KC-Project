@@ -47,6 +47,7 @@ Cycle workspaces (ADR-031):
 docs/security/
 ├── Cycle-1/   → closed (v1.0.0 → v2.0.0); PenTest on main
 ├── Cycle-2/   → closed (v1.1.0 → v2.1.0); Remediation on main; PenTest on ctf/v1.1.0
+├── Cycle-3/   → closed (ctf/leak-crack-db → Blue on main; no product tag)
 ├── README.md
 └── cwe-inventory.md
 ```
@@ -61,5 +62,6 @@ docs/security/
 - [v2.0.0-secure-ready.md](release/v2.0.0-secure-ready.md) — Cycle-1 Blue gate (signed)
 - [v1.1.0-ctf-ready.md](release/v1.1.0-ctf-ready.md) — Cycle-2 CTF gate
 - [v2.1.0-secure-ready.md](release/v2.1.0-secure-ready.md) — Cycle-2 Blue gate (signed; tag `v2.1.0`)
+- [cycle-3-leak-crack-db-secure-ready.md](release/cycle-3-leak-crack-db-secure-ready.md) — Cycle-3 Blue gate (signed)
 
 ### [glossary.md](glossary.md)

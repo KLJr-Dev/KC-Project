@@ -164,9 +164,13 @@ Cloud variants are **additional release lines**, not replacements — tags make 
 
 **Focus:** SoftDev surface expansion (version bump) and/or next CTF on **v2.1.0** without a product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md); [future-ctf-candidates.md](../security/Cycle-2/Remediation/future-ctf-candidates.md)).
 
-### Cycle-3+ — security scenarios on current product
+### Cycle-3 — closed (`ctf/leak-crack-db`)
 
-Themes remain open (concurrency, cloud misconfig, etc.). Prefer CTF misconfig of the **current** secure tip unless SoftDev expands surface first (then bump `vX.Y.Z`).
+Share-plant → SQLi search → crack → published PG. Blue = docs + regression on `main` (no version bump).
+
+### Cycle-4+ — security scenarios on current product
+
+Themes remain open (XSS, SSRF, concurrency, cloud misconfig, etc.). Prefer CTF misconfig of the **current** secure tip unless SoftDev expands surface first (then bump `vX.Y.Z`).
 
 ---
 
@@ -197,4 +201,4 @@ Themes remain open (concurrency, cloud misconfig, etc.). Prefer CTF misconfig of
 
 ---
 
-*Last updated: August 2026 — Cycles 1–2 closed; ADR-032 in effect.*
+*Last updated: August 2026 — Cycles 1–3 closed; ADR-032 in effect.*

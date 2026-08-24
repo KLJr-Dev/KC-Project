@@ -19,26 +19,28 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 
 **Tag:** `v2.1.0` on `main` · **Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) (ADR-027) · **Portfolio:** [PORTFOLIO-VISION.md](docs/roadmap/PORTFOLIO-VISION.md) · **Versioning:** [ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md)
 
-Cycles 1–2 are **closed**:
+Cycles 1–3 are **closed**:
 
-| Cycle | Insecure / CTF | Secure |
-|-------|----------------|--------|
-| 1 | tag `v1.0.0` | tag `v2.0.0` |
-| 2 | `ctf/v1.1.0` / tag `v1.1.0` | tag `v2.1.0` (current `main`) |
+| Cycle | Insecure / CTF | Secure / Blue |
+|-------|----------------|---------------|
+| 1 | tag `v1.0.0` | tag `v2.0.0` · frozen `remediation/v2.0.0` |
+| 2 | `ctf/v1.1.0` / tag `v1.1.0` | tag `v2.1.0` · frozen `remediation/v2.1.0` |
+| 3 | `ctf/leak-crack-db` (no product tag) | docs + regression on `main` · frozen `remediation/cycle-3-leak-crack-db` |
 
 | Track | Artifact |
 |-------|----------|
-| Secure gate (current) | [v2.1.0-secure-ready.md](docs/release/v2.1.0-secure-ready.md) |
-| Cycle-2 remediation | [v2.1.0-remediation.md](docs/security/Cycle-2/Remediation/v2.1.0-remediation.md) · [blue-team-plan.md](docs/security/Cycle-2/Remediation/blue-team-plan.md) |
-| Cycle-2 CTF (frozen) | branch/tag `v1.1.0` on `ctf/v1.1.0` — [Cycle-2 README](docs/security/Cycle-2/README.md) |
-| Cycle-1 (history) | [v1.0.0-writeup.md](docs/security/Cycle-1/PenTest/v1.0.0-writeup.md) · [v2.0.0-remediation.md](docs/security/Cycle-1/Remediation/v2.0.0-remediation.md) · tag `v1.0.0` |
+| Secure product (current) | tag **`v2.1.0`** / `main` — [v2.1.0-secure-ready.md](docs/release/v2.1.0-secure-ready.md) |
+| Cycle-3 Blue gate | [cycle-3-leak-crack-db-secure-ready.md](docs/release/cycle-3-leak-crack-db-secure-ready.md) |
+| Cycle-3 CTF (frozen) | `ctf/leak-crack-db` — [Cycle-3 README](docs/security/Cycle-3/README.md) |
+| Cycle-2 CTF (frozen) | `ctf/v1.1.0` — [Cycle-2 README](docs/security/Cycle-2/README.md) |
+| Cycle-1 (history) | [v1.0.0-writeup.md](docs/security/Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` |
 
 - **Docker (primary):** `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
 - **TLS lab profile:** `prod` + `docker-compose.tls.yml` → `https://localhost:8443` ([infra/README.md](infra/README.md))
-- **Demo users:** `user@kc.test` / `mod@kc.test` / `admin@kc.test` — [demo-users.md](docs/deploy/demo-users.md) (hashed at rest; lab UI gated in prod)
+- **Demo users:** `user@kc.test` / `mod@kc.test` / `admin@kc.test` — [demo-users.md](docs/deploy/demo-users.md)
 - **Product UI:** My Files, Sharing, Review (mod), Admin — `/dev` gated unless lab flag
-- **Tests:** smoke · journey · e2e-docker · tls-smoke · Cycle-2 regression
-- **Next:** SoftDev surface expansion (version bump) and/or CTF fork of **v2.1.0** without a version bump ([ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md); [future-ctf-candidates.md](docs/security/Cycle-2/Remediation/future-ctf-candidates.md))
+- **Tests:** smoke · journey · e2e-docker · tls-smoke · Cycle-2/3 regression
+- **Next:** SoftDev surface expansion (version bump) **or** another `ctf/<scenario>` on **v2.1.0** without a bump ([ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md); [future-ctf-candidates.md](docs/security/Cycle-2/Remediation/future-ctf-candidates.md))
 
 ### Run locally (Docker — secure stack)
 
@@ -49,6 +51,8 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh
 ./infra/journey-test.sh
 ```
+
+Do **not** attach CTF compose overlays on this path. CTF boxes live only on `ctf/*` branches.
 
 ### Run locally (native dev)
 
@@ -70,8 +74,8 @@ KC-PROJECT/
 │   ├── decisions/        # ADRs 001–032
 │   ├── diagrams/         # Architecture, auth, infra, threats, timeline
 │   ├── roadmap/          # STRATEGY, ROADMAP, version summaries
-│   ├── security/         # Cycle-1 + Cycle-2 workspaces, CWE inventory
-│   ├── release/          # v1.0.0 / v1.1.0 / v2.0.0 / v2.1.0 readiness gates
+│   ├── security/         # Cycle-1 … Cycle-3 workspaces, CWE inventory
+│   ├── release/          # readiness gates (incl. Cycle-3)
 │   ├── spec/             # Scope, requirements, personas, security baseline
 │   ├── glossary.md
 │   └── README.md
@@ -89,7 +93,7 @@ cd frontend && npm run format:check && npm run lint
 
 ## Documentation
 
-All engineering documentation lives in `/docs`. Security cycles: [Cycle-1](docs/security/Cycle-1/README.md) · [Cycle-2](docs/security/Cycle-2/README.md).
+All engineering documentation lives in `/docs`. Security cycles: [Cycle-1](docs/security/Cycle-1/README.md) · [Cycle-2](docs/security/Cycle-2/README.md) · [Cycle-3](docs/security/Cycle-3/README.md).
 
 ## Versioning
 
@@ -102,25 +106,30 @@ All engineering documentation lives in `/docs`. Security cycles: [Cycle-1](docs/
 | `v2.1.0` | Cycle-2 secure product (current `main`) — **tagged** |
 | `v2.2.0+` | Only when SoftDev expands surface ([ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md)) |
 
-Cycles 1–2 used [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md) version pairs. **From v2.1.0 forward:** [ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md) — CTFs misconfigure the current app **without** a product version bump.
+Cycles 1–2 used [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md) version pairs. **From v2.1.0 forward:** [ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md) — CTFs misconfigure the current app **without** a product version bump (Cycle-3 = `ctf/leak-crack-db`).
 
 ## Branching Strategy
 
+Nine long-lived remotes (archives + SoftDev rails):
+
 ```
-main                    Stable secure product (v2.1.0 today)
- ├── backend             SoftDev — Nest/API
- ├── frontend            SoftDev — Next UI
- ├── dev                 SoftDev — integration
- ├── ctf/v1.1.0          Frozen Cycle-2 CTF + Red evidence
- ├── remediation/v2.0.0  Frozen Cycle-1 Blue implementation history
- └── remediation/v2.1.0  Frozen Cycle-2 Blue implementation history
+main                              Stable secure product (v2.1.0)
+ ├── backend                       SoftDev — Nest/API (reset from main before use)
+ ├── frontend                      SoftDev — Next UI (reset from main before use)
+ ├── dev                           SoftDev — integration (reset from main before use)
+ ├── ctf/v1.1.0                    Frozen Cycle-2 CTF + Red evidence
+ ├── ctf/leak-crack-db             Frozen Cycle-3 CTF + Red evidence
+ ├── remediation/v2.0.0            Frozen Cycle-1 Blue history
+ ├── remediation/v2.1.0            Frozen Cycle-2 Blue history
+ └── remediation/cycle-3-leak-crack-db  Frozen Cycle-3 Blue history
 
 Ephemeral:
-  remediation/<next>    Create → PR to main → freeze (keep for storytelling)
-  hotfix/*              Docs/comment fixes → delete after merge
+  ctf/<scenario>          Create from main → box → freeze (never merge CTF into main)
+  remediation/<name>      Create → PR docs/fixes to main → freeze
+  hotfix/*                Short-lived → delete after merge
 ```
 
-Remediation **docs and fixes live on `main`**; frozen `remediation/*` branches are portfolio archives. Cycle-1 Red writeup is on `main` under `docs/security/Cycle-1/PenTest/`; insecure app = tag `v1.0.0`.
+Remediation **docs and secure-path locks live on `main`**; frozen `remediation/*` / `ctf/*` branches are portfolio archives. SoftDev rails (`backend` / `frontend` / `dev`) may lag `main` until the next SoftDev push — **recreate or reset from `main` before starting feature work**.
 
 ## Collaboration
 

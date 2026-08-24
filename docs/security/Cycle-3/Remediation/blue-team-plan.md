@@ -33,5 +33,5 @@ ctf/leak-crack-db (frozen) ──┘ findings only (do not merge CTF into main)
 - [x] Red writeup accepted as input  
 - [x] Branch `remediation/cycle-3-leak-crack-db` from `main`  
 - [x] M1–M5 complete + gate green  
-- [ ] Merge remediation PR to `main`  
-- [ ] Freeze this remediation branch after merge
+- [x] Merge remediation PR to `main` (#20)  
+- [x] Freeze this remediation branch after merge

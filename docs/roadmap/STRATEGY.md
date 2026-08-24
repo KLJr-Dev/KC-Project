@@ -2,8 +2,8 @@
 
 **Date**: March 5, 2026 (updated August 2026)  
 **Current release**: **v2.1.0** secure product (tagged on `main`)  
-**Cycles closed**: Cycle-1 (`v1.0.0`→`v2.0.0`) · Cycle-2 (`v1.1.0` CTF → `v2.1.0`)  
-**Next**: SoftDev surface expansion (version bump) and/or CTF on **v2.1.0** without a product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md))
+**Cycles closed**: Cycle-1 (`v1.0.0`→`v2.0.0`) · Cycle-2 (`v1.1.0` CTF → `v2.1.0`) · Cycle-3 (`ctf/leak-crack-db`, no product tag)  
+**Next**: SoftDev surface expansion (version bump) and/or another CTF on **v2.1.0** without a product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md))
 
 ---
 

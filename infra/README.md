@@ -2,7 +2,7 @@
 
 Deployment and infrastructure for **KC-Project** **v2.1.0** (secure parallel).  
 Historical insecure baseline: tag `v1.0.0` / [Cycle-1 PenTest](../docs/security/Cycle-1/PenTest/v1.0.0-writeup.md).  
-Cycle-2 CTF box (frozen): branch/tag `v1.1.0` — **never** use CTF compose overlays on this secure path.
+Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — **never** attach CTF compose overlays on this secure path.
 
 Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+).
 
