@@ -23,7 +23,8 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground tru
 
 ## Scope
 
-KC-Project Cycle 1 complete. Live product = secure parallel. Next: Cycle-2 / **v1.1.0** CTF fork from tag `v2.0.0`.
+KC-Project Cycles 1–2 closed on secure track (`v2.0.0` / `v2.1.0`).  
+Cycle-3 CTF: branch [`ctf/leak-crack-db`](Cycle-3/README.md) (scenario fork — no product version bump).
 
 ## Tools
 
