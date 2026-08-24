@@ -1,6 +1,6 @@
 # Security Cycle 1 (v1.0.0 → v2.0.0)
 
-Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure parallel. **Closed** — tag `v2.0.0` on `main`.
+Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure parallel. **Closed** — tag `v2.0.0`. Live product since superseded by **v2.1.0** (see [Cycle-2](../Cycle-2/README.md)).
 
 ## Version map
 
@@ -8,15 +8,15 @@ Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure
 |---------|------|--------|
 | v1.0.0 | Insecure baseline (59 CWE instances / 38 IDs) | **Tagged** · pentest complete |
 | v1.0.x | Accidental critical patches only (this cycle) | N/A |
-| v2.0.0 | Secure parallel — Cycle-1 findings + security-baseline | **Tagged** on `main` |
+| v2.0.0 | Secure parallel — Cycle-1 findings + security-baseline | **Tagged** (superseded on `main` by v2.1.0) |
 
 ## Team workspaces
 
 | Folder | Owner | Purpose |
 |--------|-------|---------|
 | [Dev/](Dev/) | Developer | Ground truth — exploitable **before** state |
-| [PenTest/](PenTest/) | Offensive | Portfolio writeup, notes, screenshots (**frozen** on `pentest/cycle-1`) |
-| [Remediation/](Remediation/) | Defensive | Finding → fix map + Blue Team plan (merged via PR #17) |
+| [PenTest/](PenTest/) | Offensive | Portfolio writeup, notes, screenshots (on `main`) |
+| [Remediation/](Remediation/) | Defensive | Finding → fix map + Blue Team plan (on `main`; frozen branch `remediation/v2.0.0`) |
 
 ## Artifacts
 
@@ -34,10 +34,9 @@ Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure
 
 | Ref | Purpose |
 |-----|---------|
-| tag `v1.0.0` | Insecure MVP freeze |
-| tag `v2.0.0` | Secure parallel on `main` |
-| `pentest/cycle-1` | Offensive evidence — do not rewrite vulns away |
-| `remediation/v2.0.0` | Blue Team implementation (merged) |
+| tag `v1.0.0` | Insecure MVP freeze (checkout for Red app state) |
+| tag `v2.0.0` | Cycle-1 secure parallel |
+| `remediation/v2.0.0` | Frozen Blue implementation history (docs also on `main`) |
 
 ## Handoff gate (Cycle-1)
 
@@ -45,31 +44,28 @@ Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure
 - [x] Findings → fix map + Blue Team milestones
 - [x] M0–M9 implementation + [secure-ready](../../release/v2.0.0-secure-ready.md) signed
 - [x] Merge to `main` · tag **`v2.0.0`**
-- [ ] Design **v1.1.0** CTF (fork `v2.0.0`; misconfigure + flags; no new routes)
+- [x] Design **v1.1.0** CTF (Cycle-2 — done; see [Cycle-2](../Cycle-2/README.md))
 
 **Offensive → Defensive handoff: APPROVED** (2026-08-21).  
 **Cycle-1 closed:** tag `v2.0.0` (2026-08-21).
 
 ## Verification commands
 
-**Secure parallel (current `main` / tag `v2.0.0`):**
+**Current secure product (`main` / tag `v2.1.0`):**
 
 ```bash
 set -a && source infra/.env && set +a
 docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh && ./infra/journey-test.sh && ./infra/e2e-docker.sh
-# optional TLS gate:
-./infra/scripts/gen-lab-certs.sh
-docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.tls.yml up -d
-./infra/tls-smoke.sh
 ```
 
-**Insecure baseline (historical / Red):** check out tag `v1.0.0` or branch `pentest/cycle-1`.
+**Insecure baseline (historical / Red):** `git checkout v1.0.0`.
 
 ## References
 
-- [ADR-013](../../decisions/ADR-013-expansion-cycle-versioning.md) — expansion cycle versioning
-- [ADR-031](../../decisions/ADR-031-security-cycle-docs.md) — cycle doc structure
-- [security-baseline.md](../../spec/security-baseline.md) — v2.0.0 control checklist
+- [ADR-013](../../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../../decisions/ADR-032-post-v2.1.0-versioning.md)
+- [ADR-031](../../decisions/ADR-031-security-cycle-docs.md)
+- [security-baseline.md](../../spec/security-baseline.md)
 - [v1.0.0-pentest-ready.md](../../release/v1.0.0-pentest-ready.md) — Red gate (passed)
 - [v2.0.0-secure-ready.md](../../release/v2.0.0-secure-ready.md) — Blue gate (signed)
+- Next cycle: [../Cycle-2/README.md](../Cycle-2/README.md)

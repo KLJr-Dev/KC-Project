@@ -2,7 +2,7 @@
 
 **Purpose:** Frame why this repo exists as a CV/portfolio piece, how to grow it without turning it into an endless toy app, and what “done” means at each milestone.
 
-**Related (technical authority):** [STRATEGY.md](./STRATEGY.md) · [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-026](../decisions/ADR-026-versioning-expansion-cycle.md) · [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
+**Related (technical authority):** [STRATEGY.md](./STRATEGY.md) · [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-026](../decisions/ADR-026-versioning-expansion-cycle.md) · [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
 
 ---
 
@@ -16,12 +16,12 @@ The main portfolio signal is not line count or CWE count — it is **being able 
 | **Trace any claim** | Every vulnerability, fix, and design choice should trace to: code → ADR or ground truth → pentest evidence → remediation mapping. |
 | **Teach back** | If you cannot whiteboard auth flow, RBAC guards, file storage, or a specific exploit chain from memory, that area needs more hands-on time before the next release tag. |
 
-**Cycle-1 learning gate (before tagging v2.0.0):**
+**Interview prep checklist (not a release blocker):**
 
 - [ ] Walk through request lifecycle: browser → nginx → NestJS guard → service → TypeORM → disk
 - [ ] Explain each demo-user role and at least one privilege-escalation path end-to-end
-- [ ] Demonstrate one file-handling vuln and one auth vuln live against prod compose
-- [ ] Summarise why v2.0.0 fixes differ from v1.0.0 without reading slides
+- [ ] Demonstrate one file-handling vuln and one auth vuln live against tag `v1.0.0` or `ctf/v1.1.0`
+- [ ] Summarise why v2.x fixes differ from insecure/CTF baselines without reading slides
 
 ---
 
@@ -58,7 +58,7 @@ Documentation is a first-class deliverable, not an afterthought. Three parallel 
 
 **Style target:** Real pentest reports and OSCP-style writeups — scope, recon, enumeration, exploitation, post-exploitation (where applicable), findings table, risk rating, recommendations. Research public writeups and HTB/OSCP lab reports for tone and structure; do not invent fantasy findings.
 
-**Cycle-1 current artifact:** [PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) (template → complete before v2.0.0 tag).
+**Cycle-1 writeup:** [PenTest/v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) (complete). Cycle-2 writeup lives on `ctf/v1.1.0`.
 
 ### C. Defensive security (Blue Team / remediation)
 
@@ -151,27 +151,22 @@ Cloud variants are **additional release lines**, not replacements — tags make 
 | v1.0.0 insecure MVP | Done · tag `v1.0.0` |
 | Ground truth | [Complete](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) |
 | Pentest writeup | [Complete](../security/Cycle-1/PenTest/v1.0.0-writeup.md) |
-| v2.0.0 remediation | Done · merged `main` |
-| Git tag `v1.0.0` | Done |
-| Git tag `v2.0.0` | Done |
+| v2.0.0 remediation | Done · merged `main` · frozen `remediation/v2.0.0` |
+| Git tag `v1.0.0` / `v2.0.0` | Done |
 
-**Focus:** Design **v1.1.0** CTF from tag `v2.0.0` (misconfigure + flags; no new routes). Do not treat Cycle-1 docs as the live product state — `main` is secure.
+### Cycle-2 — **CLOSED** (v1.1.0 CTF → v2.1.0)
 
-### Cycle-2 — v1.1.0 → v2.1.0 (**NEXT**)
+| Item | Status |
+|------|--------|
+| CTF box | Done · `ctf/v1.1.0` / tag `v1.1.0` |
+| Blue remediation | Done · tag `v2.1.0` on `main` · frozen `remediation/v2.1.0` |
+| Secure-ready gate | [Signed](../release/v2.1.0-secure-ready.md) |
 
-**Theme (draft):** HTB/OSCP-style scenario — horizontal access to a planted user flag, then privilege escalation to an admin/DB flag. Re-open a **small** set of controls on the secure fork; no new API routes.
+**Focus:** SoftDev surface expansion (version bump) and/or next CTF on **v2.1.0** without a product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md); [future-ctf-candidates.md](../security/Cycle-2/Remediation/future-ctf-candidates.md)).
 
-**Scope:** ~2 flags, 1–3 intentional misconfigs, Cycle-2 ground truth + writeup.
+### Cycle-3+ — security scenarios on current product
 
-### Cycle-3 — v1.2.0 → v2.2.0
-
-**Theme (draft):** Concurrency & caching — race conditions, cache poisoning, TOCTOU.
-
-### Cycle-4 — v1.3.0 → v2.3.0
-
-**Theme (draft):** Cloud / DevOps misconfigurations — first AWS (or equivalent) deploy line.
-
-Cycles 2–4 stay **lightweight** until Cycle-1 has tags, releases, and complete tri-track docs. Depth beats breadth early.
+Themes remain open (concurrency, cloud misconfig, etc.). Prefer CTF misconfig of the **current** secure tip unless SoftDev expands surface first (then bump `vX.Y.Z`).
 
 ---
 
@@ -179,28 +174,27 @@ Cycles 2–4 stay **lightweight** until Cycle-1 has tags, releases, and complete
 
 | Avoid | Instead |
 |-------|---------|
-| Endless feature sprawl without tags | Ship Cycle-N as tagged releases with writeups |
-| Docs that lag code by months | Update ground truth / writeup in the same cycle phase |
+| Endless feature sprawl without tags | Ship SoftDev surface bumps as tagged releases |
+| Docs that lag code by months | Update cycle docs in the same phase |
 | CWE inflation without exploitation | Every instance needs repro evidence in pentest phase |
-| Skipping v2.N.0 | Secure parallel is half the portfolio story |
+| Skipping Blue after Red | Freeze CTF + remediation branches; land fixes on `main` |
 | Replacing mastery with generated code | Re-read and run every major flow yourself before interviews |
+| Inventing product versions for every CTF | [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) |
 
 ---
 
 ## 7. Employer-facing one-liner
 
-> KC-Project is a full-stack intentionally vulnerable web app with a documented insecure → pentest → remediate → expand lifecycle. Each cycle produces tagged releases, ADRs, an OSCP-style pentest writeup, and a paired hardened version — demonstrating full-stack delivery and both offensive and defensive security practice.
+> KC-Project is a full-stack web app with a documented insecure → pentest → remediate lifecycle. Cycles 1–2 shipped tagged insecure/CTF and secure pairs; from v2.1.0 onward, SoftDev bumps versions on surface expansion while CTFs misconfigure the current app without fake version inflation.
 
 ---
 
-## 8. Immediate next actions (Cycle-1)
+## 8. Immediate next actions
 
-1. Complete [v1.0.0-writeup.md](../security/Cycle-1/PenTest/v1.0.0-writeup.md) using real methodology and screenshots.
-2. Exercise all 59 instances (or document scope exclusions explicitly).
-3. Draft v2.0.0 fixes in remediation doc, then implement on a `v2.0.0` branch.
-4. Tag `v1.0.0` / `v2.0.0` and publish GitHub Releases with links to the three track docs.
-5. Only then plan Cycle-2 scope in ROADMAP / STRATEGY Part 4.
+1. Keep interview explainability current for auth, RBAC, files, and Cycle-1/2 chains.
+2. SoftDev: land real surface growth via `backend` / `frontend` → `dev` → `main`, then tag.
+3. Next CTF: fork **v2.1.0**, misconfigure + flags only ([future-ctf-candidates.md](../security/Cycle-2/Remediation/future-ctf-candidates.md)); freeze `ctf/<scenario>` + `remediation/<cycle>`.
 
 ---
 
-*Last updated: June 2026 — Cycle-1 in progress.*
+*Last updated: August 2026 — Cycles 1–2 closed; ADR-032 in effect.*

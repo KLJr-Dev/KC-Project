@@ -1,16 +1,18 @@
 # Security Cycle 2 (v1.1.0 → v2.1.0)
 
-**Status:** Red Team **complete** · Box **frozen** on branch `ctf/v1.1.0` (replayable forever) · Blue Team (`v2.1.0`) next on a separate branch from `main`
+**Status:** Red Team **complete** · Box **frozen** on `ctf/v1.1.0` · Blue Team **merged** · tag **`v2.1.0`** on `main`
 
 Cycle 2 is an **OSCP-style CTF box** forked from secure tag **`v2.0.0`**.  
 Short chain (not Cycle-1 kitchen-sink). Scoring = **identity + 32-char hex flag** at three tiers.
 
 | Version | Role | Status |
 |---------|------|--------|
-| v2.0.0 | Secure fork point | Tagged on `main` |
+| v2.0.0 | Secure fork point | Tagged |
 | **v1.1.0** | CTF / insecure scenario | **Shipped** — branch + tag `v1.1.0` (replayable) |
-| v1.1.x | PenTest writeup | **Complete** — [PenTest/v1.1.0-writeup.md](PenTest/v1.1.0-writeup.md) |
-| v2.1.0 | Secure parallel | **Gate signed** on `remediation/v2.1.0` — ready to tag |
+| v1.1.x | PenTest writeup | **Complete** — on `ctf/v1.1.0` |
+| **v2.1.0** | Secure parallel | **Tagged** on `main` · frozen `remediation/v2.1.0` |
+
+Future CTFs follow [ADR-032](../../decisions/ADR-032-post-v2.1.0-versioning.md): misconfigure **current** product version (**no** new `v1.N.0` / `v2.N.0` product tags). Candidates: [Remediation/future-ctf-candidates.md](Remediation/future-ctf-candidates.md).
 
 ---
 
@@ -18,10 +20,12 @@ Short chain (not Cycle-1 kitchen-sink). Scoring = **identity + 32-char hex flag*
 
 | Audience | Start here | Spoilers? |
 |----------|------------|-----------|
-| **Player / recruiter try-the-box** | [Dev/v1.1.0-player-brief.md](Dev/v1.1.0-player-brief.md) → deploy below | No |
-| **Read the engagement** | [PenTest/v1.1.0-writeup.md](PenTest/v1.1.0-writeup.md) | Yes (full chain) |
-| **Build / examine the box** | [Dev/v1.1.0-ground-truth.md](Dev/v1.1.0-ground-truth.md) · [box plan](Dev/v1.1.0-box-plan.md) | Yes |
-| **Blue Team next** | [Remediation/](Remediation/) · [v2.1.0-remediation.md](Remediation/v2.1.0-remediation.md) · [secure-ready](../../release/v2.1.0-secure-ready.md) | Yes |
+| **Player / recruiter try-the-box** | checkout `ctf/v1.1.0` → Dev player brief → deploy below | No |
+| **Read the engagement** | checkout `ctf/v1.1.0` → PenTest writeup | Yes (full chain) |
+| **Build / examine the box** | checkout `ctf/v1.1.0` → Dev ground truth / box plan | Yes |
+| **Blue Team (done)** | [Remediation/](Remediation/) on `main` · [v2.1.0-remediation.md](Remediation/v2.1.0-remediation.md) · [secure-ready](../../release/v2.1.0-secure-ready.md) | Yes |
+
+> **Note:** `Dev/` and `PenTest/` trees for Cycle-2 live on branch/tag **`ctf/v1.1.0`**, not on `main`. Remediation docs are on `main`.
 
 Gate document: [v1.1.0-ctf-ready.md](../../release/v1.1.0-ctf-ready.md)
 
@@ -30,10 +34,10 @@ Gate document: [v1.1.0-ctf-ready.md](../../release/v1.1.0-ctf-ready.md)
 ## Deploy the replayable box
 
 ```bash
-git checkout ctf/v1.1.0   # or tag v1.1.0 after it exists
+git checkout ctf/v1.1.0   # or tag v1.1.0
 cd infra
 cp .env.example .env
-# Set DB_PASSWORD=KcCtfDbPr0of2026! (must match plant — see ground truth)
+# Set DB_PASSWORD=KcCtfDbPr0of2026! (must match plant — see ground truth on this branch)
 docker compose -f docker-compose.prod.yml -f docker-compose.ctf.yml up -d --build
 ./ctf-examiner.sh         # optional operator dry-run (spoilers)
 ```
@@ -42,17 +46,17 @@ docker compose -f docker-compose.prod.yml -f docker-compose.ctf.yml up -d --buil
 - Postgres published: `:5433` (creds **not** default — gated behind chain)  
 - **Never** use the CTF overlay on a secure/demo path meant to stay hardened
 
-Details: [infra/README.md](../../../infra/README.md) · [PenTest/scope.md](PenTest/scope.md)
+Details: [infra/README.md](../../../infra/README.md)
 
 ---
 
 ## Team workspaces
 
-| Folder | Purpose |
-|--------|---------|
-| [Dev/](Dev/) | Box plan, ground truth, player brief |
-| [PenTest/](PenTest/) | Scope, notes, screenshots, full writeup |
-| [Remediation/](Remediation/) | Fix map, residuals, CTF candidates, Blue plan (implement off `main`) |
+| Folder | Purpose | Where |
+|--------|---------|-------|
+| Dev/ | Box plan, ground truth, player brief | `ctf/v1.1.0` |
+| PenTest/ | Scope, notes, screenshots, full writeup | `ctf/v1.1.0` |
+| [Remediation/](Remediation/) | Fix map, residuals, CTF candidates, Blue plan | `main` (+ frozen `remediation/v2.1.0`) |
 
 ---
 
@@ -60,17 +64,12 @@ Details: [infra/README.md](../../../infra/README.md) · [PenTest/scope.md](PenTe
 
 | Artifact | Path | Status |
 |----------|------|--------|
-| Release gate | [../../release/v1.1.0-ctf-ready.md](../../release/v1.1.0-ctf-ready.md) | **Ready** |
-| Box plan | [Dev/v1.1.0-box-plan.md](Dev/v1.1.0-box-plan.md) | Locked / implemented |
-| Ground truth | [Dev/v1.1.0-ground-truth.md](Dev/v1.1.0-ground-truth.md) | Complete (spoilers) |
-| Player brief | [Dev/v1.1.0-player-brief.md](Dev/v1.1.0-player-brief.md) | Complete (no spoilers) |
-| Writeup | [PenTest/v1.1.0-writeup.md](PenTest/v1.1.0-writeup.md) | **Final** (PTES / OWASP / OSCP / HTB-sample) |
-| Scope | [PenTest/scope.md](PenTest/scope.md) | Locked |
-| Evidence | [PenTest/screenshots/](PenTest/screenshots/) | Numbered engagement shots |
-| Remediation map | [Remediation/v2.1.0-remediation.md](Remediation/v2.1.0-remediation.md) | **M0 done** — Cycle-1 depth |
-| Residuals (Bucket A) | [Remediation/accepted-residuals-v2.1.0.md](Remediation/accepted-residuals-v2.1.0.md) | Signed for M0 |
-| Future CTF (Bucket B) | [Remediation/future-ctf-candidates.md](Remediation/future-ctf-candidates.md) | Handoff for Cycle-3 |
+| Release gate | [../../release/v1.1.0-ctf-ready.md](../../release/v1.1.0-ctf-ready.md) | Ready |
+| Remediation map | [Remediation/v2.1.0-remediation.md](Remediation/v2.1.0-remediation.md) | Complete on `main` |
+| Residuals (Bucket A) | [Remediation/accepted-residuals-v2.1.0.md](Remediation/accepted-residuals-v2.1.0.md) | Signed |
+| Future CTF (Bucket B) | [Remediation/future-ctf-candidates.md](Remediation/future-ctf-candidates.md) | Handoff |
 | Secure-ready gate | [../../release/v2.1.0-secure-ready.md](../../release/v2.1.0-secure-ready.md) | **Signed** (2026-08-24) |
+| Box plan / ground truth / writeup | on `ctf/v1.1.0` under `docs/security/Cycle-2/` | Frozen |
 
 ---
 
@@ -78,11 +77,10 @@ Details: [infra/README.md](../../../infra/README.md) · [PenTest/scope.md](PenTe
 
 | Ref | Purpose | Policy |
 |-----|---------|--------|
-| tag `v2.0.0` | Secure fork point | On `main` |
-| **`ctf/v1.1.0`** | Replayable CTF + Red artifacts | **Freeze** — do not “fix” vulns here |
-| tag **`v1.1.0`** | Immutable box snapshot | Create on publish |
-| `remediation/v2.1.0` | Blue Team (from `main`) | **Gate signed** — merge/tag when ready |
-| tag `v2.1.0` | Secure parallel + next CTF fork point | Create on publish |
+| tag `v2.0.0` | Secure fork point | Historical |
+| **`ctf/v1.1.0`** / tag **`v1.1.0`** | Replayable CTF + Red artifacts | **Freeze** |
+| **`remediation/v2.1.0`** | Frozen Blue implementation history | **Freeze** |
+| tag **`v2.1.0`** | Secure product on `main` | Current |
 
 ---
 
@@ -99,5 +97,5 @@ Details: [infra/README.md](../../../infra/README.md) · [PenTest/scope.md](PenTe
 ## References
 
 - [CTF exam methodologies](../ctf-methodologies.md)
-- [ADR-013](../../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-031](../../decisions/ADR-031-security-cycle-docs.md)
+- [ADR-013](../../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-031](../../decisions/ADR-031-security-cycle-docs.md)
 - Cycle-1 (closed): [../Cycle-1/README.md](../Cycle-1/README.md)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v2.0.0 — Run backend e2e suite against Docker PostgreSQL (kc_prod).
+# v2.1.0 — Run backend e2e suite against Docker PostgreSQL (kc_prod).
 # Publishes :5433 only via docker-compose.e2e.yml overlay (not default prod).
 set -euo pipefail
 

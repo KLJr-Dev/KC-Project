@@ -20,7 +20,7 @@ Each ADR follows a standard format: **Status**, **Context**, **Decision**, **Con
 | [010](ADR-010-tailwind-css.md) | Tailwind CSS as design system | Accepted | v0.0.4 |
 | [011](ADR-011-client-side-rendering.md) | Client-side rendering only (intentionally insecure) | Accepted | v0.0.4 |
 | [012](ADR-012-jwt-over-sessions.md) | JWT over server-side sessions | Accepted | v0.1.3 |
-| [013](ADR-013-expansion-cycle-versioning.md) | Perpetual expansion cycle versioning | Accepted | v0.1.x |
+| [013](ADR-013-expansion-cycle-versioning.md) | Perpetual expansion cycle versioning | Accepted (amended by 032) | v0.1.x |
 | [014](ADR-014-github-vcs.md) | GitHub as VCS platform | Accepted | v0.0.1 |
 | [015](ADR-015-branching-strategy.md) | Branching strategy | Accepted | v0.0.1 |
 | [016](ADR-016-monorepo.md) | Monorepo structure | Accepted | v0.0.1 |
@@ -40,6 +40,7 @@ Each ADR follows a standard format: **Status**, **Context**, **Decision**, **Con
 | [029](ADR-029-demo-user-seeding.md) | Demo user seeding via migration | Accepted | v0.9.0 |
 | [030](ADR-030-demo-files-shares-seeding.md) | Demo files and shares seeding via migration | Accepted | v1.0.x |
 | [031](ADR-031-security-cycle-docs.md) | Security cycle documentation structure (`Cycle-N/`) | Accepted | v1.0.0 |
+| [032](ADR-032-post-v2.1.0-versioning.md) | Post-v2.1.0 versioning & branching (amends 013) | Accepted | v2.1.0 |
 
 ## Adding a New ADR
 

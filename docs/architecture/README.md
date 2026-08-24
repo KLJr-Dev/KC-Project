@@ -1,7 +1,7 @@
 # Architecture Documentation
 
 System architecture docs below describe the **v1.0.0** insecure MVP snapshot (useful for Cycle-1 before-state).  
-**Current product on `main`:** tag **`v2.0.0`** secure parallel — see [Cycle-1 Remediation](../security/Cycle-1/Remediation/v2.0.0-remediation.md).
+**Current product on `main`:** tag **`v2.1.0`** — see [Cycle-2 Remediation](../security/Cycle-2/Remediation/v2.1.0-remediation.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md).
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Docker prod topology (`:8080`), module structure, product UI vs `/dev` explorers, API design, trust boundaries
 - [auth-flow.md](auth-flow.md) — Registration through ternary RBAC; guard inconsistencies; canonical detail

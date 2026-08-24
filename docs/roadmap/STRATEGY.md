@@ -1,9 +1,9 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current release**: **v2.0.0** secure parallel (tagged on `main`)  
-**Cycle-1 closed**: v1.0.0 insecure MVP → pentest → v2.0.0 harden  
-**Next**: v1.1.0 CTF fork from tag `v2.0.0` (misconfigure + flags; see Phase 3)
+**Current release**: **v2.1.0** secure product (tagged on `main`)  
+**Cycles closed**: Cycle-1 (`v1.0.0`→`v2.0.0`) · Cycle-2 (`v1.1.0` CTF → `v2.1.0`)  
+**Next**: SoftDev surface expansion (version bump) and/or CTF on **v2.1.0** without a product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md))
 
 ---
 
@@ -365,7 +365,7 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 **Outcome (Red):** Attack chains documented in Cycle-1 PenTest artifacts.  
 **Outcome (Blue):** Same product surface; PoCs deny; full baseline; tag `v2.0.0`.
 
-### Phase 3: v2.0.0 hardening → v1.1.0+ (Expansion)
+### Phase 3: v2.0.0 hardening → Cycle-2 → post-v2.1.0 (ADR-032)
 
 Hardening milestones (detail: [blue-team-plan.md](../security/Cycle-1/Remediation/blue-team-plan.md)):
 
@@ -375,16 +375,17 @@ Hardening milestones (detail: [blue-team-plan.md](../security/Cycle-1/Remediatio
 | M5–M8 | Wave 2 — baseline crypto/session/TLS/ops (**done**) |
 | M9 | Gate + merge + tag `v2.0.0` (**done**) |
 
-**v1.1.0 (next):** fork tag `v2.0.0` for a **CTF-style** box — prefer misconfiguration + planted flags over new routes / kitchen-sink CWEs (narrower than v1.0.0):
+**Cycle-2 (done):** CTF box tag/branch `v1.1.0` (`ctf/v1.1.0`) → Blue → tag **`v2.1.0`** on `main`.
 
-| Version | Duration | Approach | CWEs |
-|---------|----------|----------|------|
-| v1.1.0 | 2–3 weeks | Fork **v2.0.0**, add focused attack surfaces | ~10–15 |
-| v1.1.x | 1–2 weeks | Pentest findings | (discovery) |
-| v1.2.0 | 2–3 weeks | Fork v2.1.0, next surface wave | ~10–15 |
-| … | | (repeat per ADR-013) | |
+**After v2.1.0 ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)):** product version stays at `v2.1.0` until SoftDev expands surface. Further CTFs fork/misconfigure the current app **without** inventing `v1.2.0`/`v2.2.0` product tags. Candidates: [future-ctf-candidates.md](../security/Cycle-2/Remediation/future-ctf-candidates.md).
 
-**Cadence:** New insecure baseline only after its secure parallel exists.
+| Track | Approach |
+|-------|----------|
+| SoftDev | `backend` / `frontend` → `dev` → `main`; bump `vX.Y.Z` only on surface expansion |
+| CTF / Red | `ctf/<scenario>` from current secure tip; freeze; no product version bump |
+| Blue | `remediation/<cycle>` → PR → freeze branch; no product version bump |
+
+**Cadence:** Security cycles continue; product tags track SoftDev surface, not every Red/Blue loop.
 
 ---
 
