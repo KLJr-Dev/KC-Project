@@ -1,0 +1,18 @@
+# Cycle-3 CTF overlay — leak-crack-db (branch ctf/leak-crack-db, base v2.1.0).
+# Usage:
+#   cp infra/.env.example infra/.env
+#   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-leak.yml up -d --build
+#
+# Publishes Postgres :5433 (nmap foreshadow; ctf_ro password only after John).
+# CTF_MODE enables intentional Files?q= SQLi — never use on production main path.
+# App DB_PASSWORD / admin password stay from .env (must differ from LeakDb2026!).
+
+services:
+  postgres:
+    ports:
+      - '5433:5432'
+
+  backend:
+    environment:
+      CTF_MODE: 'true'
+      ENABLE_SWAGGER: 'true'

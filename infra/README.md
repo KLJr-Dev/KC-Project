@@ -2,7 +2,8 @@
 
 Deployment and infrastructure for **KC-Project** **v2.1.0** (secure parallel).  
 Historical insecure baseline: tag `v1.0.0` / [Cycle-1 PenTest](../docs/security/Cycle-1/PenTest/v1.0.0-writeup.md).  
-Cycle-2 CTF box (frozen): branch/tag `v1.1.0` — **never** use CTF compose overlays on this secure path.
+Cycle-2 CTF box (frozen): branch/tag `v1.1.0`.  
+Cycle-3 CTF (this branch): `ctf/leak-crack-db` — use **only** the leak overlay below; never overlay on secure `main`.
 
 Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+).
 
@@ -14,6 +15,7 @@ Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+
 |------|--------------|----------|-------|
 | **Secure / lab (primary)** | `docker-compose.prod.yml` | Day-to-day, journeys, smoke (**loopback HTTP OK**) | `http://localhost:8080` |
 | **TLS profile** | `prod` + `docker-compose.tls.yml` | **Required for LAN / recruiter secure demos**; HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
+| **CTF leak-crack-db** | `prod` + `docker-compose.ctf-leak.yml` | Cycle-3 box (`CTF_MODE`, Postgres `:5433`) | `http://localhost:8080` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 
 **LAN / off-loopback:** Do not advertise cleartext `:8080` on a reachable NIC as “secure.” Use the TLS overlay (or terminate TLS elsewhere). Loopback HTTP remains an accepted residual (R-01).
@@ -46,6 +48,18 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ```
 
 App: `http://localhost:8080` — API at `/api/*`.
+
+### Cycle-3 CTF (`ctf/leak-crack-db` only)
+
+```bash
+git checkout ctf/leak-crack-db
+cp infra/.env.example infra/.env
+# Keep DB_PASSWORD / DB_ADMIN_PASSWORD strong and different from the John target.
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-leak.yml up -d --build
+./infra/ctf-leak-examiner.sh
+```
+
+Player brief / ground truth: `docs/security/Cycle-3/`. Spoilers stay off secure `main`.
 
 ### TLS profile
 
