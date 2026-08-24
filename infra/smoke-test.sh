@@ -2,6 +2,10 @@
 # v1.0.0 — Smoke test: health → register → upload → list files
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# C2-F03 — secure prod compose must keep Postgres off the host
+"${ROOT}/infra/assert-pg-unpublished.sh"
+
 BASE="${BASE_URL:-http://localhost:8080/api}"
 EMAIL="smoke-$(date +%s)@test.com"
 USERNAME="smoke$(date +%s | tail -c 8)"

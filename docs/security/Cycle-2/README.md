@@ -10,7 +10,7 @@ Short chain (not Cycle-1 kitchen-sink). Scoring = **identity + 32-char hex flag*
 | v2.0.0 | Secure fork point | Tagged on `main` |
 | **v1.1.0** | CTF / insecure scenario | **Shipped** — branch + tag `v1.1.0` (replayable) |
 | v1.1.x | PenTest writeup | **Complete** — [PenTest/v1.1.0-writeup.md](PenTest/v1.1.0-writeup.md) |
-| v2.1.0 | Secure parallel | **Planned** — [Remediation/](Remediation/) from `main`, not from this CTF branch |
+| v2.1.0 | Secure parallel | **Gate signed** on `remediation/v2.1.0` — ready to tag |
 
 ---
 
@@ -21,7 +21,7 @@ Short chain (not Cycle-1 kitchen-sink). Scoring = **identity + 32-char hex flag*
 | **Player / recruiter try-the-box** | [Dev/v1.1.0-player-brief.md](Dev/v1.1.0-player-brief.md) → deploy below | No |
 | **Read the engagement** | [PenTest/v1.1.0-writeup.md](PenTest/v1.1.0-writeup.md) | Yes (full chain) |
 | **Build / examine the box** | [Dev/v1.1.0-ground-truth.md](Dev/v1.1.0-ground-truth.md) · [box plan](Dev/v1.1.0-box-plan.md) | Yes |
-| **Blue Team next** | [Remediation/v2.1.0-remediation.md](Remediation/v2.1.0-remediation.md) | Yes |
+| **Blue Team next** | [Remediation/](Remediation/) · [v2.1.0-remediation.md](Remediation/v2.1.0-remediation.md) · [secure-ready](../../release/v2.1.0-secure-ready.md) | Yes |
 
 Gate document: [v1.1.0-ctf-ready.md](../../release/v1.1.0-ctf-ready.md)
 
@@ -52,7 +52,7 @@ Details: [infra/README.md](../../../infra/README.md) · [PenTest/scope.md](PenTe
 |--------|---------|
 | [Dev/](Dev/) | Box plan, ground truth, player brief |
 | [PenTest/](PenTest/) | Scope, notes, screenshots, full writeup |
-| [Remediation/](Remediation/) | Finding → fix map for `v2.1.0` (implement off `main`) |
+| [Remediation/](Remediation/) | Fix map, residuals, CTF candidates, Blue plan (implement off `main`) |
 
 ---
 
@@ -67,7 +67,10 @@ Details: [infra/README.md](../../../infra/README.md) · [PenTest/scope.md](PenTe
 | Writeup | [PenTest/v1.1.0-writeup.md](PenTest/v1.1.0-writeup.md) | **Final** (PTES / OWASP / OSCP / HTB-sample) |
 | Scope | [PenTest/scope.md](PenTest/scope.md) | Locked |
 | Evidence | [PenTest/screenshots/](PenTest/screenshots/) | Numbered engagement shots |
-| Remediation map | [Remediation/v2.1.0-remediation.md](Remediation/v2.1.0-remediation.md) | Plan stub (implement next) |
+| Remediation map | [Remediation/v2.1.0-remediation.md](Remediation/v2.1.0-remediation.md) | **M0 done** — Cycle-1 depth |
+| Residuals (Bucket A) | [Remediation/accepted-residuals-v2.1.0.md](Remediation/accepted-residuals-v2.1.0.md) | Signed for M0 |
+| Future CTF (Bucket B) | [Remediation/future-ctf-candidates.md](Remediation/future-ctf-candidates.md) | Handoff for Cycle-3 |
+| Secure-ready gate | [../../release/v2.1.0-secure-ready.md](../../release/v2.1.0-secure-ready.md) | **Signed** (2026-08-24) |
 
 ---
 
@@ -78,8 +81,8 @@ Details: [infra/README.md](../../../infra/README.md) · [PenTest/scope.md](PenTe
 | tag `v2.0.0` | Secure fork point | On `main` |
 | **`ctf/v1.1.0`** | Replayable CTF + Red artifacts | **Freeze** — do not “fix” vulns here |
 | tag **`v1.1.0`** | Immutable box snapshot | Create on publish |
-| `remediation/v2.1.0` | Blue Team (from `main`) | Next cycle |
-| tag `v2.1.0` | Secure parallel after harden | Later |
+| `remediation/v2.1.0` | Blue Team (from `main`) | **Gate signed** — merge/tag when ready |
+| tag `v2.1.0` | Secure parallel + next CTF fork point | Create on publish |
 
 ---
 

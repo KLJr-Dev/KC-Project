@@ -40,7 +40,7 @@ import { AdminModule } from './admin/admin.module';
       autoLoadEntities: true,
       synchronize: false,
       migrations: [__dirname + '/migrations/*{.ts,.js}'],
-      migrationsRun: true,
+      migrationsRun: process.env.MIGRATIONS_RUN !== 'false',
       logging:
         process.env.NODE_ENV !== 'production' && process.env.TYPEORM_LOGGING !== 'false',
     }),

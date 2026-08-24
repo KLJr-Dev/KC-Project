@@ -30,17 +30,15 @@ export class AdminController {
   /**
    * GET /admin/users — List all users with details
    *
-   * Guarded by: JwtAuthGuard + HasRoleGuard (requires 'admin' role from metadata)
-   * CWE-639: Role trust from JWT, no DB re-validation
-   * CWE-400: Unbounded list dump, no pagination
-   * CWE-200: All user emails and roles exposed
+   * Guarded by: JwtAuthGuard + HasRoleGuard (`@HasRole('admin')`).
+   * HasRoleGuard loads role from the database (JWT `role` claim is non-authoritative).
    */
   @Get('users')
   @HasRole('admin')
   @ApiOperation({
     summary: 'List all users (admin only)',
     description:
-      'Returns all users with their details. Guarded by HasRole(admin), trusts JWT role (CWE-639).',
+      'Returns users (paginated query). Requires admin role from the database via HasRoleGuard.',
   })
   @ApiResponse({
     status: 200,
@@ -56,24 +54,19 @@ export class AdminController {
     description: 'Forbidden (not admin)',
   })
   async getAllUsers(@Query() query: AdminUsersQueryDto): Promise<GetAdminUsersResponseDto> {
-    // VULN: HasRoleGuard trusts JWT role, doesn't re-check database
     return this.adminService.getAllUsers(query);
   }
 
   /**
    * PUT /admin/users/:id/role — Update a user's role
    *
-   * Guarded by: JwtAuthGuard + HasRoleGuard (requires 'admin' role from metadata)
-   * CWE-639: Role trust from JWT
-   * CWE-862: No additional checks on which user can be modified
-   * CWE-532: No audit trail (logged to stdout, lost on restart)
+   * Guarded by: JwtAuthGuard + HasRoleGuard (`@HasRole('admin')`); DB role is authoritative.
    */
   @Put('users/:id/role')
   @HasRole('admin')
   @ApiOperation({
     summary: 'Update a user role (admin only)',
-    description:
-      'Change any user role from "user" to "admin" (or vice versa). No audit trail. Changes take effect immediately (CWE-862, CWE-532).',
+    description: 'Change a user role. Requires admin from the database via HasRoleGuard.',
   })
   @ApiResponse({
     status: 200,
