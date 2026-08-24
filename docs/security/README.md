@@ -24,7 +24,15 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground tru
 ## Scope
 
 KC-Project Cycles 1–2 closed on secure track (`v2.0.0` / `v2.1.0`).  
-Cycle-3 CTF: branch [`ctf/leak-crack-db`](Cycle-3/README.md) (scenario fork — no product version bump).
+Cycle-3 CTF: branch [`ctf/leak-crack-db`](Cycle-3/README.md) — **Red complete / frozen**; Blue: [Cycle-3/Remediation/](Cycle-3/Remediation/).
+
+## Cycle-3 workspace
+
+| Team | Folder | Primary doc |
+|------|--------|-------------|
+| Developer | [Cycle-3/Dev/](Cycle-3/Dev/) | [box plan](Cycle-3/Dev/ctf-leak-crack-db-box-plan.md) · [ground truth](Cycle-3/Dev/v1-leak-crack-db-ground-truth.md) |
+| Offensive | [Cycle-3/PenTest/](Cycle-3/PenTest/) | [v1-leak-crack-db-writeup.md](Cycle-3/PenTest/v1-leak-crack-db-writeup.md) (**frozen**) |
+| Defensive | [Cycle-3/Remediation/](Cycle-3/Remediation/) | [blue-team-plan.md](Cycle-3/Remediation/blue-team-plan.md) · [fix map](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) |
 
 ## Tools
 

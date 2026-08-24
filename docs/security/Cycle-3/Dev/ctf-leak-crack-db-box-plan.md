@@ -2,7 +2,7 @@
 
 **Branch:** `ctf/leak-crack-db` ← fork tag **`v2.1.0`**  
 **Product version bump:** none ([ADR-032](../../../decisions/ADR-032-post-v2.1.0-versioning.md) when present on `main`)  
-**Status:** Implemented — examiner `./infra/ctf-leak-examiner.sh`  
+**Status:** Design locked — **implemented** · Red writeup **complete** · branch **frozen** (2026-08-24). Blue Team: [../Remediation/blue-team-plan.md](../Remediation/blue-team-plan.md).  
 **Supersedes:** early proposal drafts
 
 One **mandatory linear chain**. No alternate paths, no bonus flags.
