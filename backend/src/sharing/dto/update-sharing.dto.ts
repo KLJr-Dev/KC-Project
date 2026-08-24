@@ -1,16 +1,6 @@
 /**
- * v0.5.0 — Input Validation Pipeline: UpdateSharingDto
- *
- * Request body for PUT /sharing/:id (updates share settings).
- *
- * v0.5.0 adds validators:
- * - public: @IsBoolean, @IsOptional (share visibility toggle)
- * - expiresAt: @IsISO8601, @IsOptional (update expiry time)
- *
- * All fields optional; clients send only what they want to update.
- *
- * VULN (Intentional):
- *   - CWE-639 (IDOR): No ownership check; users can update shares they don't own
+ * Body for PUT /sharing/:id (v2.1.0).
+ * Service enforces owner or admin before update.
  */
 import { IsBoolean, IsISO8601, IsOptional } from 'class-validator';
 

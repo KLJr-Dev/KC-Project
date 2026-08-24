@@ -1,11 +1,6 @@
 /**
- * v0.3.4 -- Public File Sharing
- *
- * Response shape for sharing records. Now includes publicToken for
- * unauthenticated public access.
- *
- * VULN (v0.2.2): ownerId exposed but never enforced (CWE-639).
- * VULN (v0.3.4): publicToken is sequential and predictable (CWE-330).
+ * Sharing record API response (v2.1.0).
+ * Historical (v1.0.0): predictable publicToken / weak ownership — see Cycle-1 writeup.
  */
 export class SharingResponseDto {
   id!: string;

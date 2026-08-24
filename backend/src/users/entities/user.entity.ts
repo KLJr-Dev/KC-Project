@@ -7,7 +7,7 @@
  * - Role column uses user_role_enum; rank checks use ROLE_RANK in auth/roles.ts
  *   (CWE-841), not this entity alone.
  *
- * Residual: sequential string IDs (CWE-330) — accepted until later milestone.
+ * Residual: sequential string IDs (CWE-330) — accepted (see Cycle residuals).
  */
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 

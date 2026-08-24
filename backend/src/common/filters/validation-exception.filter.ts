@@ -8,26 +8,8 @@ import {
 import { Response } from 'express';
 
 /**
- * v0.5.0 — Input Validation Pipeline: ValidationExceptionFilter
- *
- * Custom exception filter to format validation errors consistently.
- * Catches BadRequestException (thrown by ValidationPipe) and transforms
- * the response to include field-level constraint details.
- *
- * Response format:
- * {
- *   "statusCode": 400,
- *   "message": "Bad Request",
- *   "errors": {
- *     "email": ["email must be a valid email address"],
- *     "password": ["password must be at least 1 character"]
- *   },
- *   "timestamp": "2026-03-05T12:34:56.789Z"
- * }
- *
- * VULN (Intentional):
- *   - CWE-209 (Information Exposure): Field-level errors exposed to client
- *     (useful for legitimate users, exploitable for reconnaissance)
+ * Formats ValidationPipe BadRequestException as field-level errors (UX).
+ * Field names in 400s are an accepted residual (recon trade-off vs usable forms).
  */
 @Catch(BadRequestException)
 export class ValidationExceptionFilter implements ExceptionFilter {

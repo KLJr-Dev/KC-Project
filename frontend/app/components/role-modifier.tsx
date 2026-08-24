@@ -1,18 +1,7 @@
 /**
- * v0.4.1-v0.4.3 — Role Modifier Component
- *
- * v0.4.1: Allowed admins to toggle user <-> admin.
- * v0.4.3: Enhanced to support ternary role system (user, moderator, admin).
- *         Now shows a dropdown to select specific role.
- *
- * VULN (v0.4.3): No audit trail or confirmation prompts.
- *       Role changes are instantaneous and permanent (CWE-532).
- *       No role hierarchy documentation — ambiguous whether moderator
- *       can promote to admin or only other admins can (CWE-841).
- *
- * VULN (v0.4.2-v0.4.3): CWE-639 exposed via frontend — if an attacker
- *       modifies localStorage to set role='admin', this component will
- *       show role change buttons (UI-only protection, backend guards matter).
+ * Admin UI role dropdown (v2.1.0).
+ * Calls adminUpdateUserRole; backend HasRoleGuard + ROLE_RANK enforce authz.
+ * UI visibility is not a security boundary.
  */
 'use client';
 
@@ -109,11 +98,9 @@ export function RoleModifier({ user, onRoleChange }: RoleModifierProps) {
         </button>
       </div>
 
-      {/* Vulnerability note */}
-      <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-        <strong>Vulnerability Note:</strong> This role change has no audit trail and takes effect
-        immediately. (CWE-862: Missing Authorization, CWE-532: Sensitive Data Exposure in Log Files)
-      </div>
+      <p className="mt-3 text-xs text-muted">
+        Role changes require admin (server-enforced). Audit events are recorded on the API.
+      </p>
     </div>
   );
 }

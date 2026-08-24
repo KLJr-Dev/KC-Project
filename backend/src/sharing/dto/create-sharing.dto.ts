@@ -1,16 +1,6 @@
 /**
- * v0.5.0 — Input Validation Pipeline: CreateSharingDto
- *
- * Request body for POST /sharing (creates public share link for file).
- *
- * v0.5.0 adds validators:
- * - fileId: @IsString (sequential IDs like "1", "2" — intentional weak validation)
- * - public: @IsBoolean, @IsOptional (defaults false if omitted)
- * - expiresAt: @IsISO8601, @IsOptional (ISO timestamp for share expiry)
- *
- * VULN (Intentional):
- *   - CWE-639 (IDOR): No ownership validation; users can share files they don't own
- *   - CWE-330 (Predictable Tokens): v0.3.x uses sequential tokens (not UUID-based)
+ * Body for POST /sharing (v2.1.0).
+ * Service enforces file ownership before creating a share; tokens are unguessable.
  */
 import { IsString, IsBoolean, IsISO8601, IsOptional, IsNotEmpty } from 'class-validator';
 

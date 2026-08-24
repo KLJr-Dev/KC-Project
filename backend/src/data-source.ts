@@ -5,13 +5,9 @@ import { SharingEntity } from './sharing/entities/sharing.entity';
 import { AuditLog } from './admin/entities/audit-log.entity';
 
 /**
- * v0.2.5 — Persistence Refactoring
- *
- * Standalone DataSource configuration for TypeORM CLI.
- * Used by migration:generate, migration:run, migration:revert scripts.
- * Duplicates the connection config from app.module.ts.
- *
- * VULN: Same hardcoded credentials as app.module.ts (CWE-798 | A07:2025).
+ * Standalone DataSource for TypeORM CLI (migration:generate / run / revert).
+ * Mirrors app connection settings; local CLI defaults use kc_dev credentials.
+ * Production compose uses env-backed secrets (not these defaults).
  */
 export default new DataSource({
   type: 'postgres',
