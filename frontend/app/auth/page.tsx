@@ -1,44 +1,11 @@
 /**
- * v0.1.5 — Authentication Edge Cases
+ * Auth register/login page (v2.1.0).
  *
- * CWE-615 WARNING: This page is client-side rendered ('use client'). All
- * comments, form handling logic, API endpoint names, validation patterns,
- * and auth flow details are shipped to the browser and visible in DevTools.
- * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A02:2025
+ * On success, AuthContext stores the access JWT in memory and relies on the
+ * httpOnly refresh cookie (not localStorage). Password still travels in the
+ * JSON body — use TLS lab profile off loopback.
  *
- * --- Purpose ---
- * Combined register/login page with tab switching. Renders two forms that
- * call authRegister() and authLogin() from lib/api.ts. On success, stores
- * the JWT via AuthContext.login() which writes to localStorage.
- *
- * --- Security notes for this page ---
- *
- * Password in React state: The password field value is held in React state
- * (regPassword / loginPassword). This means it's visible in:
- *   - React DevTools component inspector (state tab)
- *   - Browser memory (until garbage collected after unmount)
- *   - Network tab (sent as JSON in the POST body over plain HTTP)
- * There is no way to avoid holding the password in state for a controlled
- * input, but in v2.0.0 TLS (M7) encrypts it in transit; M6 moves refresh to
- * httpOnly cookies.
- *
- * Client-side validation: validateEmail() provides UX convenience only —
- * it is NOT a security control. The backend is the authority for validation.
- * An attacker can bypass client-side validation trivially (DevTools console,
- * curl, Postman) and send arbitrary data to the API.
- *
- * M5: Backend RegisterDto enforces password policy (min 12, complexity) —
- * CWE-521 remediations. This page may still submit a weak password; the API
- * returns 400. Client-side strength UX remains optional (not required for M5).
- *
- * Form data in Network tab: The full request payload { email, username,
- * password } is visible in the browser's Network tab as a JSON body. In
- * plain HTTP, this is also readable by any network observer (M7 TLS).
- * CWE-319 (Cleartext Transmission) | A04:2025
- *
- * Auth response handling: On successful register/login, the response
- * (including the JWT) is passed to AuthContext.login() which stores it
- * in localStorage. The response is also visible in the Network tab.
+ * Client-side validation is UX only; backend ValidationPipe is authoritative.
  */
 'use client';
 

@@ -17,25 +17,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 /**
- * v0.2.3 — Enumeration Surface
+ * Users controller — /users (v2.1.0).
  *
- * Users controller. RESTful resource at /users. Thin HTTP layer that
- * delegates to UsersService. All handlers are now async because the
- * service hits PostgreSQL via TypeORM.
- *
- * VULN (v0.2.2): JwtAuthGuard enforces authentication (valid JWT required)
- *       but no authorization or ownership checks exist. Any authenticated
- *       user can read, modify, or delete ANY other user's profile by
- *       supplying their sequential ID in the URL.
- *       CWE-639 (Authorization Bypass Through User-Controlled Key) | A01:2025
- *       CWE-862 (Missing Authorization) | A01:2025
- *
- * VULN (v0.2.3): GET /users returns every user to any authenticated user
- *       — no pagination, no limit. Full user table dump. GET /users/:id
- *       with sequential IDs gives 200/404 existence probing (CWE-203).
- *       CWE-200 (Exposure of Sensitive Information) | A01:2025
- *       CWE-400 (Uncontrolled Resource Consumption) | A06:2025
- *       CWE-203 (Observable Discrepancy) | A01:2025
+ * Historical (v1.0.0): any auth user could CRUD any profile / dump all users.
+ * Current: JwtAuthGuard + service-level ownership / scoped list behaviour.
  */
 @Controller('users')
 @UseGuards(JwtAuthGuard)

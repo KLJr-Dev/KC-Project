@@ -1,13 +1,8 @@
 /**
- * v0.3.0 -- File Upload
+ * File metadata API response (v2.1.0).
  *
- * Response shape for file metadata. Now includes mimetype and storagePath
- * from real Multer uploads.
- *
- * VULN (v0.2.2): ownerId exposed but never enforced. CWE-639 | A01:2025
- *
- * VULN (v0.3.0): storagePath exposes the server filesystem path to any
- *       authenticated user. CWE-200 | A01:2025
+ * Historical (v1.0.0): storagePath exposed; ownerId unused for authz.
+ * Current: services omit storagePath from responses; ownership enforced in service layer.
  */
 export class FileResponseDto {
   id!: string;

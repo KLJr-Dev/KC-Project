@@ -1,15 +1,6 @@
 /**
- * v0.5.0 — Input Validation Pipeline: UploadFileDto
- *
- * Optional metadata sent alongside multipart file upload.
- * The actual file comes via @UploadedFile() (Multer), not this DTO.
- *
- * v0.5.0 adds validators:
- * - description: @IsString, @IsOptional (NO max length — CWE-400 unbounded)
- *
- * VULN (Intentional):
- *   - CWE-400 (Uncontrolled Resource Consumption): description field unbounded
- *     DoS via large payloads (e.g., 1GB description string)
+ * Optional metadata with multipart upload (v2.1.0).
+ * File bytes come via @UploadedFile() (Multer), not this DTO.
  */
 import { IsString, IsOptional } from 'class-validator';
 

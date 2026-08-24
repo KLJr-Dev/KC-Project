@@ -8,8 +8,9 @@
  *   before AuthService runs (400 with field errors).
  * - CWE-400: Max lengths prevent oversized payload abuse on hot auth paths.
  *
- * Password is still transmitted in the JSON body until M6/M7 (httpOnly + TLS);
- * hashing at rest is AuthService / UsersService (bcrypt), not this DTO.
+ * Password is sent in the JSON body (use TLS lab profile in non-loopback labs).
+ * Hashing at rest is AuthService / UsersService (bcrypt), not this DTO.
+ * Refresh uses httpOnly cookie (M6); access JWT stays in memory on the client.
  */
 import { IsEmail, IsString, MinLength, MaxLength, IsNotEmpty, Matches } from 'class-validator';
 import {

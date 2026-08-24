@@ -9,23 +9,23 @@ Engineering and technical documentation for KC-Project.
 - [scope.md](spec/scope.md) — system boundaries, product UI vs API
 - [requirements.md](spec/requirements.md) — functional, non-functional, security requirements
 - [personas.md](spec/personas.md) — stakeholders and in-app personas
-- [security-baseline.md](spec/security-baseline.md) — v2.0.0 control checklist
+- [security-baseline.md](spec/security-baseline.md) — secure-product control checklist
 
 ### [architecture/](architecture/)
 
-- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — system overview (v1.0.0 snapshot; `main` is v2.0.0 secure parallel)
-- [auth-flow.md](architecture/auth-flow.md) — auth/RBAC flows, guard inconsistencies
+- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — system overview (v1.0.0 snapshot; `main` is **v2.1.0**)
+- [auth-flow.md](architecture/auth-flow.md) — auth/RBAC flows
 - [data-model.md](architecture/data-model.md) — entities, demo seed IDs, AuditLog
 - [stride.md](architecture/stride.md) — STRIDE per attack surface
 
 ### [decisions/](decisions/)
 
-ADRs 001–031. Index: [decisions/README.md](decisions/README.md). Recent: ADR-028 (product UX), ADR-029 (demo users), ADR-030 (demo files/shares), ADR-031 (Cycle-1 security doc structure).
+ADRs 001–032. Index: [decisions/README.md](decisions/README.md). Recent: ADR-031 (cycle docs), **ADR-032** (post-v2.1.0 versioning).
 
 ### [deploy/](deploy/)
 
 - [demo-users.md](deploy/demo-users.md) — seeded test accounts and files
-- [pentest-journeys.md](deploy/pentest-journeys.md) — exploit journey narratives
+- [pentest-journeys.md](deploy/pentest-journeys.md) — exploit journey narratives (v1.0.0)
 - [vm-deployment.md](deploy/vm-deployment.md) — Ubuntu Docker deploy
 
 ### [diagrams/](diagrams/)
@@ -35,29 +35,31 @@ System architecture, auth flow, threat model, infrastructure, version timeline.
 ### [roadmap/](roadmap/)
 
 - [STRATEGY.md](roadmap/STRATEGY.md) — canonical authority (ADR-027)
+- [PORTFOLIO-VISION.md](roadmap/PORTFOLIO-VISION.md)
 - [ROADMAP.md](roadmap/ROADMAP.md)
 - Summaries: v0.0.x through v0.9.x
 
 ### [security/](security/)
 
-Cycle-1 workspace (ADR-031):
+Cycle workspaces (ADR-031):
 
 ```
-docs/security/Cycle-1/
+docs/security/
+├── Cycle-1/   → closed (v1.0.0 → v2.0.0); PenTest on main
+├── Cycle-2/   → closed (v1.1.0 → v2.1.0); Remediation on main; PenTest on ctf/v1.1.0
 ├── README.md
-├── Dev/           → v1.0.0-ground-truth.md (developer cheat sheet)
-├── PenTest/       → v1.0.0-writeup.md (offensive writeup)
-└── Remediation/   → v2.0.0-remediation.md (defensive target)
+└── cwe-inventory.md
 ```
 
-- [pentest-cheat-sheet.md](security/pentest-cheat-sheet.md) — redirect to ground truth
-- [README.md](security/README.md) — pentest methodology
+- [README.md](security/README.md) — cycle index + methodology
 - [cwe-inventory.md](security/cwe-inventory.md) — 59 instances / 38 CWE IDs
 
 ### [release/](release/)
 
 - [v1.0.0.md](release/v1.0.0.md) — insecure MVP release notes
-- [v1.0.0-pentest-ready.md](release/v1.0.0-pentest-ready.md) — Red gate (passed)
-- [v2.0.0-secure-ready.md](release/v2.0.0-secure-ready.md) — Blue gate (signed; tag `v2.0.0`)
+- [v1.0.0-pentest-ready.md](release/v1.0.0-pentest-ready.md) — Cycle-1 Red gate (passed)
+- [v2.0.0-secure-ready.md](release/v2.0.0-secure-ready.md) — Cycle-1 Blue gate (signed)
+- [v1.1.0-ctf-ready.md](release/v1.1.0-ctf-ready.md) — Cycle-2 CTF gate
+- [v2.1.0-secure-ready.md](release/v2.1.0-secure-ready.md) — Cycle-2 Blue gate (signed; tag `v2.1.0`)
 
 ### [glossary.md](glossary.md)

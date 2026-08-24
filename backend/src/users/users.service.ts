@@ -4,8 +4,8 @@
  * Security measures:
  * - CWE-256: create() / update() hash passwords with bcrypt before write;
  *   responses never include password (toResponse strips it).
- * - CWE-330: Sequential string IDs remain an accepted residual until M8/M9
- *   evaluation — not changed in M5.
+ * - CWE-330: Sequential string IDs remain an accepted residual
+ *   (see Cycle-2 residuals / security-baseline).
  *
  * findEntityByEmail is auth-only (includes password hash for verifyPassword).
  */

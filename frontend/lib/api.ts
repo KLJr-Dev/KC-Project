@@ -1,5 +1,5 @@
 /**
- * M6 / v2.0.0 — Frontend API client.
+ * Frontend API client (v2.1.0).
  *
  * Security measures:
  * - CWE-922: Access JWT read from in-memory holder (access-token.ts), not localStorage.
@@ -8,7 +8,7 @@
  * - CWE-352: Refresh calls send `X-Requested-With: XMLHttpRequest` (CSRF header).
  * - CWE-613: On 401, one silent refresh then retry; logout clears memory + cookie via API.
  *
- * API_BASE is `/api` behind nginx (same-site). TLS cleartext residual until M7.
+ * API_BASE is `/api` behind nginx (same-site). Prefer TLS lab profile for non-loopback.
  */
 import type {
   AuthResponse,
@@ -256,12 +256,7 @@ export async function authLogout(): Promise<{ message: string }> {
 }
 
 // ── Files ────────────────────────────────────────────────────────────
-// File management endpoints. Backed by real Multer multipart uploads
-// on the backend (v0.3.x).
-//
-// VULN (v0.3.0): The backend trusts the client-supplied filename and
-// Content-Type from the multipart upload. This wrapper intentionally
-// does not sanitise them.
+// Multipart upload helper. Backend sanitizes filenames + enforces size/ownership.
 
 /**
  * Multipart upload helper for POST /files.
@@ -354,8 +349,8 @@ export const sharingFriendlyUrl = (token: string) => {
   return `/share/${token}`;
 };
 
-// ── Admin Users (v0.4.1) ──────────────────────────────────────────────
-// v0.4.1: User management endpoints (admin-only, weak authorization).
+// ── Admin Users ───────────────────────────────────────────────────────
+// Admin-only endpoints; backend HasRoleGuard (DB role) is authoritative.
 // CWE-639: Role from JWT trusted, not re-validated from DB.
 // CWE-862: No additional authorization checks.
 // CWE-200: All user emails exposed.

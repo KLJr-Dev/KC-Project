@@ -1,6 +1,6 @@
 # ADR-013: Perpetual Expansion Cycle Versioning
 
-**Status:** Accepted
+**Status:** Accepted — **amended for post-Cycle-2 by [ADR-032](./ADR-032-post-v2.1.0-versioning.md)** (version bumps only on SoftDev surface expansion; CTFs no longer invent new `v1.N.0` product tags)
 
 **Date:** v0.1.x (Identity Surface)
 

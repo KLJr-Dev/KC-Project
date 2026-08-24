@@ -7,13 +7,9 @@ import { AuthModule } from '../auth/auth.module';
 import { FilesModule } from '../files/files.module';
 
 /**
- * v0.3.4 -- Public File Sharing
- *
- * Sharing module. Registers /sharing/* routes and service backed by PostgreSQL.
- * FilesModule imported so the public endpoint can stream files.
- *
- * VULN (v0.2.2): ownerId never checked. CWE-639 | A01:2025
- * VULN (v0.3.4): unauthenticated GET /sharing/public/:token. CWE-285 | A01:2025
+ * Sharing module — /sharing routes (v2.1.0).
+ * Public token download remains intentional product surface; tokens unguessable;
+ * mutate requires owner/admin.
  */
 @Module({
   imports: [TypeOrmModule.forFeature([SharingEntity]), AuthModule, FilesModule],

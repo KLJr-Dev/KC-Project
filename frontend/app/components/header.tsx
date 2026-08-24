@@ -1,50 +1,8 @@
 /**
- * v0.1.5 — Authentication Edge Cases
+ * Global navigation header (v2.1.0).
  *
- * CWE-615 WARNING: This component is client-side rendered ('use client').
- * All comments, the authMe() call, the username display logic, and the
- * auth state check are shipped to the browser. Visible in DevTools Sources
- * tab and React DevTools component inspector.
- * CWE-615 (Inclusion of Sensitive Information in Source Code Comments) | A02:2025
- *
- * --- Purpose ---
- * Global navigation header rendered on every page. Displays:
- *   - "KC" logo link (home)
- *   - "Home" nav link
- *   - Auth state: "Sign In" link (unauthenticated) or "username [role] | Logout" (authenticated)
- *   - Theme toggle (light/dark)
- *   - Admin link (v0.4.0, hidden for non-admins)
- *
- * --- Auth integration (v0.1.4) ---
- * When isAuthenticated is true, the component calls authMe() on mount via
- * useEffect to fetch the current user's profile from GET /auth/me. This
- * proves the JWT session works end-to-end: the token from localStorage is
- * sent as a Bearer header, the backend verifies it, and returns the profile.
- *
- * The username from the response is displayed next to the Logout button.
- * If the authMe() call fails (e.g. token expired/invalid, server down),
- * the component gracefully falls back to showing just "Logout" without a
- * username — no error is surfaced to the user.
- *
- * --- v0.4.0: Role display ---
- * The user's role is now displayed in the header if they are authenticated.
- * The role is read from AuthContext (stored in localStorage and JWT payload).
- * An Admin link is shown conditionally: only visible if isAdmin is true.
- * VULN (v0.4.0): Role shown in the UI is from client-side state only (CWE-639).
- *       An attacker could modify localStorage to show "admin" UI, but
- *       the backend won't grant admin access without a properly signed JWT
- *       with role=admin claim (which requires knowing the JWT secret).
- *
- * --- Logout behaviour (v0.1.4) ---
- * Clicking "Logout" triggers AuthContext.logout(), which:
- *   1. Fires POST /auth/logout (fire-and-forget — backend does nothing)
- *   2. Clears React state + localStorage
- * The JWT is NOT revoked. Any copy of the token remains valid indefinitely.
- * VULN: CWE-613 (Insufficient Session Expiration) | A07:2025
- *
- * Note: The authenticated username, user ID, full API response, and role are
- * visible in the browser's Network tab. The username is also rendered in
- * the DOM (inspectable) and visible in React DevTools' component state.
+ * Auth: access JWT in memory; role from AuthContext (UX only — API enforces).
+ * Logout calls POST /auth/logout (revokes refresh) and clears in-memory access token.
  */
 'use client';
 
