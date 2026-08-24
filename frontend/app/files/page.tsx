@@ -30,24 +30,31 @@ function MyFilesContent() {
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [description, setDescription] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const all = await filesList();
+      const all = await filesList(appliedQuery ? { q: appliedQuery } : undefined);
       setFiles(filesForUser(all, userId));
     } catch (err) {
       setError(formatUserError(err));
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, appliedQuery]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAppliedQuery(searchQuery.trim());
+  };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,15 +152,31 @@ function MyFilesContent() {
       </form>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-sm font-medium text-foreground">Your files</h2>
-          <button
-            type="button"
-            onClick={load}
-            className="text-sm text-muted underline hover:text-foreground"
-          >
-            Refresh
-          </button>
+          <form onSubmit={handleSearch} className="flex flex-1 gap-2 sm:max-w-md sm:justify-end">
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search filename or description"
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              aria-label="Search files"
+            />
+            <button
+              type="submit"
+              className="rounded-md border border-border px-3 py-2 text-sm text-foreground hover:bg-muted/30"
+            >
+              Search
+            </button>
+            <button
+              type="button"
+              onClick={load}
+              className="text-sm text-muted underline hover:text-foreground"
+            >
+              Refresh
+            </button>
+          </form>
         </div>
         {loading ? (
           <LoadingSpinner label="Loading files…" />

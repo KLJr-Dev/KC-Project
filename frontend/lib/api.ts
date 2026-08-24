@@ -296,7 +296,13 @@ export async function filesUploadMultipart(
 
 export const filesGetById = (id: string) => request<FileResponse>(`/files/${id}`);
 
-export const filesList = () => listItems<FileResponse>('/files');
+export const filesList = (opts?: { q?: string }) => {
+  const q = opts?.q?.trim();
+  if (q) {
+    return listItems<FileResponse>(`/files?q=${encodeURIComponent(q)}`);
+  }
+  return listItems<FileResponse>('/files');
+};
 
 export const filesDelete = (id: string) => del<DeleteResponse>(`/files/${id}`);
 
