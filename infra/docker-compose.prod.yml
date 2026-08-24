@@ -1,6 +1,10 @@
-# v2.0.0 — production Docker stack (secure parallel)
+# v2.0.0 / v2.1.0 — production Docker stack (secure parallel)
 # Usage: cp infra/.env.example infra/.env && docker compose -f infra/docker-compose.prod.yml up -d --build
-# Postgres is NOT published on the host (F-05). For Jest e2e from the host, also pass docker-compose.e2e.yml.
+# Postgres is NOT published on the host (F-05 / C2-F03). For Jest e2e from the host, also pass docker-compose.e2e.yml.
+#
+# v2.1.0 least-priv (C2-F07): DB_ADMIN_* owns the database + runs migrations;
+# DB_USER/DB_PASSWORD is the runtime app role (default kc_app, DML only).
+# Fresh volume: postgres/init creates kc_app. Existing volume: backend entrypoint ensures role + grants.
 #
 # M8: mem_limit per service (CWE-770). Prefer Docker secrets (*_FILE) over plaintext
 # env in real deployments — see .env.example.
@@ -10,14 +14,17 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-kc-change-me-prod}
+      POSTGRES_USER: ${DB_ADMIN_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD:-kc-change-me-prod}
       POSTGRES_DB: ${DB_NAME:-kc_prod}
+      DB_APP_USER: ${DB_USER:-kc_app}
+      DB_APP_PASSWORD: ${DB_PASSWORD:-kc-app-change-me}
     volumes:
       - pgdata_prod:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
     mem_limit: 512m
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER}']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -34,8 +41,10 @@ services:
     environment:
       DB_HOST: ${DB_HOST:-postgres}
       DB_PORT: ${DB_PORT:-5432}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-kc-change-me-prod}
+      DB_ADMIN_USER: ${DB_ADMIN_USER:-postgres}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD:-kc-change-me-prod}
+      DB_USER: ${DB_USER:-kc_app}
+      DB_PASSWORD: ${DB_PASSWORD:-kc-app-change-me}
       DB_NAME: ${DB_NAME:-kc_prod}
       PORT: ${PORT:-4000}
       JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-secret}

@@ -19,7 +19,7 @@ for i in $(seq 1 30); do
 done
 docker compose -f "$COMPOSE_FILE" -f "$E2E_OVERLAY" exec -T postgres pg_isready -U postgres
 
-DB_PASSWORD="${DB_PASSWORD:-}"
+DB_PASSWORD="${DB_ADMIN_PASSWORD:-${DB_PASSWORD:-}}"
 if [[ -z "$DB_PASSWORD" && -f "${ROOT}/infra/.env" ]]; then
   # shellcheck disable=SC1091
   set -a
@@ -27,17 +27,19 @@ if [[ -z "$DB_PASSWORD" && -f "${ROOT}/infra/.env" ]]; then
   source "${ROOT}/infra/.env"
   set +a
 fi
-DB_PASSWORD="${DB_PASSWORD:-kc-change-me-prod}"
+# Jest e2e needs DDL (synchronize) — connect as admin, not kc_app
+DB_PASSWORD="${DB_ADMIN_PASSWORD:-${DB_PASSWORD:-kc-change-me-prod}}"
 
 echo "Running e2e against kc_prod on localhost:5433..."
 cd "${ROOT}/backend"
 DB_HOST=localhost \
 DB_PORT=5433 \
-DB_USER=postgres \
+DB_USER="${DB_ADMIN_USER:-postgres}" \
 DB_PASSWORD="$DB_PASSWORD" \
 DB_NAME=kc_prod \
 JWT_SECRET=test-e2e-jwt-secret \
 JWT_EXPIRES_IN=1h \
+MIGRATIONS_RUN=false \
 npm run test:e2e
 
 echo "E2E passed against Docker postgres."

@@ -110,7 +110,7 @@ export class SeedDemoFilesAndShares1771440000000 implements MigrationInterface {
       await queryRunner.query(
         `INSERT INTO "file_entity"
           (id, "ownerId", filename, mimetype, "storagePath", size, description, "approvalStatus", "uploadedAt")
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::file_entity_approvalstatus_enum, $9)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text::file_approval_enum, $9)`,
         [
           f.id,
           f.ownerId,

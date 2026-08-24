@@ -9,13 +9,8 @@ import { AuthModule } from '../auth/auth.module';
 import { AuditModule } from '../audit/audit.module';
 
 /**
- * v0.4.1 — Admin Endpoints & Weak Guards
- *
- * Admin module manages administrative operations over User entities.
- * AuthModule imported to provide guards for role-based access.
- *
- * VULN (v0.4.1): HasRoleGuard trusts JWT role claim, doesn't re-check DB.
- * VULN (v0.4.1): Admin endpoints don't have rate limiting or audit trails.
+ * Admin module — administrative operations over User / audit entities.
+ * AuthModule provides JwtAuthGuard + HasRoleGuard (DB role is authoritative).
  */
 @Module({
   imports: [TypeOrmModule.forFeature([User, FileEntity, SharingEntity]), AuthModule, AuditModule],
