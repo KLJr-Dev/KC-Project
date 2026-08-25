@@ -14,6 +14,7 @@ Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+
 |------|--------------|----------|-------|
 | **Secure / lab (primary)** | `docker-compose.prod.yml` | Day-to-day, journeys, smoke (**loopback HTTP OK**) | `http://localhost:8080` |
 | **TLS profile** | `prod` + `docker-compose.tls.yml` | **Required for LAN / recruiter secure demos**; HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
+| **SSH foothold (Cycle-4 SoftDev)** | `prod` + `docker-compose.ssh.yml` | Intentional `v1.2.0` lab chain only — user `lab` on host `:2222` | SSH `:2222` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 
 **LAN / off-loopback:** Do not advertise cleartext `:8080` on a reachable NIC as “secure.” Use the TLS overlay (or terminate TLS elsewhere). Loopback HTTP remains an accepted residual (R-01).
@@ -103,6 +104,8 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 | Script | Prereq | Purpose |
 |--------|--------|---------|
 | `assert-pg-unpublished.sh` | compose file | Prod compose must not publish `:5433` (C2-F03) |
+| `assert-ssh-unpublished.sh` | compose file | Prod compose must not publish `:2222` (SSH overlay-only) |
+| `cycle4-ssh-examiner.sh` | Prod + `docker-compose.ssh.yml` | F3 + loot dry-run for Cycle-4 SoftDev |
 | `smoke-test.sh` | Full prod stack on `:8080` | PG unpublished assert + health → register → upload → list + demo login |
 | `journey-test.sh` | Full prod stack | 3 roles, demo share token API+UI, mod pending, admin files, IDOR deny |
 | `tls-smoke.sh` | Prod + `docker-compose.tls.yml` on `:8443` | HTTPS health, HSTS, HTTP→HTTPS redirect, Secure cookie |
@@ -110,7 +113,14 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 | `e2e-docker.sh` | Docker available | Backend e2e vs `kc_prod` via `docker-compose.e2e.yml` host `:5433` (admin user) |
 | `vm-setup.sh` | Ubuntu + sudo | Install Docker, clone repo, prod stack, smoke + journey |
 
-Env overrides: `BASE_URL` (default `http://localhost:8080/api`), `APP_URL` (default `http://localhost:8080`).
+### Cycle-4 SSH overlay (SoftDev / `v1.2.0` only)
+
+```bash
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ssh.yml up -d --build
+./infra/assert-ssh-unpublished.sh
+./infra/cycle4-ssh-examiner.sh
+# Player: ssh -p 2222 lab@<box>   # password in admin ops note (seed)
+```
 
 ### Full verify gate
 
