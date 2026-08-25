@@ -1,15 +1,15 @@
 # Security Cycle 4 — Notes + SSH foothold (SoftDev)
 
-**Status:** **Planned** · SoftDev security cycle ([ADR-033](../../decisions/ADR-033-cycle-4-softdev-version-pair.md))  
+**Status:** SoftDev **complete on `dev`** · gate pending (`main` + tag) · [ADR-033](../../decisions/ADR-033-cycle-4-softdev-version-pair.md)  
 **Versions:** `v1.2.0` (insecure) → Red → `v2.2.0` (secure)  
 **Baseline:** tag / tip **`v2.1.0`** on `main`  
 **Ceiling:** Logical path to SSH → **file enum / user flag** — **not** PrivEsc ([Cycle-5](../Cycle-5/README.md) takes shells + root)
 
 | Track | Role | Status |
 |-------|------|--------|
-| SoftDev (`backend` / `frontend` / `dev` → `main`) | Intentional insecure Notes on **`main`** | **Next** — [decisions](Dev/v1.2.0-decisions.md) · [execution](Dev/v1.2.0-execution-plan.md) |
-| Tag **`v1.2.0`** (+ archive `ctf/v1.2.0`) | Pentest-ready insecure tip | Pending |
-| PenTest | Red (F1–F3; foothold only) | Pending |
+| SoftDev (`backend` / `frontend` / `dev` → `main`) | Intentional insecure Notes on **`main`** | **`dev` tip ready** — [status](Dev/v1.2.0-softdev-status.md) · [pentest-ready](../../release/v1.2.0-pentest-ready.md) |
+| Tag **`v1.2.0`** (+ archive `ctf/v1.2.0`) | Pentest-ready insecure tip | Pending PR → `main` |
+| PenTest | Red (F1–F3; foothold only) | Pending freeze |
 | **`remediation/v2.2.0`** → tag **`v2.2.0`** | Harden Notes; no default SSH | Pending |
 
 ---
@@ -31,9 +31,9 @@ Detail: [Dev/v1.2.0-box-plan.md](Dev/v1.2.0-box-plan.md) · [Cycle-5 sketch](../
 
 | Audience | Start here | Spoilers? |
 |----------|------------|-----------|
-| **Dev / build** | [Dev/v1.2.0-execution-plan.md](Dev/v1.2.0-execution-plan.md) · [box plan](Dev/v1.2.0-box-plan.md) | Yes |
-| **Player** | (after release) player brief under Dev/ | No |
-| **Red** | PenTest/ (after freeze) | Yes |
+| **Dev / build** | [Dev/v1.2.0-execution-plan.md](Dev/v1.2.0-execution-plan.md) · [status](Dev/v1.2.0-softdev-status.md) | Yes |
+| **Player** | [Dev/v1.2.0-player-brief.md](Dev/v1.2.0-player-brief.md) | No |
+| **Red** | PenTest/ (after freeze) · GT for examiner | Yes |
 | **Blue** | Remediation/ (after Red) | Yes |
 
 ## Team folders
