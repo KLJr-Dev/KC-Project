@@ -1,6 +1,6 @@
 # Frontend
 
-Next.js App Router UI for **KC-Project** on the secure tip track (`remediation/v2.2.0` → tag **`v2.2.0`**).
+Next.js App Router UI for **KC-Project** secure tip (tag **`v2.2.0`**).
 
 The frontend is an **untrusted client**. Product pages apply client-side filtering; the API is the real security boundary. Notes body is **plain text** (React-escaped) — C4-F01 closed ([ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 

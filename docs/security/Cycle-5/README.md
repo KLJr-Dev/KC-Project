@@ -1,8 +1,8 @@
 # Security Cycle 5 — Shells & PrivEsc
 
-**Status:** **Sketch** · starts after Cycle-4 Blue (`v2.2.0`)  
+**Status:** **Sketch** · Cycle-4 Blue done — plan from tag **`v2.2.0`**  
 **Versions (locked):** **`v1.3.0`** (insecure) → Red → **`v2.3.0`** (secure)  
-**Depends on:** Cycle-4 SSH foothold ([../Cycle-4/Dev/v1.2.0-box-plan.md](../Cycle-4/Dev/v1.2.0-box-plan.md))
+**Depends on:** Cycle-4 SSH foothold ([../Cycle-4/Dev/v1.2.0-box-plan.md](../Cycle-4/Dev/v1.2.0-box-plan.md); replay on `ctf/v1.2.0`)
 
 | Track | Intent |
 |-------|--------|
@@ -25,7 +25,7 @@ Foothold (Cycle-4) → **stable shell** → enum → **PrivEsc** → `root.txt` 
 
 | Folder | Purpose |
 |--------|---------|
-| [Dev/](Dev/) | Sketch now; full box plan when C4 Blue nears done |
+| [Dev/](Dev/) | Sketch now; full box plan next (Blue `v2.2.0` already shipped) |
 | PenTest/ · Remediation/ | Create when C5 starts |
 
 ## References

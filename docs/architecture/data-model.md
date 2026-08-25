@@ -1,12 +1,12 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Historical sections describe the **v1.0.0** PostgreSQL schema; SoftDev tip adds **`note_entity`** ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
+Entity definitions and relationships for KC-Project. Historical sections describe the **v1.0.0** PostgreSQL schema; **`note_entity`** is the Cycle-4 Notes domain ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-Demo seed IDs: users 9001–9004, files 9101–9104, notes 9201–9206, share token `share-1`. See [demo-users.md](../deploy/demo-users.md) and [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md).
+Demo seed IDs: users 9001–9004, files 9101–9104, notes 9201–9206, share token `share-1`. See [demo-users.md](../deploy/demo-users.md). Insecure plant GT: [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md) on `ctf/v1.2.0`.
 
 ---
 
-## SoftDev tip — Note entity (`v1.2.0`)
+## Note entity (product tip `v2.2.0`)
 
 | Table | Entity | Notes |
 |-------|--------|-------|
@@ -22,7 +22,7 @@ class NoteEntity {
   @Column()
   title: string;
   @Column({ type: 'text' })
-  body: string;                  // HTML/MD — XSS via insecure UI render
+  body: string;                  // Untrusted text; UI React-escapes (C4-F01)
   @Column({ default: false })
   flagged: boolean;
   @Column({ nullable: true })
@@ -64,9 +64,9 @@ PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize
 | `file_entity` | `FileEntity` | File metadata from Multer uploads. |
 | `sharing_entity` | `SharingEntity` | Share links + `publicToken`. |
 | `audit_log` | `AuditLog` | Persistent audit records (v0.6.0). |
-| `note_entity` | `NoteEntity` | SoftDev addition (above). |
+| `note_entity` | `NoteEntity` | Cycle-4 Notes domain (above). |
 
-All early tables used `@PrimaryColumn()` with manually assigned sequential string IDs — residual on SoftDev tip for Notes IDs as well.
+All early tables used `@PrimaryColumn()` with manually assigned sequential string IDs — residual on tip for Notes IDs as well.
 
 ### User Entity (v1.0.0)
 

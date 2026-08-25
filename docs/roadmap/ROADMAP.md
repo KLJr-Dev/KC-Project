@@ -44,7 +44,7 @@ Canonical pairs and CTF-only policy: [STRATEGY.md](STRATEGY.md) · [ADR-032](../
 - **v1.0.0 / v2.0.0** — Cycle-1 SoftDev pair (closed)
 - **v1.1.0 / v2.1.0** — Cycle-2 SoftDev pair (closed; last hardened product tag before Cycle-4 SoftDev)
 - **Cycle-3** — CTF-only (`ctf/leak-crack-db`); no product bump
-- **v1.2.0 / v2.2.0** — Cycle-4 SoftDev: Notes XSS + SSH → harden Notes / no default SSH (tip on `main`; tag pending)
+- **v1.2.0 / v2.2.0** — Cycle-4 SoftDev **closed**: Notes XSS + SSH → harden Notes / no default SSH (tags shipped)
 - **v1.3.0 / v2.3.0** — Cycle-5 SoftDev sketch: shells + PrivEsc
 
 - v1.0.0 — Insecure MVP (59 instances / 38 CWE IDs across 6 attack surfaces)
@@ -831,6 +831,8 @@ Goal: Production-grade infrastructure and operational security hardening (applie
 
 ## v2.2.0 — Hardened Parallel Release (v1.1.0 CWEs)
 
+> **Superseded by ADR-033.** The shipped tag **`v2.2.0`** is Cycle-4 Blue (Notes harden / no default SSH), **not** “fix the ten speculative v1.1.0 CWEs” below. Treat this section as historical expansion speculation only. See [STRATEGY.md](STRATEGY.md) SoftDev pair and [v2.2.0-secure-ready.md](../release/v2.2.0-secure-ready.md).
+
 Goal: Remediate all v1.1.0 vulnerabilities (the new 10 CWEs introduced in v1.1.0).
 
 - Based on v2.1.0 codebase (v1.0.0 CWEs fixed + ops hardened)
@@ -839,6 +841,8 @@ Goal: Remediate all v1.1.0 vulnerabilities (the new 10 CWEs introduced in v1.1.0
 - Feature parity with all prior versions
 
 ## Post-v2.2.0 — Perpetual Expansion Cycle
+
+> **Partially obsolete.** Shipped Cycle-4 already used **`v1.2.0`/`v2.2.0`** for Notes+SSH ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)). The race/cache/`none` algorithm sketch for `v1.2.0` below did **not** ship. Next SoftDev sketch is Cycle-5 `v1.3.0`/`v2.3.0`.
 
 After v2.2.0, the project continues the expansion loop (see [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md)):
 

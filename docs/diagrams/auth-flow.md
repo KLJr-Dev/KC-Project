@@ -1,6 +1,6 @@
 # Authentication Flow
 
-> **Canonical narrative:** [architecture/auth-flow.md](../architecture/auth-flow.md) (includes SoftDev Notes authz). Notes→SSH: [notes-ssh-path.md](notes-ssh-path.md).
+> **Canonical narrative:** [architecture/auth-flow.md](../architecture/auth-flow.md) (includes Notes authz). Notes→SSH replay: [notes-ssh-path.md](notes-ssh-path.md).
 
 Authentication flows across the project lifecycle. Each section shows how the auth surface evolves, with intentional weaknesses documented and classified.
 

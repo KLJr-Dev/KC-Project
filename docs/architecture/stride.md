@@ -1,17 +1,17 @@
 # STRIDE Threat Model
 
-STRIDE analysis mapped to attack surfaces in [threat-model.md](../diagrams/threat-model.md). Cycle-1 inventory: [cwe-inventory.md](../security/cwe-inventory.md). SoftDev Notes XSS path: [notes-ssh-path.md](../diagrams/notes-ssh-path.md).
+STRIDE analysis mapped to attack surfaces in [threat-model.md](../diagrams/threat-model.md). Cycle-1 inventory: [cwe-inventory.md](../security/cwe-inventory.md). Cycle-4 Notes XSS path (replay): [notes-ssh-path.md](../diagrams/notes-ssh-path.md).
 
 ---
 
-## SoftDev Notes + SSH (Cycle-4 tip)
+## SoftDev Notes + SSH (Cycle-4 `v1.2.0` replay; closed on `v2.2.0`)
 
 | STRIDE | Threat | Notes |
 |--------|--------|-------|
-| **Tampering** | Stored XSS via note body HTML/MD | CWE-79; UI sinks intentional on tip |
-| **Tampering** | Inline SVG/HTML attachment | XSS candy; `Content-Disposition: inline` |
-| **Information Disclosure** | Privileged note read (ops SSH plant) | Mod/admin or stolen session |
-| **Elevation of Privilege** | SSH foothold as `lab` | Overlay only; no PrivEsc on tip |
+| **Tampering** | Stored XSS via note body HTML/MD | CWE-79; intentional on SoftDev tip; closed on `v2.2.0` |
+| **Tampering** | Inline SVG/HTML attachment | XSS candy on SoftDev tip; rejected / download on `v2.2.0` |
+| **Information Disclosure** | Privileged note read (ops SSH plant) | SoftDev tip only; neutralized on `v2.2.0` |
+| **Elevation of Privilege** | SSH foothold as `lab` | Overlay only; no PrivEsc on Cycle-4 |
 
 ---
 

@@ -1,10 +1,32 @@
 # System Architecture
 
-System topology across lifecycle stages. SoftDev tip on `main` adds Notes + optional SSH overlay ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
+System topology across lifecycle stages. Product tip **`v2.2.0`** keeps Notes without default SSH; SoftDev replay adds SSH overlay ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
 ---
 
-## SoftDev tip (current `main`) — Notes + optional SSH
+## Product tip (`v2.2.0`) — Notes, no default SSH
+
+Web stack: `infra/docker-compose.prod.yml` (Postgres **not** published). SSH overlay is **not** part of day-to-day secure demos.
+
+```mermaid
+flowchart LR
+  Browser["Browser\n:8080"]
+  Nginx["nginx"]
+  Frontend["Next.js\n/files /notes …"]
+  Backend["NestJS\n+ NotesModule"]
+  PG["PostgreSQL\ninternal"]
+
+  Browser --> Nginx
+  Nginx --> Frontend
+  Nginx --> Backend
+  Backend --> PG
+```
+
+Hardened demos: pin **`v2.2.0`**. Replay Notes→SSH: [notes-ssh-path.md](notes-ssh-path.md) on tag/`ctf/v1.2.0` + `docker-compose.ssh.yml`.
+
+---
+
+## SoftDev replay (`v1.2.0`) — Notes + optional SSH
 
 Web stack: `infra/docker-compose.prod.yml` (Postgres **not** published). Full chain: add `infra/docker-compose.ssh.yml`.
 
@@ -25,13 +47,13 @@ flowchart LR
   SshClient -.->|"overlay only"| Ssh
 ```
 
-Path diagram: [notes-ssh-path.md](notes-ssh-path.md). Pin tag **`v2.1.0`** for hardened demos until **`v2.2.0`**.
+Path diagram: [notes-ssh-path.md](notes-ssh-path.md).
 
 ---
 
 ## Historical — v1.0.0 Docker prod
 
-Full stack in `infra/docker-compose.prod.yml`. nginx at `:8080`. On Cycle-1 tip, PostgreSQL was published for e2e (`:5433`); SoftDev tip keeps PG unpublished on prod compose.
+Full stack in `infra/docker-compose.prod.yml`. nginx at `:8080`. On Cycle-1 tip, PostgreSQL was published for e2e (`:5433`); secure tip keeps PG unpublished on prod compose.
 
 ```mermaid
 flowchart LR
@@ -52,9 +74,9 @@ flowchart LR
 
 - **nginx** — Reverse proxy `/` → frontend, `/api` → backend.
 - **Frontend** — Product UI including SoftDev `/notes`; gated `/dev/*`.
-- **Backend** — Domain modules including SoftDev **Notes**.
+- **Backend** — Domain modules including **Notes**.
 - **Database** — PostgreSQL 16, `pgdata_prod` / `kc_prod`.
-- **SSH (SoftDev)** — Optional overlay only; assert with `assert-ssh-unpublished.sh`.
+- **SSH (lab replay)** — Optional overlay only (`v1.2.0`); assert with `assert-ssh-unpublished.sh`.
 
 ### Dev path (secondary)
 

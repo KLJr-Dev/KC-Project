@@ -1,10 +1,10 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: SoftDev **intentional insecure** Notes + SSH on `main` (tag **`v1.2.0`** pending) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)  
-**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3  
-**Last secure product tag**: **`v2.1.0`** (pin for hardened demos until **`v2.2.0`**)  
-**Next**: Red (F1–F3) → `remediation/v2.2.0` → Cycle-5 shells/PrivEsc ([Cycle-4](../security/Cycle-4/README.md); [Cycle-5 sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md))
+**Current tip**: Secure product **`v2.2.0`** on `main` (Notes kept; XSS closed; no default SSH) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)  
+**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4  
+**Insecure replay**: tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + optional SSH overlay  
+**Next**: Cycle-5 shells/PrivEsc ([Cycle-5 sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md); fork from **`v2.2.0`**)
 
 ---
 

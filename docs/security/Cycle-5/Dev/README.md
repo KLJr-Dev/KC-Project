@@ -3,6 +3,6 @@
 | Doc | Purpose |
 |-----|---------|
 | [shells-privesc-sketch.md](shells-privesc-sketch.md) | Scope ceiling, versioning options, plant ideas |
-| `v*-box-plan.md` | (pending) full plan when Cycle-4 Blue lands |
+| `v*-box-plan.md` | (pending) full plan — Cycle-4 Blue (`v2.2.0`) is done; unblocked |
 
 Parent: [../README.md](../README.md)
