@@ -32,7 +32,7 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground tru
 - [v1.1.0-ctf-ready.md](../release/v1.1.0-ctf-ready.md) — Cycle-2 CTF gate
 - [v2.1.0-secure-ready.md](../release/v2.1.0-secure-ready.md) — Cycle-2 Blue gate (**signed**)
 - [cycle-3-leak-crack-db-secure-ready.md](../release/cycle-3-leak-crack-db-secure-ready.md) — Cycle-3 Blue gate (**signed**)
-- [v1.2.0-pentest-ready.md](../release/v1.2.0-pentest-ready.md) — Cycle-4 SoftDev Red gate (**unsigned until merge/tag**)
+- [v1.2.0-pentest-ready.md](../release/v1.2.0-pentest-ready.md) — Cycle-4 SoftDev Red gate (**signed** · tag `v1.2.0`)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
 - [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — CTF-only cycles without product version bumps
 - [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — SoftDev Cycle-4 pair `v1.2.0`→`v2.2.0`
