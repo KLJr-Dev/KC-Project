@@ -1,5 +1,5 @@
 /**
- * POST /notes body (JSON create — multipart attachment added in P1c).
+ * POST /notes body — JSON fields or multipart form fields (optional `attachment` file).
  */
 import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 

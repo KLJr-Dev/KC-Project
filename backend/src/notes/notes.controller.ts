@@ -8,8 +8,15 @@ import {
   Post,
   Put,
   Query,
+  Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import type { Response } from 'express';
+import { existsSync, unlinkSync } from 'fs';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
@@ -19,29 +26,104 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { HasRole, HasRoleGuard } from '../auth/guards/has-role.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
+import { assertPathInsideUploads } from '../files/storage-path.util';
+import {
+  NOTE_ATTACHMENT_SIZE_LIMIT,
+  notesUploadsDir,
+  sanitizeNoteAttachmentFilename,
+  shouldInlineNoteAttachment,
+} from './notes-upload';
 
 /**
  * Notes HTTP API — Cycle-4 SoftDev (`v1.2.0`).
  *
  * Class guards reload DB role via HasRoleGuard (same as Files).
  * Flag requires moderator|admin; delete-any is service-enforced for admin.
- * Attachment upload/download lands in P1c.
+ *
+ * Attachments (P1c): optional multipart field `attachment`; SVG/HTML allowed and
+ * may be served inline on this insecure tip (XSS). JSON POST without file still works
+ * when clients send application/json (no FileInterceptor on a separate path) —
+ * we use FileInterceptor on POST/PUT; for pure JSON, multer leaves file undefined
+ * if Content-Type is not multipart (Nest still parses JSON body).
  */
 @Controller('notes')
 @UseGuards(JwtAuthGuard, HasRoleGuard)
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
-  /** POST /notes — create note owned by caller. */
+  /** POST /notes — JSON or multipart (+ optional attachment). */
   @Post()
-  async create(@Body() dto: CreateNoteDto, @CurrentUser() user: JwtPayload) {
-    return this.notesService.create(dto, user.sub);
+  @UseInterceptors(
+    FileInterceptor('attachment', {
+      limits: { fileSize: NOTE_ATTACHMENT_SIZE_LIMIT },
+      storage: diskStorage({
+        destination: (_req, _file, cb) => {
+          try {
+            cb(null, notesUploadsDir());
+          } catch (err) {
+            cb(err as Error, '');
+          }
+        },
+        filename: (_req, file, cb) => {
+          try {
+            cb(null, sanitizeNoteAttachmentFilename(file.originalname));
+          } catch (err) {
+            cb(err as Error, '');
+          }
+        },
+      }),
+    }),
+  )
+  async create(
+    @Body() dto: CreateNoteDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    try {
+      return await this.notesService.create(dto, user.sub, file);
+    } catch (err) {
+      if (file?.path && existsSync(file.path)) {
+        unlinkSync(file.path);
+      }
+      throw err;
+    }
   }
 
   /** GET /notes — paginated list; optional parameterized `q` search. */
   @Get()
   async findAll(@Query() query: NotesQueryDto, @CurrentUser() user: JwtPayload) {
     return this.notesService.findAll(query, user.sub, user.role || 'user');
+  }
+
+  /**
+   * GET /notes/:id/attachment — stream file; inline for svg/html on v1.2.0.
+   * Registered before GET :id so Nest matches the static suffix.
+   */
+  @Get(':id/attachment')
+  async downloadAttachment(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+    @Res() res: Response,
+  ) {
+    const meta = await this.notesService.getAttachmentMeta(
+      id,
+      user.sub,
+      user.role || 'user',
+    );
+    if (!meta) throw new NotFoundException();
+
+    const safePath = assertPathInsideUploads(meta.storagePath);
+    if (!existsSync(safePath)) throw new NotFoundException();
+
+    const mime = meta.mimetype || 'application/octet-stream';
+    res.set('Content-Type', mime);
+    if (shouldInlineNoteAttachment(mime)) {
+      // Insecure tip: browser may execute SVG/HTML (intentional XSS surface).
+      res.set('Content-Disposition', `inline; filename="${meta.filename}"`);
+    } else {
+      res.set('Content-Disposition', `attachment; filename="${meta.filename}"`);
+    }
+    res.sendFile(safePath);
   }
 
   /** GET /notes/:id — metadata + body (XSS sink is frontend render). */
@@ -52,16 +134,45 @@ export class NotesController {
     return note;
   }
 
-  /** PUT /notes/:id — owner-only update. */
+  /** PUT /notes/:id — owner-only update; optional replacement attachment. */
   @Put(':id')
+  @UseInterceptors(
+    FileInterceptor('attachment', {
+      limits: { fileSize: NOTE_ATTACHMENT_SIZE_LIMIT },
+      storage: diskStorage({
+        destination: (_req, _file, cb) => {
+          try {
+            cb(null, notesUploadsDir());
+          } catch (err) {
+            cb(err as Error, '');
+          }
+        },
+        filename: (_req, file, cb) => {
+          try {
+            cb(null, sanitizeNoteAttachmentFilename(file.originalname));
+          } catch (err) {
+            cb(err as Error, '');
+          }
+        },
+      }),
+    }),
+  )
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateNoteDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentUser() user: JwtPayload,
   ) {
-    const note = await this.notesService.update(id, dto, user.sub);
-    if (!note) throw new NotFoundException();
-    return note;
+    try {
+      const note = await this.notesService.update(id, dto, user.sub, file);
+      if (!note) throw new NotFoundException();
+      return note;
+    } catch (err) {
+      if (file?.path && existsSync(file.path)) {
+        unlinkSync(file.path);
+      }
+      throw err;
+    }
   }
 
   /** DELETE /notes/:id — owner or admin. */

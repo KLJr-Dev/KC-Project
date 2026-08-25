@@ -1,12 +1,16 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { unlink } from 'fs/promises';
+import { basename } from 'path';
+import { existsSync } from 'fs';
 import { NoteEntity } from './entities/note.entity';
 import { NoteResponseDto } from './dto/note-response.dto';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { NotesQueryDto } from './dto/notes-query.dto';
 import { buildPaginatedResponse, resolvePagination } from '../common/pagination.util';
+import { assertNoteAttachment } from './notes-upload';
 
 /**
  * Notes service — Cycle-4 SoftDev (`v1.2.0`).
@@ -19,6 +23,7 @@ import { buildPaginatedResponse, resolvePagination } from '../common/pagination.
  * - flag: enforced at controller via @HasRole(['admin','moderator'])
  *
  * Search: TypeORM ILike on title/body when `q` present — parameterized, not concat.
+ * Attachments: optional; SVG/HTML allowed on insecure tip (see notes-upload.ts).
  */
 @Injectable()
 export class NotesService {
@@ -59,7 +64,27 @@ export class NotesService {
     throw new ForbiddenException('You do not have access to this note');
   }
 
-  async create(dto: CreateNoteDto, ownerId: string): Promise<NoteResponseDto> {
+  private applyAttachment(entity: NoteEntity, file: Express.Multer.File): void {
+    const verified = assertNoteAttachment(file.path, file.mimetype);
+    entity.attachmentFilename = basename(file.originalname || 'upload');
+    entity.attachmentMimetype = verified.mimetype;
+    entity.attachmentStoragePath = file.path;
+  }
+
+  private async unlinkAttachment(entity: NoteEntity): Promise<void> {
+    if (!entity.attachmentStoragePath) return;
+    try {
+      await unlink(entity.attachmentStoragePath);
+    } catch {
+      /* missing file on disk is non-fatal for DB delete */
+    }
+  }
+
+  async create(
+    dto: CreateNoteDto,
+    ownerId: string,
+    file?: Express.Multer.File,
+  ): Promise<NoteResponseDto> {
     const count = await this.noteRepo.count();
     const now = new Date().toISOString();
     const entity = this.noteRepo.create({
@@ -71,6 +96,9 @@ export class NotesService {
       createdAt: now,
       updatedAt: now,
     });
+    if (file) {
+      this.applyAttachment(entity, file);
+    }
     const saved = await this.noteRepo.save(entity);
     return this.toResponse(saved);
   }
@@ -115,12 +143,17 @@ export class NotesService {
     id: string,
     dto: UpdateNoteDto,
     callerId: string,
+    file?: Express.Multer.File,
   ): Promise<NoteResponseDto | null> {
     const entity = await this.noteRepo.findOne({ where: { id } });
     if (!entity) return null;
     this.assertCanUpdate(entity, callerId);
     if (dto.title !== undefined) entity.title = dto.title;
     if (dto.body !== undefined) entity.body = dto.body;
+    if (file) {
+      await this.unlinkAttachment(entity);
+      this.applyAttachment(entity, file);
+    }
     entity.updatedAt = new Date().toISOString();
     const saved = await this.noteRepo.save(entity);
     return this.toResponse(saved);
@@ -130,6 +163,7 @@ export class NotesService {
     const entity = await this.noteRepo.findOne({ where: { id } });
     if (!entity) return false;
     this.assertCanDelete(entity, callerId, callerRole);
+    await this.unlinkAttachment(entity);
     await this.noteRepo.remove(entity);
     return true;
   }
@@ -146,5 +180,26 @@ export class NotesService {
     entity.updatedAt = new Date().toISOString();
     const saved = await this.noteRepo.save(entity);
     return this.toResponse(saved);
+  }
+
+  /** Attachment meta for streaming — same read authz as getById. */
+  async getAttachmentMeta(
+    id: string,
+    callerId: string,
+    callerRole: string,
+  ): Promise<{
+    storagePath: string;
+    filename: string;
+    mimetype?: string;
+  } | null> {
+    const entity = await this.noteRepo.findOne({ where: { id } });
+    if (!entity || !entity.attachmentStoragePath) return null;
+    this.assertCanRead(entity, callerId, callerRole);
+    if (!existsSync(entity.attachmentStoragePath)) return null;
+    return {
+      storagePath: entity.attachmentStoragePath,
+      filename: entity.attachmentFilename || 'attachment',
+      mimetype: entity.attachmentMimetype,
+    };
   }
 }
