@@ -135,13 +135,13 @@ Cycles 1–2 used [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md
 
 | Kind | Remotes | Policy |
 |------|---------|--------|
-| Product tip | `main` | SoftDev insecure tip until `v2.2.0`; pin tag `v2.1.0` for hardened demos |
+| Product tip | `main` | After merge: secure Notes tip (`v2.2.0`); pin tags for demos |
 | SoftDev rails | `backend`, `frontend`, `dev` | **Keep names**; reset from `main` at each SoftDev cycle start |
 | Frozen archives | `ctf/v1.1.0`, `ctf/v1.2.0`, `ctf/leak-crack-db`, `remediation/v2.0.0`, `remediation/v2.1.0`, `remediation/cycle-3-leak-crack-db` | **Keep forever** (portfolio evidence) |
-| Next Blue | later `remediation/v2.2.0` | Create after Red |
+| Active Blue | `remediation/v2.2.0` | Freeze after tag `v2.2.0` |
 
 ```
-main                              Product tip (SoftDev insecure Notes+SSH; pin v2.1.0 for secure demos)
+main                              Product tip (→ v2.2.0 secure Notes; pin v1.2.0 for insecure replay)
  ├── backend                       SoftDev rail — Nest/API (reset from main each SoftDev cycle)
  ├── frontend                      SoftDev rail — Next UI
  ├── dev                           SoftDev rail — integration → PR main
@@ -150,6 +150,7 @@ main                              Product tip (SoftDev insecure Notes+SSH; pin v
  ├── ctf/v1.2.0                    Frozen Cycle-4 SoftDev tip + Red evidence
  ├── remediation/v2.0.0            Frozen Cycle-1 Blue history
  ├── remediation/v2.1.0            Frozen Cycle-2 Blue history
+ ├── remediation/v2.2.0            Cycle-4 Blue (active → freeze at tag)
  └── remediation/cycle-3-leak-crack-db  Frozen Cycle-3 Blue history
 
 Ephemeral:
