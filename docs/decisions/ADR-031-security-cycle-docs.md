@@ -30,6 +30,9 @@ docs/security/Cycle-N/
 |------------------|--------------|------------------|----------------|----------------------|
 | v1.0.0 | `Dev/v1.0.0-ground-truth.md` | `PenTest/v1.0.0-writeup.md` | v2.0.0 | `Remediation/v2.0.0-remediation.md` |
 | v1.1.0 | `Dev/v1.1.0-ground-truth.md` | `PenTest/v1.1.0-writeup.md` | v2.1.0 | `Remediation/v2.1.0-remediation.md` |
+| v1.2.0 SoftDev | `Dev/v1.2.0-ground-truth.md` | `PenTest/` (after Red) | v2.2.0 | `Remediation/` (after Blue) |
+
+CTF-only cycles (e.g. Cycle-3) may omit product tags ([ADR-032](./ADR-032-post-v2.1.0-versioning.md)). SoftDev pairs use [ADR-033](./ADR-033-cycle-4-softdev-version-pair.md).
 
 ### Cross-cycle docs
 

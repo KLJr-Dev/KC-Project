@@ -2,7 +2,7 @@
 
 **Purpose:** Frame why this repo exists as a CV/portfolio piece, how to grow it without turning it into an endless toy app, and what “done” means at each milestone.
 
-**Related (technical authority):** [STRATEGY.md](./STRATEGY.md) · [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-026](../decisions/ADR-026-versioning-expansion-cycle.md) · [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
+**Related (technical authority):** [STRATEGY.md](./STRATEGY.md) · [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [ADR-026](../decisions/ADR-026-versioning-expansion-cycle.md) · [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
 
 ---
 
@@ -168,17 +168,17 @@ Cloud variants are **additional release lines**, not replacements — tags make 
 
 Share-plant → SQLi search → crack → published PG. Blue = docs + regression on `main` (no version bump).
 
-### Cycle-4 — SoftDev planned (`v1.2.0` → `v2.2.0`)
+### Cycle-4 — SoftDev on `main` (`v1.2.0` → `v2.2.0`)
 
-Notes + SSH **foothold** (logical path, file loot, `user.txt`) — not PrivEsc ([box plan](../security/Cycle-4/Dev/v1.2.0-box-plan.md)).
+Notes + SSH **foothold** shipped to `main` (PR #21); tag **`v1.2.0`** pending examiner sign-off. Not PrivEsc ([box plan](../security/Cycle-4/Dev/v1.2.0-box-plan.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
 ### Cycle-5 — shells & PrivEsc (sketch, soon after `v2.2.0`)
 
-Same SSH lineage; reverse shells + PrivEsc → `root.txt` ([sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md)). Prefer CTF overlay (ADR-032) unless SoftDev adds surface.
+Same SSH lineage; reverse shells + PrivEsc → `root.txt` ([sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md)). Prefer SoftDev pair `v1.3.0`→`v2.3.0` or CTF overlay after Blue.
 
 ### Cycle-6+ — combinations
 
-XSS/SSRF SoftDev, cloud, FTP overlays, etc., as modular CTFs on the current tip.
+Further SoftDev/CTF modules (SSRF, cloud, FTP overlays, etc.) on the current tip.
 
 ---
 
@@ -203,10 +203,10 @@ XSS/SSRF SoftDev, cloud, FTP overlays, etc., as modular CTFs on the current tip.
 
 ## 8. Immediate next actions
 
-1. Cycle-4 SoftDev: Notes + SSH foothold per [box plan](../security/Cycle-4/Dev/v1.2.0-box-plan.md) → `v1.2.0` → Red → `v2.2.0`.
-2. Cycle-5 (soon): shells + PrivEsc on SSH lineage ([sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md)).
-3. Keep interview explainability current for auth, RBAC, files, and Cycles 1–3.
+1. Tag **`v1.2.0`** after examiner dry-run + sign [pentest-ready](../release/v1.2.0-pentest-ready.md); archive `ctf/v1.2.0`.
+2. Red writeup (F1–F3) → `remediation/v2.2.0` → tag `v2.2.0`.
+3. Cycle-5: shells + PrivEsc ([sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md)).
 
 ---
 
-*Last updated: August 2026 — Cycles 1–3 closed; Cycle-4 planned; Cycle-5 sketched.*
+*Last updated: August 2026 — Cycles 1–3 closed; Cycle-4 SoftDev on `main`; Cycle-5 sketched.*

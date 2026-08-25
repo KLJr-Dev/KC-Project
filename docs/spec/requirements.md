@@ -66,6 +66,18 @@ Functional, non-functional, and security requirements for KC-Project. Each requi
 | FR-5.6 | The system shall expose aggregate system statistics to administrators | v0.6.2 |
 | FR-5.7 | The system shall expose a health check endpoint (`GET /health`) | v0.6.3 |
 
+### FR-6: Notes (SoftDev)
+
+| ID | Requirement | Version |
+|----|-------------|---------|
+| FR-6.1 | Authenticated users can CRUD their own notes | SoftDev `v1.2.0` |
+| FR-6.2 | Notes search uses parameterized queries (`q`) | SoftDev `v1.2.0` |
+| FR-6.3 | Moderators can list/get others’ notes and flag them | SoftDev `v1.2.0` |
+| FR-6.4 | Admins can delete any note | SoftDev `v1.2.0` |
+| FR-6.5 | Optional note attachment upload/download | SoftDev `v1.2.0` |
+| FR-6.6 | **Insecure tip:** note body may be rendered as HTML / unsafe markdown (intentional XSS) | SoftDev `v1.2.0` |
+| FR-6.7 | **Secure tip `v2.2.0`:** sanitize render; no inline XSS-capable attachments; no default SSH | planned Blue |
+
 ---
 
 ## Non-Functional Requirements

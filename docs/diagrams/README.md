@@ -1,10 +1,10 @@
 # Diagrams
 
-Canonical standalone diagrams for KC-Project. These provide comprehensive, cross-version views of the system.
+Canonical standalone diagrams for KC-Project.
 
-Inline diagrams in [architecture/](../architecture/) documents remain as version-specific references. The files here are the authoritative counterparts.
+Inline diagrams in [architecture/](../architecture/) remain version-specific. Files here are the cross-cutting counterparts.
 
-**Last verified:** v1.0.0 (Docker prod `:8080`, 59/38 CWEs, 150 e2e tests).
+**Last verified:** SoftDev tip on `main` (Notes + optional SSH; tag `v1.2.0` pending) · last secure tag `v2.1.0`.
 
 ---
 
@@ -12,7 +12,11 @@ Inline diagrams in [architecture/](../architecture/) documents remain as version
 
 ### [system-architecture.md](system-architecture.md)
 
-System topology: v1.0.0 Docker prod (nginx `:8080`, primary), dev native path, and v2.0.0 secure parallel.
+System topology: SoftDev tip (Notes + optional SSH), historical v1.0.0 Docker prod, v2.0.0 secure parallel.
+
+### [notes-ssh-path.md](notes-ssh-path.md)
+
+Cycle-4 SoftDev path: Notes XSS / privileged read → SSH foothold → `user.txt`.
 
 ### [auth-flow.md](auth-flow.md)
 
@@ -20,12 +24,12 @@ Sequence diagrams for auth lifecycle. **Canonical narrative:** [architecture/aut
 
 ### [threat-model.md](threat-model.md)
 
-v1.0.0 attack surface (59 instances / 38 CWE IDs) with dual CWE + OWASP classification. Product UI vs API boundary noted. v2.0.0 remediation map.
+v1.0.0 attack surface + SoftDev Notes XSS / SSH plant callouts.
 
 ### [infrastructure.md](infrastructure.md)
 
-Prod (`docker-compose.prod.yml`) vs dev (`compose.yml`) deployment topology and v2.0.0 hardened target.
+Prod (`docker-compose.prod.yml`), SoftDev SSH overlay, e2e / TLS overlays, asserts.
 
 ### [version-timeline.md](version-timeline.md)
 
-Development progression through v1.0.0, perpetual expansion cycle, and CWE growth model.
+Build phase through SoftDev pairs (ADR-032 CTF-only vs ADR-033 SoftDev).

@@ -61,3 +61,9 @@ Five modules already cover the core attack surfaces defined in the roadmap (v0.1
 **Neutral:**
 
 - The five modules are currently independent. Cross-module relationships will be introduced incrementally starting in v0.1.x (user entity referenced by other modules).
+
+---
+
+## Amendment (2026-08-25) — Notes sixth domain
+
+**Status still Accepted** for the original five. SoftDev Cycle-4 adds a sixth Nest module **`notes`** ([ADR-033](./ADR-033-cycle-4-softdev-version-pair.md)): user-owned notes, search, mod flag, attachments, intentional XSS on insecure tip. Product scope: [scope.md](../spec/scope.md). Architecture: [ARCHITECTURE.md](../architecture/ARCHITECTURE.md).

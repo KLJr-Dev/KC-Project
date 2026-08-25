@@ -58,3 +58,16 @@ main            Stable releases only (squash-merged from dev)
 - **Positive:** Simple enough to follow without tooling or automation.
 - **Negative:** Long-lived branches can diverge. Requires discipline to merge to `dev` frequently.
 - **Negative:** No automated enforcement (no branch protection rules yet). Relies on convention.
+
+---
+
+## Amendment (2026-08-25) — SoftDev rails + archives
+
+**Status still Accepted.** SoftDev security cycles keep the four rails and add portfolio archives ([ADR-032](./ADR-032-post-v2.1.0-versioning.md), [ADR-033](./ADR-033-cycle-4-softdev-version-pair.md)):
+
+1. **`backend` / `frontend` / `dev`** remain long-lived SoftDev rails. At the **start of each SoftDev security cycle**, recreate/reset them from current `main` (force-push remotes). Do not delete the branch names between cycles.
+2. **`ctf/*` and `remediation/*`** are **frozen archives** (keep forever). They are not SoftDev rails and are never squash-merged into `main` as CTF content.
+3. SoftDev intentional-insecure tips **do** land on `main` via SoftDev PR (Cycle-4 `v1.2.0`), then may be archived as `ctf/v1.2.0` from the tag.
+4. **`hotfix/*`** from `main` remains valid for docs/security locks (this amend’s vehicle).
+
+Canonical remote inventory: root [README.md](../../README.md) Branching Strategy.

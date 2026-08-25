@@ -1,6 +1,6 @@
 # Security Cycle 1 (v1.0.0 → v2.0.0)
 
-Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure parallel. **Closed** — tag `v2.0.0`. Live product since superseded by **v2.1.0** (see [Cycle-2](../Cycle-2/README.md)).
+Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure parallel. **Closed** — tag `v2.0.0`. Superseded later by tag **`v2.1.0`** (last hardened product before SoftDev tip). Current SoftDev tip on `main` is Cycle-4 Notes+SSH — see [Cycle-4](../Cycle-4/README.md).
 
 ## Version map
 
@@ -51,7 +51,7 @@ Cycle 1 covers the insecure MVP baseline, its structured pentest, and the secure
 
 ## Verification commands
 
-**Current secure product (`main` / tag `v2.1.0`):**
+**Current secure product tag (`v2.1.0`):** pin for hardened demos. SoftDev tip on `main` is intentional insecure (Cycle-4).
 
 ```bash
 set -a && source infra/.env && set +a

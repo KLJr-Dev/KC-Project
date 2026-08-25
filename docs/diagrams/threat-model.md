@@ -1,6 +1,18 @@
 # Threat Model
 
-Complete attack surface map for v1.0.0 (insecure MVP) with dual CWE + OWASP Top 10 classification. Each weakness is intentional per the project's insecure-by-design philosophy (ADR-006). The v2.0.0 remediation map shows the specific control applied for each weakness.
+Complete attack surface map for **v1.0.0** (insecure MVP) with dual CWE + OWASP classification. SoftDev tip adds Notes XSS / SSH plant ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [notes-ssh-path.md](notes-ssh-path.md)).
+
+---
+
+## SoftDev tip (Cycle-4) — Notes
+
+| Weakness | CWE | Path |
+|----------|-----|------|
+| Stored XSS (HTML / unsafe MD) | CWE-79 | `/notes/[id]` render |
+| Inline SVG/HTML attachment | CWE-79 | `GET /notes/:id/attachment` |
+| Seeded SSH plant in privileged note | lab depth | Note `9201` → overlay `:2222` |
+
+Search remains parameterized (not SQLi). Full examiner map: [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md).
 
 ---
 

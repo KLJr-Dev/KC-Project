@@ -1,20 +1,45 @@
 # System Architecture
 
-System topology at three lifecycle stages. Each diagram shows how the components connect, what is exposed, and where the trust boundaries lie.
+System topology across lifecycle stages. SoftDev tip on `main` adds Notes + optional SSH overlay ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
 ---
 
-## Current State (v1.0.0) — Docker prod (primary)
+## SoftDev tip (current `main`) — Notes + optional SSH
 
-Full stack in `infra/docker-compose.prod.yml`. nginx at `:8080` is the sole browser entry. Backend and frontend are internal; PostgreSQL exposed on `:5433` for e2e only.
+Web stack: `infra/docker-compose.prod.yml` (Postgres **not** published). Full chain: add `infra/docker-compose.ssh.yml`.
+
+```mermaid
+flowchart LR
+  Browser["Browser\n:8080"]
+  SshClient["SSH client\n:2222"]
+  Nginx["nginx"]
+  Frontend["Next.js\n/files /notes …"]
+  Backend["NestJS\n+ NotesModule"]
+  PG["PostgreSQL\ninternal"]
+  Ssh["OpenSSH\nlab user"]
+
+  Browser --> Nginx
+  Nginx --> Frontend
+  Nginx --> Backend
+  Backend --> PG
+  SshClient -.->|"overlay only"| Ssh
+```
+
+Path diagram: [notes-ssh-path.md](notes-ssh-path.md). Pin tag **`v2.1.0`** for hardened demos until **`v2.2.0`**.
+
+---
+
+## Historical — v1.0.0 Docker prod
+
+Full stack in `infra/docker-compose.prod.yml`. nginx at `:8080`. On Cycle-1 tip, PostgreSQL was published for e2e (`:5433`); SoftDev tip keeps PG unpublished on prod compose.
 
 ```mermaid
 flowchart LR
   Browser["Browser\n:8080"]
   Nginx["nginx :80\n→ host :8080"]
   Frontend["Next.js :3000\nProduct UI + /dev"]
-  Backend["NestJS :4000\nREST API\nSwagger /api/docs"]
-  PG["PostgreSQL 16\nkc_prod\n:5433 host (e2e)"]
+  Backend["NestJS :4000\nREST API"]
+  PG["PostgreSQL 16\nkc_prod"]
 
   Browser -->|"HTTP"| Nginx
   Nginx -->|"/"| Frontend
@@ -23,13 +48,13 @@ flowchart LR
   Backend -->|"TypeORM"| PG
 ```
 
-### What exists
+### What exists (then / now)
 
-- **nginx** — Reverse proxy. Routes `/` → frontend, `/api` → backend. 1 MB body limit (accidental upload ceiling).
-- **Frontend** — Next.js 16. Product UI (`/files`, `/moderator`, `/admin`) + dev explorers (`/dev/*`). Client-side file/share filtering; API IDOR preserved.
-- **Backend** — NestJS 11. 28 live endpoints + health/ping/crash-test. Ternary RBAC. Persistent audit logs. Demo seeds (ADR-029, ADR-030).
-- **Database** — PostgreSQL 16, `pgdata_prod` volume, `kc_prod` database.
-- **Verification** — `smoke-test.sh`, `journey-test.sh`, `e2e-docker.sh` (150 tests).
+- **nginx** — Reverse proxy `/` → frontend, `/api` → backend.
+- **Frontend** — Product UI including SoftDev `/notes`; gated `/dev/*`.
+- **Backend** — Domain modules including SoftDev **Notes**.
+- **Database** — PostgreSQL 16, `pgdata_prod` / `kc_prod`.
+- **SSH (SoftDev)** — Optional overlay only; assert with `assert-ssh-unpublished.sh`.
 
 ### Dev path (secondary)
 
@@ -39,15 +64,15 @@ Native backend/frontend + `infra/compose.yml` (PostgreSQL `kc_dev` on `:5432` on
 
 ## v1.0.0 — Insecure MVP (detail)
 
-Same functional surface as above. Intentionally weak: no TLS, default DB creds, JWT role trusted, guard inconsistencies.
+Same functional Files/Sharing/Admin surface. Intentionally weak: no TLS, default DB creds, JWT role trusted, guard inconsistencies.
 
 | Component | Technology | Exposure | Notes |
 |-----------|-----------|----------|-------|
 | nginx | nginx:alpine | `:8080` | Single browser entry |
 | Frontend | Next.js 16 | internal :3000 | Product UI + `/dev` explorers |
 | Backend | NestJS 11 | internal :4000 | 59/38 CWEs documented |
-| Database | PostgreSQL 16 | `:5433` (e2e) | `postgres`/`postgres` default |
-| File storage | Docker volume `uploads` | internal | No path/MIME validation |
+| Database | PostgreSQL 16 | `:5433` (e2e historical) | Weak defaults on Cycle-1 tip |
+| File storage | Docker volume `uploads` | internal | Hardened on later tags |
 
 ---
 

@@ -39,6 +39,14 @@ Canonical numbering from [STRATEGY.md](STRATEGY.md) (ADR-027). See also [ADR-027
 
 ### Expansion Cycle (v1.x / v2.x)
 
+Canonical pairs and CTF-only policy: [STRATEGY.md](STRATEGY.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md).
+
+- **v1.0.0 / v2.0.0** — Cycle-1 SoftDev pair (closed)
+- **v1.1.0 / v2.1.0** — Cycle-2 SoftDev pair (closed; last hardened product tag before Cycle-4 SoftDev)
+- **Cycle-3** — CTF-only (`ctf/leak-crack-db`); no product bump
+- **v1.2.0 / v2.2.0** — Cycle-4 SoftDev: Notes XSS + SSH → harden Notes / no default SSH (tip on `main`; tag pending)
+- **v1.3.0 / v2.3.0** — Cycle-5 SoftDev sketch: shells + PrivEsc
+
 - v1.0.0 — Insecure MVP (59 instances / 38 CWE IDs across 6 attack surfaces)
 - v1.0.x — Structured pentesting, discovery, incremental patches ([Cycle-1](../security/Cycle-1/README.md))
 - v2.0.0 — Secure parallel to v1.0.0 (all CWEs remediated)

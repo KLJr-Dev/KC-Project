@@ -12,7 +12,7 @@ Short chain (not Cycle-1 kitchen-sink). Scoring = **identity + 32-char hex flag*
 | v1.1.x | PenTest writeup | **Complete** — on `ctf/v1.1.0` |
 | **v2.1.0** | Secure parallel | **Tagged** on `main` · frozen `remediation/v2.1.0` |
 
-Future CTFs follow [ADR-032](../../decisions/ADR-032-post-v2.1.0-versioning.md): misconfigure **current** product version (**no** new `v1.N.0` / `v2.N.0` product tags). Candidates: [Remediation/future-ctf-candidates.md](Remediation/future-ctf-candidates.md).
+Future work: **CTF-only** loops follow [ADR-032](../../decisions/ADR-032-post-v2.1.0-versioning.md) (no product tag). **SoftDev security cycles** restore a pair ([ADR-033](../../decisions/ADR-033-cycle-4-softdev-version-pair.md) — Cycle-4 Notes+SSH). Candidates: [Remediation/future-ctf-candidates.md](Remediation/future-ctf-candidates.md).
 
 ---
 

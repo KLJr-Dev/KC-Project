@@ -1,8 +1,13 @@
 # KC-Project Architecture
 
-This document describes the system architecture as of **v1.0.0** (pentest-ready insecure MVP: ternary RBAC, product UI + dev explorers, Docker prod stack, 59/38 CWEs, 150 e2e tests).
+This document started as the **v1.0.0** insecure MVP snapshot (ternary RBAC, product UI + dev explorers, Docker prod stack). SoftDev tip on `main` adds a sixth domain (**Notes**) and an optional SSH lab overlay ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-Ground truth: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md). Cycle-1 structure: [ADR-031](../decisions/ADR-031-security-cycle-docs.md).
+| Tip | Meaning |
+|-----|---------|
+| SoftDev on `main` | Intentional Notes XSS + SSH foothold — tag **`v1.2.0`** pending · [Cycle-4](../security/Cycle-4/README.md) |
+| Last secure tag | **`v2.1.0`** (pin for hardened demos until **`v2.2.0`**) |
+
+Ground truth (Cycle-1): [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md). Cycle docs: [ADR-031](../decisions/ADR-031-security-cycle-docs.md).
 
 ---
 
@@ -10,12 +15,13 @@ Ground truth: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-tru
 
 ### Production / pentest (primary)
 
-Full stack in Docker (`infra/docker-compose.prod.yml`). nginx reverse proxy at `:8080` routes `/` → frontend, `/api` → backend. PostgreSQL internal; host port `5433` for e2e only.
+Full stack in Docker (`infra/docker-compose.prod.yml`). nginx reverse proxy at `:8080` routes `/` → frontend, `/api` → backend. PostgreSQL internal (not published on SoftDev tip). Optional Cycle-4 SSH overlay: `docker-compose.ssh.yml` → host `:2222`.
 
 ```mermaid
 flowchart LR
     subgraph client [Untrusted Client]
         Browser["Browser\n:8080"]
+        SshClient["SSH client\n:2222"]
     end
     subgraph compose [docker-compose.prod.yml]
         Nginx["nginx :80\n→ host :8080"]
@@ -23,24 +29,29 @@ flowchart LR
         Backend["Backend\nNestJS :4000"]
         PG["PostgreSQL 16\nkc_prod"]
     end
+    subgraph sshOverlay ["docker-compose.ssh.yml (optional)"]
+        Ssh["OpenSSH\nlab user"]
+    end
     Browser -- "HTTP" --> Nginx
     Nginx -- "/" --> Frontend
     Nginx -- "/api" --> Backend
     Frontend -- "NEXT_PUBLIC_API_URL=/api" --> Nginx
     Backend -- "TypeORM" --> PG
+    SshClient -.->|"overlay only"| Ssh
 ```
 
-Deploy: `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
+Deploy web: `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`  
+Full chain: add `-f infra/docker-compose.ssh.yml` · path diagram: [notes-ssh-path.md](../diagrams/notes-ssh-path.md)
 
 ### Dev (native)
 
 Backend and frontend run natively; PostgreSQL in Docker (`infra/compose.yml`, `kc_dev` on `:5432`).
 
-- **Frontend** — Next.js 16 App Router, Tailwind CSS, React 19. Product UI (`/files`, `/moderator`, `/admin`) + dev explorers (`/dev/*`). Client components call API via fetch; Bearer token from localStorage.
-- **Backend** — NestJS 11 on Express. Five domain modules + audit. CORS permissive. TypeORM + PostgreSQL. Persistent `AuditLog` entity (v0.6.0). Demo seed migrations (ADR-029, ADR-030).
-- **Database** — PostgreSQL 16. Prod: `pgdata_prod` volume. Dev: `pgdata` volume. Migrations with `migrationsRun: true`.
-- **Communication** — Plain HTTP REST. JSON (or multipart for uploads). No WebSockets, GraphQL, or tRPC.
-- **File Storage** — Multer `diskStorage` in `uploads/` volume. Client-supplied filenames, no sanitisation ([ADR-024](../decisions/ADR-024-file-storage-strategy.md)).
+- **Frontend** — Next.js 16 App Router, Tailwind CSS, React 19. Product UI (`/files`, `/notes`, `/moderator`, `/admin`) + gated `/dev/*`. Access JWT in memory (v2.0.0+); SoftDev Notes render HTML/MD unsafely.
+- **Backend** — NestJS 11 on Express. Domain modules (Users, Auth, Files, Sharing, Admin, **Notes**) + audit. TypeORM + PostgreSQL.
+- **Database** — PostgreSQL 16. Migrations with `migrationsRun` gated per env.
+- **Communication** — Plain HTTP REST. JSON (or multipart for uploads / note attachments).
+- **File Storage** — Multer under `uploads/` (files + `uploads/notes/` for SoftDev attachments).
 
 ---
 
@@ -57,6 +68,7 @@ graph TD
     FilesModule["FilesModule"]
     SharingModule["SharingModule"]
     AdminModule["AdminModule"]
+    NotesModule["NotesModule\nSoftDev v1.2.0"]
 
     AppModule --> AppController
     AppModule --> AuthModule
@@ -64,39 +76,41 @@ graph TD
     AppModule --> FilesModule
     AppModule --> SharingModule
     AppModule --> AdminModule
+    AppModule --> NotesModule
 
-    AuthModule --> AuthController["AuthController\nPOST /auth/register\nPOST /auth/login\nGET /auth/me\nPOST /auth/logout"]
-    AuthModule --> AuthService["AuthService\nRegister, login, profile, logout"]
+    AuthModule --> AuthController["AuthController"]
+    AuthModule --> AuthService["AuthService"]
     AuthModule -.->|imports| UsersModule
-    AuthModule -.->|"exports JwtModule (v0.2.2)"| UsersModule
+    AuthModule -.->|"exports JwtModule"| UsersModule
     AuthModule -.->|"exports JwtModule"| FilesModule
     AuthModule -.->|"exports JwtModule"| SharingModule
     AuthModule -.->|"exports JwtModule"| AdminModule
+    AuthModule -.->|"exports JwtModule"| NotesModule
 
-    UsersModule --> UsersController["UsersController\n🔒 JwtAuthGuard\nCRUD /users"]
-    UsersModule --> UsersService["UsersService\nRepository - User\n(plaintext passwords in PG)"]
-
-    FilesModule --> FilesController["FilesController\n🔒 JwtAuthGuard\nPOST /files (multipart upload)\nGET /files/:id/download\nDELETE /files/:id (disk + DB)"]
-    FilesModule --> FilesService["FilesService\nRepository - FileEntity\nMulter diskStorage\n(ownerId stored, never checked)"]
-    FilesModule -.->|"exports FilesService (v0.3.4)"| SharingModule
-
-    SharingModule --> SharingController["SharingController\nPer-method JwtAuthGuard\nCRUD /sharing\nGET /sharing/public/:token (NO auth)"]
-    SharingModule --> SharingService["SharingService\nRepository - SharingEntity\npredictable publicToken"]
-    SharingModule -.->|"imports (FilesService)"| FilesModule
-
-    AdminModule --> AdminController["AdminController\n🔒 JwtAuthGuard\nGET /admin/users (@HasRole admin)\nPUT /admin/users/:id/role (@HasRole admin)\nPUT /admin/users/:id/role/escalate (@HasRole mod+admin)\nDELETE /admin/users/:id (NO @HasRole!)\nGET /admin/audit-logs (NO @HasRole!)\nGET /admin/stats (@HasRole admin)"]
-    AdminModule --> AdminService["AdminService\nRepository - User, AuditLog\n(persistent audit v0.6.0)\n(guard inconsistencies CWE-862, CWE-284)"]
+    NotesModule --> NotesController["NotesController\nCRUD /notes\nflag / attachment"]
+    NotesModule --> NotesService["NotesService\nRBAC + parameterized q"]
 ```
+
+### Notes (SoftDev — sixth domain)
+
+| Piece | Behavior on insecure tip |
+|-------|--------------------------|
+| API | Owner CRUD; mod/admin list+get; mod flag; admin delete-any; `GET /notes?q=` parameterized `ILIKE` |
+| Attachment | Optional multipart; SVG/HTML allowed; inline `Content-Disposition` for XSS candy |
+| UI | `/notes`, `/notes/[id]` — HTML `dangerouslySetInnerHTML` + unsafe markdown |
+| Lab depth | Seeded admin ops note → SSH `lab` @ `:2222` (overlay) → `user.txt` |
+
+Secure counterpart **`v2.2.0`**: sanitize render, MIME lockdown, force attachment download, no default SSH.
+
+**Also retained:** Users, Auth, Files, Sharing, Admin (hardened on tag `v2.1.0`). SoftDev tip does not re-break those Critical remediations.
 
 ### Per-module pattern
 
 Every module follows the same internal structure:
 
-- **Controller** — Thin HTTP layer. Maps routes to service methods. Handles 404 on missing IDs. No business logic. As of v0.2.2, most resource controllers use `@UseGuards(JwtAuthGuard)` at the class level -- authentication is enforced but no authorization/ownership checks exist (CWE-862). As of v0.4.0, a `role` column is added to User and role claim is stored in JWT payload, but is trusted without DB re-validation (CWE-639). As of v0.4.3, a third role (`'moderator'`) is introduced with ambiguous hierarchy (CWE-841). **Inconsistent guard application**: AdminController has `@HasRole()` on most endpoints but DELETE endpoint intentionally missing it (v0.4.5, CWE-862). Exception: SharingController uses per-method guards (v0.3.4) because `GET /sharing/public/:token` is unauthenticated.
-
-- **Service** — Business logic and data access via TypeORM repositories (PostgreSQL). Singleton per module via DI. As of v0.4.0, AdminService implements role changes. As of v0.4.4, escalation logic allows moderator-to-moderator promotion (CWE-269). As of v0.4.4, audit logs are placeholder (CWE-532).
-
-- **DTOs** — Request shapes (Create/Update) and response shapes. Classes (not interfaces) so NestJS can instantiate them and the Swagger plugin can introspect them. As of v0.4.3, role DTO field extended to include `'moderator'` option.
+- **Controller** — Thin HTTP layer. SoftDev Notes uses `JwtAuthGuard` + `HasRoleGuard` (DB role). Cycle-1 insecure tip had intentional guard gaps (CWE-862 / CWE-639) — see Cycle-1 docs.
+- **Service** — Business logic via TypeORM. Notes ownership mirrors Files (owner / mod read / admin delete).
+- **DTOs** — Request/response shapes; Notes uses class-validator on create/update/query.
 
 ---
 
@@ -107,11 +121,13 @@ app/                          Next.js App Router pages
 ├── layout.tsx                Root layout (Header, PageContainer, Footer)
 ├── providers.tsx             Client wrapper for AuthProvider + ThemeProvider
 ├── globals.css               Design tokens (CSS variables), Tailwind, dark mode
-├── page.tsx                  Landing / home (demo accounts, version v1.0.0)
+├── page.tsx                  Landing / home
 ├── auth/page.tsx             Register + Sign In (demo quick-fill)
-├── files/                    Product UI — own files (client-filtered)
-├── files/[id]/               File detail (access-denied banner if not owner)
-├── sharing/                  Product UI — own shares (client-filtered)
+├── files/                    Product UI — own files
+├── files/[id]/               File detail
+├── notes/                    SoftDev Notes list + create/search
+├── notes/[id]/               Note detail (HTML + unsafe MD XSS sinks)
+├── sharing/                  Product UI — own shares
 ├── share/[token]/            Public share landing (unauthenticated)
 ├── moderator/                Review queue (RequireRole mod+admin)
 ├── admin/                    Dashboard: users, stats, audit, all files
@@ -130,14 +146,15 @@ app/components/ui/            Reusable UI primitives
 └── success-banner.tsx        Success message block
 
 lib/
-├── api.ts                    Typed fetch wrappers for all backend routes
-├── auth-context.tsx          Auth state (token, userId) + localStorage persistence
-├── theme-context.tsx         Theme state (light/dark/system) + class-based toggle
+├── api.ts                    Typed fetch wrappers (files, notes, auth, …)
+├── auth-context.tsx          Auth state (in-memory access JWT)
+├── theme-context.tsx         Theme state (light/dark/system)
+├── unsafe-markdown.ts        SoftDev — intentional XSS MD path
 ├── types.gen.ts              Auto-generated from OpenAPI spec
 └── types.ts                  Re-export layer with friendly aliases
 ```
 
-All pages are `'use client'` components. They call `lib/api.ts` functions which return typed promises. Auth state is managed via `AuthContext` (persisted to localStorage). The layout uses a shared app shell (Header, Footer, PageContainer) with design tokens defined as CSS variables in `globals.css`.
+All product pages are `'use client'` components. They call `lib/api.ts` functions which return typed promises. Auth state is managed via `AuthContext` (access JWT in memory; refresh httpOnly cookie on hardened path).
 
 ---
 

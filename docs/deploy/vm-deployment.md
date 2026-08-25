@@ -1,8 +1,10 @@
-# VM Deployment (v1.0.0)
+# VM Deployment
 
 Ubuntu 22.04+ with Docker. **Primary stack:** `infra/docker-compose.prod.yml` (postgres, backend, frontend, nginx on `:8080`).
 
-Cycle-1 deploy verification: [Cycle-1/README.md](../security/Cycle-1/README.md) · ground truth: [Cycle-1/Dev/v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md)
+SoftDev full chain (Notes → SSH): add `-f infra/docker-compose.ssh.yml` and run `./infra/cycle4-ssh-examiner.sh`. See [Cycle-4](../security/Cycle-4/README.md).
+
+Cycle-1 historical: [Cycle-1/README.md](../security/Cycle-1/README.md) · [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md)
 
 ## Quick setup
 

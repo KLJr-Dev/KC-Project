@@ -1,24 +1,72 @@
 # Data Model
 
-Entity definitions and relationships for KC-Project. Describes the **v1.0.0** PostgreSQL schema (managed via TypeORM migrations) and the v2.0.0 hardened schema.
+Entity definitions and relationships for KC-Project. Historical sections describe the **v1.0.0** PostgreSQL schema; SoftDev tip adds **`note_entity`** ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-Demo seed IDs (ADR-029, ADR-030): users 9001–9004, files 9101–9104, share token `share-1`. See [demo-users.md](../deploy/demo-users.md) and [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md).
+Demo seed IDs: users 9001–9004, files 9101–9104, notes 9201–9206, share token `share-1`. See [demo-users.md](../deploy/demo-users.md) and [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md).
 
 ---
 
-## Current State (v1.0.0) — PostgreSQL
+## SoftDev tip — Note entity (`v1.2.0`)
+
+| Table | Entity | Notes |
+|-------|--------|-------|
+| `note_entity` | `NoteEntity` | User-owned notes; optional attachment metadata; `flagged` for mod review |
+
+```typescript
+@Entity('note_entity')
+class NoteEntity {
+  @PrimaryColumn()
+  id: string;                    // Sequential string (residual)
+  @Column()
+  ownerId: string;
+  @Column()
+  title: string;
+  @Column({ type: 'text' })
+  body: string;                  // HTML/MD — XSS via insecure UI render
+  @Column({ default: false })
+  flagged: boolean;
+  @Column({ nullable: true })
+  attachmentFilename?: string;
+  @Column({ nullable: true })
+  attachmentMimetype?: string;
+  @Column({ nullable: true })
+  attachmentStoragePath?: string; // never expose in API DTO
+  @Column()
+  createdAt: string;
+  @Column()
+  updatedAt: string;
+}
+```
+
+**Seeded notes (SoftDev):**
+
+| ID | Owner | Role |
+|----|-------|------|
+| `9201` | admin `9003` | Real SSH plant + F2 |
+| `9202` | admin | Decoy retired jump |
+| `9203` | user `9001` | XSS scratchpad + F1 |
+| `9204` | user | VPN decoy |
+| `9205` | mod `9002` | Mod queue reminder |
+| `9206` | other `9004` | Workshop decoy (if other user exists) |
+
+Search uses parameterized `ILIKE` (not SQLi). Attachment files under `uploads/notes/`.
+
+---
+
+## Current State (v1.0.0 snapshot) — PostgreSQL
 PostgreSQL 16 via Docker Compose. TypeORM with migrations (replaced `synchronize: true` in v0.2.5, see [ADR-022](../decisions/ADR-022-typeorm-migrations.md)). File storage on local filesystem via Multer (see [ADR-024](../decisions/ADR-024-file-storage-strategy.md)). See also [ADR-019](../decisions/ADR-019-typeorm-orm.md) and [ADR-020](../decisions/ADR-020-docker-db-only.md).
 
-### Tables
+### Tables (Cycle-1 baseline)
 
 | Table | Entity Class | Notes |
 |-------|-------------|-------|
-| `user` | `User` | Auth + identity. Plaintext password column (CWE-256). Ternary `role` enum (v0.4.3). |
-| `file_entity` | `FileEntity` | Real file metadata from Multer uploads. `mimetype` + `storagePath` (v0.3.0), `description` (v0.2.5), `approvalStatus` (v0.4.3). Files stored on disk. |
-| `sharing_entity` | `SharingEntity` | No FK to files. `publicToken` (v0.3.4, predictable `share-N`) for unauthenticated access. `ownerId` never enforced. |
-| `audit_log` | `AuditLog` | Persistent audit records (v0.6.0). Readable by any authed user via weak guard (CWE-284). |
+| `user` | `User` | Auth + identity. Plaintext password column on v1.0.0 (CWE-256); bcrypt on hardened tags. Ternary `role` enum. |
+| `file_entity` | `FileEntity` | File metadata from Multer uploads. |
+| `sharing_entity` | `SharingEntity` | Share links + `publicToken`. |
+| `audit_log` | `AuditLog` | Persistent audit records (v0.6.0). |
+| `note_entity` | `NoteEntity` | SoftDev addition (above). |
 
-All tables use `@PrimaryColumn()` with manually assigned sequential string IDs (`"1"`, `"2"`, ...) — intentionally predictable (CWE-330). No unique constraints, no foreign keys, no indices beyond primary keys. Schema weaknesses are intentional per [ADR-006](../decisions/ADR-006-insecure-by-design.md).
+All early tables used `@PrimaryColumn()` with manually assigned sequential string IDs — residual on SoftDev tip for Notes IDs as well.
 
 ### User Entity (v1.0.0)
 

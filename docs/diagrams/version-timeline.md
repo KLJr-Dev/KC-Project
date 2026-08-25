@@ -78,164 +78,68 @@ timeline
 
 ---
 
-## Perpetual Expansion Cycle
+## Perpetual Expansion Cycle (actual policy)
 
-After v1.0.0, the project follows a repeating insecure/secure loop. Each cycle adds new vulnerability surfaces, pentests them, and produces a hardened counterpart. The next cycle forks the hardened version and introduces more weaknesses.
+After Cycle-1/2 SoftDev pairs, **two** versioning stories apply:
+
+| Kind | Policy | Example |
+|------|--------|---------|
+| **CTF-only** | Misconfig current tip **without** product tag bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)) | Cycle-3 `ctf/leak-crack-db` |
+| **SoftDev security cycle** | New product surface → insecure tip on `main` → Red → Blue tag ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)) | Cycle-4 `v1.2.0` → `v2.2.0` |
 
 ```mermaid
 flowchart TD
-  subgraph cycle1 ["Cycle 1"]
-    v100["v1.0.0\nInsecure MVP\n59 instances / 38 CWE IDs\nDocker :8080 mandatory"]
-    v10x["v1.0.x\nStructured Pentest\nDiscover + Document\nIncremental Patches"]
-    v200["v2.0.0\nSecure Parallel\nAll v1.0.0 CWEs\nRemediated"]
+  subgraph c1 [Cycle 1 SoftDev]
+    v100[v1.0.0 insecure]
+    v200[v2.0.0 secure]
+  end
+  subgraph c2 [Cycle 2 SoftDev]
+    v110[v1.1.0 CTF tip]
+    v210[v2.1.0 secure]
+  end
+  subgraph c3 [Cycle 3 CTF-only]
+    ctf3[ctf/leak-crack-db]
+    blue3[Blue docs on main]
+  end
+  subgraph c4 [Cycle 4 SoftDev]
+    v120[v1.2.0 Notes+SSH]
+    v220[v2.2.0 harden Notes]
+  end
+  subgraph c5 [Cycle 5 sketch]
+    v130[v1.3.0 shells]
+    v230[v2.3.0]
   end
 
-  subgraph cycle2 ["Cycle 2"]
-    v110["v1.1.0\nInsecure Iteration\nFork v2.0.0\n+5-10 new CWEs"]
-    v11x["v1.1.x\nStructured Pentest\nDiscover + Document\nIncremental Patches"]
-    v210["v2.1.0\nSecure Parallel\nAll v1.1.0 CWEs\nRemediated"]
-  end
-
-  subgraph cycle3 ["Cycle 3"]
-    v120["v1.2.0\nInsecure Iteration\nFork v2.1.0\n+5-10 new CWEs"]
-    v12x["v1.2.x\nStructured Pentest"]
-    v220["v2.2.0\nSecure Parallel"]
-  end
-
-  subgraph cycleN ["Cycle N"]
-    v1N0["v1.N.0\n..."]
-  end
-
-  v100 -->|"pentest + patch"| v10x
-  v10x -->|"all CWEs remediated"| v200
-  v200 -->|"fork + add vulns"| v110
-  v110 -->|"pentest + patch"| v11x
-  v11x -->|"all CWEs remediated"| v210
-  v210 -->|"fork + add vulns"| v120
-  v120 -->|"pentest + patch"| v12x
-  v12x -->|"all CWEs remediated"| v220
-  v220 -->|"fork + add vulns"| v1N0
+  v100 --> v200 --> v110 --> v210
+  v210 --> ctf3 --> blue3
+  v210 --> v120 --> v220 --> v130 --> v230
 ```
 
-### Cycle Mechanics
+### Cycle-4 SoftDev (current tip)
 
-| Phase | Version | Activity | Output |
-|-------|---------|----------|--------|
-| Build | v1.N.0 | Fork from v2.(N-1).0, introduce 5-10 new CWEs across new or existing surfaces | Insecure baseline with documented weaknesses |
-| Test | v1.N.x | Structured penetration testing using real tools and methodologies | Pentest reports, exploit documentation, patch PRs |
-| Harden | v2.N.0 | Apply all remediations, verify each fix, document the delta | Secure counterpart, remediation evidence |
-| Repeat | v1.(N+1).0 | Fork v2.N.0, add next wave of vulnerabilities | Next insecure baseline |
+- Entrance: Notes API/UI; intentional XSS
+- Depth: SSH overlay `lab` @ `:2222`; foothold only
+- Flags F1–F3: [ground truth](../security/Cycle-4/Dev/v1.2.0-ground-truth.md)
+- Path: [notes-ssh-path.md](notes-ssh-path.md)
 
-### First cycle (v1.0.0) — 59 instances / 38 unique CWE IDs
+### Speculative “race/cache v1.2.0” ideas (obsolete)
 
-- v1.0.0 tagged from v0.9.5-rc.1; post-tag fixes on `main`
-- Docker prod (`docker-compose.prod.yml`) mandatory for v1.0.x pentest
-- Cycle-1 artifacts: [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
-
-### Subsequent cycles expand the surface
-
-- v1.1.0 might add: XSS (CWE-79), CSRF (CWE-352), SSRF (CWE-918), deserialization (CWE-502), XXE (CWE-611)
-- v1.2.0 might add: race conditions (CWE-362), cache poisoning (CWE-349), subdomain takeover, JWT algorithm confusion (CWE-327)
-- The possibilities are unbounded -- this is a perpetual sandbox
+Earlier drafts projected v1.2.0 as concurrency/cache CWEs. **Superseded by ADR-033** (Notes + SSH SoftDev pair).
 
 ---
 
-## Security Surface Growth
-
-Cumulative CWE count across expansion cycles. Each cycle adds a new wave of weaknesses on top of the previous secure baseline.
-
-```mermaid
-flowchart LR
-  subgraph v100_surface ["v1.0.0 (59/38 CWEs)"]
-    S1_Identity["Identity\n7 CWEs"]
-    S1_Data["Data\n3 CWEs"]
-    S1_Injection["Injection\n2 CWEs"]
-    S1_Files["File\n4 CWEs"]
-    S1_Authz["Authorization\n4 CWEs"]
-    S1_Infra["Infrastructure\n6 CWEs"]
-  end
-
-  subgraph v110_surface ["v1.1.0 (~25 CWEs, +10)"]
-    S2_XSS["+ XSS (CWE-79)"]
-    S2_CSRF["+ CSRF (CWE-352)"]
-    S2_SSRF["+ SSRF (CWE-918)"]
-    S2_Deser["+ Insecure Deserialization (CWE-502)"]
-    S2_XXE["+ XXE (CWE-611)"]
-    S2_More["+ 5 more..."]
-  end
-
-  subgraph v120_surface ["v1.2.0 (~35 CWEs, +10)"]
-    S3_Race["+ Race Conditions (CWE-362)"]
-    S3_Cache["+ Cache Poisoning (CWE-349)"]
-    S3_AlgConfusion["+ JWT Alg Confusion (CWE-327)"]
-    S3_More["+ 7 more..."]
-  end
-
-  v100_surface --> v110_surface --> v120_surface
-```
-
-### CWE Growth Summary
-
-| Cycle | Version | New CWEs | Cumulative | Primary New Surfaces |
-|-------|---------|----------|-----------|---------------------|
-| 1 | v1.0.0 | 59 / 38 IDs | 59 / 38 IDs | Identity, Data, Injection, Files, Authorization, Admin, Infrastructure |
-| 2 | v1.1.0 | ~10 | ~25 | Client-side (XSS, CSRF), Server-side request forgery, Deserialization |
-| 3 | v1.2.0 | ~10 | ~35 | Concurrency, Caching, Cryptographic weaknesses |
-| 4 | v1.3.0 | ~10 | ~45 | Supply chain, CI/CD, cloud misconfigurations |
-| N | v1.N.0 | ~5-10 | Growing | New attack categories as technology evolves |
-
-The v1.1.0+ CWE additions are speculative projections to illustrate the expansion model. Actual weaknesses will be chosen based on what is realistic for the application's technology stack and deployment context at the time.
-
----
-
-## Version Semantics (Updated)
+## Version Semantics (updated)
 
 | Version Pattern | Meaning |
 |----------------|---------|
-| v0.0.x | Foundation: repo, scaffolding, tooling, contracts |
-| v0.1.x | Identity and authentication surface |
-| v0.2.x | Persistence and database surface |
-| v0.3.x | File handling surface |
-| v0.4.x | Authorization and administrative surface |
-| v0.5.x | Foundation refinement (validation, pagination, errors, logging) |
-| v0.6.x | Admin polish (audit, search, stats) |
-| v0.7.x | Docker deployment surface |
-| v0.8.x | API lock and test hardening |
-| v0.9.x | MVP freeze and release candidate |
-| **v1.0.0** | **Pentest-ready insecure MVP (59/38 CWEs, Docker prod :8080 mandatory)** |
-| v1.0.x | Pentest + incremental securing of v1.0.0 |
-| **v2.0.0** | **Secure parallel to v1.0.0 -- all CWEs remediated** |
-| **v1.1.0** | **Insecure iteration -- fork v2.0.0 + ~10 new CWEs** |
-| v1.1.x | Pentest + incremental securing of v1.1.0 |
-| **v2.1.0** | **Secure parallel to v1.1.0** |
-| v1.N.0 | Nth insecure iteration |
-| v2.N.0 | Nth secure parallel |
+| **v1.0.0** / **v2.0.0** | Cycle-1 SoftDev pair |
+| **v1.1.0** / **v2.1.0** | Cycle-2 SoftDev pair (last hardened product tag before Cycle-4 SoftDev) |
+| Cycle-3 | CTF-only (`ctf/leak-crack-db`) — no product bump |
+| **v1.2.0** / **v2.2.0** | Cycle-4 SoftDev — Notes XSS + SSH → harden Notes / no default SSH |
+| **v1.3.0** / **v2.3.0** | Cycle-5 SoftDev sketch — shells + PrivEsc |
 
 ---
 
-## Branch Strategy for Expansion Cycles
+## Branch Strategy for SoftDev + archives
 
-Each cycle creates a clear branch structure:
-
-```mermaid
-gitGraph
-  commit id: "v0.0.1" tag: "v0.0.1"
-  commit id: "v0.9.5-rc" tag: "v0.9.5-rc.1"
-  commit id: "v1.0.0" tag: "v1.0.0"
-
-  branch v1.0.x
-  commit id: "v1.0.1 pentest"
-  commit id: "v1.0.2 patch"
-  commit id: "v1.0.3 patch"
-
-  checkout main
-  merge v1.0.x id: "v2.0.0" tag: "v2.0.0"
-
-  branch v1.1.x
-  commit id: "v1.1.0 add vulns" tag: "v1.1.0"
-  commit id: "v1.1.1 pentest"
-  commit id: "v1.1.2 patch"
-
-  checkout main
-  merge v1.1.x id: "v2.1.0" tag: "v2.1.0"
-```
+See root [README.md](../../README.md) Branching Strategy and [ADR-015](../decisions/ADR-015-branching-strategy.md) amendment. SoftDev rails (`backend` / `frontend` / `dev`) reset from `main` each SoftDev cycle; `ctf/*` / `remediation/*` archives kept forever.
