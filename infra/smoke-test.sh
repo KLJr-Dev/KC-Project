@@ -5,6 +5,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # C2-F03 — secure prod compose must keep Postgres off the host
 "${ROOT}/infra/assert-pg-unpublished.sh"
+# C4-F03 — secure prod compose must not publish SSH (overlay-only)
+"${ROOT}/infra/assert-ssh-unpublished.sh"
 
 BASE="${BASE_URL:-http://localhost:8080/api}"
 EMAIL="smoke-$(date +%s)@test.com"

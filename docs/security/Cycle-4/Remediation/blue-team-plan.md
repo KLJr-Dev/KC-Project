@@ -12,8 +12,8 @@
 | Cycle | 4 (SoftDev security pair) |
 | From | Intentional insecure Notes + SSH overlay on `main` (`v1.2.0`) |
 | To | Tag **`v2.2.0`** — Notes kept; XSS closed; no default SSH |
-| Current milestone | **M2 done** — seeds neutralized; **M3** next |
-| Code status | Waves A–B landed — regression pending |
+| Current milestone | **M3 done** — regression + smoke asserts; **M4** next |
+| Code status | Waves A–C landed — gate/sign pending |
 
 ```text
 main @ v1.2.0 (insecure SoftDev)
@@ -39,7 +39,7 @@ Close the Cycle-4 Red chain on the **product tip**: Notes remain a first-class f
 | **M0** | Plan signed | Blue plan + remediation map + residuals + secure-ready scaffold | **Done** |
 | **M1** | Wave A — XSS + attachments | Safe Notes render; no `unsafe-markdown` sink; attachment not inline SVG/HTML XSS | **Done** |
 | **M2** | Wave B — seeds + SSH story | No live `lab`/`labpass` in product notes; Cycle-4 plants removed or neutralized on secure tip; docs say SSH overlay is lab-only | **Done** |
-| **M3** | Wave C — regression + asserts | Notes XSS negative e2e; user 403 on foreign notes; `assert-ssh-unpublished` / `assert-pg-unpublished` in gate | Pending |
+| **M3** | Wave C — regression + asserts | Notes XSS negative e2e; user 403 on foreign notes; `assert-ssh-unpublished` / `assert-pg-unpublished` in gate | **Done** |
 | **M4** | Wave D — gate + tag | Secure-ready signed; smoke + journey + e2e-docker (+ tls-smoke if policy); PR → `main` → tag `v2.2.0`; SoftDev rails reset | Pending |
 
 ### M0 — Plan
@@ -66,10 +66,10 @@ Close the Cycle-4 Red chain on the **product tip**: Notes remain a first-class f
 
 ### M3 — Prove the chain fails
 
-- [ ] e2e: stored `img onerror` / script body does **not** execute (or is escaped in DOM)
-- [ ] e2e: user cannot `GET /notes/:foreignId` (already true — keep named)
-- [ ] Optional: admin note bodies on secure tip contain no `labpass` / `OS{` Cycle-4 plants
-- [ ] `./infra/assert-ssh-unpublished.sh` + `assert-pg-unpublished.sh` in gate path
+- [x] e2e: stored `img onerror` body round-trips as text; no `unsafe-markdown` / Notes HTML sink (`cycle-4-regression.e2e-spec.ts`)
+- [x] e2e: user cannot `GET /notes/:foreignId` (named in regression + notes e2e)
+- [x] SeedDemoNotes / neutralize sources contain no `labpass` / Cycle-4 `OS{` plants
+- [x] `./infra/assert-ssh-unpublished.sh` + `assert-pg-unpublished.sh` in `smoke-test.sh`
 
 ### M4 — Ship
 
@@ -104,7 +104,4 @@ Close the Cycle-4 Red chain on the **product tip**: Notes remain a first-class f
 
 ## Immediate next
 
-1. Finish M0 checkboxes (this commit).  
-2. **M1:** implement safe Notes render + attachment policy on this branch.  
-3. **M2:** neutralize Cycle-4 seed plants on secure tip.  
-4. Regression → gate → tag.
+1. **M4:** sign secure-ready · smoke · journey · e2e-docker · tls-smoke · PR → `main` · tag `v2.2.0`.

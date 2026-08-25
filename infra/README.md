@@ -111,7 +111,7 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 | `assert-pg-unpublished.sh` | compose file | Prod compose must not publish `:5433` (C2-F03) |
 | `assert-ssh-unpublished.sh` | compose file | Prod compose must not publish `:2222` (SSH overlay-only) |
 | `cycle4-ssh-examiner.sh` | Prod + `docker-compose.ssh.yml` | F3 + loot dry-run for Cycle-4 SoftDev |
-| `smoke-test.sh` | Full prod stack on `:8080` | PG unpublished assert + health → register → upload → list + demo login |
+| `smoke-test.sh` | Full prod stack on `:8080` | PG + SSH unpublished asserts + health → register → upload → list + demo login |
 | `journey-test.sh` | Full prod stack | 3 roles, demo share token API+UI, mod pending, admin files, IDOR deny |
 | `tls-smoke.sh` | Prod + `docker-compose.tls.yml` on `:8443` | HTTPS health, HSTS, HTTP→HTTPS redirect, Secure cookie |
 | `scripts/gen-lab-certs.sh` | mkcert or openssl | Write `infra/certs/localhost*.pem` |
