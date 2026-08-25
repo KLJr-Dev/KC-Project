@@ -1,13 +1,15 @@
 # Cycle-4 Remediation
 
-Defensive artifacts for **`v2.2.0`** (after Red freezes).
+Defensive track for **`v2.2.0`** after Red freeze on `ctf/v1.2.0`.
 
 | Doc | Purpose |
 |-----|---------|
-| `v2.2.0-remediation.md` | (pending) finding → fix map |
-| `blue-team-plan.md` | (pending) |
-| `accepted-residuals.md` | (pending) |
+| [blue-team-plan.md](blue-team-plan.md) | Milestones M0–M4 |
+| [v2.2.0-remediation.md](v2.2.0-remediation.md) | Finding → fix map |
+| [accepted-residuals.md](accepted-residuals.md) | Bucket A residuals |
+| [v2.2.0-secure-ready.md](../../../release/v2.2.0-secure-ready.md) | Tag gate |
 
-Gate (pending): `docs/release/v2.2.0-secure-ready.md`
+**Branch:** `remediation/v2.2.0`  
+**Red writeup (frozen):** `ctf/v1.2.0` → PenTest/v1.2.0-writeup.md
 
 Parent: [../README.md](../README.md)

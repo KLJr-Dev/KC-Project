@@ -1,7 +1,7 @@
 # Security Cycle 4 — Notes + SSH foothold (SoftDev)
 
-**Status:** Tag **`v1.2.0`** shipped · Red open · [ADR-033](../../decisions/ADR-033-cycle-4-softdev-version-pair.md)  
-**Versions:** `v1.2.0` (insecure) → Red → `v2.2.0` (secure)  
+**Status:** Tag **`v1.2.0`** shipped · Red **frozen** on `ctf/v1.2.0` · Blue on **`remediation/v2.2.0`** · [ADR-033](../../decisions/ADR-033-cycle-4-softdev-version-pair.md)  
+**Versions:** `v1.2.0` (insecure) → Red ✅ → `v2.2.0` (secure)  
 **Baseline before SoftDev:** tag **`v2.1.0`**  
 **Ceiling:** Logical path to SSH → **file enum / user flag** — **not** PrivEsc ([Cycle-5](../Cycle-5/README.md) takes shells + root)
 
@@ -9,8 +9,8 @@
 |-------|------|--------|
 | SoftDev (`backend` / `frontend` / `dev` → `main`) | Intentional insecure Notes on **`main`** | **Done** — [status](Dev/v1.2.0-softdev-status.md) · [pentest-ready](../../release/v1.2.0-pentest-ready.md) |
 | Tag **`v1.2.0`** (+ archive `ctf/v1.2.0`) | Pentest-ready insecure tip | **Shipped** |
-| PenTest | Red (F1–F3; foothold only) | **Open** — writeup in PenTest/ |
-| **`remediation/v2.2.0`** → tag **`v2.2.0`** | Harden Notes; no default SSH | Pending after Red |
+| PenTest | Red (F1–F3; foothold only) | **Complete** — writeup on `ctf/v1.2.0` |
+| **`remediation/v2.2.0`** → tag **`v2.2.0`** | Harden Notes; no default SSH | **Active** — [blue-team-plan](Remediation/blue-team-plan.md) |
 
 ---
 
