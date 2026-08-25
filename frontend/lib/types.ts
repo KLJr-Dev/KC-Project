@@ -33,8 +33,33 @@ export type CreateSharing = components['schemas']['CreateSharingDto'];
 export type UpdateSharing = components['schemas']['UpdateSharingDto'];
 export type SharingResponse = components['schemas']['SharingResponseDto'];
 
+// ── Notes (Cycle-4 SoftDev — not yet in OpenAPI codegen) ─────────────
+
+export interface NoteResponse {
+  id: string;
+  ownerId: string;
+  title: string;
+  body: string;
+  flagged: boolean;
+  attachmentFilename?: string;
+  attachmentMimetype?: string;
+  hasAttachment: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateNoteRequest {
+  title: string;
+  body: string;
+}
+
+export interface UpdateNoteRequest {
+  title?: string;
+  body?: string;
+}
+
 // ── Generic ──────────────────────────────────────────────────────────
 
 export interface DeleteResponse {
-  deleted: string;
+  deleted: string | boolean;
 }

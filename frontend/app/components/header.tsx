@@ -53,6 +53,12 @@ export default function Header() {
                 My Files
               </Link>
               <Link
+                href="/notes"
+                className="text-sm text-muted transition-colors hover:text-foreground"
+              >
+                Notes
+              </Link>
+              <Link
                 href="/sharing"
                 className="text-sm text-muted transition-colors hover:text-foreground"
               >
