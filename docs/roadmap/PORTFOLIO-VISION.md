@@ -168,9 +168,17 @@ Cloud variants are **additional release lines**, not replacements — tags make 
 
 Share-plant → SQLi search → crack → published PG. Blue = docs + regression on `main` (no version bump).
 
-### Cycle-4+ — security scenarios on current product
+### Cycle-4 — SoftDev planned (`v1.2.0` → `v2.2.0`)
 
-Themes remain open (XSS, SSRF, concurrency, cloud misconfig, etc.). Prefer CTF misconfig of the **current** secure tip unless SoftDev expands surface first (then bump `vX.Y.Z`).
+Notes + SSH **foothold** (logical path, file loot, `user.txt`) — not PrivEsc ([box plan](../security/Cycle-4/Dev/v1.2.0-box-plan.md)).
+
+### Cycle-5 — shells & PrivEsc (sketch, soon after `v2.2.0`)
+
+Same SSH lineage; reverse shells + PrivEsc → `root.txt` ([sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md)). Prefer CTF overlay (ADR-032) unless SoftDev adds surface.
+
+### Cycle-6+ — combinations
+
+XSS/SSRF SoftDev, cloud, FTP overlays, etc., as modular CTFs on the current tip.
 
 ---
 
@@ -195,10 +203,10 @@ Themes remain open (XSS, SSRF, concurrency, cloud misconfig, etc.). Prefer CTF m
 
 ## 8. Immediate next actions
 
-1. Keep interview explainability current for auth, RBAC, files, and Cycle-1/2 chains.
-2. SoftDev: land real surface growth via `backend` / `frontend` → `dev` → `main`, then tag.
-3. Next CTF: fork **v2.1.0**, misconfigure + flags only ([future-ctf-candidates.md](../security/Cycle-2/Remediation/future-ctf-candidates.md)); freeze `ctf/<scenario>` + `remediation/<cycle>`.
+1. Cycle-4 SoftDev: Notes + SSH foothold per [box plan](../security/Cycle-4/Dev/v1.2.0-box-plan.md) → `v1.2.0` → Red → `v2.2.0`.
+2. Cycle-5 (soon): shells + PrivEsc on SSH lineage ([sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md)).
+3. Keep interview explainability current for auth, RBAC, files, and Cycles 1–3.
 
 ---
 
-*Last updated: August 2026 — Cycles 1–3 closed; ADR-032 in effect.*
+*Last updated: August 2026 — Cycles 1–3 closed; Cycle-4 planned; Cycle-5 sketched.*

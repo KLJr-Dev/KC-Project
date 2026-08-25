@@ -20,7 +20,7 @@ Engineering and technical documentation for KC-Project.
 
 ### [decisions/](decisions/)
 
-ADRs 001–032. Index: [decisions/README.md](decisions/README.md). Recent: ADR-031 (cycle docs), **ADR-032** (post-v2.1.0 versioning).
+ADRs 001–033. Index: [decisions/README.md](decisions/README.md). Recent: **ADR-033** (Cycle-4 SoftDev pair), ADR-032 (CTF-only versioning).
 
 ### [deploy/](deploy/)
 
@@ -48,6 +48,8 @@ docs/security/
 ├── Cycle-1/   → closed (v1.0.0 → v2.0.0); PenTest on main
 ├── Cycle-2/   → closed (v1.1.0 → v2.1.0); Remediation on main; PenTest on ctf/v1.1.0
 ├── Cycle-3/   → closed (ctf/leak-crack-db → Blue on main; no product tag)
+├── Cycle-4/   → planned SoftDev (v1.2.0 → v2.2.0); Notes + SSH foothold
+├── Cycle-5/   → sketch; shells + PrivEsc after Cycle-4 Blue
 ├── README.md
 └── cwe-inventory.md
 ```

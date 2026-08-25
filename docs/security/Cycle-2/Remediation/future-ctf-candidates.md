@@ -9,7 +9,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 - Prefer **new** vulnerability classes over replaying the exact Cycle-2 chain unless the story needs FC-08.  
 - **No product version bump** for CTF-only work ([ADR-032](../../../decisions/ADR-032-post-v2.1.0-versioning.md)); branches are `ctf/<scenario>`.
 
-**Companion:** [accepted-residuals-v2.1.0.md](accepted-residuals-v2.1.0.md) · [v2.1.0-remediation.md](v2.1.0-remediation.md) · Cycle-3: [../../Cycle-3/README.md](../../Cycle-3/README.md)
+**Companion:** [accepted-residuals-v2.1.0.md](accepted-residuals-v2.1.0.md) · [v2.1.0-remediation.md](v2.1.0-remediation.md) · Cycle-4: [../../Cycle-4/README.md](../../Cycle-4/README.md)
 
 ---
 
@@ -17,9 +17,9 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 | ID | Surface | Rough CWE | Suggested box | Fork pattern | Must not regress on secure |
 |----|---------|-----------|---------------|--------------|----------------------------|
-| **FC-01** | Stored / reflected XSS | 79 | SoftDev notes then CTF | New/rich input + plant on fork | Keep nginx CSP/headers |
+| **FC-01** | Stored / reflected XSS | 79 | **Cycle-4 Notes (`v1.2.0`)** | SoftDev notes body XSS on insecure | Keep nginx CSP/headers; sanitize on `v2.2.0` |
 | **FC-02** | CSRF on state-changing cookie auth | 352 | later | Weak SameSite / missing CSRF on fork | Keep refresh CSRF header |
-| **FC-03** | SSRF via URL fetch | 918 | SoftDev then CTF | New outbound URL on fork only | No open URL fetch on secure `main` |
+| **FC-03** | SSRF via URL fetch | 918 | SoftDev then CTF (post-4) | New outbound URL on fork only | No open URL fetch on secure `main` |
 | **FC-04** | JWT algorithm / key confusion | 347 | mid-chain only | Overlay (HS256/alg confusion) | RS256 fail-closed on secure |
 | **FC-05** | Race / TOCTOU | 362 | later | Timing window on fork | — |
 | **FC-06** | Cache / edge misconfig | 444 | later | Ops / edge overlay | — |
@@ -29,8 +29,8 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | **FC-10** | Crackable lab hash / weak secret | 916 / 521 | **`ctf/leak-crack-db`** | Plant MD5 for John | Secure stays bcrypt cost ≥ 12, strong demo policy |
 | **FC-11** | CTF_MODE SQLi (search/filter) | 89 | **`ctf/leak-crack-db`** | String-concat query behind flag | Parameterized queries / no `q` concat on secure |
 | **FC-12** | Fresh IDOR (non-Cycle-2 object) | 639 | alternate web→DB box | Overlay ownership gap on new story | Ownership stays on secure |
-| **FC-13** | Docker / escape / privileged mount | 250 / 552 | later infra chapter | Compose overlay | Hardened prod compose stays |
-| **FC-14** | SSH / FTP sidecar | — | later OSCP-flavor | Sidecar on CTF compose only | No SSH/FTP on secure day-to-day |
+| **FC-13** | Docker / escape / privileged mount | 250 / 552 | Cycle-5 adjacent / later | Compose overlay | Hardened prod compose stays |
+| **FC-14** | SSH / FTP sidecar | — | **C4 SSH foothold**; **C5** shells/PrivEsc; FTP later | SSH overlay insecure/CTF only | No SSH/FTP on secure day-to-day |
 | **FC-15** | Cloud misconfig / IMDS via SSRF | — | after SoftDev URL fetch | Cloud lab line | — |
 | **FC-16** | WordPress / CMS sibling | — | optional parallel lab | Separate compose/repo | Don’t redefine KC as CMS |
 
@@ -40,9 +40,11 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 | ID | Status |
 |----|--------|
-| FC-01 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
+| FC-01 · FC-14 (SSH foothold) | **Locked / build next (Cycle-4 `v1.2.0`)** — [decisions](../../Cycle-4/Dev/v1.2.0-decisions.md) |
+| FC-14 (shells/PrivEsc) · FC-13 | **Planned (Cycle-5 `v1.3.0`→`v2.3.0`)** |
+| FC-02 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
 | FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
-| FC-12 … FC-16 | Available (later tracks) |
+| FC-12 · FC-14 (FTP) · FC-15 … FC-16 | Available (later tracks) |
 
 ---
 
@@ -62,8 +64,8 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 ## Handoff
 
-1. Read [Cycle-3/README.md](../../Cycle-3/README.md).  
-2. `git checkout -b ctf/<scenario> v2.1.0` (or current `main` tip).  
-3. Box plan / ground truth / player brief under `docs/security/Cycle-3/` (on CTF branch).  
-4. Implement breaks behind explicit flags/overlays.  
-5. Update this status table (`Consumed (ctf/…)`).
+1. Read [Cycle-4/README.md](../../Cycle-4/README.md) + [v1.2.0-box-plan.md](../../Cycle-4/Dev/v1.2.0-box-plan.md).  
+2. SoftDev from `main` → Notes + SSH overlay → tag `v1.2.0`.  
+3. Red → Blue → tag `v2.2.0` ([ADR-033](../../../decisions/ADR-033-cycle-4-softdev-version-pair.md)).  
+4. For CTF-only boxes after that: `git checkout -b ctf/<scenario>` (ADR-032).  
+5. Update this status table (`Consumed` / `Planned`).

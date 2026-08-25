@@ -2,8 +2,8 @@
 
 **Date**: March 5, 2026 (updated August 2026)  
 **Current release**: **v2.1.0** secure product (tagged on `main`)  
-**Cycles closed**: Cycle-1 (`v1.0.0`→`v2.0.0`) · Cycle-2 (`v1.1.0` CTF → `v2.1.0`) · Cycle-3 (`ctf/leak-crack-db`, no product tag)  
-**Next**: SoftDev surface expansion (version bump) and/or another CTF on **v2.1.0** without a product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md))
+**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3  
+**Next**: Cycle-4 SoftDev — Notes + SSH foothold (`v1.2.0` → `v2.2.0`); Cycle-5 shells/PrivEsc soon after ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md); [Cycle-4 box plan](../security/Cycle-4/Dev/v1.2.0-box-plan.md); [Cycle-5 sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md))
 
 ---
 

@@ -41,6 +41,7 @@ Each ADR follows a standard format: **Status**, **Context**, **Decision**, **Con
 | [030](ADR-030-demo-files-shares-seeding.md) | Demo files and shares seeding via migration | Accepted | v1.0.x |
 | [031](ADR-031-security-cycle-docs.md) | Security cycle documentation structure (`Cycle-N/`) | Accepted | v1.0.0 |
 | [032](ADR-032-post-v2.1.0-versioning.md) | Post-v2.1.0 versioning & branching (amends 013) | Accepted | v2.1.0 |
+| [033](ADR-033-cycle-4-softdev-version-pair.md) | Cycle-4 SoftDev version pair v1.2.0→v2.2.0 (amends 032) | Accepted | Cycle-4 |
 
 ## Adding a New ADR
 

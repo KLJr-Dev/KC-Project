@@ -40,7 +40,7 @@ Cycles 1–3 are **closed**:
 - **Demo users:** `user@kc.test` / `mod@kc.test` / `admin@kc.test` — [demo-users.md](docs/deploy/demo-users.md)
 - **Product UI:** My Files, Sharing, Review (mod), Admin — `/dev` gated unless lab flag
 - **Tests:** smoke · journey · e2e-docker · tls-smoke · Cycle-2/3 regression
-- **Next:** SoftDev surface expansion (version bump) **or** another `ctf/<scenario>` on **v2.1.0** without a bump ([ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md); [future-ctf-candidates.md](docs/security/Cycle-2/Remediation/future-ctf-candidates.md))
+- **Next:** Cycle-4 SoftDev — Notes + SSH foothold → `v1.2.0` / `v2.2.0`; then Cycle-5 shells/PrivEsc ([Cycle-4](docs/security/Cycle-4/README.md), [Cycle-5](docs/security/Cycle-5/README.md))
 
 ### Run locally (Docker — secure stack)
 
@@ -93,7 +93,7 @@ cd frontend && npm run format:check && npm run lint
 
 ## Documentation
 
-All engineering documentation lives in `/docs`. Security cycles: [Cycle-1](docs/security/Cycle-1/README.md) · [Cycle-2](docs/security/Cycle-2/README.md) · [Cycle-3](docs/security/Cycle-3/README.md).
+All engineering documentation lives in `/docs`. Security cycles: [Cycle-1](docs/security/Cycle-1/README.md) · [Cycle-2](docs/security/Cycle-2/README.md) · [Cycle-3](docs/security/Cycle-3/README.md) · [Cycle-4](docs/security/Cycle-4/README.md) · [Cycle-5](docs/security/Cycle-5/README.md).
 
 ## Versioning
 
@@ -104,7 +104,8 @@ All engineering documentation lives in `/docs`. Security cycles: [Cycle-1](docs/
 | `v2.0.0` | Cycle-1 secure parallel — **tagged** |
 | `v1.1.0` | Cycle-2 CTF box — **tagged** (`ctf/v1.1.0`) |
 | `v2.1.0` | Cycle-2 secure product (current `main`) — **tagged** |
-| `v2.2.0+` | Only when SoftDev expands surface ([ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md)) |
+| `v1.2.0` / `v2.2.0` | Cycle-4 SoftDev (planned) — Notes + SSH ([ADR-033](docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)) |
+| `v2.3.0+` | Later SoftDev surface expansions |
 
 Cycles 1–2 used [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md) version pairs. **From v2.1.0 forward:** [ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md) — CTFs misconfigure the current app **without** a product version bump (Cycle-3 = `ctf/leak-crack-db`).
 

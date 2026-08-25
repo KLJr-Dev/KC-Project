@@ -59,4 +59,5 @@ Security cycles after Cycle-2 still get `docs/security/Cycle-N/` workspaces. The
 - [ADR-013](./ADR-013-expansion-cycle-versioning.md) — historical expansion-cycle versioning
 - [ADR-015](./ADR-015-branching-strategy.md) — original branching
 - [ADR-031](./ADR-031-security-cycle-docs.md) — Cycle-N doc structure
+- [ADR-033](./ADR-033-cycle-4-softdev-version-pair.md) — SoftDev Cycle-4 restores `v1.2.0`/`v2.2.0` pair
 - [future-ctf-candidates.md](../security/Cycle-2/Remediation/future-ctf-candidates.md)

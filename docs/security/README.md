@@ -8,11 +8,17 @@
 
 **[Cycle-3/](Cycle-3/README.md)** — **Closed** (`ctf/leak-crack-db` → Blue on `main`). No product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)).
 
+**[Cycle-4/](Cycle-4/README.md)** — **Planned** SoftDev pair (`v1.2.0` → `v2.2.0`): Notes + SSH foothold ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
+
+**[Cycle-5/](Cycle-5/README.md)** — **Sketch** (soon after Cycle-4 Blue): shells + PrivEsc on SSH lineage.
+
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
 | 1 | [PenTest/v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) · frozen `remediation/v2.0.0` |
 | 2 | branch/tag `ctf/v1.1.0` (PenTest/Dev on that branch) | [v2.1.0-remediation.md](Cycle-2/Remediation/v2.1.0-remediation.md) · frozen `remediation/v2.1.0` |
 | 3 | branch `ctf/leak-crack-db` (PenTest on that branch) | [cycle-3-leak-crack-db-remediation.md](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) · frozen `remediation/cycle-3-leak-crack-db` |
+| 4 | tag `v1.2.0` (planned) · Notes XSS + SSH foothold | tag `v2.2.0` (planned) · [Cycle-4](Cycle-4/README.md) |
+| 5 | shells + PrivEsc (sketch) | lab overlay / harden jump host · [Cycle-5](Cycle-5/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -27,11 +33,12 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground tru
 - [v2.1.0-secure-ready.md](../release/v2.1.0-secure-ready.md) — Cycle-2 Blue gate (**signed**)
 - [cycle-3-leak-crack-db-secure-ready.md](../release/cycle-3-leak-crack-db-secure-ready.md) — Cycle-3 Blue gate (**signed**)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
-- [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — post-v2.1.0 CTFs without product version bumps
+- [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — CTF-only cycles without product version bumps
+- [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — SoftDev Cycle-4 pair `v1.2.0`→`v2.2.0`
 
 ## Scope
 
-Cycles 1–3 complete. Live product = **v2.1.0** secure stack. Next = SoftDev surface expansion (version bump) and/or another `ctf/<scenario>` ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md); [future-ctf-candidates.md](Cycle-2/Remediation/future-ctf-candidates.md)).
+Cycles 1–3 complete. Live product = **v2.1.0**. **Next:** Cycle-4 SoftDev — Notes + SSH foothold (`v1.2.0` → `v2.2.0`); then Cycle-5 shells/PrivEsc ([Cycle-4](Cycle-4/README.md), [Cycle-5](Cycle-5/README.md)).
 
 ## Tools
 
