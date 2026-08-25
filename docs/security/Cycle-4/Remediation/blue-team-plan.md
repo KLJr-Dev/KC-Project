@@ -12,8 +12,8 @@
 | Cycle | 4 (SoftDev security pair) |
 | From | Intentional insecure Notes + SSH overlay on `main` (`v1.2.0`) |
 | To | Tag **`v2.2.0`** — Notes kept; XSS closed; no default SSH |
-| Current milestone | **M0 done** — plan committed; **M1** next |
-| Code status | Plan only — implementation pending |
+| Current milestone | **M1 done** — XSS + attachments; **M2** next |
+| Code status | Wave A landed — seeds pending |
 
 ```text
 main @ v1.2.0 (insecure SoftDev)
@@ -37,7 +37,7 @@ Close the Cycle-4 Red chain on the **product tip**: Notes remain a first-class f
 | ID | Goal | Exit criteria | Status |
 |----|------|---------------|--------|
 | **M0** | Plan signed | Blue plan + remediation map + residuals + secure-ready scaffold | **Done** |
-| **M1** | Wave A — XSS + attachments | Safe Notes render; no `unsafe-markdown` sink; attachment not inline SVG/HTML XSS | Pending |
+| **M1** | Wave A — XSS + attachments | Safe Notes render; no `unsafe-markdown` sink; attachment not inline SVG/HTML XSS | **Done** |
 | **M2** | Wave B — seeds + SSH story | No live `lab`/`labpass` in product notes; Cycle-4 plants removed or neutralized on secure tip; docs say SSH overlay is lab-only | Pending |
 | **M3** | Wave C — regression + asserts | Notes XSS negative e2e; user 403 on foreign notes; `assert-ssh-unpublished` / `assert-pg-unpublished` in gate | Pending |
 | **M4** | Wave D — gate + tag | Secure-ready signed; smoke + journey + e2e-docker (+ tls-smoke if policy); PR → `main` → tag `v2.2.0`; SoftDev rails reset | Pending |

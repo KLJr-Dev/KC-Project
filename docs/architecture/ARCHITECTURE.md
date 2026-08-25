@@ -149,7 +149,6 @@ lib/
 ├── api.ts                    Typed fetch wrappers (files, notes, auth, …)
 ├── auth-context.tsx          Auth state (in-memory access JWT)
 ├── theme-context.tsx         Theme state (light/dark/system)
-├── unsafe-markdown.ts        SoftDev — intentional XSS MD path
 ├── types.gen.ts              Auto-generated from OpenAPI spec
 └── types.ts                  Re-export layer with friendly aliases
 ```

@@ -13,7 +13,7 @@ import { buildPaginatedResponse, resolvePagination } from '../common/pagination.
 import { assertNoteAttachment } from './notes-upload';
 
 /**
- * Notes service — Cycle-4 SoftDev (`v1.2.0`).
+ * Notes service — Cycle-4 Blue (`v2.2.0`).
  *
  * Authz mirrors Files:
  * - list: owner-scoped unless admin/moderator
@@ -23,7 +23,7 @@ import { assertNoteAttachment } from './notes-upload';
  * - flag: enforced at controller via @HasRole(['admin','moderator'])
  *
  * Search: TypeORM ILike on title/body when `q` present — parameterized, not concat.
- * Attachments: optional; SVG/HTML allowed on insecure tip (see notes-upload.ts).
+ * Attachments: optional; SVG/HTML rejected (notes-upload.ts / C4-F01b).
  */
 @Injectable()
 export class NotesService {

@@ -1,8 +1,9 @@
 /**
- * Cycle-4 SoftDev — Notes API e2e (P1a/P1b/P1c).
+ * Cycle-4 Blue — Notes API e2e (`v2.2.0`).
  *
  * Covers owner CRUD, tertiary RBAC (mod flag / admin delete), parameterized `q`,
- * attachment upload + inline SVG/HTML, and ensures response omits attachmentStoragePath.
+ * attachment upload with SVG/HTML rejected + download disposition (C4-F01b),
+ * and ensures response omits attachmentStoragePath.
  *
  * Requires reachable Postgres (same as other backend e2e suites).
  * Schema via synchronize(true) — skip migrations to avoid seed enum clashes on lab DBs.
@@ -40,7 +41,7 @@ async function registerAndLogin(
   return { token: login.body.token as string, userId: login.body.userId as string };
 }
 
-describe('Notes API — Cycle-4 SoftDev (v1.2.0)', () => {
+describe('Notes API — Cycle-4 Blue (v2.2.0)', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
 
@@ -239,7 +240,7 @@ describe('Notes API — Cycle-4 SoftDev (v1.2.0)', () => {
       .expect(200);
   });
 
-  it('multipart attachment: SVG inline for owner; cross-user 403', async () => {
+  it('multipart: SVG/HTML rejected; txt attachment downloads; cross-user 403', async () => {
     const http = app.getHttpServer();
     const a = await registerAndLogin(http, 'att-a@t.com', 'att_a');
     const b = await registerAndLogin(http, 'att-b@t.com', 'att_b');
@@ -247,29 +248,32 @@ describe('Notes API — Cycle-4 SoftDev (v1.2.0)', () => {
     const svg = Buffer.from(
       '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
     );
-    const created = await request(http)
+    await request(http)
       .post('/notes')
       .set('Authorization', `Bearer ${a.token}`)
       .field('title', 'xss candy')
       .field('body', 'see attachment')
       .attach('attachment', svg, 'payload.svg')
+      .expect(400);
+
+    const txt = Buffer.from('safe note attachment\n');
+    const created = await request(http)
+      .post('/notes')
+      .set('Authorization', `Bearer ${a.token}`)
+      .field('title', 'safe attach')
+      .field('body', 'see attachment')
+      .attach('attachment', txt, 'note.txt')
       .expect(201);
 
     expect(created.body.hasAttachment).toBe(true);
-    expect(created.body.attachmentFilename).toBe('payload.svg');
-    expect(created.body.attachmentMimetype).toMatch(/svg/i);
+    expect(created.body.attachmentFilename).toBe('note.txt');
     expect(created.body.attachmentStoragePath).toBeUndefined();
 
     const dl = await request(http)
       .get(`/notes/${created.body.id}/attachment`)
       .set('Authorization', `Bearer ${a.token}`)
       .expect(200);
-    expect(String(dl.headers['content-disposition'] || '')).toMatch(/inline/i);
-    expect(String(dl.headers['content-type'] || '')).toMatch(/svg/i);
-    const svgBody = Buffer.isBuffer(dl.body)
-      ? dl.body.toString('utf8')
-      : String(dl.text ?? dl.body ?? '');
-    expect(svgBody).toContain('<svg');
+    expect(String(dl.headers['content-disposition'] || '')).toMatch(/attachment/i);
 
     await request(http)
       .get(`/notes/${created.body.id}/attachment`)
@@ -282,25 +286,18 @@ describe('Notes API — Cycle-4 SoftDev (v1.2.0)', () => {
       .expect(200);
   });
 
-  it('HTML attachment served inline; exe extension rejected', async () => {
+  it('HTML attachment rejected; exe extension rejected', async () => {
     const http = app.getHttpServer();
     const u = await registerAndLogin(http, 'html-att@t.com', 'html_att');
 
     const html = Buffer.from('<!doctype html><html><body><script>x</script></body></html>');
-    const created = await request(http)
+    await request(http)
       .post('/notes')
       .set('Authorization', `Bearer ${u.token}`)
       .field('title', 'html')
       .field('body', 'h')
       .attach('attachment', html, 'note.html')
-      .expect(201);
-
-    const dl = await request(http)
-      .get(`/notes/${created.body.id}/attachment`)
-      .set('Authorization', `Bearer ${u.token}`)
-      .expect(200);
-    expect(String(dl.headers['content-disposition'] || '')).toMatch(/inline/i);
-    expect(String(dl.headers['content-type'] || '')).toMatch(/html/i);
+      .expect(400);
 
     await request(http)
       .post('/notes')

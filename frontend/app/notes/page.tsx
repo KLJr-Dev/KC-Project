@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * Notes list + create — Cycle-4 SoftDev (`v1.2.0`).
+ * Notes list + create — Cycle-4 Blue (`v2.2.0`).
  *
- * Search uses parameterized `q` on the API. XSS is in detail-page render, not here.
+ * Search uses parameterized `q` on the API. Body is plain text (C4-F01 closed in detail view).
  * Mod/admin see all notes (API scoped); users see own only.
  */
 import { useCallback, useEffect, useState } from 'react';
@@ -135,13 +135,13 @@ function NotesContent() {
           />
         </div>
         <div>
-          <label className="text-xs text-muted">Body (HTML or markdown)</label>
+          <label className="text-xs text-muted">Body</label>
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={5}
             className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
-            placeholder={'Supports HTML and markdown — e.g. <b>hi</b> or **hi**'}
+            placeholder="Plain text note body"
           />
         </div>
         <div>
