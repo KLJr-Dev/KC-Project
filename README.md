@@ -15,40 +15,41 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v1.2.0 SoftDev — intentional insecure tip on `main`)
+## Current Status (`remediation/v2.2.0` → tag **`v2.2.0`**)
 
-**Product tip:** Tag **`v1.2.0`** on `main` — intentional insecure Notes + SSH foothold ([pentest-ready](docs/release/v1.2.0-pentest-ready.md) signed). Red next (F1–F3); Blue later as `v2.2.0`.  
-**Last secure product tag:** **`v2.1.0`** — pin this (or wait for **`v2.2.0`**) for recruiter / hardened demos.  
-**Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) (ADR-027) · **Portfolio:** [PORTFOLIO-VISION.md](docs/roadmap/PORTFOLIO-VISION.md) · **SoftDev pair:** [ADR-033](docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)
+**Product tip (this branch):** Cycle-4 Blue — Notes kept, XSS closed, seed plants neutralized; default prod has **no** SSH.  
+**Insecure replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + optional `docker-compose.ssh.yml`.  
+**Last shipped secure tag until merge:** **`v2.1.0`**.  
+**Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) · **SoftDev pair:** [ADR-033](docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)
 
-> **Warning:** Current `main` tip is **intentionally vulnerable** (Notes XSS + optional SSH foothold). Do not treat it as the secure baseline.
+> **Note:** Hardened demos use this tip / upcoming tag **`v2.2.0`**. Do not use `v1.2.0` for recruiter “secure” walks.
 
-Cycles 1–3 are **closed**. Cycle-4 SoftDev is **on `main`** — Red after tag; Blue = `v2.2.0`.
+Cycles 1–3 are **closed**. Cycle-4 Red is **frozen** on `ctf/v1.2.0`; Blue lands as **`v2.2.0`**.
 
 | Cycle | Insecure / CTF | Secure / Blue |
 |-------|----------------|---------------|
 | 1 | tag `v1.0.0` | tag `v2.0.0` · frozen `remediation/v2.0.0` |
 | 2 | `ctf/v1.1.0` / tag `v1.1.0` | tag `v2.1.0` · frozen `remediation/v2.1.0` |
 | 3 | `ctf/leak-crack-db` (no product tag) | docs + regression on `main` · frozen `remediation/cycle-3-leak-crack-db` |
-| 4 | tip on `main` · tag **`v1.2.0`** | tag **`v2.2.0`** (after Red) |
+| 4 | tag **`v1.2.0`** / `ctf/v1.2.0` | tag **`v2.2.0`** (this Blue) |
 
 | Track | Artifact |
 |-------|----------|
-| SoftDev / Red tip (ship) | **`v1.2.0`** — [v1.2.0-pentest-ready.md](docs/release/v1.2.0-pentest-ready.md) · [Cycle-4](docs/security/Cycle-4/README.md) |
-| Player brief | [v1.2.0-player-brief.md](docs/security/Cycle-4/Dev/v1.2.0-player-brief.md) |
-| Last secure product | tag **`v2.1.0`** — [v2.1.0-secure-ready.md](docs/release/v2.1.0-secure-ready.md) |
-| Cycle-3 Blue gate | [cycle-3-leak-crack-db-secure-ready.md](docs/release/cycle-3-leak-crack-db-secure-ready.md) |
+| SoftDev insecure (frozen) | **`v1.2.0`** — [v1.2.0-pentest-ready.md](docs/release/v1.2.0-pentest-ready.md) · [Cycle-4](docs/security/Cycle-4/README.md) |
+| Blue / secure tip | **`v2.2.0`** — [v2.2.0-secure-ready.md](docs/release/v2.2.0-secure-ready.md) · [blue-team-plan](docs/security/Cycle-4/Remediation/blue-team-plan.md) |
+| Player brief (insecure) | [v1.2.0-player-brief.md](docs/security/Cycle-4/Dev/v1.2.0-player-brief.md) |
+| Last secure product (shipped) | tag **`v2.1.0`** until `v2.2.0` tagged |
 | Cycle-3 CTF (frozen) | `ctf/leak-crack-db` — [Cycle-3 README](docs/security/Cycle-3/README.md) |
 | Cycle-2 CTF (frozen) | `ctf/v1.1.0` — [Cycle-2 README](docs/security/Cycle-2/README.md) |
 | Cycle-1 (history) | [v1.0.0-writeup.md](docs/security/Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` |
 
 - **Docker (web only):** `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
-- **Full chain (Notes → SSH):** `prod` + `docker-compose.ssh.yml` → web `:8080` + SSH `lab@…:2222` ([infra/README.md](infra/README.md))
+- **v1.2.0 full chain (replay):** `prod` + `docker-compose.ssh.yml` on tag/`ctf/v1.2.0` — not default for Blue tip
 - **TLS lab profile:** `prod` + `docker-compose.tls.yml` → `https://localhost:8443`
 - **Demo users:** `user@kc.test` / `mod@kc.test` / `admin@kc.test` — [demo-users.md](docs/deploy/demo-users.md)
-- **Product UI:** My Files, **Notes**, Sharing, Review (mod), Admin — `/dev` gated unless lab flag
-- **Tests:** smoke · journey · e2e-docker · tls-smoke · Cycle-2/3 regression · Notes e2e · `cycle4-ssh-examiner.sh`
-- **Next after tag:** Red writeup (F1–F3) → `remediation/v2.2.0` → Cycle-5 shells/PrivEsc ([Cycle-5](docs/security/Cycle-5/README.md))
+- **Product UI:** My Files, **Notes** (plain text), Sharing, Review (mod), Admin — `/dev` gated unless lab flag
+- **Tests:** smoke · journey · e2e-docker · tls-smoke · Cycle-2/3/4 regression · Notes e2e
+- **Next:** M3 regression → sign `v2.2.0` → merge/tag → Cycle-5 later
 
 ### Run locally (Docker — web stack)
 
@@ -122,8 +123,8 @@ All engineering documentation lives in `/docs`. Security cycles: [Cycle-1](docs/
 | `v2.0.0` | Cycle-1 secure parallel — **tagged** |
 | `v1.1.0` | Cycle-2 CTF box — **tagged** (`ctf/v1.1.0`) |
 | `v2.1.0` | Cycle-2 secure product — **tagged** (last hardened product before SoftDev) |
-| `v1.2.0` | Cycle-4 SoftDev insecure tip (Notes XSS + SSH overlay) — **on `main`** · archive `ctf/v1.2.0` |
-| `v2.2.0` | Cycle-4 Blue (planned) — Notes hardened; no default SSH |
+| `v1.2.0` | Cycle-4 SoftDev insecure tip — **tagged** · archive `ctf/v1.2.0` |
+| `v2.2.0` | Cycle-4 Blue — Notes hardened; no default SSH (**this branch**) |
 | `v1.3.0` / `v2.3.0` | Cycle-5 SoftDev pair (shells + PrivEsc) — sketch |
 
 Cycles 1–2 used [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md) version pairs. **CTF-only** after v2.1.0: [ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md) (Cycle-3). **SoftDev security cycles** restore a pair: [ADR-033](docs/decisions/ADR-033-cycle-4-softdev-version-pair.md).

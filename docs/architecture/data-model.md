@@ -38,18 +38,18 @@ class NoteEntity {
 }
 ```
 
-**Seeded notes (SoftDev):**
+**Seeded notes (`v2.2.0` tip — no secret plants):**
 
 | ID | Owner | Role |
 |----|-------|------|
-| `9201` | admin `9003` | Real SSH plant + F2 |
-| `9202` | admin | Decoy retired jump |
-| `9203` | user `9001` | XSS scratchpad + F1 |
-| `9204` | user | VPN decoy |
+| `9201` | admin `9003` | Ops standup (no SSH/flags) |
+| `9202` | admin | Retired jump (no credentials) |
+| `9203` | user `9001` | Plain-text scratchpad |
+| `9204` | user | VPN reminder |
 | `9205` | mod `9002` | Mod queue reminder |
-| `9206` | other `9004` | Workshop decoy (if other user exists) |
+| `9206` | other `9004` | Diary (if other user exists) |
 
-Search uses parameterized `ILIKE` (not SQLi). Attachment files under `uploads/notes/`.
+Insecure Cycle-4 plants: tag/`ctf/v1.2.0` only. Search uses parameterized `ILIKE` (not SQLi). Attachment files under `uploads/notes/`.
 
 ---
 

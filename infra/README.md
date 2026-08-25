@@ -2,9 +2,10 @@
 
 Deployment and infrastructure for **KC-Project**.
 
-**Current tip on `main`:** SoftDev intentional insecure Notes + optional SSH overlay (tag **`v1.2.0`** pending).  
-**Last secure product tag:** **`v2.1.0`** — pin for hardened demos until **`v2.2.0`**.  
-Historical insecure baseline: tag `v1.0.0`. Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — do not attach those overlays to SoftDev/`main` without intent.
+**Current tip (this Blue branch):** Notes hardened for **`v2.2.0`** — no default SSH; seed plants neutralized.  
+**Insecure SoftDev replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.  
+**Last shipped secure tag until merge:** **`v2.1.0`**.  
+Historical insecure baseline: tag `v1.0.0`. Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — do not attach those overlays without intent.
 
 Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair: [ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md).
 
@@ -16,8 +17,10 @@ Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair
 |------|--------------|----------|-------|
 | **Secure / lab (primary)** | `docker-compose.prod.yml` | Day-to-day, journeys, smoke (**loopback HTTP OK**) | `http://localhost:8080` |
 | **TLS profile** | `prod` + `docker-compose.tls.yml` | **Required for LAN / recruiter secure demos**; HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
-| **SSH foothold (Cycle-4 SoftDev)** | `prod` + `docker-compose.ssh.yml` | Intentional `v1.2.0` lab chain only — user `lab` on host `:2222` | SSH `:2222` |
+| **SSH foothold (v1.2.0 replay only)** | `prod` + `docker-compose.ssh.yml` | Frozen SoftDev / CTF chain — **not** default for `v2.2.0` | SSH `:2222` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
+
+**C4-F03 / policy:** Prod compose alone must not publish `:2222` — `./infra/assert-ssh-unpublished.sh`. SoftDev SSH overlay is lab replay of `v1.2.0`, not a product feature on the secure tip.
 
 **LAN / off-loopback:** Do not advertise cleartext `:8080` on a reachable NIC as “secure.” Use the TLS overlay (or terminate TLS elsewhere). Loopback HTTP remains an accepted residual (R-01).
 

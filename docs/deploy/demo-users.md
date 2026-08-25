@@ -39,18 +39,20 @@ http://localhost:8080/share/c8f3a1e9b72d4f06a5e18c903d6b47e2f1a0c9d8b7e6f5a49382
 
 Legacy `share-1` returns **404**.
 
-## Seeded notes (SoftDev / Cycle-4 — migration `1777600000001-SeedDemoNotes`)
+## Seeded notes (Cycle-4 — secure tip / `v2.2.0`)
+
+Migration `1777600000001-SeedDemoNotes` (+ neutralize `1777700000000` on existing DBs).
 
 | ID | Owner | Purpose |
 |----|-------|---------|
-| `9201` | admin (9003) | Ops bastion note — real SSH plant + F2 |
-| `9202` | admin | Decoy retired jump |
-| `9203` | user (9001) | XSS scratchpad + F1 |
-| `9204` | user | VPN decoy |
+| `9201` | admin (9003) | Ops standup — **no** live SSH / flags |
+| `9202` | admin | Retired jump (no credentials) |
+| `9203` | user (9001) | Plain-text scratchpad |
+| `9204` | user | VPN rotate reminder |
 | `9205` | mod (9002) | Mod queue reminder |
-| `9206` | other (9004) | Workshop decoy (if other user present) |
+| `9206` | other (9004) | Personal diary (if other user present) |
 
-Examiner flags/SSH: [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md) (not for player brief). UI: `/notes`.
+Insecure SoftDev plants (SSH + flags): tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** — [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md). UI: `/notes`.
 
 ## Per-role expected UI
 
