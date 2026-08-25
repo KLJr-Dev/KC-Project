@@ -1,10 +1,12 @@
 # Infrastructure
 
-Deployment topology: SoftDev tip (prod + optional SSH), historical Cycle-1 prod, hardened tags, e2e/TLS overlays.
+Deployment topology: secure tip prod (no SSH), SoftDev/CTF SSH replay overlay, historical Cycle-1 prod, e2e/TLS overlays.
 
 ---
 
-## SoftDev tip — prod + optional SSH
+## Prod tip + optional SSH (replay)
+
+Default prod compose has **no** `:2222`. SoftDev/CTF full chain: add `docker-compose.ssh.yml` on tag/`ctf/v1.2.0` only.
 
 ```bash
 # Web only (Postgres unpublished)
@@ -43,7 +45,7 @@ See [infra/README.md](../../infra/README.md) · [notes-ssh-path.md](notes-ssh-pa
 
 ## Historical — v1.0.0 Docker prod (`docker-compose.prod.yml`)
 
-nginx at `:8080` proxies to internal frontend/backend. Cycle-1 tip published PostgreSQL on host `:5433` for e2e. SoftDev tip keeps PG unpublished on prod compose (`assert-pg-unpublished.sh`).
+nginx at `:8080` proxies to internal frontend/backend. Cycle-1 tip published PostgreSQL on host `:5433` for e2e. Secure tip keeps PG unpublished on prod compose (`assert-pg-unpublished.sh`).
 
 ### Topology (Cycle-1 shape)
 

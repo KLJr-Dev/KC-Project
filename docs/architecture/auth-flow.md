@@ -1,14 +1,14 @@
-# Authentication & Authorization Flow (v1.0.0 + SoftDev Notes)
+# Authentication & Authorization Flow (v1.0.0 + Notes)
 
-Canonical auth/RBAC reference for Cycle-1 (`v1.0.0`) plus SoftDev **Notes** authz on tip ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
+Canonical auth/RBAC reference for Cycle-1 (`v1.0.0`) plus **Notes** authz ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-> **Diagrams:** [diagrams/auth-flow.md](../diagrams/auth-flow.md). Notes path: [notes-ssh-path.md](../diagrams/notes-ssh-path.md).
+> **Diagrams:** [diagrams/auth-flow.md](../diagrams/auth-flow.md). Notes path (replay): [notes-ssh-path.md](../diagrams/notes-ssh-path.md).
 
-Ground truth: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) · [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md).
+Ground truth: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) · [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md) (insecure tip).
 
 ---
 
-## SoftDev Notes authz (tip on `main`)
+## Notes authz (product tip)
 
 | Action | user | moderator | admin |
 |--------|------|-----------|-------|

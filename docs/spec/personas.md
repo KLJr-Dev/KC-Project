@@ -57,7 +57,7 @@ People (or agents) who interact with the running application.
   - `PUT /notes/:id`, `DELETE /notes/:id` — update/delete own notes
   - `POST /sharing` — create sharing link
   - `GET /sharing/:id` — view sharing details
-- **Trust level:** Authenticated but unprivileged. Should only access own resources (Notes RBAC enforces this on SoftDev tip).
+- **Trust level:** Authenticated but unprivileged. Should only access own resources (Notes RBAC enforces this).
 - **UI:** `/files`, `/notes`, `/sharing`
 
 ### Moderator User
@@ -87,7 +87,8 @@ People (or agents) who interact with the running application.
   - `GET /admin/stats`, `GET /admin/audit-logs`
   - `GET /notes`, `DELETE /notes/:id` — privileged note access
 - **Trust level:** Elevated privileges
-- **SoftDev tip:** Seeded admin ops note holds real SSH material (examiner GT)
+- **Secure tip (`v2.2.0`):** Admin notes have no live SSH secrets.
+- **Insecure replay (`v1.2.0`):** Seeded admin ops note holds SSH material (examiner GT on `ctf/v1.2.0`)
 
 ### Unauthenticated Visitor
 
@@ -113,7 +114,7 @@ People (or agents) who interact with the running application.
 | Identity | Brute-force login, forge JWTs (historical), enumerate users, replay tokens |
 | Data | IDOR via sequential IDs, access other users' resources |
 | File | Path traversal / MIME confusion (historical insecure tips) |
-| **Notes (SoftDev)** | Stored XSS via HTML/MD render; SVG/HTML attachment inline; steal mod/admin session → read ops note → SSH |
+| **Notes (SoftDev `v1.2.0`)** | Stored XSS via HTML/MD render; SVG/HTML attachment inline; steal mod/admin session → read ops note → SSH |
 | Authorization | Call privileged endpoints as regular user (historical); Notes flag without mod role |
 | Infrastructure | SSH foothold on overlay `:2222`; published DB on older CTF boxes only |
 

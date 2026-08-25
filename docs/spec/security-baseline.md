@@ -1,15 +1,15 @@
 # Security Control Baseline
 
-Target security controls for hardened counterparts (`v2.N.0`). SoftDev tip on `main` is intentionally insecure for Notes ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)); Blue **`v2.2.0`** must close those Notes XSS / SSH defaults.
+Target security controls for hardened counterparts (`v2.N.0`). Product tip **`v2.2.0`** closed Cycle-4 Notes XSS / SSH defaults ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)). SoftDev insecure Notes tip remains on tag/`ctf/v1.2.0`.
 
-### Target controls for SoftDev Blue (`v2.2.0`)
+### SoftDev Blue (`v2.2.0`) — verified
 
-| Control | Remediates |
-|---------|------------|
-| Sanitize Notes HTML/MD render (or safe markdown only) | CWE-79 |
-| Attachment MIME allowlist; force `Content-Disposition: attachment` | CWE-79 |
-| No SSH service on default prod compose | lab depth |
-| Keep Notes RBAC + parameterized search | already on tip |
+| Control | Remediates | Status |
+|---------|------------|--------|
+| Escape Notes body (plain text; no HTML/MD sink) | CWE-79 | **Done** |
+| Attachment MIME allowlist; force `Content-Disposition: attachment` | CWE-79 | **Done** |
+| No SSH service on default prod compose | lab depth | **Done** (`assert-ssh-unpublished.sh`) |
+| Keep Notes RBAC + parameterized search | already on tip | **Keep** |
 
 ---
 

@@ -13,7 +13,7 @@ Engineering and technical documentation for KC-Project.
 
 ### [architecture/](architecture/)
 
-- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — SoftDev tip (Notes + SSH) + historical v1.0.0 snapshot; last secure tag `v2.1.0`
+- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — secure tip `v2.2.0` (Notes) + historical insecure snapshots; pin tags for demos
 - [auth-flow.md](architecture/auth-flow.md) — auth/RBAC flows
 - [data-model.md](architecture/data-model.md) — entities incl. Notes, demo seed IDs
 - [stride.md](architecture/stride.md) — STRIDE per attack surface
@@ -48,8 +48,8 @@ docs/security/
 ├── Cycle-1/   → closed (v1.0.0 → v2.0.0); PenTest on main
 ├── Cycle-2/   → closed (v1.1.0 → v2.1.0); Remediation on main; PenTest on ctf/v1.1.0
 ├── Cycle-3/   → closed (ctf/leak-crack-db → Blue on main; no product tag)
-├── Cycle-4/   → SoftDev on main (v1.2.0 tip; tag pending); Notes + SSH foothold
-├── Cycle-5/   → sketch; shells + PrivEsc after Cycle-4 Blue
+├── Cycle-4/   → closed (v1.2.0 → v2.2.0); PenTest on ctf/v1.2.0; Remediation on main
+├── Cycle-5/   → sketch; shells + PrivEsc (fork from v2.2.0)
 ├── README.md
 └── cwe-inventory.md
 ```
@@ -65,6 +65,7 @@ docs/security/
 - [v1.1.0-ctf-ready.md](release/v1.1.0-ctf-ready.md) — Cycle-2 CTF gate
 - [v2.1.0-secure-ready.md](release/v2.1.0-secure-ready.md) — Cycle-2 Blue gate (signed; tag `v2.1.0`)
 - [cycle-3-leak-crack-db-secure-ready.md](release/cycle-3-leak-crack-db-secure-ready.md) — Cycle-3 Blue gate (signed)
-- [v1.2.0-pentest-ready.md](release/v1.2.0-pentest-ready.md) — Cycle-4 SoftDev Red gate (unsigned until tag)
+- [v1.2.0-pentest-ready.md](release/v1.2.0-pentest-ready.md) — Cycle-4 SoftDev Red gate (signed; tag `v1.2.0`)
+- [v2.2.0-secure-ready.md](release/v2.2.0-secure-ready.md) — Cycle-4 Blue gate (signed; tag `v2.2.0`)
 
 ### [glossary.md](glossary.md)

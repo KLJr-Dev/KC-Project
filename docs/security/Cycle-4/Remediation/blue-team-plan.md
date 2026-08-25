@@ -12,8 +12,8 @@
 | Cycle | 4 (SoftDev security pair) |
 | From | Intentional insecure Notes + SSH overlay on `main` (`v1.2.0`) |
 | To | Tag **`v2.2.0`** — Notes kept; XSS closed; no default SSH |
-| Current milestone | **M4 done** — gate signed; merge/tag |
-| Code status | Waves A–D complete |
+| Current milestone | **Done** — tagged **`v2.2.0`** on `main`; branch frozen |
+| Code status | Waves A–D complete · shipped |
 
 ```text
 main @ v1.2.0 (insecure SoftDev)

@@ -33,8 +33,8 @@ Detail: [Dev/v1.2.0-box-plan.md](Dev/v1.2.0-box-plan.md) · [Cycle-5 sketch](../
 |----------|------------|-----------|
 | **Dev / build** | [Dev/v1.2.0-execution-plan.md](Dev/v1.2.0-execution-plan.md) · [status](Dev/v1.2.0-softdev-status.md) | Yes |
 | **Player** | [Dev/v1.2.0-player-brief.md](Dev/v1.2.0-player-brief.md) | No |
-| **Red** | PenTest/ (after freeze) · GT for examiner | Yes |
-| **Blue** | Remediation/ (after Red) | Yes |
+| **Red** | [PenTest stub](PenTest/README.md) → [writeup on `ctf/v1.2.0`](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.2.0/docs/security/Cycle-4/PenTest/v1.2.0-writeup.md) | Yes |
+| **Blue** | [Remediation/](Remediation/) · [secure-ready](../../release/v2.2.0-secure-ready.md) | Yes |
 
 ## Team folders
 

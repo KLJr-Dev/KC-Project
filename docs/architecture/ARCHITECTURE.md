@@ -1,11 +1,11 @@
 # KC-Project Architecture
 
-This document started as the **v1.0.0** insecure MVP snapshot (ternary RBAC, product UI + dev explorers, Docker prod stack). SoftDev tip on `main` adds a sixth domain (**Notes**) and an optional SSH lab overlay ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
+This document started as the **v1.0.0** insecure MVP snapshot (ternary RBAC, product UI + dev explorers, Docker prod stack). Cycle-4 added a sixth domain (**Notes**); secure tip keeps Notes without XSS sinks or default SSH ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
 | Tip | Meaning |
 |-----|---------|
-| SoftDev on `main` | Intentional Notes XSS + SSH foothold — tag **`v1.2.0`** pending · [Cycle-4](../security/Cycle-4/README.md) |
-| Last secure tag | **`v2.1.0`** (pin for hardened demos until **`v2.2.0`**) |
+| Product tip on `main` | Secure **`v2.2.0`** — Notes plain text; no default SSH · [Cycle-4](../security/Cycle-4/README.md) |
+| Insecure replay | Tag/`ctf/v1.2.0` — Notes XSS + SSH foothold overlay |
 
 Ground truth (Cycle-1): [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md). Cycle docs: [ADR-031](../decisions/ADR-031-security-cycle-docs.md).
 
@@ -15,7 +15,7 @@ Ground truth (Cycle-1): [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-
 
 ### Production / pentest (primary)
 
-Full stack in Docker (`infra/docker-compose.prod.yml`). nginx reverse proxy at `:8080` routes `/` → frontend, `/api` → backend. PostgreSQL internal (not published on SoftDev tip). Optional Cycle-4 SSH overlay: `docker-compose.ssh.yml` → host `:2222`.
+Full stack in Docker (`infra/docker-compose.prod.yml`). nginx reverse proxy at `:8080` routes `/` → frontend, `/api` → backend. PostgreSQL internal (not published). Cycle-4 SSH overlay (`docker-compose.ssh.yml` → host `:2222`) is for **`v1.2.0` / `ctf/v1.2.0` replay only**.
 
 ```mermaid
 flowchart LR
@@ -47,7 +47,7 @@ Full chain: add `-f infra/docker-compose.ssh.yml` · path diagram: [notes-ssh-pa
 
 Backend and frontend run natively; PostgreSQL in Docker (`infra/compose.yml`, `kc_dev` on `:5432`).
 
-- **Frontend** — Next.js 16 App Router, Tailwind CSS, React 19. Product UI (`/files`, `/notes`, `/moderator`, `/admin`) + gated `/dev/*`. Access JWT in memory (v2.0.0+); SoftDev Notes render HTML/MD unsafely.
+- **Frontend** — Next.js 16 App Router, Tailwind CSS, React 19. Product UI (`/files`, `/notes`, `/moderator`, `/admin`) + gated `/dev/*`. Access JWT in memory (v2.0.0+); Notes body is React-escaped plain text (`v2.2.0`).
 - **Backend** — NestJS 11 on Express. Domain modules (Users, Auth, Files, Sharing, Admin, **Notes**) + audit. TypeORM + PostgreSQL.
 - **Database** — PostgreSQL 16. Migrations with `migrationsRun` gated per env.
 - **Communication** — Plain HTTP REST. JSON (or multipart for uploads / note attachments).
@@ -68,7 +68,7 @@ graph TD
     FilesModule["FilesModule"]
     SharingModule["SharingModule"]
     AdminModule["AdminModule"]
-    NotesModule["NotesModule\nSoftDev v1.2.0"]
+    NotesModule["NotesModule\nv2.2.0"]
 
     AppModule --> AppController
     AppModule --> AuthModule
@@ -91,7 +91,7 @@ graph TD
     NotesModule --> NotesService["NotesService\nRBAC + parameterized q"]
 ```
 
-### Notes (SoftDev — sixth domain)
+### Notes (sixth domain — tip `v2.2.0`)
 
 | Piece | Behavior on insecure tip |
 |-------|--------------------------|
@@ -100,9 +100,9 @@ graph TD
 | UI | `/notes`, `/notes/[id]` — HTML `dangerouslySetInnerHTML` + unsafe markdown |
 | Lab depth | Seeded admin ops note → SSH `lab` @ `:2222` (overlay) → `user.txt` |
 
-Secure counterpart **`v2.2.0`**: sanitize render, MIME lockdown, force attachment download, no default SSH.
+Secure tip **`v2.2.0`**: escape Notes render, MIME lockdown, force attachment download, no default SSH. Insecure render/plants: tag/`ctf/v1.2.0` only.
 
-**Also retained:** Users, Auth, Files, Sharing, Admin (hardened on tag `v2.1.0`). SoftDev tip does not re-break those Critical remediations.
+**Also retained:** Users, Auth, Files, Sharing, Admin (hardened since `v2.1.0`). SoftDev tip did not re-break those Critical remediations.
 
 ### Per-module pattern
 

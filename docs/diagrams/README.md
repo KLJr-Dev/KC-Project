@@ -4,7 +4,7 @@ Canonical standalone diagrams for KC-Project.
 
 Inline diagrams in [architecture/](../architecture/) remain version-specific. Files here are the cross-cutting counterparts.
 
-**Last verified:** SoftDev tip on `main` (Notes + optional SSH; tag `v1.2.0` pending) · last secure tag `v2.1.0`.
+**Last verified:** product tip tag **`v2.2.0`** (Notes hardened; no default SSH) · insecure replay `v1.2.0` / `ctf/v1.2.0`.
 
 ---
 
@@ -12,7 +12,7 @@ Inline diagrams in [architecture/](../architecture/) remain version-specific. Fi
 
 ### [system-architecture.md](system-architecture.md)
 
-System topology: SoftDev tip (Notes + optional SSH), historical v1.0.0 Docker prod, v2.0.0 secure parallel.
+System topology: secure tip `v2.2.0` (Notes; no default SSH), SoftDev replay path, historical v1.0.0 Docker prod.
 
 ### [notes-ssh-path.md](notes-ssh-path.md)
 

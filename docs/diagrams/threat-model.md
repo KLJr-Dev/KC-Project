@@ -1,10 +1,10 @@
 # Threat Model
 
-Complete attack surface map for **v1.0.0** (insecure MVP) with dual CWE + OWASP classification. SoftDev tip adds Notes XSS / SSH plant ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [notes-ssh-path.md](notes-ssh-path.md)).
+Complete attack surface map for **v1.0.0** (insecure MVP) with dual CWE + OWASP classification. Cycle-4 SoftDev tip added Notes XSS / SSH plant ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [notes-ssh-path.md](notes-ssh-path.md)); closed on **`v2.2.0`**.
 
 ---
 
-## SoftDev tip (Cycle-4) — Notes
+## SoftDev tip (Cycle-4 `v1.2.0` replay) — Notes
 
 | Weakness | CWE | Path |
 |----------|-----|------|

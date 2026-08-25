@@ -2,9 +2,8 @@
 
 Deployment and infrastructure for **KC-Project**.
 
-**Current tip (this Blue branch):** Notes hardened for **`v2.2.0`** — no default SSH; seed plants neutralized.  
+**Current tip:** Notes hardened on tag **`v2.2.0`** — no default SSH; seed plants neutralized.  
 **Insecure SoftDev replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.  
-**Last shipped secure tag until merge:** **`v2.1.0`**.  
 Historical insecure baseline: tag `v1.0.0`. Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — do not attach those overlays without intent.
 
 Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair: [ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md).
@@ -124,7 +123,7 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ssh.yml up -d --build
 ./infra/assert-ssh-unpublished.sh
 ./infra/cycle4-ssh-examiner.sh
-# Player: ssh -p 2222 lab@<box>   # password in admin ops note (seed)
+# Player: ssh -p 2222 lab@<box>   # password on ctf/v1.2.0 admin ops plant (not on v2.2.0 tip seeds)
 ```
 
 ### Full verify gate

@@ -6,8 +6,8 @@ import { NoteEntity } from './entities/note.entity';
 import { AuthModule } from '../auth/auth.module';
 
 /**
- * Notes module — /notes routes for Cycle-4 SoftDev.
- * Intentionally separate from Files; XSS is a frontend render concern on v1.2.0.
+ * Notes module — /notes routes (Cycle-4 product; secure tip `v2.2.0`).
+ * Separate from Files. Body render is frontend plain text (C4-F01).
  */
 @Module({
   imports: [TypeOrmModule.forFeature([NoteEntity]), AuthModule],

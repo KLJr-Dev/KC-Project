@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * Cycle-4 SoftDev — create note_entity for Notes API (`v1.2.0`).
- * Attachment columns present for P1c upload wiring; nullable until used.
+ * Cycle-4 — create note_entity for Notes API (schema history from SoftDev `v1.2.0`).
+ * Attachment columns nullable until used.
  */
 export class CreateNoteEntity1777600000000 implements MigrationInterface {
   name = 'CreateNoteEntity1777600000000';

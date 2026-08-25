@@ -1,6 +1,6 @@
-# Notes → SSH path (Cycle-4 SoftDev)
+# Notes → SSH path (Cycle-4 SoftDev replay)
 
-Intended SoftDev attack path on tip **`v1.2.0`** ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)). Examiner detail: [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md). Player brief (no spoilers): [v1.2.0-player-brief.md](../security/Cycle-4/Dev/v1.2.0-player-brief.md).
+Intended SoftDev attack path on tip **`v1.2.0`** / branch **`ctf/v1.2.0`** ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)). Not the secure tip (`v2.2.0`). Examiner detail: [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md). Player brief (no spoilers): [v1.2.0-player-brief.md](../security/Cycle-4/Dev/v1.2.0-player-brief.md).
 
 ```mermaid
 flowchart TD

@@ -115,7 +115,7 @@ flowchart TD
   v210 --> v120 --> v220 --> v130 --> v230
 ```
 
-### Cycle-4 SoftDev (current tip)
+### Cycle-4 SoftDev (closed — insecure tip `v1.2.0`)
 
 - Entrance: Notes API/UI; intentional XSS
 - Depth: SSH overlay `lab` @ `:2222`; foothold only
