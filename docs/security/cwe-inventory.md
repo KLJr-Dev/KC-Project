@@ -2,7 +2,15 @@
 
 Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable or documentable instance; duplicate CWE IDs reflect distinct surfaces.
 
-**Cycle:** All entries below are `cycle: 1` (v1.0.0 insecure baseline → v2.0.0 remediation). Workspace: [Cycle-1/README.md](Cycle-1/README.md). Ground truth: [Cycle-1/Dev/v1.0.0-ground-truth.md](Cycle-1/Dev/v1.0.0-ground-truth.md).
+**Cycle:** Entries below are `cycle: 1` (v1.0.0 → v2.0.0). Workspace: [Cycle-1/README.md](Cycle-1/README.md).
+
+## Cycle-4 SoftDev (Notes) — pointer
+
+| CWE | Description | Where |
+|-----|-------------|-------|
+| CWE-79 | Stored XSS via Notes HTML / unsafe markdown / inline SVG-HTML | SoftDev tip · [Cycle-4 GT](Cycle-4/Dev/v1.2.0-ground-truth.md) |
+
+Notes search is parameterized (not CWE-89). Full SoftDev surface: [Cycle-4/README.md](Cycle-4/README.md).
 
 ## Cycle 1 summary
 

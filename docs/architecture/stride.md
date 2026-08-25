@@ -1,15 +1,17 @@
 # STRIDE Threat Model
 
-STRIDE analysis mapped to the 6 attack surfaces defined in [threat-model.md](../diagrams/threat-model.md). This adds a formal threat categorisation methodology on top of the existing CWE + OWASP Top 10 classification.
+STRIDE analysis mapped to attack surfaces in [threat-model.md](../diagrams/threat-model.md). Cycle-1 inventory: [cwe-inventory.md](../security/cwe-inventory.md). SoftDev Notes XSS path: [notes-ssh-path.md](../diagrams/notes-ssh-path.md).
 
-STRIDE was developed by Microsoft and categorises threats into six types:
+---
 
-- **S**poofing -- Pretending to be something or someone else
-- **T**ampering -- Modifying data or code without authorisation
-- **R**epudiation -- Denying actions without the system being able to prove otherwise
-- **I**nformation Disclosure -- Exposing information to unauthorised parties
-- **D**enial of Service -- Making the system unavailable or degraded
-- **E**levation of Privilege -- Gaining capabilities beyond what is authorised
+## SoftDev Notes + SSH (Cycle-4 tip)
+
+| STRIDE | Threat | Notes |
+|--------|--------|-------|
+| **Tampering** | Stored XSS via note body HTML/MD | CWE-79; UI sinks intentional on tip |
+| **Tampering** | Inline SVG/HTML attachment | XSS candy; `Content-Disposition: inline` |
+| **Information Disclosure** | Privileged note read (ops SSH plant) | Mod/admin or stolen session |
+| **Elevation of Privilege** | SSH foothold as `lab` | Overlay only; no PrivEsc on tip |
 
 ---
 

@@ -18,7 +18,7 @@ KC-Project is a **modern full-stack web application** built for security educati
 
 ## Core Functionality
 
-The application implements five domain surfaces, each representing a realistic area of enterprise web functionality:
+The application implements **six** domain surfaces (five original + SoftDev Notes):
 
 | Domain | Functionality |
 |--------|--------------|
@@ -27,8 +27,9 @@ The application implements five domain surfaces, each representing a realistic a
 | **File Management** | Upload, view, download, and delete files owned by the authenticated user |
 | **File Sharing** | Generate sharing links, public access to shared files, mixed public/private access |
 | **Administration** | View user accounts, modify roles, access system-wide data (restricted by role) |
+| **Notes (SoftDev)** | CRUD notes, parameterized search, mod flag, admin delete-any, optional attachment; insecure tip has XSS sinks + SSH lab overlay |
 
-These five domains are implemented as independent backend modules (per [ADR-007](../decisions/ADR-007-five-domain-split.md)) and map directly to the roadmap's security surface progression.
+Original five domains: [ADR-007](../decisions/ADR-007-five-domain-split.md). Notes SoftDev pair: [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md).
 
 ---
 

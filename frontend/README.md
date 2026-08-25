@@ -1,23 +1,24 @@
 # Frontend
 
-Next.js App Router UI for **KC-Project** **v2.1.0** (secure product on `main`).
+Next.js App Router UI for **KC-Project** SoftDev tip on `main` (Notes XSS intentional; tag **`v1.2.0`** pending).
 
-The frontend is an **untrusted client**. Product pages apply client-side filtering; the API is the real security boundary.
+The frontend is an **untrusted client**. Product pages apply client-side filtering; the API is the real security boundary. SoftDev Notes **intentionally** render HTML/markdown unsafely ([ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-SoftDev UI work lands on the **`frontend`** branch → `dev` → `main` ([ADR-032](../docs/decisions/ADR-032-post-v2.1.0-versioning.md)).
+SoftDev UI work lands on the **`frontend`** branch → `dev` → `main` ([ADR-015](../docs/decisions/ADR-015-branching-strategy.md)).
 
-Cycle-1 before-state UX notes: [v1.0.0-ground-truth.md](../docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md) · tag `v1.0.0`.
+**Last secure product tag:** `v2.1.0` — pin for hardened demos until `v2.2.0`.
 
 ---
 
-## Current status (v2.1.0)
+## Current status (SoftDev tip)
 
 - Next.js 16, React 19, Tailwind CSS
-- Types from OpenAPI (`lib/types.gen.ts` via `npm run generate:types`)
-- Auth: access JWT in memory + httpOnly refresh cookie (legacy `kc_auth` localStorage cleared)
-- **Product UI:** role-aware pages with owner scoping (`lib/file-scope.ts`)
-- **Dev explorers:** `/dev/*` raw API views (ADR-028; lab-gated in prod)
-- **Public share:** `/share/[token]` landing page
+- Types from OpenAPI (`lib/types.gen.ts`) + manual Notes types
+- Auth: access JWT in memory + httpOnly refresh cookie
+- **Product UI:** files, **notes**, sharing, moderator, admin
+- **SoftDev XSS:** `/notes/[id]` HTML + `unsafe-markdown.ts`
+- **Dev explorers:** `/dev/*` (lab-gated in prod)
+- **Public share:** `/share/[token]`
 
 ---
 
@@ -27,7 +28,8 @@ Cycle-1 before-state UX notes: [v1.0.0-ground-truth.md](../docs/security/Cycle-1
 |------|-------|---------|
 | `/` | None | Home, demo accounts (lab) |
 | `/auth` | None | Login / register |
-| `/files`, `/files/[id]` | Auth | My files (client-filtered) |
+| `/files`, `/files/[id]` | Auth | My files |
+| `/notes`, `/notes/[id]` | Auth | SoftDev Notes (XSS sinks) |
 | `/sharing` | Auth | My shares |
 | `/share/[token]` | None | Public download landing |
 | `/moderator` | Mod+admin | Approval queue |

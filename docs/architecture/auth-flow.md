@@ -1,12 +1,24 @@
-# Authentication & Authorization Flow (v1.0.0)
+# Authentication & Authorization Flow (v1.0.0 + SoftDev Notes)
 
-Canonical auth/RBAC reference for v1.0.0. Covers identity flows (v0.1.x), ternary RBAC (v0.4.x), product UI guards (v0.9.x), and v1.0.0 guard inconsistencies.
+Canonical auth/RBAC reference for Cycle-1 (`v1.0.0`) plus SoftDev **Notes** authz on tip ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-> **Diagrams:** Standalone sequence diagrams live in [diagrams/auth-flow.md](../diagrams/auth-flow.md). This file is the detailed narrative.
+> **Diagrams:** [diagrams/auth-flow.md](../diagrams/auth-flow.md). Notes path: [notes-ssh-path.md](../diagrams/notes-ssh-path.md).
 
-Ground truth endpoint matrix: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) §3.
+Ground truth: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md) · [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md).
 
-Each version adds behaviour incrementally. Intentional security weaknesses are highlighted and mapped to OWASP/CWE identifiers.
+---
+
+## SoftDev Notes authz (tip on `main`)
+
+| Action | user | moderator | admin |
+|--------|------|-----------|-------|
+| Create / update own | yes | yes | yes |
+| List / get | own only | all | all |
+| Delete | own | own only | any |
+| Flag | no | yes | yes |
+| Search `q` | parameterized; scoped as list | same | same |
+
+Guards: `JwtAuthGuard` + `HasRoleGuard` (DB role). Attachment download uses same read authz.
 
 ---
 

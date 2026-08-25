@@ -1,12 +1,19 @@
 # Security Control Baseline
 
-Target security controls for v2.0.0 -- the "done" checklist for a hardening cycle. Every v1.N.x pentest works toward satisfying these controls. When all controls are implemented and verified, the version qualifies as v2.N.0.
+Target security controls for hardened counterparts (`v2.N.0`). SoftDev tip on `main` is intentionally insecure for Notes ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)); Blue **`v2.2.0`** must close those Notes XSS / SSH defaults.
 
-This document defines **what "secure" looks like** for KC-Project. Each control references the CWE it remediates and the v1.0.0 weakness it replaces.
+### Target controls for SoftDev Blue (`v2.2.0`)
+
+| Control | Remediates |
+|---------|------------|
+| Sanitize Notes HTML/MD render (or safe markdown only) | CWE-79 |
+| Attachment MIME allowlist; force `Content-Disposition: attachment` | CWE-79 |
+| No SSH service on default prod compose | lab depth |
+| Keep Notes RBAC + parameterized search | already on tip |
 
 ---
 
-## Current State (v1.0.0)
+## Current State (v1.0.0 inventory)
 
 v1.0.0 documents **59 CWE instances across 38 unique IDs**. Full inventory: [cwe-inventory.md](../security/cwe-inventory.md). Exploitable-state reference: [v1.0.0-ground-truth.md](../security/Cycle-1/Dev/v1.0.0-ground-truth.md).
 

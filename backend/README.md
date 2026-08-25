@@ -1,23 +1,21 @@
 # Backend
 
-NestJS REST API for **KC-Project** **v2.1.0** (secure product on `main`).
+NestJS REST API for **KC-Project** SoftDev tip on `main` (Notes + seeds; tag **`v1.2.0`** pending).
 
-SoftDev API work lands on the **`backend`** branch → `dev` → `main` ([ADR-032](../docs/decisions/ADR-032-post-v2.1.0-versioning.md)).
+SoftDev API work lands on the **`backend`** branch → `dev` → `main` ([ADR-015](../docs/decisions/ADR-015-branching-strategy.md) · [ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-Cycle-1 before-state: [v1.0.0 ground truth](../docs/security/Cycle-1/Dev/v1.0.0-ground-truth.md) · tag `v1.0.0`.  
-Cycle-1 remediation: [v2.0.0-remediation.md](../docs/security/Cycle-1/Remediation/v2.0.0-remediation.md).  
-Cycle-2 remediation: [v2.1.0-remediation.md](../docs/security/Cycle-2/Remediation/v2.1.0-remediation.md).
+**Last secure product tag:** `v2.1.0`. Cycle-1/2 remediations remain in history; SoftDev tip does not re-break those Criticals.
 
 ---
 
-## Current status (v2.1.0)
+## Current status (SoftDev tip)
 
-- NestJS 11, five domain modules (users, auth, files, sharing, admin) + audit
-- PostgreSQL 16 via TypeORM migrations (`migrationsRun: true`); least-priv app role in prod
-- Ternary RBAC: `user` | `moderator` | `admin` with DB-authoritative `HasRoleGuard`
-- Auth: bcrypt, RS256 (prod), httpOnly refresh cookie, in-memory access JWT (frontend)
-- Demo seed: users 9001–9004, files 9101–9104; unguessable share tokens
-- E2E: `./infra/e2e-docker.sh` (incl. Cycle-2 regression)
+- NestJS 11 — domains: users, auth, files, sharing, admin, **notes** + audit
+- PostgreSQL 16 via TypeORM migrations; least-priv app role in prod
+- Ternary RBAC with DB-authoritative `HasRoleGuard`
+- **Notes:** CRUD, parameterized `q`, mod flag, admin delete-any, SVG/HTML attachments (inline on tip)
+- Demo seeds: users 9001–9004, files 9101–9104, notes 9201–9206
+- E2E: Notes suite + Cycle-2/3 regression; `./infra/e2e-docker.sh`
 - Swagger: disabled in production unless explicitly enabled
 
 ---

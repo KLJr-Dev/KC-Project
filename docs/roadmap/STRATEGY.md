@@ -1,9 +1,10 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current release**: **v2.1.0** secure product (tagged on `main`)  
+**Current tip**: SoftDev **intentional insecure** Notes + SSH on `main` (tag **`v1.2.0`** pending) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)  
 **Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3  
-**Next**: Cycle-4 SoftDev — Notes + SSH foothold (`v1.2.0` → `v2.2.0`); Cycle-5 shells/PrivEsc soon after ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md); [Cycle-4 box plan](../security/Cycle-4/Dev/v1.2.0-box-plan.md); [Cycle-5 sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md))
+**Last secure product tag**: **`v2.1.0`** (pin for hardened demos until **`v2.2.0`**)  
+**Next**: Red (F1–F3) → `remediation/v2.2.0` → Cycle-5 shells/PrivEsc ([Cycle-4](../security/Cycle-4/README.md); [Cycle-5 sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md))
 
 ---
 
@@ -280,20 +281,19 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 **Implementation**: 2–3 weeks of feature work, then pentest cycle (v1.1.x patches).
 
-#### v1.2.0 — Race Conditions & Cache Poisoning
-**Goal**: Add concurrency vulns + caching vulnerabilities.
+#### SoftDev `v1.2.0` — Notes + SSH foothold (ADR-033) — **on `main`**
 
-**New Surfaces**:
-- Race condition on file deletion (two concurrent DELETE requests; file deleted twice, orphaned DB record)
-- Race condition on role escalation (two admins demoting same user simultaneously; inconsistent state)
-- Cache poisoning on public file shares (nginx caches `GET /sharing/public/:token` response; token revoked but cache stale)
-- Insecure randomness in file operation IDs
+**Goal**: New product surface (Notes) with intentional XSS; earn SSH foothold; no PrivEsc.
 
-**CWEs**: CWE-362 (concurrent access), CWE-327 (weak randomness), CWE-444 (cache poisoning), CWE-362 (time-of-check-time-of-use)
+**Surfaces**: Notes CRUD/RBAC/search/attachments; HTML + unsafe MD render; SSH overlay `lab` @ `:2222`.
 
-**Implementation**: 2–3 weeks.
+**CWEs**: CWE-79 (stored XSS) primary; SSH plant is lab depth (not a web CWE).
 
-#### v1.3.0 — Cloud Misconfigurations & DevOps Vulns
+**Blue**: `v2.2.0` — sanitize Notes; MIME lockdown; no default SSH.
+
+*(Earlier draft “race/cache v1.2.0” projections are obsolete.)*
+
+#### SoftDev `v1.3.0` — Shells & PrivEsc (Cycle-5 sketch)
 **Goal**: Add infrastructure-layer vulnerabilities.
 
 **New Surfaces**:
@@ -377,15 +377,18 @@ Hardening milestones (detail: [blue-team-plan.md](../security/Cycle-1/Remediatio
 
 **Cycle-2 (done):** CTF box tag/branch `v1.1.0` (`ctf/v1.1.0`) → Blue → tag **`v2.1.0`** on `main`.
 
-**After v2.1.0 ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)):** product version stays at `v2.1.0` until SoftDev expands surface. Further CTFs fork/misconfigure the current app **without** inventing `v1.2.0`/`v2.2.0` product tags. Candidates: [future-ctf-candidates.md](../security/Cycle-2/Remediation/future-ctf-candidates.md).
+**After v2.1.0:**
+
+- **CTF-only** ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)): misconfigure current tip **without** inventing product tags (Cycle-3).
+- **SoftDev security cycles** ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)): new surface → insecure tip on `main` → Red → Blue tag (Cycle-4 `v1.2.0` → `v2.2.0`).
 
 | Track | Approach |
 |-------|----------|
-| SoftDev | `backend` / `frontend` → `dev` → `main`; bump `vX.Y.Z` only on surface expansion |
-| CTF / Red | `ctf/<scenario>` from current secure tip; freeze; no product version bump |
-| Blue | `remediation/<cycle>` → PR → freeze branch; no product version bump |
+| SoftDev | `backend` / `frontend` → `dev` → `main`; bump `vX.Y.Z` on SoftDev security cycles |
+| CTF / Red | `ctf/<scenario>` from tip; freeze; no product bump unless SoftDev pair |
+| Blue | `remediation/<cycle>` → PR → freeze |
 
-**Cadence:** Security cycles continue; product tags track SoftDev surface, not every Red/Blue loop.
+**Cadence:** Product tags track SoftDev security cycles; CTF-only loops do not invent versions.
 
 ---
 

@@ -1,10 +1,12 @@
 # Infrastructure
 
-Deployment and infrastructure for **KC-Project** **v2.1.0** (secure parallel).  
-Historical insecure baseline: tag `v1.0.0` / [Cycle-1 PenTest](../docs/security/Cycle-1/PenTest/v1.0.0-writeup.md).  
-Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — **never** attach CTF compose overlays on this secure path.
+Deployment and infrastructure for **KC-Project**.
 
-Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) Part 3 (v0.7.x+).
+**Current tip on `main`:** SoftDev intentional insecure Notes + optional SSH overlay (tag **`v1.2.0`** pending).  
+**Last secure product tag:** **`v2.1.0`** — pin for hardened demos until **`v2.2.0`**.  
+Historical insecure baseline: tag `v1.0.0`. Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — do not attach those overlays to SoftDev/`main` without intent.
+
+Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair: [ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md).
 
 ---
 

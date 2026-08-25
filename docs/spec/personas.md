@@ -44,7 +44,7 @@ People (or agents) who interact with the running application.
 
 - **Description:** A registered user of the application with standard privileges
 - **Access level:** Authenticated, `user` role
-- **Goals:** Register an account, log in, upload and manage files, create sharing links, view own profile
+- **Goals:** Register an account, log in, upload and manage files, create and search **notes**, create sharing links, view own profile
 - **Actions:**
   - `POST /auth/register` — create account
   - `POST /auth/login` — authenticate
@@ -52,33 +52,42 @@ People (or agents) who interact with the running application.
   - `POST /files` — upload file
   - `GET /files/:id` — view file metadata
   - `DELETE /files/:id` — delete own file
+  - `POST /notes` — create note (optional attachment)
+  - `GET /notes`, `GET /notes/:id` — list/search/read own notes
+  - `PUT /notes/:id`, `DELETE /notes/:id` — update/delete own notes
   - `POST /sharing` — create sharing link
   - `GET /sharing/:id` — view sharing details
-- **Trust level:** Authenticated but unprivileged. Should only access own resources.
+- **Trust level:** Authenticated but unprivileged. Should only access own resources (Notes RBAC enforces this on SoftDev tip).
+- **UI:** `/files`, `/notes`, `/sharing`
 
 ### Moderator User
 
 - **Description:** Intermediate role for content moderation (file approval workflow)
 - **Access level:** Authenticated, `moderator` role
 - **Demo account:** `mod@kc.test` / `ModPass123!` (seeded, see [demo-users.md](../deploy/demo-users.md))
-- **Goals:** Review pending file uploads, approve or reject files
+- **Goals:** Review pending file uploads; **flag notes** for review; approve or reject files
 - **Actions:** Regular User actions, plus:
   - `PUT /files/:id/approve` — approve or reject files
-  - `PUT /admin/users/:id/role/escalate` — promote users to moderator (CWE-269)
-- **Trust level:** Elevated over regular users but hierarchy vs admin is ambiguous (CWE-841)
+  - `GET /notes` — list **all** notes (privileged)
+  - `PUT /notes/:id/flag` — flag/unflag notes
+  - (Cannot delete other users’ notes — admin only)
+  - `PUT /admin/users/:id/role/escalate` — promote users to moderator (historical CWE-269 on v1.0.0)
+- **Trust level:** Elevated over regular users
+- **UI:** `/notes` (all), `/moderator`
 
 ### Admin User
 
 - **Description:** A privileged user with administrative access
 - **Access level:** Authenticated, `admin` role
 - **Demo account:** `admin@kc.test` / `AdminPass123!`
-- **Goals:** View all users, modify user roles, view stats and audit logs
+- **Goals:** View all users, modify user roles, view stats and audit logs, **read/delete any note** (incl. ops bastion plant)
 - **Actions:** All Regular User actions, plus:
   - `GET /admin/users` — list/search users
   - `PUT /admin/users/:id/role` — modify user roles
   - `GET /admin/stats`, `GET /admin/audit-logs`
-- **Trust level:** Elevated privileges. Should have access to administrative functions that regular users cannot reach.
-- **v1.0.0 weakness:** Some admin endpoints inconsistently guarded (CWE-862); JWT role trusted (CWE-639)
+  - `GET /notes`, `DELETE /notes/:id` — privileged note access
+- **Trust level:** Elevated privileges
+- **SoftDev tip:** Seeded admin ops note holds real SSH material (examiner GT)
 
 ### Unauthenticated Visitor
 
@@ -101,11 +110,12 @@ People (or agents) who interact with the running application.
 
 | Surface | Example attacks |
 |---------|----------------|
-| Identity | Brute-force login (no rate limiting), forge JWTs (weak secret), enumerate users (distinct errors), replay tokens (no revocation) |
-| Data | IDOR via sequential IDs, access other users' resources by guessing IDs, SQL injection |
-| File | Path traversal to read arbitrary files, upload malicious MIME types, access files without ownership |
-| Authorization | Call admin endpoints as regular user, spoof role claims, escalate via missing guards |
-| Infrastructure | Connect directly to exposed database, read logs for sensitive data, exploit root containers |
+| Identity | Brute-force login, forge JWTs (historical), enumerate users, replay tokens |
+| Data | IDOR via sequential IDs, access other users' resources |
+| File | Path traversal / MIME confusion (historical insecure tips) |
+| **Notes (SoftDev)** | Stored XSS via HTML/MD render; SVG/HTML attachment inline; steal mod/admin session → read ops note → SSH |
+| Authorization | Call privileged endpoints as regular user (historical); Notes flag without mod role |
+| Infrastructure | SSH foothold on overlay `:2222`; published DB on older CTF boxes only |
 
 ---
 
@@ -113,10 +123,10 @@ People (or agents) who interact with the running application.
 
 Which personas interact with which attack surfaces:
 
-| Persona | Identity | Data | File | Authorization | Infrastructure |
-|---------|----------|------|------|---------------|---------------|
-| Regular User | Register, login, session | Own data CRUD (UI) / all (API) | Own files (UI) / all (API) | User-level access | -- |
-| Moderator User | Same as regular | Pending queue (UI) | Approve/reject | Mod endpoints + escalation | -- |
-| Admin User | Same as regular | All users' data | All files | Admin functions | -- |
-| Unauthenticated | Registration, login | Public shared files | Public downloads | -- | -- |
-| Attacker | All auth attacks | IDOR, injection | Traversal, MIME | Escalation, guard gaps | nginx, DB creds, containers |
+| Persona | Identity | Data | File | Notes | Authorization | Infrastructure |
+|---------|----------|------|------|-------|---------------|----------------|
+| Regular User | Register, login | Own data | Own files | Own notes | User-level | -- |
+| Moderator User | Same | Pending queue | Approve/reject | All notes + flag | Mod endpoints | -- |
+| Admin User | Same | All users | All files | All notes + delete | Admin functions | -- |
+| Unauthenticated | Registration, login | Public shares | Public downloads | -- | -- | -- |
+| Attacker | Auth attacks | IDOR | Traversal/MIME | XSS → priv note → SSH | Escalation gaps | SSH overlay / CTF overlays |

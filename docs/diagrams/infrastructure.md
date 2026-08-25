@@ -1,23 +1,60 @@
 # Infrastructure
 
-Deployment topology for v1.0.0 (Docker prod, intentionally insecure) and v2.0.0 (hardened). v1.0.x pentest **requires** prod compose — not native dev.
+Deployment topology: SoftDev tip (prod + optional SSH), historical Cycle-1 prod, hardened tags, e2e/TLS overlays.
 
 ---
 
-## v1.0.0 — Docker prod (`docker-compose.prod.yml`)
+## SoftDev tip — prod + optional SSH
 
-nginx at `:8080` proxies to internal frontend/backend. PostgreSQL internal with host `:5433` for e2e. Separate `pgdata_prod` volume from dev `pgdata`.
+```bash
+# Web only (Postgres unpublished)
+docker compose -f infra/docker-compose.prod.yml up -d --build
+./infra/assert-pg-unpublished.sh
 
-### Topology
+# Full chain (Notes → SSH foothold)
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ssh.yml up -d --build
+./infra/assert-ssh-unpublished.sh   # prod alone must not publish :2222
+./infra/cycle4-ssh-examiner.sh
+```
+
+```mermaid
+flowchart TD
+  subgraph host [Host]
+    subgraph prod [docker-compose.prod.yml]
+      Nginx[nginx :8080]
+      FE[frontend]
+      BE[backend + Notes]
+      PG[postgres internal]
+    end
+    subgraph sshOv [docker-compose.ssh.yml]
+      Ssh[ssh lab :2222]
+    end
+  end
+  Browser --> Nginx
+  Nginx --> FE
+  Nginx --> BE
+  BE --> PG
+  SshClient --> Ssh
+```
+
+See [infra/README.md](../../infra/README.md) · [notes-ssh-path.md](notes-ssh-path.md).
+
+---
+
+## Historical — v1.0.0 Docker prod (`docker-compose.prod.yml`)
+
+nginx at `:8080` proxies to internal frontend/backend. Cycle-1 tip published PostgreSQL on host `:5433` for e2e. SoftDev tip keeps PG unpublished on prod compose (`assert-pg-unpublished.sh`).
+
+### Topology (Cycle-1 shape)
 
 ```mermaid
 flowchart TD
   subgraph host ["Host"]
     subgraph prod ["docker-compose.prod.yml"]
-      Nginx["nginx\n0.0.0.0:8080\n1 MB body limit"]
-      FE["frontend\nNext.js :3000\nNEXT_PUBLIC_API_URL=/api"]
-      BE["backend\nNestJS :4000\nJWT_SECRET=kc-secret"]
-      PG["postgres :5432\n0.0.0.0:5433\nkc_prod\npostgres/postgres"]
+      Nginx["nginx\n0.0.0.0:8080"]
+      FE["frontend\nNext.js :3000"]
+      BE["backend\nNestJS :4000"]
+      PG["postgres :5432"]
       UploadsVol["volume: uploads"]
       PGDataVol["volume: pgdata_prod"]
     end
@@ -38,19 +75,17 @@ flowchart TD
 docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh
 ./infra/journey-test.sh
-./infra/e2e-docker.sh   # 150 tests
 ```
 
 Browser: `http://localhost:8080`
 
-### Intentional misconfigurations
+### Intentional misconfigurations (Cycle-1 tip)
 
 | Misconfiguration | CWE | Impact |
 |------------------|-----|--------|
-| Default DB credentials | CWE-798 | Trivial DB access via :5433 |
+| Default DB credentials | CWE-798 | Trivial DB access via published port |
 | No TLS | CWE-319 | Plaintext tokens/passwords |
 | JWT secret hardcoded | CWE-798 | Forge any role |
-| nginx 1 MB body limit | — | Uploads >1 MB return 413 before Multer |
 | Root containers | CWE-250 | Container escape risk |
 | Permissive CORS | CWE-942 | Any origin can call API |
 

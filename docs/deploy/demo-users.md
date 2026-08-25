@@ -39,6 +39,19 @@ http://localhost:8080/share/c8f3a1e9b72d4f06a5e18c903d6b47e2f1a0c9d8b7e6f5a49382
 
 Legacy `share-1` returns **404**.
 
+## Seeded notes (SoftDev / Cycle-4 — migration `1777600000001-SeedDemoNotes`)
+
+| ID | Owner | Purpose |
+|----|-------|---------|
+| `9201` | admin (9003) | Ops bastion note — real SSH plant + F2 |
+| `9202` | admin | Decoy retired jump |
+| `9203` | user (9001) | XSS scratchpad + F1 |
+| `9204` | user | VPN decoy |
+| `9205` | mod (9002) | Mod queue reminder |
+| `9206` | other (9004) | Workshop decoy (if other user present) |
+
+Examiner flags/SSH: [v1.2.0-ground-truth.md](../security/Cycle-4/Dev/v1.2.0-ground-truth.md) (not for player brief). UI: `/notes`.
+
 ## Per-role expected UI
 
 **User (`user@kc.test`):** Sign in → My Files shows **2 files** (welcome.txt, pending-doc.pdf) — not other users' files. Sharing → create link from own files. Public link for welcome.txt uses the unguessable demo token above.
