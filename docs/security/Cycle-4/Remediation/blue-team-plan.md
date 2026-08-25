@@ -12,8 +12,8 @@
 | Cycle | 4 (SoftDev security pair) |
 | From | Intentional insecure Notes + SSH overlay on `main` (`v1.2.0`) |
 | To | Tag **`v2.2.0`** — Notes kept; XSS closed; no default SSH |
-| Current milestone | **M3 done** — regression + smoke asserts; **M4** next |
-| Code status | Waves A–C landed — gate/sign pending |
+| Current milestone | **M4 done** — gate signed; merge/tag |
+| Code status | Waves A–D complete |
 
 ```text
 main @ v1.2.0 (insecure SoftDev)
@@ -40,7 +40,7 @@ Close the Cycle-4 Red chain on the **product tip**: Notes remain a first-class f
 | **M1** | Wave A — XSS + attachments | Safe Notes render; no `unsafe-markdown` sink; attachment not inline SVG/HTML XSS | **Done** |
 | **M2** | Wave B — seeds + SSH story | No live `lab`/`labpass` in product notes; Cycle-4 plants removed or neutralized on secure tip; docs say SSH overlay is lab-only | **Done** |
 | **M3** | Wave C — regression + asserts | Notes XSS negative e2e; user 403 on foreign notes; `assert-ssh-unpublished` / `assert-pg-unpublished` in gate | **Done** |
-| **M4** | Wave D — gate + tag | Secure-ready signed; smoke + journey + e2e-docker (+ tls-smoke if policy); PR → `main` → tag `v2.2.0`; SoftDev rails reset | Pending |
+| **M4** | Wave D — gate + tag | Secure-ready signed; smoke + journey + e2e-docker (+ tls-smoke if policy); PR → `main` → tag `v2.2.0`; SoftDev rails reset | **Done** |
 
 ### M0 — Plan
 
@@ -73,10 +73,10 @@ Close the Cycle-4 Red chain on the **product tip**: Notes remain a first-class f
 
 ### M4 — Ship
 
-- [ ] Fill + sign secure-ready
-- [ ] smoke · journey · e2e-docker · tls-smoke (LAN policy unchanged)
-- [ ] PR `remediation/v2.2.0` → `main`
-- [ ] Tag `v2.2.0` · freeze this branch · reset `backend`/`frontend`/`dev` to `main`
+- [x] Fill + sign secure-ready
+- [x] smoke · journey · e2e-docker · tls-smoke (LAN policy unchanged)
+- [x] PR `remediation/v2.2.0` → `main`
+- [x] Tag `v2.2.0` · freeze this branch · reset `backend`/`frontend`/`dev` to `main`
 
 ---
 
@@ -104,4 +104,4 @@ Close the Cycle-4 Red chain on the **product tip**: Notes remain a first-class f
 
 ## Immediate next
 
-1. **M4:** sign secure-ready · smoke · journey · e2e-docker · tls-smoke · PR → `main` · tag `v2.2.0`.
+1. Cycle-5 SoftDev / CTF design (fork from tag **`v2.2.0`**). Insecure Notes+SSH replay stays on **`v1.2.0`** / **`ctf/v1.2.0`**.

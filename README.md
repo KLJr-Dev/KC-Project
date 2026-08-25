@@ -15,41 +15,39 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (`remediation/v2.2.0` → tag **`v2.2.0`**)
+## Current Status (tag **`v2.2.0`** — secure product)
 
-**Product tip (this branch):** Cycle-4 Blue — Notes kept, XSS closed, seed plants neutralized; default prod has **no** SSH.  
+**Product tip:** Cycle-4 Blue closed — Notes kept, XSS closed, seed plants neutralized; default prod has **no** SSH.  
 **Insecure replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + optional `docker-compose.ssh.yml`.  
-**Last shipped secure tag until merge:** **`v2.1.0`**.  
 **Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) · **SoftDev pair:** [ADR-033](docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)
 
-> **Note:** Hardened demos use this tip / upcoming tag **`v2.2.0`**. Do not use `v1.2.0` for recruiter “secure” walks.
+> **Note:** Hardened demos use tag **`v2.2.0`**. Do not use `v1.2.0` for recruiter “secure” walks.
 
-Cycles 1–3 are **closed**. Cycle-4 Red is **frozen** on `ctf/v1.2.0`; Blue lands as **`v2.2.0`**.
+Cycles 1–4 are **closed**. Cycle-5 (shells / PrivEsc) is next.
 
 | Cycle | Insecure / CTF | Secure / Blue |
 |-------|----------------|---------------|
 | 1 | tag `v1.0.0` | tag `v2.0.0` · frozen `remediation/v2.0.0` |
 | 2 | `ctf/v1.1.0` / tag `v1.1.0` | tag `v2.1.0` · frozen `remediation/v2.1.0` |
 | 3 | `ctf/leak-crack-db` (no product tag) | docs + regression on `main` · frozen `remediation/cycle-3-leak-crack-db` |
-| 4 | tag **`v1.2.0`** / `ctf/v1.2.0` | tag **`v2.2.0`** (this Blue) |
+| 4 | tag **`v1.2.0`** / `ctf/v1.2.0` | tag **`v2.2.0`** · frozen `remediation/v2.2.0` |
 
 | Track | Artifact |
 |-------|----------|
 | SoftDev insecure (frozen) | **`v1.2.0`** — [v1.2.0-pentest-ready.md](docs/release/v1.2.0-pentest-ready.md) · [Cycle-4](docs/security/Cycle-4/README.md) |
 | Blue / secure tip | **`v2.2.0`** — [v2.2.0-secure-ready.md](docs/release/v2.2.0-secure-ready.md) · [blue-team-plan](docs/security/Cycle-4/Remediation/blue-team-plan.md) |
 | Player brief (insecure) | [v1.2.0-player-brief.md](docs/security/Cycle-4/Dev/v1.2.0-player-brief.md) |
-| Last secure product (shipped) | tag **`v2.1.0`** until `v2.2.0` tagged |
 | Cycle-3 CTF (frozen) | `ctf/leak-crack-db` — [Cycle-3 README](docs/security/Cycle-3/README.md) |
 | Cycle-2 CTF (frozen) | `ctf/v1.1.0` — [Cycle-2 README](docs/security/Cycle-2/README.md) |
 | Cycle-1 (history) | [v1.0.0-writeup.md](docs/security/Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` |
 
 - **Docker (web only):** `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
-- **v1.2.0 full chain (replay):** `prod` + `docker-compose.ssh.yml` on tag/`ctf/v1.2.0` — not default for Blue tip
+- **v1.2.0 full chain (replay):** `prod` + `docker-compose.ssh.yml` on tag/`ctf/v1.2.0` — not default for secure tip
 - **TLS lab profile:** `prod` + `docker-compose.tls.yml` → `https://localhost:8443`
 - **Demo users:** `user@kc.test` / `mod@kc.test` / `admin@kc.test` — [demo-users.md](docs/deploy/demo-users.md)
 - **Product UI:** My Files, **Notes** (plain text), Sharing, Review (mod), Admin — `/dev` gated unless lab flag
 - **Tests:** smoke · journey · e2e-docker · tls-smoke · Cycle-2/3/4 regression · Notes e2e
-- **Next:** M3 regression → sign `v2.2.0` → merge/tag → Cycle-5 later
+- **Next:** Cycle-5 (shells / PrivEsc) — fork from **`v2.2.0`**
 
 ### Run locally (Docker — web stack)
 
@@ -135,13 +133,12 @@ Cycles 1–2 used [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md
 
 | Kind | Remotes | Policy |
 |------|---------|--------|
-| Product tip | `main` | After merge: secure Notes tip (`v2.2.0`); pin tags for demos |
+| Product tip | `main` | Secure Notes tip (`v2.2.0`); pin tags for demos |
 | SoftDev rails | `backend`, `frontend`, `dev` | **Keep names**; reset from `main` at each SoftDev cycle start |
-| Frozen archives | `ctf/v1.1.0`, `ctf/v1.2.0`, `ctf/leak-crack-db`, `remediation/v2.0.0`, `remediation/v2.1.0`, `remediation/cycle-3-leak-crack-db` | **Keep forever** (portfolio evidence) |
-| Active Blue | `remediation/v2.2.0` | Freeze after tag `v2.2.0` |
+| Frozen archives | `ctf/v1.1.0`, `ctf/v1.2.0`, `ctf/leak-crack-db`, `remediation/v2.0.0`, `remediation/v2.1.0`, `remediation/v2.2.0`, `remediation/cycle-3-leak-crack-db` | **Keep forever** (portfolio evidence) |
 
 ```
-main                              Product tip (→ v2.2.0 secure Notes; pin v1.2.0 for insecure replay)
+main                              Product tip (v2.2.0 secure Notes; pin v1.2.0 for insecure replay)
  ├── backend                       SoftDev rail — Nest/API (reset from main each SoftDev cycle)
  ├── frontend                      SoftDev rail — Next UI
  ├── dev                           SoftDev rail — integration → PR main
@@ -150,7 +147,7 @@ main                              Product tip (→ v2.2.0 secure Notes; pin v1.2
  ├── ctf/v1.2.0                    Frozen Cycle-4 SoftDev tip + Red evidence
  ├── remediation/v2.0.0            Frozen Cycle-1 Blue history
  ├── remediation/v2.1.0            Frozen Cycle-2 Blue history
- ├── remediation/v2.2.0            Cycle-4 Blue (active → freeze at tag)
+ ├── remediation/v2.2.0            Frozen Cycle-4 Blue history
  └── remediation/cycle-3-leak-crack-db  Frozen Cycle-3 Blue history
 
 Ephemeral:

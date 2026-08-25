@@ -10,4 +10,4 @@ Companion: [v2.2.0-remediation.md](v2.2.0-remediation.md) · [blue-team-plan.md]
 | **C4-R03** | Loopback HTTP `:8080` day-to-day | **Accepted** | Same as Cycle-2 R-01; LAN demos → TLS overlay |
 | **C4-R04** | Cycle-4 flags / SSH plants on `ctf/v1.2.0` | **Intentional archive** | Do not port secret plants onto `v2.2.0` tip |
 
-Update statuses when M2/M4 land.
+Statuses locked at M4 gate (2026-08-25).

@@ -9,7 +9,7 @@ Defensive track for **`v2.2.0`** after Red freeze on `ctf/v1.2.0`.
 | [accepted-residuals.md](accepted-residuals.md) | Bucket A residuals |
 | [v2.2.0-secure-ready.md](../../../release/v2.2.0-secure-ready.md) | Tag gate |
 
-**Branch:** `remediation/v2.2.0`  
+**Branch:** `remediation/v2.2.0` (frozen after tag `v2.2.0`)
 **Red writeup (frozen):** `ctf/v1.2.0` → PenTest/v1.2.0-writeup.md
 
 Parent: [../README.md](../README.md)

@@ -8,7 +8,7 @@ Consolidated intentional weaknesses through v1.0.0. Each row is an exploitable o
 
 | CWE | Description | Where |
 |-----|-------------|-------|
-| CWE-79 | Stored XSS via Notes HTML / unsafe markdown / inline SVG-HTML | SoftDev tip · [Cycle-4 GT](Cycle-4/Dev/v1.2.0-ground-truth.md) |
+| CWE-79 | Stored XSS via Notes HTML / unsafe markdown / inline SVG-HTML | **Closed on tip `v2.2.0`** · plants/XSS live on tag/`ctf/v1.2.0` only · [Cycle-4 GT](Cycle-4/Dev/v1.2.0-ground-truth.md) · [Blue plan](Cycle-4/Remediation/blue-team-plan.md) |
 
 Notes search is parameterized (not CWE-89). Full SoftDev surface: [Cycle-4/README.md](Cycle-4/README.md).
 
