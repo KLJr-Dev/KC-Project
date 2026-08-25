@@ -15,44 +15,62 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (v2.1.0 — secure product)
+## Current Status (v1.2.0 SoftDev — intentional insecure tip)
 
-**Tag:** `v2.1.0` on `main` · **Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) (ADR-027) · **Portfolio:** [PORTFOLIO-VISION.md](docs/roadmap/PORTFOLIO-VISION.md) · **Versioning:** [ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md)
+**SoftDev tip:** branches `backend` / `frontend` / `dev` are synced and ready to merge → tag **`v1.2.0`** on `main` ([pentest-ready](docs/release/v1.2.0-pentest-ready.md), unsigned until live dry-run).  
+**Last secure product tag:** **`v2.1.0`** — pin this (or wait for **`v2.2.0`**) for recruiter / hardened demos.  
+**Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) (ADR-027) · **Portfolio:** [PORTFOLIO-VISION.md](docs/roadmap/PORTFOLIO-VISION.md) · **SoftDev pair:** [ADR-033](docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)
 
-Cycles 1–3 are **closed**:
+> **Warning:** After `v1.2.0` lands on `main`, that tip is **intentionally vulnerable** (Notes XSS + optional SSH foothold). Do not treat it as the secure baseline.
+
+Cycles 1–3 are **closed**. Cycle-4 SoftDev (Notes + SSH) is **complete on SoftDev rails** — Red after tag; Blue = `v2.2.0`.
 
 | Cycle | Insecure / CTF | Secure / Blue |
 |-------|----------------|---------------|
 | 1 | tag `v1.0.0` | tag `v2.0.0` · frozen `remediation/v2.0.0` |
 | 2 | `ctf/v1.1.0` / tag `v1.1.0` | tag `v2.1.0` · frozen `remediation/v2.1.0` |
 | 3 | `ctf/leak-crack-db` (no product tag) | docs + regression on `main` · frozen `remediation/cycle-3-leak-crack-db` |
+| 4 | tag **`v1.2.0`** (SoftDev → `main`; pending tag) | tag **`v2.2.0`** (after Red) |
 
 | Track | Artifact |
 |-------|----------|
-| Secure product (current) | tag **`v2.1.0`** / `main` — [v2.1.0-secure-ready.md](docs/release/v2.1.0-secure-ready.md) |
+| SoftDev / Red tip (ship) | **`v1.2.0`** — [v1.2.0-pentest-ready.md](docs/release/v1.2.0-pentest-ready.md) · [Cycle-4](docs/security/Cycle-4/README.md) |
+| Player brief | [v1.2.0-player-brief.md](docs/security/Cycle-4/Dev/v1.2.0-player-brief.md) |
+| Last secure product | tag **`v2.1.0`** — [v2.1.0-secure-ready.md](docs/release/v2.1.0-secure-ready.md) |
 | Cycle-3 Blue gate | [cycle-3-leak-crack-db-secure-ready.md](docs/release/cycle-3-leak-crack-db-secure-ready.md) |
 | Cycle-3 CTF (frozen) | `ctf/leak-crack-db` — [Cycle-3 README](docs/security/Cycle-3/README.md) |
 | Cycle-2 CTF (frozen) | `ctf/v1.1.0` — [Cycle-2 README](docs/security/Cycle-2/README.md) |
 | Cycle-1 (history) | [v1.0.0-writeup.md](docs/security/Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` |
 
-- **Docker (primary):** `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
-- **TLS lab profile:** `prod` + `docker-compose.tls.yml` → `https://localhost:8443` ([infra/README.md](infra/README.md))
+- **Docker (web only):** `docker compose -f infra/docker-compose.prod.yml up -d --build` → `http://localhost:8080`
+- **Full chain (Notes → SSH):** `prod` + `docker-compose.ssh.yml` → web `:8080` + SSH `lab@…:2222` ([infra/README.md](infra/README.md))
+- **TLS lab profile:** `prod` + `docker-compose.tls.yml` → `https://localhost:8443`
 - **Demo users:** `user@kc.test` / `mod@kc.test` / `admin@kc.test` — [demo-users.md](docs/deploy/demo-users.md)
-- **Product UI:** My Files, Sharing, Review (mod), Admin — `/dev` gated unless lab flag
-- **Tests:** smoke · journey · e2e-docker · tls-smoke · Cycle-2/3 regression
-- **Next:** Cycle-4 SoftDev — Notes + SSH foothold → `v1.2.0` / `v2.2.0`; then Cycle-5 shells/PrivEsc ([Cycle-4](docs/security/Cycle-4/README.md), [Cycle-5](docs/security/Cycle-5/README.md))
+- **Product UI:** My Files, **Notes**, Sharing, Review (mod), Admin — `/dev` gated unless lab flag
+- **Tests:** smoke · journey · e2e-docker · tls-smoke · Cycle-2/3 regression · Notes e2e · `cycle4-ssh-examiner.sh`
+- **Next after tag:** Red writeup (F1–F3) → `remediation/v2.2.0` → Cycle-5 shells/PrivEsc ([Cycle-5](docs/security/Cycle-5/README.md))
 
-### Run locally (Docker — secure stack)
+### Run locally (Docker — web stack)
 
 ```bash
 cp infra/.env.example infra/.env
-# set DB_PASSWORD etc.; source infra/.env before compose if needed
 docker compose -f infra/docker-compose.prod.yml up -d --build
+./infra/assert-pg-unpublished.sh
 ./infra/smoke-test.sh
 ./infra/journey-test.sh
 ```
 
-Do **not** attach CTF compose overlays on this path. CTF boxes live only on `ctf/*` branches.
+### Run locally (Docker — Cycle-4 full chain)
+
+```bash
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ssh.yml up -d --build
+./infra/assert-ssh-unpublished.sh
+./infra/cycle4-ssh-examiner.sh
+```
+
+Prod compose **alone** must not publish Postgres `:5433` or SSH `:2222`. SSH is overlay-only.
+
+Do **not** attach older CTF compose overlays on SoftDev/`main` for Cycles 2–3 — those boxes live only on `ctf/*` branches.
 
 ### Run locally (native dev)
 
@@ -71,11 +89,11 @@ KC-PROJECT/
 ├── infra/                # Docker compose, nginx, TLS overlay, verify scripts
 ├── docs/                 # Engineering and project documentation
 │   ├── architecture/     # System architecture, auth flow, data model, STRIDE
-│   ├── decisions/        # ADRs 001–032
+│   ├── decisions/        # ADRs 001–033
 │   ├── diagrams/         # Architecture, auth, infra, threats, timeline
 │   ├── roadmap/          # STRATEGY, ROADMAP, version summaries
-│   ├── security/         # Cycle-1 … Cycle-3 workspaces, CWE inventory
-│   ├── release/          # readiness gates (incl. Cycle-3)
+│   ├── security/         # Cycle-1 … Cycle-5 workspaces, CWE inventory
+│   ├── release/          # readiness gates (incl. v1.2.0 SoftDev)
 │   ├── spec/             # Scope, requirements, personas, security baseline
 │   ├── glossary.md
 │   └── README.md
@@ -103,34 +121,36 @@ All engineering documentation lives in `/docs`. Security cycles: [Cycle-1](docs/
 | `v1.0.0` | Insecure MVP (Cycle-1) — **tagged** |
 | `v2.0.0` | Cycle-1 secure parallel — **tagged** |
 | `v1.1.0` | Cycle-2 CTF box — **tagged** (`ctf/v1.1.0`) |
-| `v2.1.0` | Cycle-2 secure product (current `main`) — **tagged** |
-| `v1.2.0` / `v2.2.0` | Cycle-4 SoftDev (planned) — Notes + SSH ([ADR-033](docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)) |
-| `v2.3.0+` | Later SoftDev surface expansions |
+| `v2.1.0` | Cycle-2 secure product — **tagged** (last hardened product before SoftDev) |
+| `v1.2.0` | Cycle-4 SoftDev insecure tip (Notes XSS + SSH overlay) — **ship from SoftDev** |
+| `v2.2.0` | Cycle-4 Blue (planned) — Notes hardened; no default SSH |
+| `v1.3.0` / `v2.3.0` | Cycle-5 SoftDev pair (shells + PrivEsc) — sketch |
 
-Cycles 1–2 used [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md) version pairs. **From v2.1.0 forward:** [ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md) — CTFs misconfigure the current app **without** a product version bump (Cycle-3 = `ctf/leak-crack-db`).
+Cycles 1–2 used [ADR-013](docs/decisions/ADR-013-expansion-cycle-versioning.md) version pairs. **CTF-only** after v2.1.0: [ADR-032](docs/decisions/ADR-032-post-v2.1.0-versioning.md) (Cycle-3). **SoftDev security cycles** restore a pair: [ADR-033](docs/decisions/ADR-033-cycle-4-softdev-version-pair.md).
 
 ## Branching Strategy
 
-Nine long-lived remotes (archives + SoftDev rails):
+Long-lived remotes (archives + SoftDev rails):
 
 ```
-main                              Stable secure product (v2.1.0)
- ├── backend                       SoftDev — Nest/API (reset from main before use)
- ├── frontend                      SoftDev — Next UI (reset from main before use)
- ├── dev                           SoftDev — integration (reset from main before use)
+main                              Product tip (v1.2.0 SoftDev insecure after merge; pin v2.1.0 for secure demos)
+ ├── backend                       SoftDev — Nest/API
+ ├── frontend                      SoftDev — Next UI
+ ├── dev                           SoftDev — integration (→ PR main for SoftDev ship)
  ├── ctf/v1.1.0                    Frozen Cycle-2 CTF + Red evidence
  ├── ctf/leak-crack-db             Frozen Cycle-3 CTF + Red evidence
+ ├── ctf/v1.2.0                    (archive from tag after v1.2.0 ship)
  ├── remediation/v2.0.0            Frozen Cycle-1 Blue history
  ├── remediation/v2.1.0            Frozen Cycle-2 Blue history
  └── remediation/cycle-3-leak-crack-db  Frozen Cycle-3 Blue history
 
 Ephemeral:
-  ctf/<scenario>          Create from main → box → freeze (never merge CTF into main)
+  ctf/<scenario>          Create from tip → box → freeze (never merge CTF into main)
   remediation/<name>      Create → PR docs/fixes to main → freeze
   hotfix/*                Short-lived → delete after merge
 ```
 
-Remediation **docs and secure-path locks live on `main`**; frozen `remediation/*` / `ctf/*` branches are portfolio archives. SoftDev rails (`backend` / `frontend` / `dev`) may lag `main` until the next SoftDev push — **recreate or reset from `main` before starting feature work**.
+Remediation **docs and secure-path locks live on `main`**; frozen `remediation/*` / `ctf/*` branches are portfolio archives. SoftDev rails (`backend` / `frontend` / `dev`) are reset from `main` at the start of each SoftDev security cycle.
 
 ## Collaboration
 

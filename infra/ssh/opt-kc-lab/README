@@ -1,0 +1,4 @@
+KC lab appliance — ops scratch
+
+TODO: lock down backup job (not wired on this image).
+Foothold users have no sudo. Cycle-5 may expand shells/PrivEsc.

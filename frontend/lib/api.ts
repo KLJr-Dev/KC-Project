@@ -12,13 +12,16 @@
  */
 import type {
   AuthResponse,
+  CreateNoteRequest,
   CreateSharing,
   CreateUser,
   DeleteResponse,
   FileResponse,
   LoginRequest,
+  NoteResponse,
   RegisterRequest,
   SharingResponse,
+  UpdateNoteRequest,
   UpdateSharing,
   UpdateUser,
   UploadFileRequest,
@@ -316,6 +319,91 @@ export async function filesDownload(id: string): Promise<Blob> {
     throw new Error(`${res.status} ${res.statusText}: ${body}`);
   }
 
+  return res.blob();
+}
+
+// ── Notes (Cycle-4 SoftDev / v1.2.0) ──────────────────────────────────
+// Owner CRUD + mod flag + admin delete. Body/attachment XSS is a frontend
+// render concern on the insecure tip.
+
+export const notesGetById = (id: string) => request<NoteResponse>(`/notes/${id}`);
+
+export function notesList(q?: string): Promise<NoteResponse[]> {
+  const path = q?.trim() ? `/notes?q=${encodeURIComponent(q.trim())}` : '/notes';
+  return listItems<NoteResponse>(path);
+}
+
+export const notesCreate = (dto: CreateNoteRequest) => post<NoteResponse>('/notes', dto);
+
+export const notesUpdate = (id: string, dto: UpdateNoteRequest) =>
+  put<NoteResponse>(`/notes/${id}`, dto);
+
+export const notesDelete = (id: string) => del<DeleteResponse>(`/notes/${id}`);
+
+export const notesFlag = (id: string, flagged: boolean) =>
+  put<NoteResponse>(`/notes/${id}/flag`, { flagged });
+
+/** Multipart create — fields title/body + optional attachment. */
+export async function notesCreateMultipart(
+  title: string,
+  body: string,
+  attachment?: File | null,
+): Promise<NoteResponse> {
+  const form = new FormData();
+  form.append('title', title);
+  form.append('body', body);
+  if (attachment) form.append('attachment', attachment);
+
+  const res = await fetch(`${API_BASE}/notes`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: form,
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`${res.status} ${res.statusText}: ${text}`);
+  }
+  return res.json() as Promise<NoteResponse>;
+}
+
+/** Multipart update — optional title/body fields + optional replacement attachment. */
+export async function notesUpdateMultipart(
+  id: string,
+  fields: UpdateNoteRequest,
+  attachment?: File | null,
+): Promise<NoteResponse> {
+  const form = new FormData();
+  if (fields.title !== undefined) form.append('title', fields.title);
+  if (fields.body !== undefined) form.append('body', fields.body);
+  if (attachment) form.append('attachment', attachment);
+
+  const res = await fetch(`${API_BASE}/notes/${id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: form,
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`${res.status} ${res.statusText}: ${text}`);
+  }
+  return res.json() as Promise<NoteResponse>;
+}
+
+/** Authenticated attachment blob (inline SVG/HTML candy on v1.2.0). */
+export async function notesAttachmentBlob(id: string): Promise<Blob> {
+  const res = await fetch(`${API_BASE}/notes/${id}/attachment`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`${res.status} ${res.statusText}: ${text}`);
+  }
   return res.blob();
 }
 

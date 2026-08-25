@@ -8,7 +8,7 @@
 
 **[Cycle-3/](Cycle-3/README.md)** — **Closed** (`ctf/leak-crack-db` → Blue on `main`). No product version bump ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)).
 
-**[Cycle-4/](Cycle-4/README.md)** — **Planned** SoftDev pair (`v1.2.0` → `v2.2.0`): Notes + SSH foothold ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
+**[Cycle-4/](Cycle-4/README.md)** — SoftDev **ready on `dev`** (`v1.2.0` → `v2.2.0`): Notes + SSH foothold ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)). Pending merge/tag.
 
 **[Cycle-5/](Cycle-5/README.md)** — **Sketch** (soon after Cycle-4 Blue): shells + PrivEsc on SSH lineage.
 
@@ -17,7 +17,7 @@
 | 1 | [PenTest/v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) · frozen `remediation/v2.0.0` |
 | 2 | branch/tag `ctf/v1.1.0` (PenTest/Dev on that branch) | [v2.1.0-remediation.md](Cycle-2/Remediation/v2.1.0-remediation.md) · frozen `remediation/v2.1.0` |
 | 3 | branch `ctf/leak-crack-db` (PenTest on that branch) | [cycle-3-leak-crack-db-remediation.md](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) · frozen `remediation/cycle-3-leak-crack-db` |
-| 4 | tag `v1.2.0` (planned) · Notes XSS + SSH foothold | tag `v2.2.0` (planned) · [Cycle-4](Cycle-4/README.md) |
+| 4 | tag `v1.2.0` (SoftDev ship) · Notes XSS + SSH foothold | tag `v2.2.0` (after Red) · [Cycle-4](Cycle-4/README.md) |
 | 5 | shells + PrivEsc (sketch) | lab overlay / harden jump host · [Cycle-5](Cycle-5/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
@@ -32,14 +32,14 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground tru
 - [v1.1.0-ctf-ready.md](../release/v1.1.0-ctf-ready.md) — Cycle-2 CTF gate
 - [v2.1.0-secure-ready.md](../release/v2.1.0-secure-ready.md) — Cycle-2 Blue gate (**signed**)
 - [cycle-3-leak-crack-db-secure-ready.md](../release/cycle-3-leak-crack-db-secure-ready.md) — Cycle-3 Blue gate (**signed**)
+- [v1.2.0-pentest-ready.md](../release/v1.2.0-pentest-ready.md) — Cycle-4 SoftDev Red gate (**unsigned until merge/tag**)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
 - [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — CTF-only cycles without product version bumps
 - [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — SoftDev Cycle-4 pair `v1.2.0`→`v2.2.0`
 
 ## Scope
 
-Cycles 1–3 complete. Live product = **v2.1.0**. **Next:** Cycle-4 SoftDev — Notes + SSH foothold (`v1.2.0` → `v2.2.0`); then Cycle-5 shells/PrivEsc ([Cycle-4](Cycle-4/README.md), [Cycle-5](Cycle-5/README.md)).
-
+Cycles 1–3 complete. SoftDev tip = intentional **`v1.2.0`** (Notes + SSH). Last hardened product tag = **`v2.1.0`**. After Red → Blue **`v2.2.0`**; then Cycle-5 shells/PrivEsc.
 ## Tools
 
 - Burp Suite / OWASP ZAP (HTTP proxy)
@@ -47,30 +47,32 @@ Cycles 1–3 complete. Live product = **v2.1.0**. **Next:** Cycle-4 SoftDev — 
 - jwt_tool (against intentional CTF/insecure tags — not expected to forge roles on hardened `main`)
 - Docker compose stack (`infra/docker-compose.prod.yml`; CTF overlay only on `ctf/*`)
 
-## Entry points (secure `main` / v2.1.0)
+## Entry points (SoftDev tip / `v1.2.0`)
 
 | Surface | URL / path | Auth |
 |---------|------------|------|
 | App UI | `http://localhost:8080` | Browser; access JWT in memory + httpOnly refresh cookie |
+| Notes UI | `/notes`, `/notes/[id]` | Auth; XSS sinks intentional on this tip |
 | API (proxied) | `http://localhost:8080/api/*` | Bearer access JWT |
-| API (direct dev) | `http://localhost:4000/*` | Bearer access JWT |
+| Notes API | `/api/notes` | Owner / mod / admin per route |
+| SSH (overlay) | host `:2222` → user `lab` | Password from Notes chain |
 | OpenAPI | Dev / lab only (disabled in production unless flagged) | — |
 | Public share | `GET /api/sharing/public/:token` | Token |
 | API explorers | `/dev/*` | Lab flag gated in prod |
 
-## Methodology (against historical / CTF targets)
+Pin tag **`v2.1.0`** for hardened demos until **`v2.2.0`**.
 
-Run these against **tag `v1.0.0`** (Cycle-1) or **`ctf/v1.1.0`** (Cycle-2) — not as expectations against current `main`:
+## Methodology (against historical / CTF / SoftDev insecure tips)
 
-1. Verify deploy: `./infra/smoke-test.sh`, `./infra/journey-test.sh`, `./infra/e2e-docker.sh`
-2. Map attack surface from ground truth / OpenAPI on that tag or CTF branch
-3. Authenticate as user, moderator, admin; test IDOR on sequential IDs
-4. Test authz / JWT trust assumptions documented for that cycle
-5. Test file upload and share-token paths per cycle writeup
-6. Document findings in the cycle PenTest writeup
+Run offensive work against **tag `v1.0.0`**, **`ctf/v1.1.0`**, **`ctf/leak-crack-db`**, or SoftDev **`v1.2.0`** — not as expectations against hardened tags (`v2.1.0` / future `v2.2.0`):
+
+1. Verify deploy: smoke / journey / e2e; for Cycle-4 also `cycle4-ssh-examiner.sh`
+2. Map attack surface from that cycle’s ground truth
+3. Authenticate as user, moderator, admin; test Notes + legacy IDOR paths as documented
+4. Document findings in the cycle PenTest writeup
 
 ## References
 
 - [STRATEGY.md](../roadmap/STRATEGY.md)
 - [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
-- [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)
+- [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)

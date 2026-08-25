@@ -15,6 +15,10 @@ const FEATURES = [
     description: 'Upload, download, and share files with ownership and token controls.',
   },
   {
+    title: 'Notes',
+    description: 'Personal notes with search, moderation flags, and optional attachments.',
+  },
+  {
     title: 'Admin Surface',
     description: 'Role-based admin and moderator workflows backed by database roles.',
   },
@@ -60,6 +64,9 @@ export default function HomePage() {
                 className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
               >
                 My Files
+              </Link>
+              <Link href="/notes" className="rounded-md border border-border px-3 py-1.5 text-sm">
+                Notes
               </Link>
               <Link href="/sharing" className="rounded-md border border-border px-3 py-1.5 text-sm">
                 Sharing

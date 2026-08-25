@@ -19,6 +19,7 @@ import { UsersModule } from './users/users.module';
 import { FilesModule } from './files/files.module';
 import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { AdminModule } from './admin/admin.module';
     FilesModule,
     SharingModule,
     AdminModule,
+    NotesModule,
   ],
   controllers: [AppController],
   providers: [
