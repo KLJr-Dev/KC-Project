@@ -1,15 +1,12 @@
+/**
+ * Note detail — Cycle-4 Blue (`v2.2.0`).
+ *
+ * C4-F01: note body is untrusted text — React-escaped only (no dangerouslySetInnerHTML,
+ * no markdown HTML path). Attachments download via API (C4-F01b).
+ */
 'use client';
 
-/**
- * Note detail — Cycle-4 SoftDev (`v1.2.0`).
- *
- * Dual XSS sinks (locked):
- * - HTML: body via dangerouslySetInnerHTML
- * - Markdown: unsafeMarkdownToHtml (raw HTML pass-through) then same sink
- *
- * Attachment: authenticated blob open (inline SVG/HTML on API).
- */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -23,14 +20,11 @@ import type { NoteResponse } from '../../../lib/types';
 import { formatUserError } from '../../../lib/errors';
 import { formatDate } from '../../../lib/format';
 import { isNoteOwner } from '../../../lib/note-scope';
-import { unsafeMarkdownToHtml } from '../../../lib/unsafe-markdown';
 import { useAuth } from '../../../lib/auth-context';
 import RequireAuth from '../../components/require-auth';
 import ErrorBanner from '../../components/ui/error-banner';
 import SuccessBanner from '../../components/ui/success-banner';
 import LoadingSpinner from '../../components/ui/loading-spinner';
-
-type RenderMode = 'html' | 'markdown';
 
 export default function NoteDetailPage() {
   return (
@@ -50,7 +44,6 @@ function NoteDetailContent() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState<RenderMode>('html');
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -77,11 +70,6 @@ function NoteDetailContent() {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when route id changes
   }, [id]);
-
-  const renderedHtml = useMemo(() => {
-    if (!note) return '';
-    return mode === 'html' ? note.body : unsafeMarkdownToHtml(note.body);
-  }, [note, mode]);
 
   const canEdit = note ? isNoteOwner(note, userId) : false;
   const canDelete = note ? isNoteOwner(note, userId) || isAdmin : false;
@@ -156,43 +144,18 @@ function NoteDetailContent() {
 
       {note && (
         <div className="space-y-6 rounded-lg border border-border p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">{note.title}</h1>
-              <p className="mt-1 text-xs text-muted">
-                owner {note.ownerId} · updated {formatDate(note.updatedAt)}
-                {note.flagged ? ' · flagged' : ''}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setMode('html')}
-                className={`rounded-md px-2.5 py-1 text-xs ${
-                  mode === 'html' ? 'bg-primary text-primary-foreground' : 'border border-border'
-                }`}
-              >
-                HTML
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('markdown')}
-                className={`rounded-md px-2.5 py-1 text-xs ${
-                  mode === 'markdown'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'border border-border'
-                }`}
-              >
-                Markdown
-              </button>
-            </div>
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">{note.title}</h1>
+            <p className="mt-1 text-xs text-muted">
+              owner {note.ownerId} · updated {formatDate(note.updatedAt)}
+              {note.flagged ? ' · flagged' : ''}
+            </p>
           </div>
 
-          {/* Intentional XSS sinks — do not sanitize on v1.2.0 */}
-          <div
-            className="prose prose-sm max-w-none border-t border-border pt-4 text-foreground dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: renderedHtml }}
-          />
+          {/* C4-F01: escaped text only — do not reintroduce HTML sinks */}
+          <div className="whitespace-pre-wrap break-words border-t border-border pt-4 text-sm text-foreground">
+            {note.body}
+          </div>
 
           {note.hasAttachment && (
             <div className="border-t border-border pt-4 text-sm">
@@ -206,7 +169,7 @@ function NoteDetailContent() {
                 onClick={handleOpenAttachment}
                 className="mt-2 rounded-md border border-border px-3 py-1.5 text-sm"
               >
-                Open attachment
+                Download attachment
               </button>
             </div>
           )}

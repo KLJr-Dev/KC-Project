@@ -31,20 +31,16 @@ import {
   NOTE_ATTACHMENT_SIZE_LIMIT,
   notesUploadsDir,
   sanitizeNoteAttachmentFilename,
-  shouldInlineNoteAttachment,
 } from './notes-upload';
 
 /**
- * Notes HTTP API — Cycle-4 SoftDev (`v1.2.0`).
+ * Notes HTTP API — Cycle-4 Blue (`v2.2.0`).
  *
  * Class guards reload DB role via HasRoleGuard (same as Files).
  * Flag requires moderator|admin; delete-any is service-enforced for admin.
  *
- * Attachments (P1c): optional multipart field `attachment`; SVG/HTML allowed and
- * may be served inline on this insecure tip (XSS). JSON POST without file still works
- * when clients send application/json (no FileInterceptor on a separate path) —
- * we use FileInterceptor on POST/PUT; for pure JSON, multer leaves file undefined
- * if Content-Type is not multipart (Nest still parses JSON body).
+ * Attachments (C4-F01b): optional multipart `attachment`; SVG/HTML rejected;
+ * always Content-Disposition: attachment (never inline).
  */
 @Controller('notes')
 @UseGuards(JwtAuthGuard, HasRoleGuard)
@@ -96,7 +92,7 @@ export class NotesController {
   }
 
   /**
-   * GET /notes/:id/attachment — stream file; inline for svg/html on v1.2.0.
+   * GET /notes/:id/attachment — stream file as download only (C4-F01b).
    * Registered before GET :id so Nest matches the static suffix.
    */
   @Get(':id/attachment')
@@ -117,16 +113,12 @@ export class NotesController {
 
     const mime = meta.mimetype || 'application/octet-stream';
     res.set('Content-Type', mime);
-    if (shouldInlineNoteAttachment(mime)) {
-      // Insecure tip: browser may execute SVG/HTML (intentional XSS surface).
-      res.set('Content-Disposition', `inline; filename="${meta.filename}"`);
-    } else {
-      res.set('Content-Disposition', `attachment; filename="${meta.filename}"`);
-    }
+    // Never inline — browser must not execute SVG/HTML as a document
+    res.set('Content-Disposition', `attachment; filename="${meta.filename}"`);
     res.sendFile(safePath);
   }
 
-  /** GET /notes/:id — metadata + body (XSS sink is frontend render). */
+  /** GET /notes/:id — metadata + body (body rendered escaped on the client). */
   @Get(':id')
   async getById(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     const note = await this.notesService.getById(id, user.sub, user.role || 'user');

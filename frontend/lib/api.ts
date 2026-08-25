@@ -322,9 +322,8 @@ export async function filesDownload(id: string): Promise<Blob> {
   return res.blob();
 }
 
-// ── Notes (Cycle-4 SoftDev / v1.2.0) ──────────────────────────────────
-// Owner CRUD + mod flag + admin delete. Body/attachment XSS is a frontend
-// render concern on the insecure tip.
+// ── Notes (Cycle-4 / v2.2.0) ─────────────────────────────────────────
+// Owner CRUD + mod flag + admin delete. Body is plain text on the client (C4-F01).
 
 export const notesGetById = (id: string) => request<NoteResponse>(`/notes/${id}`);
 
@@ -393,7 +392,7 @@ export async function notesUpdateMultipart(
   return res.json() as Promise<NoteResponse>;
 }
 
-/** Authenticated attachment blob (inline SVG/HTML candy on v1.2.0). */
+/** Authenticated attachment blob (download disposition from API — C4-F01b). */
 export async function notesAttachmentBlob(id: string): Promise<Blob> {
   const res = await fetch(`${API_BASE}/notes/${id}/attachment`, {
     method: 'GET',

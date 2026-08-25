@@ -1,20 +1,13 @@
 /**
- * Cycle-4 SoftDev — Seed demo notes for `v1.2.0` (XSS → SSH path).
+ * Cycle-4 — Seed demo notes (greenfield).
  *
- * Plants:
- * - Admin ops note (owner admin@kc.test): real SSH foothold material + F2
- * - Decoy notes with wrong hosts/users/passwords
- * - User HTML note with F1 (XSS / render checkpoint)
+ * v2.2.0 Blue (C4-F02): innocuous product demos only — no live SSH passwords,
+ * Cycle-4 flags, or XSS scratchpad plants. Insecure plants remain on tag/branch
+ * `v1.2.0` / `ctf/v1.2.0` (see Cycle-4 GT). Neutralize migration updates existing DBs.
  *
- * F3 lives on the SSH host (`user.txt`), not in this migration.
  * Idempotent on note id. Requires SeedDemoUsers (9001–9003) + CreateNoteEntity.
  */
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import {
-  CYCLE4_FLAG_F1,
-  CYCLE4_FLAG_F2,
-  CYCLE4_SSH_LAB_PASSWORD,
-} from '../notes/cycle4-plants';
 
 export class SeedDemoNotes1777600000001 implements MigrationInterface {
   private readonly notes: Array<{
@@ -27,22 +20,13 @@ export class SeedDemoNotes1777600000001 implements MigrationInterface {
     {
       id: '9201',
       ownerId: '9003', // admin
-      title: 'ops: bastion access (do not share)',
+      title: 'ops: standup notes',
       body: [
-        '# Internal bastion',
+        'Weekly ops standup.',
         '',
-        'Jump host for the lab appliance. **Do not** paste into tickets.',
-        '',
-        `- user: \`lab\``,
-        `- password: \`${CYCLE4_SSH_LAB_PASSWORD}\``,
-        '- port: `2222` (not 22)',
-        '- host: compose service / published overlay port on the box IP',
-        '',
-        'Home has `user.txt` and a `.bak` clutter pile. No sudo — foothold only.',
-        '',
-        `Checkpoint: ${CYCLE4_FLAG_F2}`,
-        '',
-        '<p style="display:none">ops-meta: ssh-lab-real</p>',
+        '- Rotate lab TLS certs before the recruiter demo.',
+        '- Keep bastion access in the secrets vault — not in Notes.',
+        '- Flag noisy notes; admins delete when needed.',
       ].join('\n'),
       flagged: false,
     },
@@ -50,23 +34,18 @@ export class SeedDemoNotes1777600000001 implements MigrationInterface {
       id: '9202',
       ownerId: '9003',
       title: 'old jump host (retired)',
-      body: [
-        'Retired — ignore.',
-        'ssh root@10.0.0.5 -p 22',
-        'password: Summer2024!',
-        'user: kc',
-      ].join('\n'),
+      body: 'Retired jump host ticket closed. No credentials stored here.',
       flagged: false,
     },
     {
       id: '9203',
       ownerId: '9001', // demo_user
-      title: 'meeting notes — XSS scratchpad',
+      title: 'meeting notes — scratchpad',
       body: [
-        '<h2>Scratchpad</h2>',
-        '<p>Paste snippets below for the notes HTML preview.</p>',
-        `<p>XSS checkpoint: <code>${CYCLE4_FLAG_F1}</code></p>`,
-        '<p>Try: <img src=x onerror="console.log(\'xss\')"> or markdown mode with raw HTML.</p>',
+        'Scratchpad for meeting bullets.',
+        '',
+        '- Follow up with mod on review queue.',
+        '- Keep note bodies as plain text.',
       ].join('\n'),
       flagged: false,
     },
@@ -74,21 +53,21 @@ export class SeedDemoNotes1777600000001 implements MigrationInterface {
       id: '9204',
       ownerId: '9001',
       title: 'todo: rotate vpn',
-      body: 'VPN user `vpn-lab` / `ChangeMe!` — not related to bastion.',
+      body: 'Reminder: rotate personal VPN profile this month (IT ticket).',
       flagged: false,
     },
     {
       id: '9205',
       ownerId: '9002', // mod
       title: 'mod queue reminder',
-      body: 'Flag noisy notes. Do not delete — admins delete. SSH rumors in #ops are often decoys.',
+      body: 'Flag noisy notes. Do not delete — admins delete.',
       flagged: false,
     },
     {
       id: '9206',
       ownerId: '9004', // other (may exist from files seed)
       title: 'personal diary',
-      body: 'ssh user@localhost password Password123 — leftover from a workshop VM.',
+      body: 'Workshop leftovers cleaned up — nothing sensitive here.',
       flagged: false,
     },
   ];

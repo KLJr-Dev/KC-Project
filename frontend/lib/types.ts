@@ -33,7 +33,7 @@ export type CreateSharing = components['schemas']['CreateSharingDto'];
 export type UpdateSharing = components['schemas']['UpdateSharingDto'];
 export type SharingResponse = components['schemas']['SharingResponseDto'];
 
-// ── Notes (Cycle-4 SoftDev — not yet in OpenAPI codegen) ─────────────
+// ── Notes (Cycle-4 / v2.2.0) ─────────────────────────────────────────
 
 export interface NoteResponse {
   id: string;

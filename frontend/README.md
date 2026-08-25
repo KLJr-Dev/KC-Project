@@ -1,22 +1,19 @@
 # Frontend
 
-Next.js App Router UI for **KC-Project** SoftDev tip on `main` (Notes XSS intentional; tag **`v1.2.0`** pending).
+Next.js App Router UI for **KC-Project** on the secure tip track (`remediation/v2.2.0` → tag **`v2.2.0`**).
 
-The frontend is an **untrusted client**. Product pages apply client-side filtering; the API is the real security boundary. SoftDev Notes **intentionally** render HTML/markdown unsafely ([ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)).
+The frontend is an **untrusted client**. Product pages apply client-side filtering; the API is the real security boundary. Notes body is **plain text** (React-escaped) — C4-F01 closed ([ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-SoftDev UI work lands on the **`frontend`** branch → `dev` → `main` ([ADR-015](../docs/decisions/ADR-015-branching-strategy.md)).
-
-**Last secure product tag:** `v2.1.0` — pin for hardened demos until `v2.2.0`.
+SoftDev UI work lands on the **`frontend`** branch → `dev` → `main` ([ADR-015](../docs/decisions/ADR-015-branching-strategy.md)). Insecure Notes XSS replay: tag / branch **`v1.2.0`** / **`ctf/v1.2.0`**.
 
 ---
 
-## Current status (SoftDev tip)
+## Current status
 
 - Next.js 16, React 19, Tailwind CSS
 - Types from OpenAPI (`lib/types.gen.ts`) + manual Notes types
 - Auth: access JWT in memory + httpOnly refresh cookie
-- **Product UI:** files, **notes**, sharing, moderator, admin
-- **SoftDev XSS:** `/notes/[id]` HTML + `unsafe-markdown.ts`
+- **Product UI:** files, **notes** (escaped body), sharing, moderator, admin
 - **Dev explorers:** `/dev/*` (lab-gated in prod)
 - **Public share:** `/share/[token]`
 
@@ -29,7 +26,7 @@ SoftDev UI work lands on the **`frontend`** branch → `dev` → `main` ([ADR-01
 | `/` | None | Home, demo accounts (lab) |
 | `/auth` | None | Login / register |
 | `/files`, `/files/[id]` | Auth | My files |
-| `/notes`, `/notes/[id]` | Auth | SoftDev Notes (XSS sinks) |
+| `/notes`, `/notes/[id]` | Auth | Notes (plain-text body) |
 | `/sharing` | Auth | My shares |
 | `/share/[token]` | None | Public download landing |
 | `/moderator` | Mod+admin | Approval queue |
