@@ -12,8 +12,8 @@
 | Cycle | 4 (SoftDev security pair) |
 | From | Intentional insecure Notes + SSH overlay on `main` (`v1.2.0`) |
 | To | Tag **`v2.2.0`** — Notes kept; XSS closed; no default SSH |
-| Current milestone | **M0** — plan |
-| Code status | Not started |
+| Current milestone | **M0 done** — plan committed; **M1** next |
+| Code status | Plan only — implementation pending |
 
 ```text
 main @ v1.2.0 (insecure SoftDev)
@@ -36,7 +36,7 @@ Close the Cycle-4 Red chain on the **product tip**: Notes remain a first-class f
 
 | ID | Goal | Exit criteria | Status |
 |----|------|---------------|--------|
-| **M0** | Plan signed | Blue plan + remediation map + residuals + secure-ready scaffold | **In progress** |
+| **M0** | Plan signed | Blue plan + remediation map + residuals + secure-ready scaffold | **Done** |
 | **M1** | Wave A — XSS + attachments | Safe Notes render; no `unsafe-markdown` sink; attachment not inline SVG/HTML XSS | Pending |
 | **M2** | Wave B — seeds + SSH story | No live `lab`/`labpass` in product notes; Cycle-4 plants removed or neutralized on secure tip; docs say SSH overlay is lab-only | Pending |
 | **M3** | Wave C — regression + asserts | Notes XSS negative e2e; user 403 on foreign notes; `assert-ssh-unpublished` / `assert-pg-unpublished` in gate | Pending |
@@ -45,10 +45,10 @@ Close the Cycle-4 Red chain on the **product tip**: Notes remain a first-class f
 ### M0 — Plan
 
 - [x] Branch `remediation/v2.2.0` from `main`
-- [ ] [v2.2.0-remediation.md](v2.2.0-remediation.md) finding → fix map
-- [ ] [accepted-residuals.md](accepted-residuals.md)
-- [ ] [v2.2.0-secure-ready.md](../../../release/v2.2.0-secure-ready.md) scaffold
-- [ ] Cross-links from Cycle-4 README / Remediation index
+- [x] [v2.2.0-remediation.md](v2.2.0-remediation.md) finding → fix map
+- [x] [accepted-residuals.md](accepted-residuals.md)
+- [x] [v2.2.0-secure-ready.md](../../../release/v2.2.0-secure-ready.md) scaffold
+- [x] Cross-links from Cycle-4 README / Remediation index
 
 ### M1 — XSS + attachments (must-close)
 
