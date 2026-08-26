@@ -12,7 +12,7 @@
 
 **[Cycle-5/](Cycle-5/README.md)** — **Closed** (`ctf/shells-privesc` → Blue on `main`, no version bump). [secure-ready](../release/shells-privesc-secure-ready.md).
 
-**[Cycle-6/](Cycle-6/README.md)** — **In design** (product expansion `v1.3.0` → `v2.3.0`: Link Preview SSRF + CSRF). Docs on `docs/cycle-6-p0` → PR. [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md).
+**[Cycle-6/](Cycle-6/README.md)** — **Insecure tip shipped** (`v1.3.0` → Red pending → `v2.3.0`). [pentest-ready](../release/v1.3.0-pentest-ready.md). [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md).
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -21,7 +21,7 @@
 | 3 | branch `ctf/leak-crack-db` (PenTest on that branch) | [cycle-3-leak-crack-db-remediation.md](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) · frozen `remediation/cycle-3-leak-crack-db` |
 | 4 | tag/`ctf/v1.2.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.2.0/docs/security/Cycle-4/PenTest/v1.2.0-writeup.md) | tag **`v2.2.0`** · [blue-team-plan](Cycle-4/Remediation/blue-team-plan.md) · frozen `remediation/v2.2.0` |
 | 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · frozen `remediation/shells-privesc` |
-| 6 | planned `ctf/v1.3.0` | planned `remediation/v2.3.0` · [Dev/](Cycle-6/Dev/) |
+| 6 | tag/`ctf/v1.3.0` · Red pending | planned `remediation/v2.3.0` · [Dev/](Cycle-6/Dev/) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -60,7 +60,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 - [v1.2.0-pentest-ready.md](../release/v1.2.0-pentest-ready.md) — Cycle-4 expansion Red gate (**signed** · tag `v1.2.0`)
 - [v2.2.0-secure-ready.md](../release/v2.2.0-secure-ready.md) — Cycle-4 Blue gate (**signed** · tag `v2.2.0`)
 - [shells-privesc-ctf-ready.md](../release/shells-privesc-ctf-ready.md) — Cycle-5 Red/CTF gate (**on CTF branch** · frozen)
-- [shells-privesc-secure-ready.md](../release/shells-privesc-secure-ready.md) — Cycle-5 Blue gate (**signed** · PR #25)
+- [v1.3.0-pentest-ready.md](../release/v1.3.0-pentest-ready.md) — Cycle-6 expansion Red gate (**signed** · tag `v1.3.0`)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
 - [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — CTF-only cycles without product version bumps
 - [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — Cycle-4 pair `v1.2.0`→`v2.2.0`
@@ -68,7 +68,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 
 ## Scope
 
-Cycles **1–5 complete**. Cycle-6 **in design** (docs branch → PR). Product tip = secure **`v2.2.0`** until `v1.3.0` ships. Play: frozen `ctf/*` boxes above.
+Cycles **1–5 complete**. Cycle-6 **insecure tip `v1.3.0` shipped** (Red next). Play prior boxes: frozen `ctf/*` above; Cycle-6 archive `ctf/v1.3.0`.
 
 ## Tools
 

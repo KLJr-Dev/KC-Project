@@ -9,8 +9,8 @@
 |-------|------|--------|
 | Docs / design | P0 decisions, box, execution, STRIDE | **Done** (PR #26) |
 | Feature lanes → `dev` | Intentional insecure tip | **Done** — smoke/examiner green |
-| Tag **`v1.3.0`** (+ archive `ctf/v1.3.0`) | Pentest-ready insecure tip | **In progress (P5)** |
-| PenTest | Socratic Red | Pending P6 |
+| Tag **`v1.3.0`** (+ archive `ctf/v1.3.0`) | Pentest-ready insecure tip | **Shipped** |
+| PenTest | Socratic Red | **Ready (P6)** — play `ctf/v1.3.0` / tip `v1.3.0` |
 | **`remediation/v2.3.0`** → tag **`v2.3.0`** | Harden fetch + CSRF | Pending |
 
 ---

@@ -1,10 +1,10 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Secure product **`v2.2.0`** on `main` (Notes kept; XSS closed; no default SSH; Cycle-5 Blue applied) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)  
+**Current tip**: Intentional insecure **`v1.3.0`** on `main` (Link Preview SSRF + CSRF) · [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md)  
 **Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5  
-**Insecure replay**: tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + optional SSH overlay; CTF **`ctf/shells-privesc`**  
-**Next**: Cycle-6 product expansion **`v1.3.0` → `v2.3.0`** (Link Preview SSRF + CSRF) — [Cycle-6](../security/Cycle-6/README.md) · [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md) · docs branch `docs/cycle-6-p0`
+**Secure replay**: tag **`v2.2.0`** (pre–Cycle-6) · CTF archives as listed in security README  
+**Next**: Cycle-6 Red on `ctf/v1.3.0` → Blue **`v2.3.0`** — [Cycle-6](../security/Cycle-6/README.md) · [pentest-ready](../release/v1.3.0-pentest-ready.md)
 
 ---
 
