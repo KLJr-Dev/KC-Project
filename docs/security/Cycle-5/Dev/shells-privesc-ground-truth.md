@@ -3,7 +3,7 @@
 **Classification:** Examiner / Dev only — do not ship in player packets.  
 **Branch:** `ctf/shells-privesc` · baseline tag **`v2.2.0`**  
 **Locks:** [cycle-5-decisions.md](cycle-5-decisions.md) § P2 · [box plan](shells-privesc-box-plan.md)  
-**Status:** P2 locked · infra plants pending P3/P4 · examiner pending P5
+**Status:** P2 locked · **P3 lab-host planted** · kc-agent pending P4 · examiner pending P5
 
 ---
 

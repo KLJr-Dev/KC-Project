@@ -44,6 +44,6 @@ Docker escape · SoftDev `v1.3.0` · re-break Notes XSS · AD · off-box pivot �
 
 ## Next docs / build
 
-1. ~~P1 fork~~ · ~~P2 design lock~~ — see [cycle-5-decisions.md](cycle-5-decisions.md) § P2 · [GT](shells-privesc-ground-truth.md).  
-2. **P3/P4:** `infra/lab-host/` + `kc-agent` + `docker-compose.ctf-shells.yml`.  
+1. ~~P1 fork~~ · ~~P2 design lock~~ · ~~P3 lab-host~~ — see [GT](shells-privesc-ground-truth.md).  
+2. **P4:** `kc-agent` on `:8787`.  
 3. **P5:** player brief · examiner · `shells-privesc-ctf-ready.md`.

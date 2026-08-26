@@ -206,7 +206,6 @@ Merge CTF into `main` · docker escape · Notes XSS reprise · published `:5433`
 
 ## Immediate next
 
-1. ~~Commit P0~~ · ~~P1 branch~~ · ~~P2 design lock~~ (flags in GT).  
-2. **P3:** `infra/lab-host/` + compose overlay.  
-3. **P4:** `kc-agent` on `:8787`.  
-4. **P5:** brief · examiner · sign ctf-ready.
+1. ~~Commit P0~~ · ~~P1 branch~~ · ~~P2 design lock~~ · ~~P3 lab-host~~.  
+2. **P4:** `kc-agent` on `:8787`.  
+3. **P5:** brief · examiner · sign ctf-ready.

@@ -4,6 +4,7 @@ Deployment and infrastructure for **KC-Project**.
 
 **Current tip:** Notes hardened on tag **`v2.2.0`** — no default SSH; seed plants neutralized.  
 **Insecure SoftDev replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.  
+**Cycle-5 CTF (this branch):** `ctf/shells-privesc` + `docker-compose.ctf-shells.yml` (`lab-host` :2222 / :8787).  
 Historical insecure baseline: tag `v1.0.0`. Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — do not attach those overlays without intent.
 
 Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair: [ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md).
@@ -17,9 +18,10 @@ Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair
 | **Secure / lab (primary)** | `docker-compose.prod.yml` | Day-to-day, journeys, smoke (**loopback HTTP OK**) | `http://localhost:8080` |
 | **TLS profile** | `prod` + `docker-compose.tls.yml` | **Required for LAN / recruiter secure demos**; HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
 | **SSH foothold (v1.2.0 replay only)** | `prod` + `docker-compose.ssh.yml` | Frozen SoftDev / CTF chain — **not** default for `v2.2.0` | SSH `:2222` |
+| **Cycle-5 shells CTF** | `prod` + `docker-compose.ctf-shells.yml` | `ctf/shells-privesc` — lab-host PrivEsc (+ kc-agent P4) | SSH `:2222` · agent `:8787` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 
-**C4-F03 / policy:** Prod compose alone must not publish `:2222` — `./infra/assert-ssh-unpublished.sh`. SoftDev SSH overlay is lab replay of `v1.2.0`, not a product feature on the secure tip.
+**C4-F03 / C5 policy:** Prod compose alone must not publish `:2222` or define `ssh` / `lab-host` — `./infra/assert-ssh-unpublished.sh`. SoftDev SSH overlay is `v1.2.0` replay; Cycle-5 uses `docker-compose.ctf-shells.yml` on the CTF branch only.
 
 **LAN / off-loopback:** Do not advertise cleartext `:8080` on a reachable NIC as “secure.” Use the TLS overlay (or terminate TLS elsewhere). Loopback HTTP remains an accepted residual (R-01).
 

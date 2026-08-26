@@ -1,0 +1,1 @@
+lab ALL=(root) NOPASSWD: /opt/kc-ops/backup.sh

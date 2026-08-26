@@ -1,0 +1,19 @@
+# Cycle-5 CTF — shells / PrivEsc lab host overlay (`ctf/shells-privesc`)
+#
+# Usage (from repo root):
+#   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shells.yml up -d --build
+#
+# Publishes:
+#   host :2222 → SSH (lab)
+#   host :8787 → kc-agent (P4 foothold; port reserved now)
+#
+# Do NOT merge this into default prod compose — CTF / lab only (ADR-032).
+services:
+  lab-host:
+    build:
+      context: ./lab-host
+    ports:
+      - '2222:22'
+      - '8787:8787'
+    mem_limit: 128m
+    restart: unless-stopped

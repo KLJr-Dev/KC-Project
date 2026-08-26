@@ -26,4 +26,14 @@ if grep -E '^\s*ssh:' "$COMPOSE_FILE" >/dev/null 2>&1; then
   exit 1
 fi
 
+if grep -E '^\s*lab-host:' "$COMPOSE_FILE" >/dev/null 2>&1; then
+  echo "FAIL: $COMPOSE_FILE defines lab-host (use docker-compose.ctf-shells.yml overlay)" >&2
+  exit 1
+fi
+
+if echo "$CONFIG" | grep -E 'published: ["'\'']?8787|"8787:|8787:' >/dev/null 2>&1; then
+  echo "FAIL: docker-compose.prod.yml publishes host :8787 (kc-agent must be overlay-only)" >&2
+  exit 1
+fi
+
 echo "OK: prod compose does not publish SSH :2222"
