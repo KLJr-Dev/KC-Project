@@ -40,8 +40,9 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 | ID | Status |
 |----|--------|
-| FC-01 · FC-14 (SSH foothold) | **Locked / build next (Cycle-4 `v1.2.0`)** — [decisions](../../Cycle-4/Dev/v1.2.0-decisions.md) |
-| FC-14 (shells/PrivEsc) · FC-13 | **Planned (Cycle-5 `v1.3.0`→`v2.3.0`)** |
+| FC-01 · FC-14 (SSH foothold) | **Consumed (Cycle-4 `v1.2.0` / `v2.2.0`)** |
+| FC-14 (shells/PrivEsc) | **Locked next (Cycle-5 CTF `ctf/shells-privesc` on `v2.2.0`)** — SoftDev `v1.3.0` deferred |
+| FC-13 | Later (not Cycle-5) |
 | FC-02 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
 | FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
 | FC-12 · FC-14 (FTP) · FC-15 … FC-16 | Available (later tracks) |

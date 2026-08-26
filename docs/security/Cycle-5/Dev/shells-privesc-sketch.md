@@ -1,69 +1,63 @@
 # Cycle-5 sketch — shells & privilege escalation
 
-**Status:** Sketch only · expand into a full box plan after `v2.2.0`  
-**Upstream:** Cycle-4 foothold ([../../Cycle-4/Dev/v1.2.0-box-plan.md](../../Cycle-4/Dev/v1.2.0-box-plan.md))
+**Status:** Decisions **locked** (grill 2026-08-25) · expand build next  
+**Canonical:** [cycle-5-decisions.md](cycle-5-decisions.md) · [shells-privesc-box-plan.md](shells-privesc-box-plan.md)  
+**Upstream baseline:** tag **`v2.2.0`** (not a SoftDev `v1.3.0` pair *this* cycle)
 
 ---
 
 ## Intent
 
-Players who finished Cycle-4 already know how to **reach SSH and loot files**. Cycle-5 assumes that skill and adds:
+Players get a **blank-slate** medium box. Cycle-5 grades:
 
-1. **Shell tradecraft** — reverse shell from a weak service or from SSH session upgrades; stabilize (`script`/`tmux`, proper TTY); transfer tools.  
-2. **Enumeration** — `sudo -l`, SUID, cron, capabilities, writable scripts, kernel hints (keep difficulty **OSCP-like junior box**, not kernel CTF hell).  
-3. **PrivEsc** — one primary path + optional rabbit holes; land **`root.txt`**.  
-4. **Writeup discipline** — methodology section that looks like an exam/HTB report.
-
----
-
-## Relationship to Cycle-4 image
-
-| Approach | Pros | Cons |
-|----------|------|------|
-| **A. New CTF image/overlay on `v2.2.0`** (ADR-032) | No fake SoftDev version; secure `main` untouched | Second compose story to maintain |
-| **B. SoftDev/`v1.3.0` if new web surface** | Full Red/Blue pair | Heavier; only if you add product features |
-
-**Default recommendation:** SoftDev pair **`v1.3.0` → `v2.3.0`** (shells + PrivEsc), matching stakeholder lock that PrivEsc begins on `v1.3.0`. CTF overlay-only remains a fallback if no new product surface is needed.
+1. **Shell tradecraft** — reverse shell and/or stable interactive TTY; navigate the FS beyond a trivial `cat ~/user.txt`.  
+2. **Writeup discipline** — reproducible recon → foothold → enum → PrivEsc → root.  
+3. Supporting: enum + **one** sudo-class PrivEsc with OSCP-style decoys.
 
 ---
 
-## In scope (Cycle-5)
+## Relationship to Cycle-4 / versions
 
-- Weak sudo (NOPASSWD for a script), or writable cron, or SUID binary you control — **pick one primary**.  
-- Clear user → root path documented in ground truth.  
-- Reverse shell *allowed* and documented (e.g. from a careless admin script or from upgrading SSH).  
-- `user.txt` + `root.txt`.
+| Approach | Status |
+|----------|--------|
+| SoftDev `v1.3.0` → `v2.3.0` | **Deferred** — tip just shipped `v2.2.0`; no new product surface yet |
+| **CTF overlay/branch on `v2.2.0`** (ADR-032) | **Locked for Cycle-5** |
+| Require finishing C4 | **No** — modular / isolated |
 
-## Out of scope (Cycle-5)
-
-- Replacing Notes SoftDev (already Cycle-4).  
-- Shipping PrivEsc image on secure prod compose.  
-- Hard kernel exploits as the only path.
+C4 `/opt/kc-lab` tease may get an easter egg; **live** C5 story is **fresh**.
 
 ---
 
-## Suggested primary PrivEsc flavors (pick later)
+## In scope
 
-1. **sudo** — `kc` may run a backup script as root; script is writable or uses unsafe env.  
-2. **cron** — root cron runs world-writable script in `/opt/kc-lab`.  
-3. **SUID** — custom `kc-backup` binary with obvious bug (command injection).  
+- CTF-only foothold (interesting; **not** Notes XSS reprise) → path to shell  
+- Stable shell requirement before full clearance  
+- Primary **sudo** PrivEsc + ~2 decoys  
+- `user.txt` + `root.txt` (`OS{` + 32 hex + `}`)  
+- Proper Red writeup  
 
-Tease in Cycle-4 via `/opt/kc-lab/README` (“TODO: lock down backup job”) **without** leaving the misconfig live on `v1.2.0`.
+## Out of scope
+
+- Docker escape (FC-13)  
+- Kernel-only path  
+- SoftDev Notes epic / product version bump  
+- AD / required off-box pivot  
+- PrivEsc on default prod compose  
 
 ---
 
 ## Blue (when Cycle-5 runs)
 
-- CTF/lab overlay only; assert secure compose has no SSH.  
-- Remediation writeup = “how we’d harden the jump host,” not product XSS (already closed in `v2.2.0`).
+- Harden lab host; strip CTF foothold + PrivEsc  
+- No product version bump  
+- SSH overlay may remain for later noise (FTP etc.) but secure tip asserts: no `:2222` on prod alone  
 
 ---
 
 ## Timing
 
 ```text
-now     → Cycle-4 docs + SoftDev Notes + SSH foothold
-v1.2.0  → Red (stop at user.txt)
-v2.2.0  → Blue Notes
-soon    → Cycle-5 full box plan → build PrivEsc SSH image → Red/Blue lab close-out
+now     → v2.2.0 secure tip; C5 decisions + execution plan
+next    → P0 commit → P1 ctf/shells-privesc → P2–P5 build/gate → P6 Red → P7 Blue (no tag bump)
+later   → SoftDev v1.3.0+ when a real new product surface appears
 ```

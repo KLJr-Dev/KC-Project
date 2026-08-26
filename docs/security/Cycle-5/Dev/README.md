@@ -2,7 +2,10 @@
 
 | Doc | Purpose |
 |-----|---------|
-| [shells-privesc-sketch.md](shells-privesc-sketch.md) | Scope ceiling, versioning options, plant ideas |
-| `v*-box-plan.md` | (pending) full plan — Cycle-4 Blue (`v2.2.0`) is done; unblocked |
+| [cycle-5-decisions.md](cycle-5-decisions.md) | Grill locks (2026-08-25) |
+| [shells-privesc-box-plan.md](shells-privesc-box-plan.md) | Box architecture + path |
+| [shells-privesc-execution-plan.md](shells-privesc-execution-plan.md) | **Build runbook** (P0–P7) |
+| [shells-privesc-sketch.md](shells-privesc-sketch.md) | Short intent / scope |
+| Ground truth / player brief | (pending) on CTF branch when building |
 
 Parent: [../README.md](../README.md)

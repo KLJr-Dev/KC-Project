@@ -172,9 +172,9 @@ Share-plant → SQLi search → crack → published PG. Blue = docs + regression
 
 Notes + SSH foothold → Red on `ctf/v1.2.0` → Blue tagged **`v2.2.0`** ([box plan](../security/Cycle-4/Dev/v1.2.0-box-plan.md) · [secure-ready](../release/v2.2.0-secure-ready.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-### Cycle-5 — shells & PrivEsc (sketch — next)
+### Cycle-5 — shells & PrivEsc (decisions locked — CTF on `v2.2.0`)
 
-Same SSH lineage; reverse shells + PrivEsc → `root.txt` ([sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md)). Prefer SoftDev pair `v1.3.0`→`v2.3.0` or CTF overlay from **`v2.2.0`**.
+Blank-slate medium box: foothold → stable/rev shell → sudo PrivEsc → `root.txt`. **No** SoftDev `v1.3.0` this round ([decisions](../security/Cycle-5/Dev/cycle-5-decisions.md)). SoftDev pair deferred until a new product surface.
 
 ### Cycle-6+ — combinations
 
