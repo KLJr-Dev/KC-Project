@@ -30,11 +30,11 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | **FC-11** | CTF_MODE SQLi (search/filter) | 89 | **`ctf/leak-crack-db`** | String-concat query behind flag | Parameterized queries / no `q` concat on secure |
 | **FC-12** | Fresh IDOR (non-Cycle-2 object) | 639 | alternate web→DB box | Overlay ownership gap on new story | Ownership stays on secure |
 | **FC-13** | Docker / escape / privileged mount | 250 / 552 | Cycle-5 adjacent / later | Compose overlay | Hardened prod compose stays |
-| **FC-14** | SSH / FTP sidecar | — | **C4 SSH foothold**; **C5** shells/PrivEsc; FTP later | SSH overlay insecure/CTF only | No SSH/FTP on secure day-to-day |
+| **FC-14** | SSH / FTP sidecar | — | **C4 SSH**; **C5** shells; **Cycle-7 FTP** | Overlay insecure/CTF only | No SSH/FTP on secure day-to-day |
 | **FC-15** | Cloud misconfig / IMDS via SSRF | — | after Cycle-6 URL fetch | Cloud lab line | — |
 | **FC-16** | WordPress / CMS sibling | — | optional parallel lab | Separate compose/repo | Don’t redefine KC as CMS |
-| **FC-17** | Useless config leak (OSCP-inspired `.env`) | 200 / 538 | later | Loopback DB_* / decoy via SSRF or static; remote mysql fails | No world-readable secrets on secure tip |
-| **FC-18** | LFI / arbitrary file read → config | 22 / 200 | later | Path param or plugin-style read | Path checks stay on secure tip |
+| **FC-17** | Useless config leak (OSCP-inspired `.env`) | 200 / 538 | Cycle-7 optional FTP decoy | Loopback DB_* / decoy; remote mysql fails | No world-readable secrets on secure tip |
+| **FC-18** | LFI / arbitrary file read → config | 22 / 200 | **Cycle-7 `v1.4.0`** | Ops Documents path param | Path checks stay on secure tip |
 
 ---
 
@@ -48,8 +48,9 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | FC-02 · FC-03 | **Consumed (Cycle-6 `v1.3.0` / `v2.3.0`)** — Red on `ctf/v1.3.0`; Blue `remediation/v2.3.0` |
 | FC-04 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
 | FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
-| FC-12 · FC-14 (FTP) · FC-15 · FC-16 | Available (later tracks) |
-| FC-17 · FC-18 | **Available / later** (OSCP-inspired backlog; not Cycle-6 DoD) |
+| FC-12 · FC-15 · FC-16 | Available (later tracks) |
+| FC-14 (FTP) · FC-18 | **In progress (Cycle-7)** — [Cycle-7](../../Cycle-7/README.md) · [ADR-035](../../../decisions/ADR-035-cycle-7-multi-service-pair.md) |
+| FC-17 | Optional decoy on Cycle-7 (not graded DoD) |
 
 ---
 
@@ -69,7 +70,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 ## Handoff
 
-1. Cycle-6 Blue on `remediation/v2.3.0` → tag `v2.3.0`.  
-2. Cycle-7 design after `v2.3.0` — [Cycle-7 stub](../../Cycle-7/README.md).  
+1. Cycle-7 P0 on `docs/cycle-7-p0` → PR → `main` ([Cycle-7](../../Cycle-7/README.md)).  
+2. Feature lanes → tip `v1.4.0` → Red → Blue `v2.4.0`.  
 3. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
 4. Update this status table (`Consumed` / `Planned` / `In progress`).
