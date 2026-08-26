@@ -203,10 +203,11 @@ Further SoftDev/CTF modules (SSRF, cloud, FTP overlays, etc.) on the current tip
 
 ## 8. Immediate next actions
 
-1. Cycle-5 SoftDev / CTF design from tag **`v2.2.0`**.
-2. Keep SoftDev rails (`backend` / `frontend` / `dev`) reset from `main` at SoftDev cycle start.
+1. Cycle-6 product expansion design → PR (`docs/cycle-6-p0`) → feature lanes → tag `v1.3.0` ([ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md)).
+2. Keep feature lanes (`backend` / `frontend` / `dev`) reset from `main` at expansion-cycle start.
 3. Do not merge or rewrite frozen `ctf/*` / `remediation/*` archives.
+4. After ship: refresh Portfolio `projects/KC-Project.md`.
 
 ---
 
-*Last updated: August 2026 — Cycles 1–4 closed; tip `v2.2.0`; Cycle-5 sketched.*
+*Last updated: August 2026 — Cycles 1–5 closed; tip `v2.2.0`; Cycle-6 in design.*

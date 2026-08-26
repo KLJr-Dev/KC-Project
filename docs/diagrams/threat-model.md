@@ -1,6 +1,17 @@
 # Threat Model
 
-Complete attack surface map for **v1.0.0** (insecure MVP) with dual CWE + OWASP classification. Cycle-4 SoftDev tip added Notes XSS / SSH plant ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [notes-ssh-path.md](notes-ssh-path.md)); closed on **`v2.2.0`**.
+Complete attack surface map for **v1.0.0** (insecure MVP) with dual CWE + OWASP classification. Cycle-4 Notes XSS / SSH plant ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [notes-ssh-path.md](notes-ssh-path.md)); closed on **`v2.2.0`**. Cycle-6 Link Preview SSRF + CSRF planned ([ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md) · [stride.md](../architecture/stride.md)).
+
+---
+
+## Cycle-6 planned tip (`v1.3.0`) — Link Preview + CSRF
+
+| Weakness | CWE | Path |
+|----------|-----|------|
+| SSRF via server URL fetch | CWE-918 | Link Preview API (open fetch) |
+| CSRF on cookie-auth mutation | CWE-352 | One planted state-changing route |
+
+Detail: [Cycle-6 decisions](../security/Cycle-6/Dev/cycle-6-decisions.md). Useless `.env` / FTP / LFI deferred (FC-17/18).
 
 ---
 

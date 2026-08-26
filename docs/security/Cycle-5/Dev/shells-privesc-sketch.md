@@ -1,8 +1,8 @@
 # Cycle-5 sketch — shells & privilege escalation
 
-**Status:** Decisions **locked** (grill 2026-08-25) · expand build next  
+**Status:** Cycle **closed** (CTF + Blue) · SoftDev/`v1.3.0` pair was **deferred** → now [Cycle-6](../../Cycle-6/README.md) ([ADR-034](../../../decisions/ADR-034-cycle-6-product-expansion-pair.md))  
 **Canonical:** [cycle-5-decisions.md](cycle-5-decisions.md) · [shells-privesc-box-plan.md](shells-privesc-box-plan.md)  
-**Upstream baseline:** tag **`v2.2.0`** (not a SoftDev `v1.3.0` pair *this* cycle)
+**Upstream baseline:** tag **`v2.2.0`** (CTF-only this cycle; no product bump)
 
 ---
 

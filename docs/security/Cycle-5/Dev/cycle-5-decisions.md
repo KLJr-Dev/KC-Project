@@ -12,7 +12,7 @@ Derived from stakeholder answers + recommendations on open items.
 | # | Topic | Locked | Notes |
 |---|--------|--------|-------|
 | 1 | Ship shape | **CTF-only** from tag **`v2.2.0`** ([ADR-032](../../../decisions/ADR-032-post-v2.1.0-versioning.md)) | No `v1.3.0` SoftDev bump *yet* — tip just shipped secure; room to misconfigure without fake product versions |
-| 1b | SoftDev pair later | **Deferred** | Revisit `v1.3.0`/`v2.3.0` when a *new product surface* (FTP, SSRF, etc.) earns a SoftDev pair |
+| 1b | SoftDev pair later | **Deferred** → **Cycle-6** | Product expansion `v1.3.0`/`v2.3.0` = Link Preview SSRF + CSRF ([Cycle-6](../../Cycle-6/README.md) · [ADR-034](../../../decisions/ADR-034-cycle-6-product-expansion-pair.md)) |
 | 2 | Isolation | **Blank slate** — modular, self-contained | Players need not have finished Cycle-4; brief may say “web app + lab host” without C4 spoilers |
 
 ```text

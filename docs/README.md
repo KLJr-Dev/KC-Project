@@ -20,7 +20,7 @@ Engineering and technical documentation for KC-Project.
 
 ### [decisions/](decisions/)
 
-ADRs 001–033. Index: [decisions/README.md](decisions/README.md). Recent: **ADR-033** (Cycle-4 SoftDev pair), ADR-032 (CTF-only versioning).
+ADRs 001–034. Index: [decisions/README.md](decisions/README.md). Recent: **ADR-034** (Cycle-6 product expansion pair), ADR-033 (Cycle-4 pair), ADR-032 (CTF-only versioning).
 
 ### [deploy/](deploy/)
 
@@ -49,7 +49,8 @@ docs/security/
 ├── Cycle-2/   → closed (v1.1.0 → v2.1.0); Remediation on main; PenTest on ctf/v1.1.0
 ├── Cycle-3/   → closed (ctf/leak-crack-db → Blue on main; no product tag)
 ├── Cycle-4/   → closed (v1.2.0 → v2.2.0); PenTest on ctf/v1.2.0; Remediation on main
-├── Cycle-5/   → sketch; shells + PrivEsc (fork from v2.2.0)
+├── Cycle-5/   → closed (ctf/shells-privesc → Blue on main; no product tag)
+├── Cycle-6/   → in design (v1.3.0 → v2.3.0); docs on docs/cycle-6-p0
 ├── README.md
 └── cwe-inventory.md
 ```
@@ -65,7 +66,9 @@ docs/security/
 - [v1.1.0-ctf-ready.md](release/v1.1.0-ctf-ready.md) — Cycle-2 CTF gate
 - [v2.1.0-secure-ready.md](release/v2.1.0-secure-ready.md) — Cycle-2 Blue gate (signed; tag `v2.1.0`)
 - [cycle-3-leak-crack-db-secure-ready.md](release/cycle-3-leak-crack-db-secure-ready.md) — Cycle-3 Blue gate (signed)
-- [v1.2.0-pentest-ready.md](release/v1.2.0-pentest-ready.md) — Cycle-4 SoftDev Red gate (signed; tag `v1.2.0`)
+- [v1.2.0-pentest-ready.md](release/v1.2.0-pentest-ready.md) — Cycle-4 expansion Red gate (signed; tag `v1.2.0`)
 - [v2.2.0-secure-ready.md](release/v2.2.0-secure-ready.md) — Cycle-4 Blue gate (signed; tag `v2.2.0`)
+- [shells-privesc-secure-ready.md](release/shells-privesc-secure-ready.md) — Cycle-5 Blue gate (signed)
+- Cycle-6 gates (`v1.3.0-pentest-ready` / `v2.3.0-secure-ready`) — pending ship
 
 ### [glossary.md](glossary.md)
