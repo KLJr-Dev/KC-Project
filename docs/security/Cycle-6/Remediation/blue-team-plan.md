@@ -12,8 +12,8 @@
 | Cycle | 6 (product expansion security pair) |
 | From | Intentional insecure Link Preview + bookmark CSRF on `main` (`v1.3.0`) |
 | To | Tag **`v2.3.0`** — Preview kept; fetch restricted; CSRF restored; SSDLC extras (Preview throttle + TLS gate) |
-| Current milestone | **M0** — plan + maps **scaffolded** |
-| Code status | Pending Waves A–D |
+| Current milestone | **M4** — secure-ready signed; PR pending |
+| Code status | Waves A–D complete |
 
 ```text
 main @ v1.3.0 (insecure tip)
@@ -37,10 +37,10 @@ Close Cycle-6 Red findings on the **product tip**: Link Preview remains a featur
 | ID | Goal | Exit criteria | Status |
 |----|------|---------------|--------|
 | **M0** | Plan signed | Blue plan + remediation map + residuals + secure-ready scaffold | **Done** |
-| **M1** | Wave A — SSRF + F1 plant | Fetch blocks loopback/link-local/IMDS; no `/internal/cycle6-flag` prize on tip | Pending |
-| **M2** | Wave B — CSRF + F2 plant | Bookmarks require CSRF; no `proof` flag on tip; tip UI `v2.3.0` | Pending |
-| **M3** | Wave C — SSDLC extras | Preview rate limit; TLS gate + tls-smoke in secure-ready | Pending |
-| **M4** | Wave D — gate + tag | Blue asserts + smoke/journey/e2e/tls-smoke; PR → `main` → tag `v2.3.0` | Pending |
+| **M1** | Wave A — SSRF + F1 plant | Fetch blocks loopback/link-local/IMDS; no `/internal/cycle6-flag` prize on tip | **Done** |
+| **M2** | Wave B — CSRF + F2 plant | Bookmarks require CSRF; no `proof` flag on tip; tip UI `v2.3.0` | **Done** |
+| **M3** | Wave C — SSDLC extras | Preview rate limit; TLS gate + tls-smoke in secure-ready | **Done** |
+| **M4** | Wave D — gate + tag | Blue asserts + smoke/journey/tls-smoke; PR → `main` → tag `v2.3.0` | **In progress** |
 
 ### M0 — Plan
 

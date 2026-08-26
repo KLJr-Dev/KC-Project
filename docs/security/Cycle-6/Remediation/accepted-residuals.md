@@ -11,4 +11,4 @@ Companion: [v2.3.0-remediation.md](v2.3.0-remediation.md) · [blue-team-plan.md]
 | **C6-R04** | Cycle-6 flags / open-fetch plants on `ctf/v1.3.0` | **Intentional archive** | Do not port `OS{` plants onto `v2.3.0` tip |
 | **C6-R05** | Demo `RolePass123!` pattern | **Accepted (lab)** | Unchanged from prior cycles |
 
-Statuses finalize at M4 gate (fill date when signed).
+Statuses locked at M4 gate (2026-08-26).
