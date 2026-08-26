@@ -1,9 +1,9 @@
 # Security Cycle 5 — Shells & PrivEsc
 
-> **CTF branch:** `ctf/shells-privesc` · baseline tag **`v2.2.0`** (ADR-032)  
-> **Do not merge** this branch into `main` with CTF breaks. Blue lands via `remediation/shells-privesc` from `main`.
+> **CTF branch FROZEN** — `ctf/shells-privesc` · baseline tag **`v2.2.0`** (ADR-032)  
+> Replayable Red evidence only. **Do not** remediate vulns here. Blue: `remediation/shells-privesc` from `main`.
 
-**Status:** **Red complete** · [writeup](PenTest/shells-privesc-writeup.md) 2/2 · freeze **next** · Blue after  
+**Status:** **Red complete · branch frozen** · [writeup](PenTest/shells-privesc-writeup.md) 2/2 · Blue **next**  
 **Packaging:** **CTF-only** — **no** `v1.3.0` SoftDev bump this cycle  
 **Blue later:** `remediation/shells-privesc` (no product tag bump)  
 **Difficulty:** Medium HTB  

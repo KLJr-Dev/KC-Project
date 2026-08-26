@@ -4,7 +4,7 @@ Formal gate: Cycle-5 shells / PrivEsc CTF on branch **`ctf/shells-privesc`** is 
 Product base remains tag **`v2.2.0`** (no SoftDev version bump — [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)).  
 Blue Team is a **separate** `remediation/shells-privesc` from `main` after Red freeze.
 
-**Status:** **CTF-READY** — examiner dry-run green · Red writeup pending (P6) · branch **not** frozen until Red closes.
+**Status:** **SHIPPED / FROZEN** — Red 2/2 · ready for Blue on `remediation/shells-privesc` from `main` (no product tag bump).
 
 ---
 
@@ -70,7 +70,7 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shel
 - [x] Examiner dry-run green (`cycle5-shells-examiner.sh`)
 - [x] Prod asserts: no `:2222` / `:8787` / `:5433` on default prod alone
 - [x] Red writeup + evidence (P6) — [shells-privesc-writeup.md](../security/Cycle-5/PenTest/shells-privesc-writeup.md)
-- [ ] **Freeze** branch tip (no further CTF feature commits)
+- [x] **Freeze** branch tip — no further CTF feature commits
 - [ ] Blue on `remediation/shells-privesc` (P7) — no product tag bump
 
 ---
