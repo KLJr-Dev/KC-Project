@@ -1,6 +1,6 @@
 # Security Cycle 6 — Link Preview SSRF + CSRF (product expansion)
 
-**Status:** Triad ready · gate [v1.3.0-pentest-ready](../../release/v1.3.0-pentest-ready.md) · tip baseline **`v2.2.0`** → ship **`v1.3.0`** · [ADR-034](../../decisions/ADR-034-cycle-6-product-expansion-pair.md)  
+**Status:** Red writeup complete on `ctf/v1.3.0` · tip **`v1.3.0`** · Blue pending **`v2.3.0`** · [ADR-034](../../decisions/ADR-034-cycle-6-product-expansion-pair.md)  
 **Versions:** `v1.3.0` (intentional insecure) → Red → `v2.3.0` (hardened)  
 **Consumes:** FC-02 (CSRF), FC-03 (SSRF)  
 **Ceiling:** Graded web findings on tip — **not** PrivEsc / AD / FTP
@@ -10,7 +10,7 @@
 | Docs / design | P0 decisions, box, execution, STRIDE | **Done** (PR #26) |
 | Feature lanes → `dev` | Intentional insecure tip | **Done** — smoke/examiner green |
 | Tag **`v1.3.0`** (+ archive `ctf/v1.3.0`) | Pentest-ready insecure tip | **Shipped** |
-| PenTest | Socratic Red | **Ready (P6)** — play `ctf/v1.3.0` / tip `v1.3.0` |
+| PenTest | Socratic Red | **Complete** — [PenTest/v1.3.0-writeup.md](PenTest/v1.3.0-writeup.md) on `ctf/v1.3.0` |
 | **`remediation/v2.3.0`** → tag **`v2.3.0`** | Harden fetch + CSRF | Pending |
 
 ---
@@ -31,9 +31,9 @@
 | Audience | Start here | Spoilers? |
 |----------|------------|-----------|
 | **Dev / build** | [Dev/v1.3.0-execution-plan.md](Dev/v1.3.0-execution-plan.md) · [decisions](Dev/cycle-6-decisions.md) | Yes |
-| **Player** | Brief (later P5) | No |
-| **Red** | PenTest stub (later) | Yes |
-| **Blue** | Remediation/ (later) | Yes |
+| **Player** | [Dev/v1.3.0-player-brief.md](Dev/v1.3.0-player-brief.md) | No |
+| **Red** | [PenTest/v1.3.0-writeup.md](PenTest/v1.3.0-writeup.md) | Yes |
+| **Blue** | [Remediation/](Remediation/) | Yes |
 
 ## Team folders
 
