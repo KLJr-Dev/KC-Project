@@ -17,13 +17,14 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 
 ## Current Status (tag **`v2.2.0`** — secure product)
 
-**Product tip:** Cycle-4 Blue closed — Notes kept, XSS closed, seed plants neutralized; default prod has **no** SSH.  
-**Insecure replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + optional `docker-compose.ssh.yml`.  
+**Product tip:** Cycle-4 + Cycle-5 Blue closed — Notes hardened; default prod has **no** SSH / no `kc-agent`; optional lab-host SSH overlay only.  
+**Insecure SoftDev replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml`.  
+**Cycle-5 CTF replay:** frozen **`ctf/shells-privesc`**.  
 **Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) · **SoftDev pair:** [ADR-033](docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)
 
-> **Note:** Hardened demos use tag **`v2.2.0`**. Do not use `v1.2.0` for recruiter “secure” walks.
+> **Note:** Hardened demos use tag **`v2.2.0`**. Do not use `v1.2.0` or CTF branches for recruiter “secure” walks.
 
-Cycles 1–4 are **closed**. Cycle-5 (shells / PrivEsc) is next.
+Cycles **1–5 are closed**. Playable boxes live on frozen `ctf/*` branches (see [security README](docs/security/README.md)).
 
 | Cycle | Insecure / CTF | Secure / Blue |
 |-------|----------------|---------------|
@@ -31,13 +32,15 @@ Cycles 1–4 are **closed**. Cycle-5 (shells / PrivEsc) is next.
 | 2 | `ctf/v1.1.0` / tag `v1.1.0` | tag `v2.1.0` · frozen `remediation/v2.1.0` |
 | 3 | `ctf/leak-crack-db` (no product tag) | docs + regression on `main` · frozen `remediation/cycle-3-leak-crack-db` |
 | 4 | tag **`v1.2.0`** / `ctf/v1.2.0` | tag **`v2.2.0`** · frozen `remediation/v2.2.0` |
+| 5 | `ctf/shells-privesc` (no product tag) | tip hardened · frozen `remediation/shells-privesc` · [secure-ready](docs/release/shells-privesc-secure-ready.md) |
 
 | Track | Artifact |
 |-------|----------|
 | SoftDev insecure (frozen) | **`v1.2.0`** — [v1.2.0-pentest-ready.md](docs/release/v1.2.0-pentest-ready.md) · [Cycle-4](docs/security/Cycle-4/README.md) |
-| Blue / secure tip | **`v2.2.0`** — [v2.2.0-secure-ready.md](docs/release/v2.2.0-secure-ready.md) · [blue-team-plan](docs/security/Cycle-4/Remediation/blue-team-plan.md) |
-| Player brief (insecure) | [v1.2.0-player-brief.md](docs/security/Cycle-4/Dev/v1.2.0-player-brief.md) |
+| Blue / secure tip | **`v2.2.0`** — [v2.2.0-secure-ready.md](docs/release/v2.2.0-secure-ready.md) · Cycle-5 [secure-ready](docs/release/shells-privesc-secure-ready.md) |
+| Cycle-5 CTF (frozen) | `ctf/shells-privesc` — [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) · [Cycle-5](docs/security/Cycle-5/README.md) |
 | Cycle-3 CTF (frozen) | `ctf/leak-crack-db` — [Cycle-3 README](docs/security/Cycle-3/README.md) |
+| Player brief (C4 insecure) | [v1.2.0-player-brief.md](docs/security/Cycle-4/Dev/v1.2.0-player-brief.md) |
 | Cycle-2 CTF (frozen) | `ctf/v1.1.0` — [Cycle-2 README](docs/security/Cycle-2/README.md) |
 | Cycle-1 (history) | [v1.0.0-writeup.md](docs/security/Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` |
 

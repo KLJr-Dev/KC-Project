@@ -22,7 +22,7 @@ Formal gate: Cycle-5 findings closed on secure tip **`v2.2.0` / `main`** without
 ## Verification (operator)
 
 ```bash
-git checkout remediation/shells-privesc   # or main after merge
+git checkout main   # after PR #25
 ./infra/assert-pg-unpublished.sh
 ./infra/assert-ssh-unpublished.sh
 # Optional noise (SSH only — no agent):
@@ -51,9 +51,9 @@ Confirm: default prod alone has **no** `:2222`, `:8787`, or `:5433`.
 - [x] Optional SSH-only overlay documented  
 - [x] Asserts reject `:2222` / `:8787` / `lab-host` on prod alone  
 - [x] Asserts executed green on this branch  
-- [ ] PR merged to `main`  
+- [x] PR merged to `main` (#25)  
 - [x] No product tag bump  
-- [ ] Freeze `remediation/shells-privesc` after merge  
+- [x] Freeze `remediation/shells-privesc` after merge  
 
 ---
 

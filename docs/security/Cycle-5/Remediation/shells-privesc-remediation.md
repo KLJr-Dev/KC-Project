@@ -50,7 +50,7 @@ Future boxes: fork `ctf/<scenario>` again; may **add** ports for that scenario o
 2. [x] Branch `remediation/shells-privesc` from `main`  
 3. [x] C5-F01/F02 closed on secure path (verified)  
 4. [x] Asserts: `assert-pg-unpublished` + `assert-ssh-unpublished`  
-5. [ ] Remediation docs + secure-ready via PR to `main`  
+5. [x] Remediation docs + secure-ready via PR to `main` (#25)  
 6. [x] No product version bump  
 
 ---

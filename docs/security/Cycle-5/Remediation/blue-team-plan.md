@@ -45,5 +45,5 @@ Close Cycle-5 Red findings on the **secure tip** without a SoftDev bump:
 - [x] Red writeup accepted · CTF frozen  
 - [x] Branch `remediation/shells-privesc` from `main`  
 - [x] M1–M4 complete + gate green  
-- [ ] Merge remediation PR to `main`  
-- [ ] Freeze this remediation branch after merge
+- [x] Merge remediation PR to `main` (#25)  
+- [x] Freeze this remediation branch after merge
