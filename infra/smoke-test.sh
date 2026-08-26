@@ -84,4 +84,7 @@ DEMO=$(curl -sS -X POST "${BASE}/auth/login" \
 echo "$DEMO" | grep -q '"token"' || fail "demo user missing token (run migrations / seed?)"
 echo "  OK"
 
+# Cycle-6 Blue — SSRF destination policy + bookmark CSRF (v2.3.0)
+"${ROOT}/infra/cycle6-blue-assert.sh"
+
 echo "Smoke test passed."

@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { LinkBookmarkEntity } from './entities/link-bookmark.entity';
-import { CYCLE6_FLAG_F2_CSRF } from './cycle6-plants';
 
 @Injectable()
 export class BookmarksService {
@@ -21,13 +20,11 @@ export class BookmarksService {
       createdAt: new Date().toISOString(),
     });
     await this.bookmarkRepo.save(row);
-    // Intentional insecure tip: CSRF success surfaces graded proof in JSON.
     return {
       id: row.id,
       url: row.url,
       title: row.title,
       createdAt: row.createdAt,
-      proof: CYCLE6_FLAG_F2_CSRF,
       message: 'Bookmark saved',
     };
   }
@@ -37,9 +34,6 @@ export class BookmarksService {
       where: { userId },
       order: { createdAt: 'DESC' },
     });
-    return {
-      items: rows,
-      proof: CYCLE6_FLAG_F2_CSRF,
-    };
+    return { items: rows };
   }
 }

@@ -532,7 +532,7 @@ export const adminEscalateUserRole = (userId: string) =>
 /** DELETE /admin/users/:id — missing HasRole guard (CWE-862) */
 export const adminDeleteUser = (userId: string) => del<DeleteResponse>(`/admin/users/${userId}`);
 
-// ── Link Preview / bookmarks (Cycle-6 intentional insecure tip) ──────
+// ── Link Preview / bookmarks (Cycle-6 Blue / v2.3.0) ─────────────────
 
 export type PreviewResult = {
   url: string;
@@ -547,7 +547,6 @@ export type BookmarkSaveResult = {
   url: string;
   title: string | null;
   createdAt: string;
-  proof?: string;
   message: string;
 };
 
@@ -558,20 +557,21 @@ export type BookmarkListResult = {
     title: string | null;
     createdAt: string;
   }>;
-  proof?: string;
 };
 
-/** POST /preview — server-side URL fetch (SSRF surface on v1.3.0). */
+/** POST /preview — server-side URL fetch with destination policy. */
 export const previewFetch = (url: string) => post<PreviewResult>('/preview', { url });
 
 /**
- * POST /auth/bookmarks — cookie session, **no** CSRF header (Cycle-6 plant).
- * Uses credentials:include via request(); intentionally omits X-Requested-With.
+ * POST /auth/bookmarks — cookie session + CSRF header (parity with refresh).
  */
 export async function bookmarksSave(url: string): Promise<BookmarkSaveResult> {
   return request<BookmarkSaveResult>('/auth/bookmarks', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...CSRF_HEADERS,
+    },
     body: JSON.stringify({ url }),
   });
 }
