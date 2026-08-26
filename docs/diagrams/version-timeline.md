@@ -101,30 +101,43 @@ flowchart TD
     ctf3[ctf/leak-crack-db]
     blue3[Blue docs on main]
   end
-  subgraph c4 [Cycle 4 SoftDev]
+  subgraph c4 [Cycle 4 expansion]
     v120[v1.2.0 Notes+SSH]
     v220[v2.2.0 harden Notes]
   end
-  subgraph c5 [Cycle 5 sketch]
-    v130[v1.3.0 shells]
-    v230[v2.3.0]
+  subgraph c5 [Cycle 5 CTF-only]
+    ctf5[ctf/shells-privesc]
+    blue5[Blue on main]
+  end
+  subgraph c6 [Cycle 6 expansion]
+    v130[v1.3.0 SSRF+CSRF]
+    v230[v2.3.0 harden]
   end
 
   v100 --> v200 --> v110 --> v210
   v210 --> ctf3 --> blue3
-  v210 --> v120 --> v220 --> v130 --> v230
+  v210 --> v120 --> v220 --> ctf5 --> blue5
+  v220 --> v130 --> v230
 ```
 
-### Cycle-4 SoftDev (closed — insecure tip `v1.2.0`)
+### Cycle-4 expansion (closed — insecure tip `v1.2.0`)
 
 - Entrance: Notes API/UI; intentional XSS
 - Depth: SSH overlay `lab` @ `:2222`; foothold only
 - Flags F1–F3: [ground truth](../security/Cycle-4/Dev/v1.2.0-ground-truth.md)
 - Path: [notes-ssh-path.md](notes-ssh-path.md)
 
+### Cycle-5 CTF-only (closed)
+
+- Shells + PrivEsc on `ctf/shells-privesc`; no product tag ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md))
+
+### Cycle-6 product expansion (in design)
+
+- Link Preview SSRF + CSRF → planned `v1.3.0` / `v2.3.0` ([ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md))
+
 ### Speculative “race/cache v1.2.0” ideas (obsolete)
 
-Earlier drafts projected v1.2.0 as concurrency/cache CWEs. **Superseded by ADR-033** (Notes + SSH SoftDev pair).
+Earlier drafts projected v1.2.0 as concurrency/cache CWEs. **Superseded by ADR-033** (Notes + SSH pair).
 
 ---
 
@@ -132,14 +145,15 @@ Earlier drafts projected v1.2.0 as concurrency/cache CWEs. **Superseded by ADR-0
 
 | Version Pattern | Meaning |
 |----------------|---------|
-| **v1.0.0** / **v2.0.0** | Cycle-1 SoftDev pair |
-| **v1.1.0** / **v2.1.0** | Cycle-2 SoftDev pair (last hardened product tag before Cycle-4 SoftDev) |
+| **v1.0.0** / **v2.0.0** | Cycle-1 pair |
+| **v1.1.0** / **v2.1.0** | Cycle-2 pair |
 | Cycle-3 | CTF-only (`ctf/leak-crack-db`) — no product bump |
-| **v1.2.0** / **v2.2.0** | Cycle-4 SoftDev — Notes XSS + SSH → harden Notes / no default SSH |
-| **v1.3.0** / **v2.3.0** | Cycle-5 SoftDev sketch — shells + PrivEsc |
+| **v1.2.0** / **v2.2.0** | Cycle-4 — Notes XSS + SSH → harden Notes / no default SSH |
+| Cycle-5 | CTF-only (`ctf/shells-privesc`) — no product bump |
+| **v1.3.0** / **v2.3.0** | Cycle-6 — Link Preview SSRF + CSRF (planned) |
 
 ---
 
-## Branch Strategy for SoftDev + archives
+## Branch Strategy for feature lanes + archives
 
-See root [README.md](../../README.md) Branching Strategy and [ADR-015](../decisions/ADR-015-branching-strategy.md) amendment. SoftDev rails (`backend` / `frontend` / `dev`) reset from `main` each SoftDev cycle; `ctf/*` / `remediation/*` archives kept forever.
+See root [README.md](../../README.md) Branching Strategy and [ADR-015](../decisions/ADR-015-branching-strategy.md). Feature lanes (`backend` / `frontend` / `dev`) reset from `main` each product-expansion cycle; `ctf/*` / `remediation/*` archives kept forever. Cycle docs land via PR branches (e.g. `docs/cycle-6-p0`), not direct pushes to `main`.

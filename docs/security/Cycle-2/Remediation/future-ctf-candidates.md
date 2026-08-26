@@ -18,8 +18,8 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | ID | Surface | Rough CWE | Suggested box | Fork pattern | Must not regress on secure |
 |----|---------|-----------|---------------|--------------|----------------------------|
 | **FC-01** | Stored / reflected XSS | 79 | **Cycle-4 Notes (`v1.2.0`)** | SoftDev notes body XSS on insecure | Keep nginx CSP/headers; sanitize on `v2.2.0` |
-| **FC-02** | CSRF on state-changing cookie auth | 352 | later | Weak SameSite / missing CSRF on fork | Keep refresh CSRF header |
-| **FC-03** | SSRF via URL fetch | 918 | SoftDev then CTF (post-4) | New outbound URL on fork only | No open URL fetch on secure `main` |
+| **FC-02** | CSRF on state-changing cookie auth | 352 | **Cycle-6 `v1.3.0`** | Weak SameSite / missing CSRF on expansion tip | Keep refresh CSRF header on hardened tip |
+| **FC-03** | SSRF via URL fetch | 918 | **Cycle-6 `v1.3.0`** | Link Preview open fetch on expansion tip | No open URL fetch on secure `main` |
 | **FC-04** | JWT algorithm / key confusion | 347 | mid-chain only | Overlay (HS256/alg confusion) | RS256 fail-closed on secure |
 | **FC-05** | Race / TOCTOU | 362 | later | Timing window on fork | — |
 | **FC-06** | Cache / edge misconfig | 444 | later | Ops / edge overlay | — |
@@ -31,8 +31,10 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | **FC-12** | Fresh IDOR (non-Cycle-2 object) | 639 | alternate web→DB box | Overlay ownership gap on new story | Ownership stays on secure |
 | **FC-13** | Docker / escape / privileged mount | 250 / 552 | Cycle-5 adjacent / later | Compose overlay | Hardened prod compose stays |
 | **FC-14** | SSH / FTP sidecar | — | **C4 SSH foothold**; **C5** shells/PrivEsc; FTP later | SSH overlay insecure/CTF only | No SSH/FTP on secure day-to-day |
-| **FC-15** | Cloud misconfig / IMDS via SSRF | — | after SoftDev URL fetch | Cloud lab line | — |
+| **FC-15** | Cloud misconfig / IMDS via SSRF | — | after Cycle-6 URL fetch | Cloud lab line | — |
 | **FC-16** | WordPress / CMS sibling | — | optional parallel lab | Separate compose/repo | Don’t redefine KC as CMS |
+| **FC-17** | Useless config leak (OSCP-inspired `.env`) | 200 / 538 | later | Loopback DB_* / decoy via SSRF or static; remote mysql fails | No world-readable secrets on secure tip |
+| **FC-18** | LFI / arbitrary file read → config | 22 / 200 | later | Path param or plugin-style read | Path checks stay on secure tip |
 
 ---
 
@@ -43,10 +45,11 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | FC-01 · FC-14 (SSH foothold) | **Consumed (Cycle-4 `v1.2.0` / `v2.2.0`)** |
 | FC-14 (shells/PrivEsc) | **Consumed (Cycle-5 `ctf/shells-privesc`)** — Blue on `main` · optional SSH noise kept |
 | FC-13 | Later (not Cycle-5) |
-| FC-02 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
+| FC-02 · FC-03 | **In progress (Cycle-6)** — [Cycle-6](../../Cycle-6/README.md) · [ADR-034](../../../decisions/ADR-034-cycle-6-product-expansion-pair.md) |
+| FC-04 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
 | FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
-| FC-12 · FC-14 (FTP) · FC-15 … FC-16 | Available (later tracks) |
-| FC-03 (SSRF) | **Strong SoftDev / hard-box candidate** next |
+| FC-12 · FC-14 (FTP) · FC-15 · FC-16 | Available (later tracks) |
+| FC-17 · FC-18 | **Available / later** (OSCP-inspired backlog; not Cycle-6 DoD) |
 
 ---
 
@@ -66,8 +69,8 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 ## Handoff
 
-1. Read [Cycle-4/README.md](../../Cycle-4/README.md) + [v1.2.0-box-plan.md](../../Cycle-4/Dev/v1.2.0-box-plan.md).  
-2. SoftDev from `main` → Notes + SSH overlay → tag `v1.2.0`.  
-3. Red → Blue → tag `v2.2.0` ([ADR-033](../../../decisions/ADR-033-cycle-4-softdev-version-pair.md)).  
-4. For CTF-only boxes after that: `git checkout -b ctf/<scenario>` (ADR-032).  
-5. Update this status table (`Consumed` / `Planned`).
+1. Read [Cycle-6/README.md](../../Cycle-6/README.md) + [v1.3.0-box-plan.md](../../Cycle-6/Dev/v1.3.0-box-plan.md).  
+2. Product expansion from `main` → Link Preview + CSRF plant → tag `v1.3.0` ([ADR-034](../../../decisions/ADR-034-cycle-6-product-expansion-pair.md)).  
+3. Red → Blue → tag `v2.3.0`.  
+4. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
+5. Update this status table (`Consumed` / `Planned` / `In progress`).

@@ -1,10 +1,10 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Secure product **`v2.2.0`** on `main` (Notes kept; XSS closed; no default SSH) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)  
-**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4  
-**Insecure replay**: tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + optional SSH overlay  
-**Next**: Cycle-5 shells/PrivEsc ([Cycle-5 sketch](../security/Cycle-5/Dev/shells-privesc-sketch.md); fork from **`v2.2.0`**)
+**Current tip**: Secure product **`v2.2.0`** on `main` (Notes kept; XSS closed; no default SSH; Cycle-5 Blue applied) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)  
+**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5  
+**Insecure replay**: tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + optional SSH overlay; CTF **`ctf/shells-privesc`**  
+**Next**: Cycle-6 product expansion **`v1.3.0` → `v2.3.0`** (Link Preview SSRF + CSRF) — [Cycle-6](../security/Cycle-6/README.md) · [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md) · docs branch `docs/cycle-6-p0`
 
 ---
 
@@ -293,19 +293,17 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 *(Earlier draft “race/cache v1.2.0” projections are obsolete.)*
 
-#### SoftDev `v1.3.0` — Shells & PrivEsc (Cycle-5 sketch)
-**Goal**: Add infrastructure-layer vulnerabilities.
+#### Product expansion `v1.3.0` — Link Preview SSRF + CSRF (Cycle-6 / ADR-034) — **planned**
 
-**New Surfaces**:
-- Exposed MongoDB credentials in docker-compose (migrated feature)
-- S3 bucket ACL misconfiguration (assume file storage migrated to S3)
-- GitOps secret leakage in CI/CD logs
-- Kubernetes RBAC too permissive (assume K8s deployment in this version)
-- IAM policy allows `s3:*` on entire bucket
+**Goal**: New product surface (Link Preview) with intentional open URL fetch; one CSRF plant on cookie-auth mutation.
 
-**CWEs**: CWE-798, CWE-276, CWE-434 (at cloud layer), CWE-276 (IAM permissions)
+**Surfaces**: Preview API/UI; SSRF (CWE-918); CSRF gap (CWE-352).
 
-**Implementation**: 2–3 weeks.
+**Blue**: `v2.3.0` — restrict fetch; restore CSRF.
+
+**Note:** Cycle-5 shells/PrivEsc shipped **CTF-only** (no `v1.3.0` tag). Speculative cloud/`v1.3.0` bullets below are historical ROADMAP noise — not Cycle-6 scope.
+
+*(Legacy “SoftDev v1.3.0 — Shells & PrivEsc / cloud misconfig” projections superseded by Cycle-5 CTF-only + ADR-034.)*
 
 #### v1.4.0 — Cryptographic Failures (Future)
 **Goal**: Weak crypto, key rotation, side-channel attacks.

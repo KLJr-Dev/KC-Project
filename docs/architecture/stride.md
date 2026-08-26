@@ -1,6 +1,23 @@
 # STRIDE Threat Model
 
-STRIDE analysis mapped to attack surfaces in [threat-model.md](../diagrams/threat-model.md). Cycle-1 inventory: [cwe-inventory.md](../security/cwe-inventory.md). Cycle-4 Notes XSS path (replay): [notes-ssh-path.md](../diagrams/notes-ssh-path.md).
+STRIDE analysis mapped to attack surfaces in [threat-model.md](../diagrams/threat-model.md). Cycle-1 inventory: [cwe-inventory.md](../security/cwe-inventory.md). Cycle-4 Notes XSS path (replay): [notes-ssh-path.md](../diagrams/notes-ssh-path.md). Cycle-6 Link Preview: [Cycle-6 decisions](../security/Cycle-6/Dev/cycle-6-decisions.md).
+
+---
+
+## Link Preview + CSRF (Cycle-6 `v1.3.0` planned; harden on `v2.3.0`)
+
+Draft for P0 — finalize when API routes ship.
+
+| STRIDE | Threat | Notes |
+|--------|--------|-------|
+| **Spoofing** | Attacker-controlled URL trusted by server fetch | Preview treats user URL as fetch target |
+| **Tampering** | CSRF on cookie-auth state change without token | FC-02 plant on intentional insecure tip |
+| **Information Disclosure** | SSRF reads internal HTTP (loopback, link-local, metadata-style) | CWE-918 / FC-03; graded internal prize |
+| **Information Disclosure** | Optional useless config decoy via SSRF | Deferred / optional; GT marks decoy if present |
+| **Denial of Service** | Unbounded fetch size / slow upstream | Mitigate on `v2.3.0` (timeouts, size caps) |
+| **Elevation of Privilege** | CSRF mutates privileged state as victim | Scope limited to planted mutation |
+
+**Out of this block:** PrivEsc, FTP, AD (other cycles / Portfolio tracks).
 
 ---
 

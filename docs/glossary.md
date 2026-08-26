@@ -14,8 +14,8 @@ Quick reference for terminology used across KC-Project documentation and codebas
 | **STRIDE** | A threat modelling framework (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege). Used to categorise threats per component or surface. | [stride.md](architecture/stride.md) |
 | **IDOR** | Insecure Direct Object Reference. An access control flaw where a user can access resources by manipulating identifiers (e.g. changing `/files/1` to `/files/2`). Classified as CWE-639. | [threat-model.md](diagrams/threat-model.md) |
 | **XSS** | Cross-Site Scripting. Injecting malicious scripts into pages viewed by others (CWE-79). Closed on tip `v2.2.0`; intentional on SoftDev tip `v1.2.0` (Notes HTML + unsafe markdown + inline SVG/HTML). | [Cycle-4](security/Cycle-4/README.md) |
-| **CSRF** | Cross-Site Request Forgery (CWE-352). Refresh cookie path uses CSRF header on hardened stack. | [security-baseline.md](spec/security-baseline.md) |
-| **SSRF** | Server-Side Request Forgery (CWE-918). Not a SoftDev Cycle-4 surface; deferred SoftDev candidate. | [ADR-033](decisions/ADR-033-cycle-4-softdev-version-pair.md) |
+| **CSRF** | Cross-Site Request Forgery (CWE-352). Refresh cookie path uses CSRF on hardened stacks; Cycle-6 plants one cookie mutation gap on intentional insecure `v1.3.0`. | [Cycle-6](security/Cycle-6/README.md), [security-baseline.md](spec/security-baseline.md) |
+| **SSRF** | Server-Side Request Forgery (CWE-918). Cycle-6 Link Preview surface (`v1.3.0` planned). | [ADR-034](decisions/ADR-034-cycle-6-product-expansion-pair.md) |
 | **SQLi** | SQL Injection. Inserting SQL code into application queries via user input. Classified as CWE-89. Part of the v1.0.0 injection surface. | [threat-model.md](diagrams/threat-model.md) |
 | **RBAC** | Role-Based Access Control. Ternary roles: `user`, `moderator`, `admin`. Guards trust JWT `role` claim, not DB (CWE-639). Introduced in v0.4.x. | [requirements.md](spec/requirements.md) |
 | **JWT** | JSON Web Token. A compact, URL-safe token format containing a signed JSON payload. Used for stateless authentication. | [ADR-012](decisions/ADR-012-jwt-over-sessions.md) |
@@ -60,10 +60,17 @@ Quick reference for terminology used across KC-Project documentation and codebas
 | **Pentest cycle** | The v1.N.x phase where the insecure baseline is systematically tested, findings documented, and patches applied. | [ADR-013](decisions/ADR-013-expansion-cycle-versioning.md) |
 | **ADR** | Architecture Decision Record. A document capturing a specific technical decision with context, rationale, and consequences. | [decisions/](decisions/) |
 | **Moderator** | Intermediate RBAC role (`moderator`) between `user` and `admin`. Reviews pending file uploads via `/moderator`; can call `PUT /files/:id/approve` and `PUT /admin/users/:id/role/escalate` (CWE-269). Demo: `mod@kc.test`. | [personas.md](spec/personas.md) |
-| **SoftDev tip** | Intentional insecure product tip produced via SoftDev rails (Cycle-4 = tag/`ctf/v1.2.0`). Current `main` tip is secure **`v2.2.0`**. | [ADR-033](decisions/ADR-033-cycle-4-softdev-version-pair.md) |
+| **Product expansion cycle** | Security cycle that adds new product surface and ships an intentional insecure tag `v1.N.0` then hardened `v2.N.0`. Preferred term over informal “SoftDev.” | [ADR-034](decisions/ADR-034-cycle-6-product-expansion-pair.md) |
+| **Feature lanes** | Long-lived `backend` / `frontend` / `dev` branches for product work ([ADR-015](decisions/ADR-015-branching-strategy.md)). Reset from `main` at expansion-cycle start. | [ADR-015](decisions/ADR-015-branching-strategy.md) |
+| **Security SDL** | Waterfall-shaped stages: Dev (design) → implement → verify → release → PenTest → Remediation ([ADR-031](decisions/ADR-031-security-cycle-docs.md)). | [Cycle-6 execution](security/Cycle-6/Dev/v1.3.0-execution-plan.md) |
+| **Intentional insecure release** | Tagged `v1.N.0` on `main` (then often archived as `ctf/v1.N.0`) for Red. Prefer over “SoftDev tip.” | [ADR-034](decisions/ADR-034-cycle-6-product-expansion-pair.md) |
+| **SoftDev tip** | **Legacy informal** for intentional insecure tip via feature lanes (Cycle-4 = tag/`ctf/v1.2.0`). Prefer **intentional insecure release**. Current `main` tip is secure **`v2.2.0`** until Cycle-6 ships. | [ADR-033](decisions/ADR-033-cycle-4-softdev-version-pair.md) |
 | **Foothold** | SSH user access without PrivEsc. Cycle-4 ceiling is `lab` + `user.txt`; Cycle-5 covers shells/root. | [Cycle-4](security/Cycle-4/README.md), [Cycle-5](security/Cycle-5/README.md) |
 | **Notes** | Sixth product domain: user-owned notes, search, mod flag, optional attachment. Plain text on `v2.2.0`; XSS sinks on insecure tip `v1.2.0`. | [Cycle-4](security/Cycle-4/README.md) |
+| **Link Preview** | Planned seventh product surface (Cycle-6): server fetches a user-supplied URL for a preview snippet. | [Cycle-6](security/Cycle-6/README.md) |
 | **Product UI** | Role-aware web app at `/`, `/auth`, `/files`, `/notes`, `/sharing`, `/moderator`, `/admin`, `/share/[token]`. Client filters are **not** the security boundary. | [scope.md](spec/scope.md) |
 | **Ground truth** | Examiner reference for a tip: demo creds, seeds, flags, paths. Cycle-1: [v1.0.0-ground-truth](security/Cycle-1/Dev/v1.0.0-ground-truth.md); Cycle-4: [v1.2.0-ground-truth](security/Cycle-4/Dev/v1.2.0-ground-truth.md). | -- |
 | **Cycle-1** | First expansion cycle: v1.0.0 → v2.0.0. | [Cycle-1/README.md](security/Cycle-1/README.md) |
-| **Cycle-4** | SoftDev pair **closed**: `v1.2.0` (Notes XSS + SSH) → `v2.2.0` (harden Notes; no default SSH). | [ADR-033](decisions/ADR-033-cycle-4-softdev-version-pair.md) |
+| **Cycle-4** | Product expansion pair **closed**: `v1.2.0` (Notes XSS + SSH) → `v2.2.0` (harden Notes; no default SSH). | [ADR-033](decisions/ADR-033-cycle-4-softdev-version-pair.md) |
+| **Cycle-5** | CTF-only shells/PrivEsc **closed** (`ctf/shells-privesc`); no product tag bump. | [Cycle-5](security/Cycle-5/README.md) |
+| **Cycle-6** | Product expansion **in design**: Link Preview SSRF + CSRF → planned `v1.3.0` → `v2.3.0`. | [ADR-034](decisions/ADR-034-cycle-6-product-expansion-pair.md) |
