@@ -44,6 +44,6 @@ Docker escape · SoftDev `v1.3.0` · re-break Notes XSS · AD · off-box pivot �
 
 ## Next docs / build
 
-1. **Execution:** [shells-privesc-execution-plan.md](shells-privesc-execution-plan.md) (P0–P7).  
-2. P1: fork `ctf/shells-privesc` from `v2.2.0`.  
-3. P2: lock foothold + sudo design → P3/P4 build → GT / player brief / examiner.
+1. ~~P1 fork~~ · ~~P2 design lock~~ — see [cycle-5-decisions.md](cycle-5-decisions.md) § P2 · [GT](shells-privesc-ground-truth.md).  
+2. **P3/P4:** `infra/lab-host/` + `kc-agent` + `docker-compose.ctf-shells.yml`.  
+3. **P5:** player brief · examiner · `shells-privesc-ctf-ready.md`.

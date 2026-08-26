@@ -43,7 +43,7 @@ main @ v2.2.0 (secure)
 
 | # | Topic | Locked | Recommendation (adopted) |
 |---|--------|--------|---------------------------|
-| 6 | Primary PrivEsc | **Stakeholder: undecided** → **locked: sudo** | `lab` (or foothold user) has `NOPASSWD` on a **fresh-story** helper script (e.g. backup/inventory) that is **writable** or uses **unsafe args/env** — classic, teachable, medium |
+| 6 | Primary PrivEsc | **sudo** (P2 locked) | `lab` NOPASSWD → `/opt/kc-ops/backup.sh` **writable by lab** — see § P2 |
 | 6b | Decoys | Two | e.g. (1) cron that looks juicy but isn’t root / wrong perms (2) SUID binary that doesn’t yield root (or needs unused exploit) |
 | 7 | Docker / FC-13 | **Out of Cycle-5** | Plenty of depth *inside* the container/VM; escape reserved for a later cycle |
 | 10 | Story | **Fresh** | Do **not** require living the C4 `/opt/kc-lab` “backup TODO” tease — new names/paths/lore (optional easter-egg nod OK) |
@@ -97,12 +97,31 @@ main @ v2.2.0 (secure)
 
 ---
 
-## Open only at build time (not pedagogy)
+## P2 lock (build-time — 2026-08-26)
 
-- Exact service name / port for CTF foothold  
-- Exact sudo script path and bug (writable vs wildcard vs env)  
-- Flag hex values  
-- Branch name: prefer **`ctf/shells-privesc`** (scenario-style like `leak-crack-db`)
+Closes the former “open at build time” rows. Full examiner spoilers: [shells-privesc-ground-truth.md](shells-privesc-ground-truth.md) (flags live **only** there + examiner).
+
+| Choice | Locked |
+|--------|--------|
+| Branch | **`ctf/shells-privesc`** (live) |
+| Overlay | `infra/docker-compose.ctf-shells.yml` (prod + lab-host) — do **not** mutate default prod |
+| Lab image | New `infra/lab-host/` — do **not** overwrite `infra/ssh/` (C4 replay intact) |
+| Foothold user | `lab` |
+| Foothold gadget | **`kc-agent`** HTTP helper inside lab-host, host port **`:8787`** |
+| Bug class | Command injection: `GET /check?host=` → unsanitized shell-out → RCE as `lab` → reverse shell |
+| Benign recon | `GET /` or `/health` JSON status |
+| SSH | Overlay publishes `:2222` (optional alternate entry; primary teaching is shell via agent) |
+| Primary PrivEsc | `lab ALL=(root) NOPASSWD: /opt/kc-ops/backup.sh` — script **writable by `lab`** (overwrite → root) |
+| Decoy A | Root cron → `/opt/kc-ops/cleanup.sh` (root-owned `755`, not writable) |
+| Decoy B | SUID `/usr/local/bin/kc-version` (prints version; no root shell) |
+| `user.txt` | `/var/opt/kc/user.txt` (not `~/`) |
+| `root.txt` | `/root/root.txt` |
+| Flag format | `OS{` + 32 lowercase hex + `}` — values in GT only |
+| Easter egg | Optional `/opt/kc-lab/README` C4 archive nod — **not** a live path |
+
+**Player path:** recon `:8787` → inject → revshell → stabilize TTY → find `user.txt` → `sudo -l` → rewrite `backup.sh` → `root.txt`.
+
+**Next:** P3 lab-host · P4 kc-agent · P5 triad/examiner/gate.
 
 ---
 
