@@ -5,7 +5,7 @@
 #
 # Publishes:
 #   host :2222 → SSH (lab)
-#   host :8787 → kc-agent (P4 foothold; port reserved now)
+#   host :8787 → kc-agent (command-injection foothold)
 #
 # Do NOT merge this into default prod compose — CTF / lab only (ADR-032).
 services:

@@ -44,6 +44,5 @@ Docker escape · SoftDev `v1.3.0` · re-break Notes XSS · AD · off-box pivot �
 
 ## Next docs / build
 
-1. ~~P1 fork~~ · ~~P2 design lock~~ · ~~P3 lab-host~~ — see [GT](shells-privesc-ground-truth.md).  
-2. **P4:** `kc-agent` on `:8787`.  
-3. **P5:** player brief · examiner · `shells-privesc-ctf-ready.md`.
+1. ~~P1 fork~~ · ~~P2~~ · ~~P3 lab-host~~ · ~~P4 kc-agent~~.  
+2. **P5:** player brief · examiner · `shells-privesc-ctf-ready.md`.

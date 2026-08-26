@@ -1,11 +1,11 @@
-# Cycle-5 CTF — lab host (SSH + PrivEsc + decoys). kc-agent added in P4.
+# Cycle-5 CTF — lab host (SSH + PrivEsc + decoys + kc-agent foothold).
 FROM alpine:3.20
 
-RUN apk add --no-cache openssh-server bash sudo iputils curl gcc musl-dev \
+RUN apk add --no-cache openssh-server bash sudo iputils curl python3 gcc musl-dev \
   && ssh-keygen -A \
   && adduser -D -s /bin/bash lab \
   && echo 'lab:4r98esfeb7' | chpasswd \
-  && mkdir -p /home/lab /opt/kc-ops /opt/kc-lab /var/opt/kc /var/run/sshd /root \
+  && mkdir -p /home/lab /opt/kc-ops /opt/kc-lab /opt/kc-agent /var/opt/kc /var/run/sshd /root \
   && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
   && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config \
   && echo 'AllowUsers lab' >> /etc/ssh/sshd_config
@@ -20,6 +20,7 @@ COPY loot/user.txt /var/opt/kc/user.txt
 COPY loot/root.txt /root/root.txt
 COPY loot/opt-kc-lab-README /opt/kc-lab/README
 COPY ops/kc-version.c /tmp/kc-version.c
+COPY kc-agent/agent.py /opt/kc-agent/agent.py
 COPY entrypoint.sh /entrypoint.sh
 
 RUN chown root:root /etc/sudoers.d/kc-ops \
@@ -28,8 +29,10 @@ RUN chown root:root /etc/sudoers.d/kc-ops \
   && chmod 775 /opt/kc-ops/backup.sh \
   && chown root:root /opt/kc-ops/cleanup.sh \
   && chmod 755 /opt/kc-ops/cleanup.sh \
-  && chown -R lab:lab /home/lab \
+  && chown -R lab:lab /home/lab /opt/kc-agent \
   && chmod 700 /home/lab \
+  && chmod 755 /opt/kc-agent \
+  && chmod 644 /opt/kc-agent/agent.py \
   && chown lab:lab /var/opt/kc /var/opt/kc/user.txt \
   && chmod 755 /var/opt/kc \
   && chmod 640 /var/opt/kc/user.txt \

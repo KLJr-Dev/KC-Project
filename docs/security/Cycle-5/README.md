@@ -3,7 +3,7 @@
 > **CTF branch:** `ctf/shells-privesc` · baseline tag **`v2.2.0`** (ADR-032)  
 > **Do not merge** this branch into `main` with CTF breaks. Blue lands via `remediation/shells-privesc` from `main`.
 
-**Status:** **CTF branch live** · **P3 lab-host up** · **P4 kc-agent next**  
+**Status:** **CTF branch live** · **P3/P4 planted** · **P5 triad/gate next**  
 **Packaging:** **CTF-only** — **no** `v1.3.0` SoftDev bump this cycle  
 **Blue later:** `remediation/shells-privesc` (no product tag bump)  
 **Difficulty:** Medium HTB  
@@ -11,7 +11,7 @@
 | Track | Role | Status |
 |-------|------|--------|
 | Baseline | Secure tip **`v2.2.0`** / `main` | Shipped |
-| CTF / Red | Shells + PrivEsc box (blank slate) | **This branch** · P3 planted — [GT](Dev/shells-privesc-ground-truth.md) · overlay `docker-compose.ctf-shells.yml` |
+| CTF / Red | Shells + PrivEsc box (blank slate) | **This branch** · P3/P4 planted — [GT](Dev/shells-privesc-ground-truth.md) · `:8787` kc-agent |
 | Blue | Harden lab host; no product tag bump | After Red |
 
 ---
