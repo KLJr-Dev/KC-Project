@@ -3,7 +3,7 @@
 **Classification:** Examiner / Dev only — do not ship in player packets.  
 **Branch:** `ctf/shells-privesc` · baseline tag **`v2.2.0`**  
 **Locks:** [cycle-5-decisions.md](cycle-5-decisions.md) § P2 · [box plan](shells-privesc-box-plan.md)  
-**Status:** **CTF-READY** · gate signed · Red engagement open (P6)
+**Status:** **CTF-READY** · gate signed · **Red writeup complete (2/2)** · freeze next
 
 ---
 

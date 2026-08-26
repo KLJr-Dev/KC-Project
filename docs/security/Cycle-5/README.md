@@ -3,7 +3,7 @@
 > **CTF branch:** `ctf/shells-privesc` · baseline tag **`v2.2.0`** (ADR-032)  
 > **Do not merge** this branch into `main` with CTF breaks. Blue lands via `remediation/shells-privesc` from `main`.
 
-**Status:** **CTF-READY** · [gate](../../release/shells-privesc-ctf-ready.md) · Red writeup **next** (P6)  
+**Status:** **Red complete** · [writeup](PenTest/shells-privesc-writeup.md) 2/2 · freeze **next** · Blue after  
 **Packaging:** **CTF-only** — **no** `v1.3.0` SoftDev bump this cycle  
 **Blue later:** `remediation/shells-privesc` (no product tag bump)  
 **Difficulty:** Medium HTB  
@@ -11,7 +11,7 @@
 | Track | Role | Status |
 |-------|------|--------|
 | Baseline | Secure tip **`v2.2.0`** / `main` | Shipped |
-| CTF / Red | Shells + PrivEsc box | **CTF-ready** — [brief](Dev/shells-privesc-player-brief.md) · [GT](Dev/shells-privesc-ground-truth.md) |
+| CTF / Red | Shells + PrivEsc box | **Clear** — [writeup](PenTest/shells-privesc-writeup.md) · [brief](Dev/shells-privesc-player-brief.md) |
 | Blue | Harden lab host; no product tag bump | After Red freeze |
 
 ---

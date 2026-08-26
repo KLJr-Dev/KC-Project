@@ -69,7 +69,8 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shel
 - [x] Player brief (progressive hints) + ground truth
 - [x] Examiner dry-run green (`cycle5-shells-examiner.sh`)
 - [x] Prod asserts: no `:2222` / `:8787` / `:5433` on default prod alone
-- [ ] Red writeup + evidence (P6) → then **freeze** branch
+- [x] Red writeup + evidence (P6) — [shells-privesc-writeup.md](../security/Cycle-5/PenTest/shells-privesc-writeup.md)
+- [ ] **Freeze** branch tip (no further CTF feature commits)
 - [ ] Blue on `remediation/shells-privesc` (P7) — no product tag bump
 
 ---
@@ -80,5 +81,6 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shel
 |------|------|------|--------|
 | Dev / box | KL | 2026-08-26 | PASS — P0–P5 on `ctf/shells-privesc` |
 | Examiner | KL | 2026-08-26 | PASS — `./infra/cycle5-shells-examiner.sh` |
+| Red | KL | 2026-08-26 | PASS — 2/2 writeup on `ctf/shells-privesc` |
 
 **Ship rule:** Use this branch for Cycle-5 CTF replay. Secure tip remains **`v2.2.0`** / `main`. Do not remediate vulns on the CTF branch after Red freeze (P6).
