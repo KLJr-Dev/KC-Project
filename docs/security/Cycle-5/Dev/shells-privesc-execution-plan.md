@@ -206,5 +206,6 @@ Merge CTF into `main` · docker escape · Notes XSS reprise · published `:5433`
 
 ## Immediate next
 
-1. ~~Commit P0~~ · ~~P1~~ · ~~P2~~ · ~~P3 lab-host~~ · ~~P4 kc-agent~~.  
-2. **P5:** brief · examiner · sign ctf-ready.
+1. ~~P0–P5~~ — box **ctf-ready** ([gate](../../../release/shells-privesc-ctf-ready.md)).  
+2. **P6:** Red writeup → freeze `ctf/shells-privesc`.  
+3. **P7:** Blue remediation (no product tag).

@@ -6,8 +6,9 @@
 | [shells-privesc-box-plan.md](shells-privesc-box-plan.md) | Box architecture + path |
 | [shells-privesc-execution-plan.md](shells-privesc-execution-plan.md) | **Build runbook** (P0–P7) |
 | [shells-privesc-sketch.md](shells-privesc-sketch.md) | Short intent / scope |
-| [shells-privesc-ground-truth.md](shells-privesc-ground-truth.md) | Examiner spoilers (flags, path) — **this branch** |
-| Player brief | (pending P5) |
-
+| [shells-privesc-player-brief.md](shells-privesc-player-brief.md) | Players — progressive hints |
+| [shells-privesc-ground-truth.md](shells-privesc-ground-truth.md) | Examiner spoilers (flags, path) |
+| Gate | [shells-privesc-ctf-ready.md](../../../release/shells-privesc-ctf-ready.md) |
+| Examiner | `infra/cycle5-shells-examiner.sh` |
 
 Parent: [../README.md](../README.md)

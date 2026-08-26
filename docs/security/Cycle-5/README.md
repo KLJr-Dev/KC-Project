@@ -3,7 +3,7 @@
 > **CTF branch:** `ctf/shells-privesc` · baseline tag **`v2.2.0`** (ADR-032)  
 > **Do not merge** this branch into `main` with CTF breaks. Blue lands via `remediation/shells-privesc` from `main`.
 
-**Status:** **CTF branch live** · **P3/P4 planted** · **P5 triad/gate next**  
+**Status:** **CTF-READY** · [gate](../../release/shells-privesc-ctf-ready.md) · Red writeup **next** (P6)  
 **Packaging:** **CTF-only** — **no** `v1.3.0` SoftDev bump this cycle  
 **Blue later:** `remediation/shells-privesc` (no product tag bump)  
 **Difficulty:** Medium HTB  
@@ -11,8 +11,8 @@
 | Track | Role | Status |
 |-------|------|--------|
 | Baseline | Secure tip **`v2.2.0`** / `main` | Shipped |
-| CTF / Red | Shells + PrivEsc box (blank slate) | **This branch** · P3/P4 planted — [GT](Dev/shells-privesc-ground-truth.md) · `:8787` kc-agent |
-| Blue | Harden lab host; no product tag bump | After Red |
+| CTF / Red | Shells + PrivEsc box | **CTF-ready** — [brief](Dev/shells-privesc-player-brief.md) · [GT](Dev/shells-privesc-ground-truth.md) |
+| Blue | Harden lab host; no product tag bump | After Red freeze |
 
 ---
 
@@ -20,30 +20,33 @@
 
 Interesting CTF foothold → **stable / reverse shell** → enum (decoys) → **sudo PrivEsc** → `root.txt`. Self-contained — does not require Cycle-4.
 
-## Why after Cycle-4
+## Deploy
 
-- C4 SoftDev pair taught Notes XSS + SSH *foothold* on a versioned tip  
-- C5 adds **post-ex complexity** without another SoftDev product bump while `v2.2.0` is fresh  
+```bash
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shells.yml up -d --build
+./infra/cycle5-shells-examiner.sh
+```
 
-## Portfolio paths (after build)
+## Portfolio paths
 
 | Audience | Start here | Spoilers? |
 |----------|------------|-----------|
-| **Dev / build** | [execution plan](Dev/shells-privesc-execution-plan.md) · [decisions](Dev/cycle-5-decisions.md) | Yes |
-| **Player** | player brief (pending P5) | No |
-| **Red** | [PenTest/](PenTest/) → writeup on this branch | Yes |
+| **Player** | [player brief](Dev/shells-privesc-player-brief.md) | No |
+| **Dev / examine** | [GT](Dev/shells-privesc-ground-truth.md) · [execution](Dev/shells-privesc-execution-plan.md) | Yes |
+| **Red** | [PenTest/](PenTest/) → writeup (P6) | Yes |
 | **Blue** | Remediation/ (after Red) | Yes |
 
 ## Team folders
 
 | Folder | Purpose |
 |--------|---------|
-| [Dev/](Dev/) | Decisions, box, **execution**, sketch; GT / brief when building |
+| [Dev/](Dev/) | Decisions, box, execution, brief, GT |
 | [PenTest/](PenTest/) | Writeup on this CTF branch |
 | Remediation/ | Create at Blue from `main` |
 
 ## References
 
+- [shells-privesc-ctf-ready.md](../../release/shells-privesc-ctf-ready.md)  
 - [shells-privesc-execution-plan.md](Dev/shells-privesc-execution-plan.md)  
 - [cycle-5-decisions.md](Dev/cycle-5-decisions.md)  
 - [shells-privesc-box-plan.md](Dev/shells-privesc-box-plan.md)  

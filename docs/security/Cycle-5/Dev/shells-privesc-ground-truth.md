@@ -3,7 +3,7 @@
 **Classification:** Examiner / Dev only — do not ship in player packets.  
 **Branch:** `ctf/shells-privesc` · baseline tag **`v2.2.0`**  
 **Locks:** [cycle-5-decisions.md](cycle-5-decisions.md) § P2 · [box plan](shells-privesc-box-plan.md)  
-**Status:** P2 locked · **P3/P4 planted** (lab-host + kc-agent) · examiner pending P5
+**Status:** **P3/P4 planted** · **P5 gate signed** · Red writeup pending P6
 
 ---
 
@@ -65,8 +65,10 @@
 docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shells.yml up -d --build
 ./infra/assert-pg-unpublished.sh
 ./infra/assert-ssh-unpublished.sh
-./infra/cycle5-shells-examiner.sh   # pending P5
+./infra/cycle5-shells-examiner.sh
 ```
+
+Gate: [shells-privesc-ctf-ready.md](../../../release/shells-privesc-ctf-ready.md) · Player: [shells-privesc-player-brief.md](shells-privesc-player-brief.md)
 
 ## Explicit non-goals
 
