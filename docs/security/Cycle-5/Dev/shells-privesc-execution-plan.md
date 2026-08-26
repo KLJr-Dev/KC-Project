@@ -206,7 +206,7 @@ Merge CTF into `main` · docker escape · Notes XSS reprise · published `:5433`
 
 ## Immediate next
 
-1. Commit P0 docs to `main` (decisions + box + this plan).  
-2. **P1:** `git checkout -b ctf/shells-privesc v2.2.0` and push.  
-3. **P2:** lock foothold service name/bug + sudo script design (short design note).  
-4. Build P3/P4 → P5 gate.
+1. ~~Commit P0~~ · ~~P1 branch~~ · ~~P2 design lock~~ (flags in GT).  
+2. **P3:** `infra/lab-host/` + compose overlay.  
+3. **P4:** `kc-agent` on `:8787`.  
+4. **P5:** brief · examiner · sign ctf-ready.
