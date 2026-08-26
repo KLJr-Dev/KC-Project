@@ -1,13 +1,13 @@
 # Security Cycle 7 — Multi-service story box (`v1.4.0` → `v2.4.0`)
 
-**Status:** **Stub** — folder scaffold only. Design + build wait until Cycle-6 Blue tag **`v2.3.0`** ships.  
+**Status:** **Stub** — folder scaffold. Tip baseline **`v2.3.0`** shipped; design + build next.  
 **Versions (planned):** intentional insecure **`v1.4.0`** → long Red → hardened **`v2.4.0`**  
-**Ceiling (intent):** Biggest SoftDev/product box yet — multi-service recon (web + FTP + real SSH), decoys, multi-day Red. **Not** a same-day micro CTF.
+**Ceiling (intent):** Biggest product box yet — multi-service recon (web + FTP + real SSH), decoys, multi-day Red. **Not** a same-day micro CTF.
 
 | Track | Role | Status |
 |-------|------|--------|
-| Docs scaffold | This tree | **Phase 0** |
-| Design (ADR / decisions / box / GT / brief) | After `v2.3.0` | Pending |
+| Docs scaffold | This tree | **Done** |
+| Design (ADR / decisions / box / GT / brief) | Next | Pending |
 | Feature build | `v1.4.0` tip | Pending |
 | PenTest | Long Socratic Red | Pending |
 | Blue | `remediation/v2.4.0` → tag `v2.4.0` | Pending |

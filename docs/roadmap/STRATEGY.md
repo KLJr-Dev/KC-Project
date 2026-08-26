@@ -293,28 +293,27 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 *(Earlier draft “race/cache v1.2.0” projections are obsolete.)*
 
-#### Product expansion `v1.3.0` — Link Preview SSRF + CSRF (Cycle-6 / ADR-034) — **planned**
+#### Product expansion `v1.3.0` — Link Preview SSRF + CSRF (Cycle-6 / ADR-034) — **shipped**
 
 **Goal**: New product surface (Link Preview) with intentional open URL fetch; one CSRF plant on cookie-auth mutation.
 
 **Surfaces**: Preview API/UI; SSRF (CWE-918); CSRF gap (CWE-352).
 
-**Blue**: `v2.3.0` — restrict fetch; restore CSRF.
+**Blue**: **`v2.3.0` tagged** — destination policy; bookmark CSRF; plants removed; Preview throttle; TLS gate.
 
-**Note:** Cycle-5 shells/PrivEsc shipped **CTF-only** (no `v1.3.0` tag). Speculative cloud/`v1.3.0` bullets below are historical ROADMAP noise — not Cycle-6 scope.
+**Note:** Cycle-5 shells/PrivEsc shipped **CTF-only** (no product tag). Speculative cloud bullets below are historical ROADMAP noise — not Cycle-6 scope.
 
 *(Legacy “SoftDev v1.3.0 — Shells & PrivEsc / cloud misconfig” projections superseded by Cycle-5 CTF-only + ADR-034.)*
 
-#### v1.4.0 — Cryptographic Failures (Future)
-**Goal**: Weak crypto, key rotation, side-channel attacks.
+#### Product expansion `v1.4.0` — Multi-service story box (Cycle-7) — **planned**
 
-**New Surfaces**:
-- JWT with `none` algorithm accepted
-- Weak PBKDF2 iteration count for password hashing
-- Plaintext secrets in memory (observable via process inspection)
-- Side-channel timing attack on password comparison
+**Goal**: Long-form OSCP-style box — web + FTP + real SSH foothold; optional Cowrie decoy; multi-day Red; tool variety (nmap, Nikto, Hydra).
 
-**CWEs**: CWE-327, CWE-916, CWE-656
+**Surfaces**: Compose overlays; 3–5 graded proofs; false paths documented.
+
+**Blue**: `v2.4.0` — plants closed; overlays unpublished on default prod.
+
+**Supersedes** earlier draft “cryptographic failures” slot for this version number.
 
 #### v1.5.0+ — Business Logic & Advanced Exploitation (Future)
 **Goal**: Complex multi-step attack chains, business logic bypasses.

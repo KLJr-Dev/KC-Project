@@ -12,9 +12,9 @@
 
 **[Cycle-5/](Cycle-5/README.md)** — **Closed** (`ctf/shells-privesc` → Blue on `main`, no version bump). [secure-ready](../release/shells-privesc-secure-ready.md).
 
-**[Cycle-6/](Cycle-6/README.md)** — **Insecure tip shipped** (`v1.3.0` → Red / Blue → `v2.3.0`). [pentest-ready](../release/v1.3.0-pentest-ready.md). [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md).
+**[Cycle-6/](Cycle-6/README.md)** — **Closed** (`v1.3.0` → `v2.3.0`): Preview destination policy + bookmark CSRF ([ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md)). [secure-ready](../release/v2.3.0-secure-ready.md).
 
-**[Cycle-7/](Cycle-7/README.md)** — **Stub** (folder scaffold). Design after Cycle-6 Blue (`v2.3.0`); planned pair `v1.4.0` → `v2.4.0` (multi-service story box).
+**[Cycle-7/](Cycle-7/README.md)** — **Stub** (folder scaffold). Design next — planned pair `v1.4.0` → `v2.4.0` (multi-service story box). Baseline tip **`v2.3.0`**.
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -23,7 +23,7 @@
 | 3 | branch `ctf/leak-crack-db` (PenTest on that branch) | [cycle-3-leak-crack-db-remediation.md](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) · frozen `remediation/cycle-3-leak-crack-db` |
 | 4 | tag/`ctf/v1.2.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.2.0/docs/security/Cycle-4/PenTest/v1.2.0-writeup.md) | tag **`v2.2.0`** · [blue-team-plan](Cycle-4/Remediation/blue-team-plan.md) · frozen `remediation/v2.2.0` |
 | 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · frozen `remediation/shells-privesc` |
-| 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | `remediation/v2.3.0` (M0) · [Remediation/](Cycle-6/Remediation/) |
+| 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | tag **`v2.3.0`** · [Remediation/](Cycle-6/Remediation/) · frozen `remediation/v2.3.0` |
 | 7 | planned `ctf/v1.4.0` | planned `remediation/v2.4.0` · [Cycle-7 stub](Cycle-7/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
@@ -38,6 +38,7 @@ Checkout the branch, follow the player brief, don’t use for “secure” demos
 | Cycle-3 | `ctf/leak-crack-db` | leak → crack → SQLi → DB | [Cycle-3](Cycle-3/README.md) |
 | Cycle-4 | `ctf/v1.2.0` | Notes XSS → SSH foothold | [Cycle-4](Cycle-4/README.md) |
 | Cycle-5 | `ctf/shells-privesc` | cmdi → revshell → sudo PrivEsc | [Cycle-5](Cycle-5/README.md) |
+| Cycle-6 | `ctf/v1.3.0` | Preview SSRF + bookmark CSRF | [Cycle-6](Cycle-6/README.md) |
 
 ## Branch keepers (tip hygiene)
 
@@ -64,6 +65,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 - [v2.2.0-secure-ready.md](../release/v2.2.0-secure-ready.md) — Cycle-4 Blue gate (**signed** · tag `v2.2.0`)
 - [shells-privesc-ctf-ready.md](../release/shells-privesc-ctf-ready.md) — Cycle-5 Red/CTF gate (**on CTF branch** · frozen)
 - [v1.3.0-pentest-ready.md](../release/v1.3.0-pentest-ready.md) — Cycle-6 expansion Red gate (**signed** · tag `v1.3.0`)
+- [v2.3.0-secure-ready.md](../release/v2.3.0-secure-ready.md) — Cycle-6 Blue gate (**signed** · tag `v2.3.0`)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
 - [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — CTF-only cycles without product version bumps
 - [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — Cycle-4 pair `v1.2.0`→`v2.2.0`
@@ -71,7 +73,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 
 ## Scope
 
-Cycles **1–5 complete**. Cycle-6 **insecure tip `v1.3.0` shipped** (Red next). Play prior boxes: frozen `ctf/*` above; Cycle-6 archive `ctf/v1.3.0`.
+Cycles **1–6 complete**. Secure tip **`v2.3.0`**. Cycle-7 stubbed for multi-service design. Play boxes: frozen `ctf/*` above.
 
 ## Tools
 
@@ -80,31 +82,34 @@ Cycles **1–5 complete**. Cycle-6 **insecure tip `v1.3.0` shipped** (Red next).
 - jwt_tool (against intentional CTF/insecure tags — not expected to forge roles on hardened `main`)
 - Docker compose stack (`infra/docker-compose.prod.yml`; SSH overlay only for `v1.2.0` / `ctf/v1.2.0` replay; CTF overlays only on `ctf/*`)
 
-## Entry points (secure tip / `v2.2.0`)
+## Entry points (secure tip / `v2.3.0`)
 
 | Surface | URL / path | Auth |
 |---------|------------|------|
-| App UI | `http://localhost:8080` | Browser; access JWT in memory + httpOnly refresh cookie |
+| App UI | `http://localhost:8080` (TLS demo `:8443`) | Browser; access JWT in memory + httpOnly refresh cookie |
 | Notes UI | `/notes`, `/notes/[id]` | Auth; body is plain text (escaped) |
+| Link Preview | `/preview` | Auth; server fetch with destination policy |
 | API (proxied) | `http://localhost:8080/api/*` | Bearer access JWT |
 | Notes API | `/api/notes` | Owner / mod / admin per route |
+| Preview API | `POST /api/preview` | Bearer; throttled |
+| Bookmarks | `/api/auth/bookmarks` | Refresh cookie + CSRF header |
 | OpenAPI | Dev / lab only (disabled in production unless flagged) | — |
 | Public share | `GET /api/sharing/public/:token` | Token |
 | API explorers | `/dev/*` | Lab flag gated in prod |
 
-Pin tag **`v2.2.0`** for hardened demos. Replay Notes+SSH on **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.
+Pin tag **`v2.3.0`** for hardened demos. Replay Preview plants on **`v1.3.0`** / **`ctf/v1.3.0`**. Replay Notes+SSH on **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.
 
-## Methodology (against historical / CTF / SoftDev insecure tips)
+## Methodology (against historical / CTF / insecure tips)
 
-Run offensive work against **tag `v1.0.0`**, **`ctf/v1.1.0`**, **`ctf/leak-crack-db`**, or SoftDev **`v1.2.0`** / **`ctf/v1.2.0`** — not as expectations against hardened tip **`v2.2.0`**:
+Run offensive work against **tag `v1.0.0`**, **`ctf/v1.1.0`**, **`ctf/leak-crack-db`**, SoftDev **`v1.2.0`** / **`ctf/v1.2.0`**, or Cycle-6 **`v1.3.0`** / **`ctf/v1.3.0`** — not as expectations against hardened tip **`v2.3.0`**:
 
-1. Verify deploy: smoke / journey / e2e; for Cycle-4 also `cycle4-ssh-examiner.sh` on the SSH overlay
+1. Verify deploy: smoke / journey / e2e; Cycle-6 Blue also `cycle6-blue-assert.sh`
 2. Map attack surface from that cycle’s ground truth
-3. Authenticate as user, moderator, admin; test Notes + legacy IDOR paths as documented
+3. Authenticate; exercise the cycle’s surfaces
 4. Document findings in the cycle PenTest writeup (on the CTF / insecure branch)
 
 ## References
 
 - [STRATEGY.md](../roadmap/STRATEGY.md)
 - [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
-- [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)
+- [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md)

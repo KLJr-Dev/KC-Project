@@ -12,8 +12,8 @@
 | Cycle | 6 (product expansion security pair) |
 | From | Intentional insecure Link Preview + bookmark CSRF on `main` (`v1.3.0`) |
 | To | Tag **`v2.3.0`** — Preview kept; fetch restricted; CSRF restored; SSDLC extras (Preview throttle + TLS gate) |
-| Current milestone | **M4** — secure-ready signed; PR pending |
-| Code status | Waves A–D complete |
+| Current milestone | **Done** — tagged **`v2.3.0`** on `main`; branch frozen |
+| Code status | Waves A–D complete · shipped |
 
 ```text
 main @ v1.3.0 (insecure tip)
@@ -40,7 +40,7 @@ Close Cycle-6 Red findings on the **product tip**: Link Preview remains a featur
 | **M1** | Wave A — SSRF + F1 plant | Fetch blocks loopback/link-local/IMDS; no `/internal/cycle6-flag` prize on tip | **Done** |
 | **M2** | Wave B — CSRF + F2 plant | Bookmarks require CSRF; no `proof` flag on tip; tip UI `v2.3.0` | **Done** |
 | **M3** | Wave C — SSDLC extras | Preview rate limit; TLS gate + tls-smoke in secure-ready | **Done** |
-| **M4** | Wave D — gate + tag | Blue asserts + smoke/journey/tls-smoke; PR → `main` → tag `v2.3.0` | **In progress** |
+| **M4** | Wave D — gate + tag | Blue asserts + smoke/journey/tls-smoke; PR → `main` → tag `v2.3.0` | **Done** |
 
 ### M0 — Plan
 
@@ -72,11 +72,11 @@ Close Cycle-6 Red findings on the **product tip**: Link Preview remains a featur
 
 ### M4 — Ship
 
-- [ ] Fill + sign secure-ready
-- [ ] smoke · journey · e2e-docker · tls-smoke
-- [ ] PR `remediation/v2.3.0` → `main`
-- [ ] Tag `v2.3.0` · freeze this branch · reset `backend`/`frontend`/`dev` to `main`
-- [ ] Bucket B FC-02/FC-03 → Consumed · Portfolio sync
+- [x] Fill + sign secure-ready
+- [x] smoke · journey · tls-smoke
+- [x] PR `remediation/v2.3.0` → `main`
+- [x] Tag `v2.3.0` · freeze this branch · reset `backend`/`frontend`/`dev` to `main`
+- [x] Bucket B FC-02/FC-03 → Consumed · Portfolio sync
 
 ---
 
