@@ -39,12 +39,21 @@ export function refreshCookiePath(): string {
  */
 export function refreshCookieOptions(maxAgeMs = REFRESH_COOKIE_MAX_AGE_MS): RefreshCookieOptions {
   const secure = process.env.COOKIE_SECURE === 'true';
+  // Cycle-6 insecure tip: COOKIE_SAMESITE=none|lax|strict (default lax on HTTP, strict on TLS).
+  // Cross-site CSRF via GET /auth/bookmarks/save still works with Lax (top-level nav).
+  const fromEnv = (process.env.COOKIE_SAMESITE || '').toLowerCase();
+  const sameSite: 'strict' | 'lax' | 'none' =
+    fromEnv === 'none' || fromEnv === 'lax' || fromEnv === 'strict'
+      ? fromEnv
+      : secure
+        ? 'strict'
+        : 'lax';
   return {
     httpOnly: true,
     path: refreshCookiePath(),
     maxAge: maxAgeMs,
-    sameSite: secure ? 'strict' : 'lax',
-    secure,
+    sameSite,
+    secure: sameSite === 'none' ? true : secure,
   };
 }
 

@@ -1,16 +1,16 @@
 # Security Cycle 6 — Link Preview SSRF + CSRF (product expansion)
 
-**Status:** P0 design on branch `docs/cycle-6-p0` · tip baseline **`v2.2.0`** · [ADR-034](../../decisions/ADR-034-cycle-6-product-expansion-pair.md)  
-**Versions (planned):** `v1.3.0` (intentional insecure) → Red → `v2.3.0` (hardened)  
+**Status:** Triad ready · gate [v1.3.0-pentest-ready](../../release/v1.3.0-pentest-ready.md) · tip baseline **`v2.2.0`** → ship **`v1.3.0`** · [ADR-034](../../decisions/ADR-034-cycle-6-product-expansion-pair.md)  
+**Versions:** `v1.3.0` (intentional insecure) → Red → `v2.3.0` (hardened)  
 **Consumes:** FC-02 (CSRF), FC-03 (SSRF)  
 **Ceiling:** Graded web findings on tip — **not** PrivEsc / AD / FTP
 
 | Track | Role | Status |
 |-------|------|--------|
-| Docs / design (`docs/cycle-6-p0` → PR → `main`) | P0 decisions, box, execution, STRIDE | **In progress** |
-| Feature lanes (`backend` / `frontend` → `dev` → `main`) | Ship intentional insecure tip | Pending P1+ |
-| Tag **`v1.3.0`** (+ archive `ctf/v1.3.0`) | Pentest-ready insecure tip | Pending |
-| PenTest | Socratic Red | Pending |
+| Docs / design | P0 decisions, box, execution, STRIDE | **Done** (PR #26) |
+| Feature lanes → `dev` | Intentional insecure tip | **Done** — smoke/examiner green |
+| Tag **`v1.3.0`** (+ archive `ctf/v1.3.0`) | Pentest-ready insecure tip | **In progress (P5)** |
+| PenTest | Socratic Red | Pending P6 |
 | **`remediation/v2.3.0`** → tag **`v2.3.0`** | Harden fetch + CSRF | Pending |
 
 ---

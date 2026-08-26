@@ -43,6 +43,6 @@ const jwtCfg = loadJwtRuntimeConfig();
   ],
   controllers: [AuthController],
   providers: [AuthService, HasRoleGuard, JwtAuthGuard],
-  exports: [JwtModule, HasRoleGuard, JwtAuthGuard, TypeOrmModule],
+  exports: [JwtModule, HasRoleGuard, JwtAuthGuard, TypeOrmModule, AuthService],
 })
 export class AuthModule {}

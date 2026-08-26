@@ -19,6 +19,10 @@ const FEATURES = [
     description: 'Personal notes with search, moderation flags, and optional attachments.',
   },
   {
+    title: 'Link Preview',
+    description: 'Server-side URL preview and account bookmarks.',
+  },
+  {
     title: 'Admin Surface',
     description: 'Role-based admin and moderator workflows backed by database roles.',
   },
@@ -68,6 +72,9 @@ export default function HomePage() {
               <Link href="/notes" className="rounded-md border border-border px-3 py-1.5 text-sm">
                 Notes
               </Link>
+              <Link href="/preview" className="rounded-md border border-border px-3 py-1.5 text-sm">
+                Preview
+              </Link>
               <Link href="/sharing" className="rounded-md border border-border px-3 py-1.5 text-sm">
                 Sharing
               </Link>
@@ -92,9 +99,9 @@ export default function HomePage() {
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-md border border-border p-6 space-y-3">
           <h2 className="text-sm font-medium text-muted">Current Version</h2>
-          <p className="text-lg font-semibold text-foreground">v2.0.0 — Secure parallel</p>
+          <p className="text-lg font-semibold text-foreground">v1.3.0 — Intentional insecure</p>
           <p className="text-sm text-muted">
-            Hardened authz, shares, and disclosure controls on the remediation branch.
+            Product expansion tip: Link Preview SSRF + cookie bookmark CSRF plant (Cycle-6).
           </p>
         </div>
         {labUi ? (
