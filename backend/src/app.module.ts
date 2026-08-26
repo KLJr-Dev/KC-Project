@@ -20,6 +20,7 @@ import { FilesModule } from './files/files.module';
 import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
 import { NotesModule } from './notes/notes.module';
+import { PreviewModule } from './preview/preview.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { NotesModule } from './notes/notes.module';
     SharingModule,
     AdminModule,
     NotesModule,
+    PreviewModule,
   ],
   controllers: [AppController],
   providers: [

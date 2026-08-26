@@ -34,14 +34,15 @@ main @ v2.2.0 (secure tip)
 | # | Topic | Locked |
 |---|--------|--------|
 | 5 | Primary feature | **Link Preview** — user supplies URL; **backend fetches** and returns title/snippet/body excerpt (intentional open fetch → **SSRF**, CWE-918 / FC-03) |
-| 6 | CSRF plant | **One** cookie-credentialed **state-changing** route **without** CSRF check (CWE-352 / FC-02). Exact route finalized in P2 after auth/cookie audit (candidates: share create/revoke, note mutate, or preview-related bookmark). GT names it; player brief does not spoil. |
+| 6 | CSRF plant | **`GET/POST /auth/bookmarks`** (cookie `kc_refresh`, **no** CSRF header). GET `/auth/bookmarks/save?url=` is the cross-site-friendly mutation (SameSite=Lax top-level). Graded proof `OS{…}` in JSON. Refresh keeps CSRF. |
 | 7 | UX | Minimal product UI: enter URL → show preview; wire CSRF-relevant flow in frontend |
 | 8 | Demo users | Keep existing `user@kc.test` / mod / admin seeds |
 
-### Provisional API sketch (P2 may rename)
+### API sketch (locked in P2)
 
-- `POST /api/preview` (or `/api/links/preview`) — `{ "url": "…" }` → server-side fetch  
-- CSRF-gap mutation — TBD cookie path (not Authorization-header-only)
+- `POST /preview` — `{ "url": "…" }` → open server-side fetch (Bearer JWT)  
+- `GET /internal/cycle6-flag` — SSRF prize body (F1)  
+- `GET /auth/bookmarks/save?url=` · `POST /auth/bookmarks` · `GET /auth/bookmarks` — cookie session, **no** CSRF (F2 proof in JSON)
 
 ---
 
@@ -49,7 +50,7 @@ main @ v2.2.0 (secure tip)
 
 | # | Topic | Locked |
 |---|--------|--------|
-| 9 | Flags | **Two** graded `OS{` + 32 lowercase hex + `}` — one SSRF-reachable internal prize, one CSRF-impact plant (exact placement in GT at P5) |
+| 9 | Flags | **Two** graded `OS{32hex}` — F1 SSRF `OS{764e3877d12346b2f82978063872b4fe}` · F2 CSRF `OS{919efee8674b0ad10774bd5233c70d76}` (`cycle6-plants.ts`) |
 | 10 | Useless `.env` | **Deferred** to Bucket B / later (OSCP-inspired). Optional near-zero-cost loopback decoy only if free during P2 — **not** required for `v1.3.0` DoD |
 | 11 | Out | PrivEsc · docker escape · FTP · Notes XSS reprise · Cycle-5 `kc-agent` · AD/pivot · published `:5433` · remote MySQL from decoy creds |
 
@@ -111,8 +112,9 @@ Fix on **frontend lane (P3)**, not in P0 code:
 
 ---
 
-## Open for P2 grill (non-blocking for P0 merge)
+## Open for P3
 
-- Exact CSRF mutation route name  
-- Exact internal SSRF prize URL / flag seed  
-- Whether a tiny loopback `.env` decoy ships in C6 or waits
+- Frontend preview + bookmark UX  
+- Player brief wording for SSRF target (loopback vs docker DNS)
+
+P2 locks: CSRF = `/auth/bookmarks*`; SSRF prize = `GET /internal/cycle6-flag`; flags in `cycle6-plants.ts`.

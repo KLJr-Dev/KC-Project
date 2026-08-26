@@ -172,4 +172,23 @@ export class AuthService {
     logAuthEvent('logout', { userId, note: 'refresh tokens revoked' });
     return { message: 'Logged out' };
   }
+
+  /**
+   * Resolve userId from raw refresh cookie/token **without** rotating.
+   * Used by Cycle-6 cookie-auth bookmark plant (CSRF teaching surface).
+   */
+  async resolveUserIdFromRefresh(rawRefreshToken: string): Promise<string> {
+    if (!rawRefreshToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const tokenHash = hashRefreshToken(rawRefreshToken);
+    const stored = await this.refreshRepo.findOne({ where: { tokenHash } });
+    if (!stored || stored.revoked) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    if (Date.parse(stored.expiresAt) < Date.now()) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return stored.userId;
+  }
 }
