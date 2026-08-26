@@ -59,6 +59,12 @@ export default function Header() {
                 Notes
               </Link>
               <Link
+                href="/preview"
+                className="text-sm text-muted transition-colors hover:text-foreground"
+              >
+                Preview
+              </Link>
+              <Link
                 href="/sharing"
                 className="text-sm text-muted transition-colors hover:text-foreground"
               >
