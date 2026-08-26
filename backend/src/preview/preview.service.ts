@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { PreviewDto } from './dto/preview.dto';
 
 const FETCH_TIMEOUT_MS = 5_000;

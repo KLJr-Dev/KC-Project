@@ -1,9 +1,4 @@
-import {
-  IsNotEmpty,
-  IsString,
-  IsUrl,
-  MaxLength,
-} from 'class-validator';
+import { IsNotEmpty, IsString, IsUrl, MaxLength } from 'class-validator';
 
 export class PreviewDto {
   @IsString()

@@ -1,8 +1,4 @@
-import {
-  Column,
-  Entity,
-  PrimaryColumn,
-} from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('link_bookmark')
 export class LinkBookmarkEntity {

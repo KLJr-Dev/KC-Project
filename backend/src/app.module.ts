@@ -43,8 +43,7 @@ import { PreviewModule } from './preview/preview.module';
       synchronize: false,
       migrations: [__dirname + '/migrations/*{.ts,.js}'],
       migrationsRun: process.env.MIGRATIONS_RUN !== 'false',
-      logging:
-        process.env.NODE_ENV !== 'production' && process.env.TYPEORM_LOGGING !== 'false',
+      logging: process.env.NODE_ENV !== 'production' && process.env.TYPEORM_LOGGING !== 'false',
     }),
     AuthModule,
     UsersModule,
