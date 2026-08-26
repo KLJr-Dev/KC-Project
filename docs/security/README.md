@@ -10,7 +10,7 @@
 
 **[Cycle-4/](Cycle-4/README.md)** — **Closed** (`v1.2.0` → `v2.2.0`): Notes hardened; no default SSH ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-**[Cycle-5/](Cycle-5/README.md)** — **Sketch** (next): shells + PrivEsc; fork from tag **`v2.2.0`**.
+**[Cycle-5/](Cycle-5/README.md)** — **Blue** (`remediation/shells-privesc`): Red frozen on `ctf/shells-privesc`; tip keeps optional SSH noise, no agent/PrivEsc ([ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md)).
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -18,7 +18,7 @@
 | 2 | branch/tag `ctf/v1.1.0` (PenTest/Dev on that branch) | [v2.1.0-remediation.md](Cycle-2/Remediation/v2.1.0-remediation.md) · frozen `remediation/v2.1.0` |
 | 3 | branch `ctf/leak-crack-db` (PenTest on that branch) | [cycle-3-leak-crack-db-remediation.md](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) · frozen `remediation/cycle-3-leak-crack-db` |
 | 4 | tag/`ctf/v1.2.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.2.0/docs/security/Cycle-4/PenTest/v1.2.0-writeup.md) | tag **`v2.2.0`** · [blue-team-plan](Cycle-4/Remediation/blue-team-plan.md) · frozen `remediation/v2.2.0` |
-| 5 | shells + PrivEsc (sketch) | lab overlay / harden jump host · [Cycle-5](Cycle-5/README.md) |
+| 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · `remediation/shells-privesc` (no version bump) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -34,13 +34,15 @@ Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground tru
 - [cycle-3-leak-crack-db-secure-ready.md](../release/cycle-3-leak-crack-db-secure-ready.md) — Cycle-3 Blue gate (**signed**)
 - [v1.2.0-pentest-ready.md](../release/v1.2.0-pentest-ready.md) — Cycle-4 SoftDev Red gate (**signed** · tag `v1.2.0`)
 - [v2.2.0-secure-ready.md](../release/v2.2.0-secure-ready.md) — Cycle-4 Blue gate (**signed** · tag `v2.2.0`)
+- [shells-privesc-ctf-ready.md](../release/shells-privesc-ctf-ready.md) — Cycle-5 Red/CTF gate (**on CTF branch** · frozen)
+- [shells-privesc-secure-ready.md](../release/shells-privesc-secure-ready.md) — Cycle-5 Blue gate
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
 - [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — CTF-only cycles without product version bumps
 - [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — SoftDev Cycle-4 pair `v1.2.0`→`v2.2.0`
 
 ## Scope
 
-Cycles 1–4 complete. Product tip = secure **`v2.2.0`** (Notes kept; XSS closed; no default SSH). Insecure Notes+SSH replay = tag/`ctf/v1.2.0`. Next = Cycle-5 shells/PrivEsc.
+Cycles 1–5 Red complete. Product tip = secure **`v2.2.0`** (+ Cycle-5 Blue closing agent/PrivEsc; optional lab-host SSH noise). Cycle-5 CTF replay = `ctf/shells-privesc`.
 
 ## Tools
 
