@@ -1,0 +1,16 @@
+# Optional lab-host noise overlay (Cycle-5 Blue+)
+#
+# Usage:
+#   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.lab-host.yml up -d --build
+#
+# Publishes host :2222 → SSH only. No :8787 / kc-agent.
+# Do NOT merge into default prod compose — lab noise only (ADR-032).
+# Replay Cycle-5 CTF vulns from frozen ctf/shells-privesc + docker-compose.ctf-shells.yml.
+services:
+  lab-host:
+    build:
+      context: ./lab-host
+    ports:
+      - '2222:22'
+    mem_limit: 64m
+    restart: unless-stopped
