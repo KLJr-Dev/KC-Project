@@ -18,8 +18,8 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | ID | Surface | Rough CWE | Suggested box | Fork pattern | Must not regress on secure |
 |----|---------|-----------|---------------|--------------|----------------------------|
 | **FC-01** | Stored / reflected XSS | 79 | **Cycle-4 Notes (`v1.2.0`)** | SoftDev notes body XSS on insecure | Keep nginx CSP/headers; sanitize on `v2.2.0` |
-| **FC-02** | CSRF on state-changing cookie auth | 352 | **Cycle-6 `v1.3.0`** | Weak SameSite / missing CSRF on expansion tip | Keep refresh CSRF header on hardened tip |
-| **FC-03** | SSRF via URL fetch | 918 | **Cycle-6 `v1.3.0`** | Link Preview open fetch on expansion tip | No open URL fetch on secure `main` |
+| **FC-02** | CSRF on state-changing cookie auth | 352 | **Cycle-6 `v1.3.0` / `v2.3.0`** | Weak SameSite / missing CSRF on expansion tip | Keep refresh + bookmark CSRF on hardened tip |
+| **FC-03** | SSRF via URL fetch | 918 | **Cycle-6 `v1.3.0` / `v2.3.0`** | Link Preview open fetch on expansion tip | Destination policy on secure `main` |
 | **FC-04** | JWT algorithm / key confusion | 347 | mid-chain only | Overlay (HS256/alg confusion) | RS256 fail-closed on secure |
 | **FC-05** | Race / TOCTOU | 362 | later | Timing window on fork | — |
 | **FC-06** | Cache / edge misconfig | 444 | later | Ops / edge overlay | — |
@@ -45,7 +45,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | FC-01 · FC-14 (SSH foothold) | **Consumed (Cycle-4 `v1.2.0` / `v2.2.0`)** |
 | FC-14 (shells/PrivEsc) | **Consumed (Cycle-5 `ctf/shells-privesc`)** — Blue on `main` · optional SSH noise kept |
 | FC-13 | Later (not Cycle-5) |
-| FC-02 · FC-03 | **In progress (Cycle-6)** — [Cycle-6](../../Cycle-6/README.md) · [ADR-034](../../../decisions/ADR-034-cycle-6-product-expansion-pair.md) |
+| FC-02 · FC-03 | **Consumed (Cycle-6 `v1.3.0` / `v2.3.0`)** — Red on `ctf/v1.3.0`; Blue `remediation/v2.3.0` |
 | FC-04 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
 | FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
 | FC-12 · FC-14 (FTP) · FC-15 · FC-16 | Available (later tracks) |
@@ -69,8 +69,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 ## Handoff
 
-1. Read [Cycle-6/README.md](../../Cycle-6/README.md) + [v1.3.0-box-plan.md](../../Cycle-6/Dev/v1.3.0-box-plan.md).  
-2. Product expansion from `main` → Link Preview + CSRF plant → tag `v1.3.0` ([ADR-034](../../../decisions/ADR-034-cycle-6-product-expansion-pair.md)).  
-3. Red → Blue → tag `v2.3.0`.  
-4. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
-5. Update this status table (`Consumed` / `Planned` / `In progress`).
+1. Cycle-6 Blue on `remediation/v2.3.0` → tag `v2.3.0`.  
+2. Cycle-7 design after `v2.3.0` — [Cycle-7 stub](../../Cycle-7/README.md).  
+3. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
+4. Update this status table (`Consumed` / `Planned` / `In progress`).

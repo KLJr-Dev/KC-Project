@@ -1,5 +1,10 @@
-import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { PreviewDto } from './dto/preview.dto';
+import { assertPreviewUrlAllowed } from './preview-url.policy';
 
 const FETCH_TIMEOUT_MS = 5_000;
 const MAX_BODY_BYTES = 64_000;
@@ -13,20 +18,16 @@ export type PreviewResult = {
 };
 
 /**
- * Link Preview — Cycle-6 intentional open fetch (CWE-918 / FC-03).
- * No allowlist, no block of loopback/link-local/IMDS on v1.3.0.
+ * Link Preview — Cycle-6 Blue (`v2.3.0`): destination policy (CWE-918).
  */
 @Injectable()
 export class PreviewService {
   async preview(dto: PreviewDto): Promise<PreviewResult> {
     let parsed: URL;
     try {
-      parsed = new URL(dto.url);
-    } catch {
-      throw new BadRequestException('Invalid URL');
-    }
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      throw new BadRequestException('Only http/https URLs are supported');
+      parsed = await assertPreviewUrlAllowed(dto.url);
+    } catch (err) {
+      throw new BadRequestException((err as Error).message || 'Invalid URL');
     }
 
     const controller = new AbortController();
@@ -36,7 +37,7 @@ export class PreviewService {
         method: 'GET',
         redirect: 'follow',
         signal: controller.signal,
-        headers: { 'User-Agent': 'KC-Project-LinkPreview/1.3.0' },
+        headers: { 'User-Agent': 'KC-Project-LinkPreview/2.3.0' },
       });
       const buf = Buffer.from(await res.arrayBuffer());
       const truncated = buf.subarray(0, MAX_BODY_BYTES);

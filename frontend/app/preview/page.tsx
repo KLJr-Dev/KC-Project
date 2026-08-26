@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Link Preview + bookmarks — Cycle-6 intentional insecure tip (`v1.3.0`).
- * Preview uses Bearer JWT. Bookmark save uses refresh cookie without CSRF header.
+ * Link Preview + bookmarks — Cycle-6 Blue (`v2.3.0`).
+ * Preview uses Bearer JWT + destination policy. Bookmark save uses refresh cookie + CSRF header.
  */
 import { useCallback, useEffect, useState } from 'react';
 import {
