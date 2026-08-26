@@ -23,7 +23,7 @@
 | 3 | branch `ctf/leak-crack-db` (PenTest on that branch) | [cycle-3-leak-crack-db-remediation.md](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) · frozen `remediation/cycle-3-leak-crack-db` |
 | 4 | tag/`ctf/v1.2.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.2.0/docs/security/Cycle-4/PenTest/v1.2.0-writeup.md) | tag **`v2.2.0`** · [blue-team-plan](Cycle-4/Remediation/blue-team-plan.md) · frozen `remediation/v2.2.0` |
 | 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · frozen `remediation/shells-privesc` |
-| 6 | tag/`ctf/v1.3.0` · Red / Blue in progress | planned `remediation/v2.3.0` · [Dev/](Cycle-6/Dev/) |
+| 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | `remediation/v2.3.0` (M0) · [Remediation/](Cycle-6/Remediation/) |
 | 7 | planned `ctf/v1.4.0` | planned `remediation/v2.4.0` · [Cycle-7 stub](Cycle-7/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
