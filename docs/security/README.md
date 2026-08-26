@@ -12,7 +12,9 @@
 
 **[Cycle-5/](Cycle-5/README.md)** — **Closed** (`ctf/shells-privesc` → Blue on `main`, no version bump). [secure-ready](../release/shells-privesc-secure-ready.md).
 
-**[Cycle-6/](Cycle-6/README.md)** — **Insecure tip shipped** (`v1.3.0` → Red pending → `v2.3.0`). [pentest-ready](../release/v1.3.0-pentest-ready.md). [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md).
+**[Cycle-6/](Cycle-6/README.md)** — **Insecure tip shipped** (`v1.3.0` → Red / Blue → `v2.3.0`). [pentest-ready](../release/v1.3.0-pentest-ready.md). [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md).
+
+**[Cycle-7/](Cycle-7/README.md)** — **Stub** (folder scaffold). Design after Cycle-6 Blue (`v2.3.0`); planned pair `v1.4.0` → `v2.4.0` (multi-service story box).
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -21,7 +23,8 @@
 | 3 | branch `ctf/leak-crack-db` (PenTest on that branch) | [cycle-3-leak-crack-db-remediation.md](Cycle-3/Remediation/cycle-3-leak-crack-db-remediation.md) · frozen `remediation/cycle-3-leak-crack-db` |
 | 4 | tag/`ctf/v1.2.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.2.0/docs/security/Cycle-4/PenTest/v1.2.0-writeup.md) | tag **`v2.2.0`** · [blue-team-plan](Cycle-4/Remediation/blue-team-plan.md) · frozen `remediation/v2.2.0` |
 | 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · frozen `remediation/shells-privesc` |
-| 6 | tag/`ctf/v1.3.0` · Red pending | planned `remediation/v2.3.0` · [Dev/](Cycle-6/Dev/) |
+| 6 | tag/`ctf/v1.3.0` · Red / Blue in progress | planned `remediation/v2.3.0` · [Dev/](Cycle-6/Dev/) |
+| 7 | planned `ctf/v1.4.0` | planned `remediation/v2.4.0` · [Cycle-7 stub](Cycle-7/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
