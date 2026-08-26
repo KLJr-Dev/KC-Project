@@ -3,7 +3,7 @@
 **Classification:** Examiner / Dev only — do not ship in player packets.  
 **Branch:** `ctf/shells-privesc` · baseline tag **`v2.2.0`**  
 **Locks:** [cycle-5-decisions.md](cycle-5-decisions.md) § P2 · [box plan](shells-privesc-box-plan.md)  
-**Status:** **P3/P4 planted** · **P5 gate signed** · Red writeup pending P6
+**Status:** **CTF-READY** · gate signed · Red engagement open (P6)
 
 ---
 
@@ -22,13 +22,43 @@
 | Password | `4r98esfeb7` |
 | SSH | host `:2222` → container `22` (overlay) |
 | Foothold HTTP | host `:8787` — **`kc-agent`** |
-| Overlay | `infra/docker-compose.ctf-shells.yml` (create P3) |
-| Image | `infra/lab-host/` (create P3) |
+| Overlay | `infra/docker-compose.ctf-shells.yml` |
+| Image | `infra/lab-host/` |
+
+## Lab target (this workstation — Red start)
+
+Same pattern as Cycle-4: Docker on the Mac publishes ports on the **VirtualBox Host-Only** bridge so Kali can scan it.
+
+| Role | Address | Notes |
+|------|---------|--------|
+| **Nmap / HTTP / SSH target** | **`192.168.56.1`** | Host-Only (`bridge100`) — prefer this from Kali (matches C4) |
+| LAN (optional) | `192.168.1.21` | `en0` — only if Kali is bridged to LAN |
+| Loopback (operator Mac) | `127.0.0.1` | Screenshots from host, not from Kali |
+
+**Expected open (CTF overlay):** `8080/tcp` (nginx/app) · `2222/tcp` (SSH) · `8787/tcp` (`kc-agent`)  
+**Must not appear:** `5433/tcp` (Postgres) — recreate **without** `docker-compose.e2e.yml`
+
+```bash
+# Operator — clean CTF stack (no e2e PG publish)
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shells.yml \
+  -f infra/docker-compose.e2e.yml down 2>/dev/null || true
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shells.yml up -d --build
+./infra/cycle5-shells-examiner.sh
+```
+
+```bash
+# Kali — first recon (evidence: PenTest/screenshots/03-nmap-*.png)
+nmap -sV -p- --min-rate 2000 192.168.56.1
+# or focused:
+nmap -sV -p 22,80,443,2222,8080,8787,5433 192.168.56.1
+```
+
+**Revshell callback:** listener on Kali (`0.0.0.0:<port>`). From lab-host, target Kali’s Host-Only IP (often `192.168.56.101` — confirm with `ip a` on Kali), **not** `127.0.0.1`.
 
 ## Intended path
 
-1. **Recon:** product stack + open `:8787` (`/` or `/health` JSON).  
-2. **Foothold:** command injection on `GET /check?host=` → reverse shell as `lab`.  
+1. **Recon:** nmap → `:8080` + `:8787` (+ `:2222`).  
+2. **Foothold:** `GET /check?host=` cmdi on `:8787` → reverse shell as `lab`.  
 3. **Stabilize:** interactive TTY (`script` / `python` pty / etc.).  
 4. **user.txt:** enum beyond `~` → `/var/opt/kc/user.txt`.  
 5. **Enum:** `sudo -l`, cron, SUID — one real vector + decoys.  
@@ -39,7 +69,7 @@
 | Field | Value |
 |-------|--------|
 | Sudoers | `lab ALL=(root) NOPASSWD: /opt/kc-ops/backup.sh` |
-| Bug | Script owned `lab:lab`, mode `775` (writable) |
+| Bug | Script owned `lab:lab`, mode `775` (writable) — intentional CTF plant |
 | Fix (Blue) | root-owned non-writable script + drop NOPASSWD / remove path |
 
 ## Decoys (why they fail)
@@ -54,12 +84,12 @@
 | Field | Value |
 |-------|--------|
 | Listen | `0.0.0.0:8787` as user `lab` |
-| Benign | `GET /health` → JSON status |
-| Bug | `GET /check?host=<input>` → unsanitized shell-out (e.g. `ping -c1 …`) |
+| Benign | `GET /` or `/health` → JSON status |
+| Bug | `GET /check?host=<input>` → `os.system(f"ping -c1 {host} >…")` — **intentional** cmdi |
 | Outcome | RCE → reverse shell as `lab` |
-| Listener note | Attacker host must be reachable from container (document Kali IP / `host.docker.internal` in player brief operator notes) |
+| Example (examiner) | `curl -g --get --data-urlencode 'host=127.0.0.1; id' 'http://TARGET:8787/check'` |
 
-## Examiner dry-run (P5)
+## Examiner dry-run
 
 ```bash
 docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shells.yml up -d --build
@@ -68,7 +98,7 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ctf-shel
 ./infra/cycle5-shells-examiner.sh
 ```
 
-Gate: [shells-privesc-ctf-ready.md](../../../release/shells-privesc-ctf-ready.md) · Player: [shells-privesc-player-brief.md](shells-privesc-player-brief.md)
+Gate: [shells-privesc-ctf-ready.md](../../../release/shells-privesc-ctf-ready.md) · Player: [shells-privesc-player-brief.md](shells-privesc-player-brief.md) · Scope: [../PenTest/scope.md](../PenTest/scope.md)
 
 ## Explicit non-goals
 

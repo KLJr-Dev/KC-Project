@@ -1,6 +1,7 @@
 #!/bin/bash
 # KC Ops — nightly inventory / backup helper (lab host).
 # Scheduled via sudo for elevated archive access.
+# INTENTIONAL CTF plant: file is lab-writable while listed in sudoers (Cycle-5 PrivEsc).
 set -euo pipefail
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
