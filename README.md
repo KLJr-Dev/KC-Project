@@ -1,5 +1,9 @@
 # KC-Project
 
+> **You are on CTF branch `ctf/shells-privesc`.** Baseline: tag **`v2.2.0`**.  
+> Cycle-5 shells / PrivEsc lab lives here. **Do not merge** CTF breaks into `main` (ADR-032).  
+> Hub: [docs/security/Cycle-5/README.md](docs/security/Cycle-5/README.md).
+
 KC-Project is a long-term software engineering and web security project focused on
 designing, deploying, exploiting, and securing a modern web application.
 
