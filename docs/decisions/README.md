@@ -43,6 +43,7 @@ Each ADR follows a standard format: **Status**, **Context**, **Decision**, **Con
 | [032](ADR-032-post-v2.1.0-versioning.md) | Post-v2.1.0 versioning & branching (amends 013) | Accepted | v2.1.0 |
 | [033](ADR-033-cycle-4-softdev-version-pair.md) | Cycle-4 SoftDev version pair v1.2.0→v2.2.0 (amends 032) | Accepted | Cycle-4 |
 | [034](ADR-034-cycle-6-product-expansion-pair.md) | Cycle-6 product expansion pair v1.3.0→v2.3.0 (amends 032) | Accepted | Cycle-6 |
+| [035](ADR-035-cycle-7-multi-service-pair.md) | Cycle-7 multi-service pair v1.4.0→v2.4.0 (amends 032) | Accepted | Cycle-7 |
 
 ## Adding a New ADR
 

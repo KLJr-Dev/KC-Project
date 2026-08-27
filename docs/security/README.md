@@ -14,7 +14,7 @@
 
 **[Cycle-6/](Cycle-6/README.md)** — **Closed** (`v1.3.0` → `v2.3.0`): Preview destination policy + bookmark CSRF ([ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md)). [secure-ready](../release/v2.3.0-secure-ready.md).
 
-**[Cycle-7/](Cycle-7/README.md)** — **Stub** (folder scaffold). Design next — planned pair `v1.4.0` → `v2.4.0` (multi-service story box). Baseline tip **`v2.3.0`**.
+**[Cycle-7/](Cycle-7/README.md)** — **P0 design** (`docs/cycle-7-p0`): multi-service Northwind Ops · pair `v1.4.0` → `v2.4.0` ([ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)). Baseline tip **`v2.3.0`**.
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -24,7 +24,7 @@
 | 4 | tag/`ctf/v1.2.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.2.0/docs/security/Cycle-4/PenTest/v1.2.0-writeup.md) | tag **`v2.2.0`** · [blue-team-plan](Cycle-4/Remediation/blue-team-plan.md) · frozen `remediation/v2.2.0` |
 | 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · frozen `remediation/shells-privesc` |
 | 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | tag **`v2.3.0`** · [Remediation/](Cycle-6/Remediation/) · frozen `remediation/v2.3.0` |
-| 7 | planned `ctf/v1.4.0` | planned `remediation/v2.4.0` · [Cycle-7 stub](Cycle-7/README.md) |
+| 7 | planned `ctf/v1.4.0` | planned `remediation/v2.4.0` · [Cycle-7 P0](Cycle-7/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -66,14 +66,16 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 - [shells-privesc-ctf-ready.md](../release/shells-privesc-ctf-ready.md) — Cycle-5 Red/CTF gate (**on CTF branch** · frozen)
 - [v1.3.0-pentest-ready.md](../release/v1.3.0-pentest-ready.md) — Cycle-6 expansion Red gate (**signed** · tag `v1.3.0`)
 - [v2.3.0-secure-ready.md](../release/v2.3.0-secure-ready.md) — Cycle-6 Blue gate (**signed** · tag `v2.3.0`)
+- [v1.4.0-pentest-ready.md](../release/v1.4.0-pentest-ready.md) — Cycle-7 expansion Red gate (**draft** · P0)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
 - [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — CTF-only cycles without product version bumps
 - [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — Cycle-4 pair `v1.2.0`→`v2.2.0`
 - [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md) — Cycle-6 pair `v1.3.0`→`v2.3.0`
+- [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md) — Cycle-7 pair `v1.4.0`→`v2.4.0`
 
 ## Scope
 
-Cycles **1–6 complete**. Secure tip **`v2.3.0`**. Cycle-7 stubbed for multi-service design. Play boxes: frozen `ctf/*` above.
+Cycles **1–6 complete**. Secure tip **`v2.3.0`**. Cycle-7 **P0 design** (multi-service Northwind Ops). Play boxes: frozen `ctf/*` above.
 
 ## Tools
 
@@ -112,4 +114,4 @@ Run offensive work against **tag `v1.0.0`**, **`ctf/v1.1.0`**, **`ctf/leak-crack
 
 - [STRATEGY.md](../roadmap/STRATEGY.md)
 - [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
-- [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md)
+- [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md) · [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)
