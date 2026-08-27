@@ -1,16 +1,20 @@
-# Cycle-8 overlay services (infra/cycle8/)
+# Cycle-8 overlay services
 
-| Service | Role | Status |
-|---------|------|--------|
-| (compose) `cycle8-intake` | FastAPI Intake SQLi — see `../../intake/` | **P2a** |
-| ftp / edge / cowrie / samba / smtp | Tool-forced DAG overlays | Pending P2b |
-
-Start:
+| Service | Publish | Role |
+|---------|---------|------|
+| `cycle8-intake` | none | FastAPI SQLi — `../../intake/` |
+| `cycle8-ftp` | `:21` + PASV | LIVE Hydra (`lisa`/`peanut`); F2; www write |
+| `cycle8-cowrie` | `:22` | DECOY SSH-looking |
+| `cycle8-edge` | via nginx `/www/` | PHP webroot; sudo nano; F3/F4; dual-home |
+| `cycle8-samba` | none | Internal `OpsFiles`; lisa/sunshine; F5 |
+| `cycle8-mail` | none | Internal IMAP lisa/sunshine; F5 |
 
 ```bash
 docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle8.yml up -d --build
-curl -sS 'http://localhost:8080/api/intake/health'
-curl -sS 'http://localhost:8080/api/intake/search?q=lisa'
+./infra/cycle8-examiner.sh
+./infra/assert-cycle8-unpublished.sh
 ```
+
+Optional: `CYCLE8_FTP_PASV_ADDRESS=<box-ip>` in `infra/.env` for Host-Only FTP.
 
 @see [cycle-8-decisions.md](../../docs/security/Cycle-8/Dev/cycle-8-decisions.md)
