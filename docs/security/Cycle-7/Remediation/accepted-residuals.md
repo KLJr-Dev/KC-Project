@@ -12,4 +12,4 @@ Companion: [v2.4.0-remediation.md](v2.4.0-remediation.md) · [blue-team-plan.md]
 | **C7-R05** | Demo `RolePass123!` / lab password patterns | **Accepted (lab)** | Unchanged from prior cycles |
 | **C7-R06** | Ops Documents still serves handbook under library root | **Accepted (product)** | Feature kept; confinement is the control |
 
-Statuses finalize at M4 gate (fill date when signed).
+Statuses finalized at M4 gate (**2026-08-27**).

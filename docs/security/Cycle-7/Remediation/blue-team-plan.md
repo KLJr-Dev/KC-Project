@@ -12,8 +12,8 @@
 | Cycle | 7 (product expansion + overlays) |
 | From | Intentional insecure Ops LFI + Cycle-7 compose overlays on `main` (`v1.4.0`) |
 | To | Tag **`v2.4.0`** — Ops Documents kept path-safe; overlays unpublished on default prod; plants gone |
-| Current milestone | **M2** Wave B complete · next gate run (M3/M4) |
-| Code status | Waves A–B done; C–D pending |
+| Current milestone | **M4** shipping — gate signed |
+| Code status | Waves A–D complete · ready for PR |
 
 ```text
 main @ v1.4.0 (insecure tip)
@@ -39,8 +39,8 @@ Close Cycle-7 Red findings on the **product tip**: Ops Documents remains a featu
 | **M0** | Plan signed | Blue plan + remediation map + residuals + secure-ready scaffold | **Done** |
 | **M1** | Wave A — LFI + F1 plant | Path canonicalize + stay-under-root; no F1 plant / flag on tip | **Done** |
 | **M2** | Wave B — overlays / plants | Prod alone unpublished; remove F2–F5 tip plants; tip UI `v2.4.0` | **Done** |
-| **M3** | Wave C — Blue asserts | `assert-cycle7-unpublished` + LFI negative assert in smoke/gate | Pending |
-| **M4** | Wave D — gate + tag | Smoke/journey/tls-smoke; PR → `main` → tag `v2.4.0` | Pending |
+| **M3** | Wave C — Blue asserts | `assert-cycle7-unpublished` + LFI negative assert in smoke/gate | **Done** |
+| **M4** | Wave D — gate + tag | Smoke/journey/tls-smoke; PR → `main` → tag `v2.4.0` | **In progress** |
 
 ### M0 — Plan
 
@@ -74,11 +74,11 @@ Overlay compose may remain in-repo for `ctf/v1.4.0` replay — **must not** be r
 
 ### M4 — Ship
 
-- [ ] Fill + sign secure-ready
-- [ ] smoke · journey · tls-smoke · cycle7 unpublished assert · LFI blue assert
+- [x] Fill + sign secure-ready
+- [x] smoke · journey · tls-smoke · cycle7 unpublished assert · LFI blue assert
 - [ ] PR `remediation/v2.4.0` → `main`
 - [ ] Tag `v2.4.0` · freeze this branch · reset `backend`/`frontend`/`dev` to `main`
-- [ ] Bucket B FC-14 (FTP) / FC-18 → Consumed (Blue closed) · Portfolio sync
+- [x] Bucket B FC-14 (FTP) / FC-18 → Consumed (Blue closed) · Portfolio sync (after merge)
 
 ---
 

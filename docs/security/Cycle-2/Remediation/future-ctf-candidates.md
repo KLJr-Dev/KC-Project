@@ -49,7 +49,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | FC-04 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
 | FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
 | FC-12 · FC-15 · FC-16 | Available (later tracks) |
-| FC-14 (FTP) · FC-18 | **Consumed (Cycle-7 `v1.4.0` tip)** — Red frozen `ctf/v1.4.0`; Blue in progress `remediation/v2.4.0` |
+| FC-14 (FTP) · FC-18 | **Consumed (Cycle-7 `v1.4.0` / `v2.4.0`)** — Red frozen `ctf/v1.4.0`; Blue `remediation/v2.4.0` |
 | FC-17 | Optional decoy on Cycle-7 (not graded DoD) |
 
 ---
