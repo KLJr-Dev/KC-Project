@@ -89,6 +89,20 @@ export class SeedDemoFilesAndShares1771440000000 implements MigrationInterface {
       );
     }
 
+    // Prefer migration enum (`file_approval_enum`); fall back if a sync-era column
+    // used TypeORM's default `file_entity_approvalstatus_enum` name.
+    const enumRows: Array<{ udt_name: string }> = await queryRunner.query(
+      `SELECT udt_name FROM information_schema.columns
+       WHERE table_schema = current_schema() AND table_name = 'file_entity'
+         AND column_name = 'approvalStatus'
+       LIMIT 1`,
+    );
+    const udt = enumRows[0]?.udt_name;
+    const approvalEnum =
+      udt === 'file_entity_approvalstatus_enum'
+        ? 'file_entity_approvalstatus_enum'
+        : 'file_approval_enum';
+
     for (const f of this.demoFiles) {
       const existing: unknown[] = await queryRunner.query(
         `SELECT 1 FROM "file_entity" WHERE id = $1 LIMIT 1`,
@@ -110,7 +124,7 @@ export class SeedDemoFilesAndShares1771440000000 implements MigrationInterface {
       await queryRunner.query(
         `INSERT INTO "file_entity"
           (id, "ownerId", filename, mimetype, "storagePath", size, description, "approvalStatus", "uploadedAt")
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text::file_approval_enum, $9)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text::${approvalEnum}, $9)`,
         [
           f.id,
           f.ownerId,
