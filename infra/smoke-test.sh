@@ -87,4 +87,8 @@ echo "  OK"
 # Cycle-6 Blue — SSRF destination policy + bookmark CSRF (v2.3.0)
 "${ROOT}/infra/cycle6-blue-assert.sh"
 
+# Cycle-7 Blue — Ops Documents path confinement (v2.4.0)
+"${ROOT}/infra/cycle7-blue-assert.sh"
+"${ROOT}/infra/assert-cycle7-unpublished.sh"
+
 echo "Smoke test passed."

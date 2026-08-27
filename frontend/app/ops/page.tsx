@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Ops Documents — Cycle-7 intentional insecure tip (`v1.4.0`).
- * Path query is sent as-is to GET /ops/documents (CWE-22 on backend).
+ * Ops Documents — Cycle-7 Blue (`v2.4.0`).
+ * Authenticated handbook viewer; backend confines paths under the library root.
  */
 import { useState } from 'react';
 import { opsDocumentsGet, type OpsDocumentResult } from '../../lib/api';

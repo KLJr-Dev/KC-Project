@@ -68,6 +68,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 - [v1.3.0-pentest-ready.md](../release/v1.3.0-pentest-ready.md) — Cycle-6 expansion Red gate (**signed** · tag `v1.3.0`)
 - [v2.3.0-secure-ready.md](../release/v2.3.0-secure-ready.md) — Cycle-6 Blue gate (**signed** · tag `v2.3.0`)
 - [v1.4.0-pentest-ready.md](../release/v1.4.0-pentest-ready.md) — Cycle-7 expansion Red gate (**signed** · tag `v1.4.0`)
+- [v2.4.0-secure-ready.md](../release/v2.4.0-secure-ready.md) — Cycle-7 Blue gate (**draft** · `remediation/v2.4.0`)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
 - [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — CTF-only cycles without product version bumps
 - [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — Cycle-4 pair `v1.2.0`→`v2.2.0`

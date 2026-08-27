@@ -578,7 +578,7 @@ export async function bookmarksSave(url: string): Promise<BookmarkSaveResult> {
 
 export const bookmarksList = () => request<BookmarkListResult>('/auth/bookmarks');
 
-// ── Ops Documents (Cycle-7 intentional insecure / v1.4.0) ─────────────
+// ── Ops Documents (Cycle-7 Blue / v2.4.0 — path-confined) ─────────────
 // CWE-22: backend joins `path` under the library root without confinement.
 // Blue v2.4.0 closes traversal; tip ships the plant for Red.
 
