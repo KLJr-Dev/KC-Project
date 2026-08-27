@@ -14,7 +14,7 @@
 
 **[Cycle-6/](Cycle-6/README.md)** — **Closed** (`v1.3.0` → `v2.3.0`): Preview destination policy + bookmark CSRF ([ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md)). [secure-ready](../release/v2.3.0-secure-ready.md).
 
-**[Cycle-7/](Cycle-7/README.md)** — **Tip shipped** (`v1.4.0`): Northwind Ops LFI + overlays · Red pending · pair → `v2.4.0` ([ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)). [pentest-ready](../release/v1.4.0-pentest-ready.md).
+**[Cycle-7/](Cycle-7/README.md)** — **Red frozen** (`v1.4.0` / `ctf/v1.4.0`) · Blue **`remediation/v2.4.0`** → `v2.4.0` ([ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)). [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md) · [secure-ready](../release/v2.4.0-secure-ready.md) (draft).
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -24,7 +24,7 @@
 | 4 | tag/`ctf/v1.2.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.2.0/docs/security/Cycle-4/PenTest/v1.2.0-writeup.md) | tag **`v2.2.0`** · [blue-team-plan](Cycle-4/Remediation/blue-team-plan.md) · frozen `remediation/v2.2.0` |
 | 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · frozen `remediation/shells-privesc` |
 | 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | tag **`v2.3.0`** · [Remediation/](Cycle-6/Remediation/) · frozen `remediation/v2.3.0` |
-| 7 | tag/`ctf/v1.4.0` · [Cycle-7](Cycle-7/README.md) | planned `remediation/v2.4.0` |
+| 7 | tag/`ctf/v1.4.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md) | `remediation/v2.4.0` · [Remediation/](Cycle-7/Remediation/) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
