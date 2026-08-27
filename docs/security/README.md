@@ -18,6 +18,8 @@
 
 **[Cycle-7/](Cycle-7/README.md)** — **Closed** (`v1.4.0` → `v2.4.0`): Ops Documents path confinement + overlays unpublished ([ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)). [secure-ready](../release/v2.4.0-secure-ready.md).
 
+**[Cycle-8/](Cycle-8/README.md)** — **P0 design** (`v1.5.0` → `v2.5.0`): FastAPI Intake tool-chain box ([ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)). Baseline tip **`v2.4.0`**.
+
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
 | 1 | [PenTest/v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) · frozen `remediation/v2.0.0` |
@@ -27,6 +29,7 @@
 | 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · frozen `remediation/shells-privesc` |
 | 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | tag **`v2.3.0`** · [Remediation/](Cycle-6/Remediation/) · frozen `remediation/v2.3.0` |
 | 7 | tag/`ctf/v1.4.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md) | tag **`v2.4.0`** · [Remediation/](Cycle-7/Remediation/) · frozen `remediation/v2.4.0` |
+| 8 | (pending) `ctf/v1.5.0` | (pending) `remediation/v2.5.0` · [Cycle-8](Cycle-8/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -42,6 +45,7 @@ Checkout the branch, follow the player brief, don’t use for “secure” demos
 | Cycle-5 | `ctf/shells-privesc` | cmdi → revshell → sudo PrivEsc | [Cycle-5](Cycle-5/README.md) |
 | Cycle-6 | `ctf/v1.3.0` | Preview SSRF + bookmark CSRF | [Cycle-6](Cycle-6/README.md) |
 | Cycle-7 | `ctf/v1.4.0` | LFI + FTP/SSH/Cowrie/jump | [Cycle-7](Cycle-7/README.md) |
+| Cycle-8 | `ctf/v1.5.0` (pending) | sqlmap → John (SMTP) → Hydra (FTP) → revshell → nano → Samba/SMTP | [Cycle-8](Cycle-8/README.md) |
 
 ## Branch keepers (tip hygiene)
 
@@ -76,10 +80,12 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 - [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — Cycle-4 pair `v1.2.0`→`v2.2.0`
 - [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md) — Cycle-6 pair `v1.3.0`→`v2.3.0`
 - [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md) — Cycle-7 pair `v1.4.0`→`v2.4.0`
+- [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) — Cycle-8 pair `v1.5.0`→`v2.5.0`
+- [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md) — Northwind immersion skin (lab meta outside UI)
 
 ## Scope
 
-Cycles **1–7 complete**. Tip on `main` is hardened **`v2.4.0`**. Play boxes: frozen `ctf/*` above.
+Cycles **1–7 complete**. Cycle-8 **P0 design** (build from tip **`v2.4.0`**). Play boxes: frozen `ctf/*` above.
 
 ## Tools
 
@@ -120,4 +126,4 @@ Run offensive work against **tag `v1.0.0`**, **`ctf/v1.1.0`**, **`ctf/leak-crack
 
 - [STRATEGY.md](../roadmap/STRATEGY.md)
 - [ADR-031](../decisions/ADR-031-security-cycle-docs.md)
-- [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md) · [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)
+- [ADR-013](../decisions/ADR-013-expansion-cycle-versioning.md) · [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) · [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) · [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md) · [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)

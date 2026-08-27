@@ -315,15 +315,19 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 **Supersedes** earlier draft “cryptographic failures” slot for this version number.
 
-#### v1.5.0+ — Business Logic & Advanced Exploitation (Future)
-**Goal**: Complex multi-step attack chains, business logic bypasses.
+#### Product expansion `v1.5.0` — Intake tool-chain box (Cycle-8) — **P0 design**
 
-**New Surfaces**:
-- Double-spending: upload same file twice, get allocated storage twice
-- Privilege escalation chains: user → moderator → admin via role confusion
-- Billing bypasses: free tier gets unlimited storage if pagination param tampered
+**Goal**: Multi-day OSCP-shaped chain — sqlmap → John (SMTP hashes) → Hydra (FTP) → playable revshell → sudo nano → Samba+SMTP; Cowrie-only SSH; credential noise; Northwind immersion skin. Kali + Docker only.
 
-**CWEs**: CWE-863, CWE-269, custom business logic vulns
+**Surfaces**: FastAPI Intake microservice behind Nest `/api/intake` (FC-19); `docker-compose.cycle8.yml` overlays (FC-20); five graded proofs on a hard DAG (**no John/Hydra secret reuse**).
+
+**Blue**: **`v2.5.0`** (planned) — close plants; unpublish overlays; **keep Northwind skin** → tag `v2.5.0`.
+
+**Supersedes** earlier draft “business logic & advanced exploitation” slot for this version number (logic-flaw SoftDev deferred).
+
+**Design docs:** [Cycle-8](../security/Cycle-8/README.md) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)
+
+**Skin:** Corporate Northwind product face; no extra graded IDOR/cookie/TLS flags this cycle.
 
 ---
 

@@ -35,6 +35,8 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | **FC-16** | WordPress / CMS sibling | — | optional parallel lab | Separate compose/repo | Don’t redefine KC as CMS |
 | **FC-17** | Useless config leak (OSCP-inspired `.env`) | 200 / 538 | Cycle-7 optional FTP decoy | Loopback DB_* / decoy; remote mysql fails | No world-readable secrets on secure tip |
 | **FC-18** | LFI / arbitrary file read → config | 22 / 200 | **Cycle-7 `v1.4.0`** | Ops Documents path param | Path checks stay on secure tip |
+| **FC-19** | FastAPI Intake SQLi + mail hash users (microservice behind Nest) | 89 / 916 | **Cycle-8 `v1.5.0`** | Intake via `/api/intake` + lab-weak SMTP hashes | Parameterized queries; no weak hash plant on secure tip |
+| **FC-20** | Cowrie-only SSH + LIVE weak FTP + Samba/SMTP dual-home | — | **Cycle-8 `v1.5.0`** | `docker-compose.cycle8.yml` overlays | Unpublished on default prod |
 
 ---
 
@@ -49,8 +51,9 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | FC-04 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
 | FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
 | FC-12 · FC-15 · FC-16 | Available (later tracks) |
-| FC-14 (FTP) · FC-18 | **Consumed (Cycle-7 `v1.4.0` / `v2.4.0`)** — Red frozen `ctf/v1.4.0`; Blue `remediation/v2.4.0` |
+| FC-14 (FTP) · FC-18 | **Consumed (Cycle-7 `v1.4.0` / `v2.4.0`)** — Red frozen `ctf/v1.4.0`; Blue tagged `v2.4.0` |
 | FC-17 | Optional decoy on Cycle-7 (not graded DoD) |
+| FC-19 · FC-20 | **Planned (Cycle-8 `v1.5.0` / `v2.5.0`)** — P0 design; build from tip `v2.4.0` |
 
 ---
 
@@ -71,5 +74,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 ## Handoff
 
 1. Cycle-7 **closed** (`v1.4.0` / `ctf/v1.4.0` → `v2.4.0`) — [Cycle-7](../../Cycle-7/README.md).  
-2. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
-3. Update this status table (`Consumed` / `Planned` / `In progress`) when picking the next FC.
+2. Cycle-8 P0 → PR → `main` ([Cycle-8](../../Cycle-8/README.md) · [ADR-036](../../../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)).  
+3. Feature lanes → tip `v1.5.0` → Red → Blue `v2.5.0`.  
+4. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
+5. Update this status table (`Consumed` / `Planned` / `In progress`).

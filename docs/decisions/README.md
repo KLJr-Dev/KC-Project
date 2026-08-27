@@ -44,6 +44,8 @@ Each ADR follows a standard format: **Status**, **Context**, **Decision**, **Con
 | [033](ADR-033-cycle-4-softdev-version-pair.md) | Cycle-4 SoftDev version pair v1.2.0→v2.2.0 (amends 032) | Accepted | Cycle-4 |
 | [034](ADR-034-cycle-6-product-expansion-pair.md) | Cycle-6 product expansion pair v1.3.0→v2.3.0 (amends 032) | Accepted | Cycle-6 |
 | [035](ADR-035-cycle-7-multi-service-pair.md) | Cycle-7 multi-service pair v1.4.0→v2.4.0 (amends 032) | Accepted | Cycle-7 |
+| [036](ADR-036-cycle-8-intake-tool-chain-pair.md) | Cycle-8 Intake tool-chain pair v1.5.0→v2.5.0 (amends 032) | Accepted | Cycle-8 |
+| [037](ADR-037-immersion-northwind-product-face.md) | Immersion skin — Northwind product face (lab meta outside UI) | Accepted | Cycle-8+ |
 
 ## Adding a New ADR
 
