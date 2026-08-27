@@ -1,6 +1,0 @@
-Northwind Ops — bastion foothold
-
-Internal ops intranet is dual-homed (not reachable from Kali directly).
-From this host, try HTTP on: http://cycle7-jump:8080/
-
-Staff credentials for the intranet live under /root/ (ops only).

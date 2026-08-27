@@ -5,33 +5,6 @@ import { useAuth } from '../lib/auth-context';
 import { DEMO_USERS } from '../lib/demo-users';
 import { isLabUiEnabled } from '../lib/lab-flags';
 
-const FEATURES = [
-  {
-    title: 'Identity & Auth',
-    description: 'Registration, login, and JWT sessions with hardened authorization.',
-  },
-  {
-    title: 'File Management',
-    description: 'Upload, download, and share files with ownership and token controls.',
-  },
-  {
-    title: 'Notes',
-    description: 'Personal notes with search, moderation flags, and optional attachments.',
-  },
-  {
-    title: 'Link Preview',
-    description: 'Server-side URL preview and account bookmarks.',
-  },
-  {
-    title: 'Ops Documents',
-    description: 'Northwind Ops handbook viewer (path-based document open).',
-  },
-  {
-    title: 'Admin Surface',
-    description: 'Role-based admin and moderator workflows backed by database roles.',
-  },
-];
-
 export default function HomePage() {
   const { isAuthenticated, isAdmin, isModerator, role } = useAuth();
   const labUi = isLabUiEnabled();
@@ -39,26 +12,26 @@ export default function HomePage() {
   return (
     <div className="space-y-16">
       <section className="space-y-6 pt-8 text-center">
+        <p className="text-sm font-medium tracking-wide text-muted uppercase">Northwind Ops</p>
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-          KC-Project
+          Northwind
         </h1>
         <p className="mx-auto max-w-2xl text-lg text-muted">
-          A full-stack web application built to be broken, then hardened through structured
-          remediation cycles.
+          Employee portal for files, notes, and ops intake across Northwind.
         </p>
         {!isAuthenticated ? (
           <div className="flex items-center justify-center gap-4 pt-2">
             <Link
-              href="/auth"
+              href="/auth?mode=login"
               className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Get Started
+              Sign in to portal
             </Link>
             <Link
-              href="/auth?mode=login"
+              href="/auth"
               className="rounded-md border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/30"
             >
-              Sign In
+              Request access
             </Link>
           </div>
         ) : (
@@ -72,6 +45,9 @@ export default function HomePage() {
                 className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
               >
                 My Files
+              </Link>
+              <Link href="/intake" className="rounded-md border border-border px-3 py-1.5 text-sm">
+                Intake
               </Link>
               <Link href="/notes" className="rounded-md border border-border px-3 py-1.5 text-sm">
                 Notes
@@ -105,15 +81,15 @@ export default function HomePage() {
 
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-md border border-border p-6 space-y-3">
-          <h2 className="text-sm font-medium text-muted">Current Version</h2>
-          <p className="text-lg font-semibold text-foreground">v2.4.0 — Hardened</p>
+          <h2 className="text-sm font-medium text-muted">Portal build</h2>
+          <p className="text-lg font-semibold text-foreground">v1.5.0</p>
           <p className="text-sm text-muted">
-            Ops Documents path-confined handbook viewer (Cycle-7 Blue).
+            Northwind employee portal with Ops Intake staff directory.
           </p>
         </div>
         {labUi ? (
           <div className="rounded-md border border-border p-6 space-y-3">
-            <h2 className="text-sm font-medium text-muted">Demo accounts</h2>
+            <h2 className="text-sm font-medium text-muted">Demo accounts (lab)</h2>
             <ul className="text-sm space-y-1 text-muted">
               {DEMO_USERS.map((d) => (
                 <li key={d.email}>
@@ -129,22 +105,11 @@ export default function HomePage() {
           <div className="rounded-md border border-border p-6 space-y-3">
             <h2 className="text-sm font-medium text-muted">Accounts</h2>
             <p className="text-sm text-muted">
-              Register a new account or sign in with credentials issued by your operator.
+              Sign in with credentials issued by Northwind IT, or register if self-service is
+              enabled for your site.
             </p>
           </div>
         )}
-      </section>
-
-      <section className="space-y-6">
-        <h2 className="text-xl font-semibold text-foreground">Security Surfaces</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="rounded-md border border-border p-5 space-y-2">
-              <h3 className="text-sm font-medium text-foreground">{f.title}</h3>
-              <p className="text-sm text-muted">{f.description}</p>
-            </div>
-          ))}
-        </div>
       </section>
     </div>
   );

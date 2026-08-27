@@ -51,6 +51,8 @@ Demo users: [`docs/deploy/demo-users.md`](docs/deploy/demo-users.md).
 
 ## Track: Red (primary game)
 
+Plant overlays ship **with the checkout** (tag / `ctf/*`). Tip (`main`) keeps only the **current** live box overlay plus evergreen Blue asserts — prior cycle compose/examiners are not on tip after retirement.
+
 ### Featured — Cycle-7 Northwind Ops
 
 Multi-day path: Ops LFI → FTP → SSH → sudo find → jump pivot.
@@ -73,7 +75,7 @@ Release: [v1.4.0](https://github.com/KLJr-Dev/KC-Project/releases/tag/v1.4.0).
 |-----|----------|--------|-------------|
 | Cycle-6 | `v1.3.0` / `ctf/v1.3.0` | Preview SSRF + bookmark CSRF | [Cycle-6](docs/security/Cycle-6/README.md) |
 | Cycle-5 | `ctf/shells-privesc` | cmdi → shell → PrivEsc | [Cycle-5](docs/security/Cycle-5/README.md) |
-| Cycle-4 | `v1.2.0` / `ctf/v1.2.0` | Notes XSS → SSH | [Cycle-4](docs/security/Cycle-4/README.md) (+ `docker-compose.ssh.yml`) |
+| Cycle-4 | `v1.2.0` / `ctf/v1.2.0` | Notes XSS → SSH | [Cycle-4](docs/security/Cycle-4/README.md) (+ `docker-compose.ssh.yml` on that checkout) |
 | Cycle-3 | `ctf/leak-crack-db` | leak → crack → SQLi | [Cycle-3](docs/security/Cycle-3/README.md) |
 | Cycle-2 | `v1.1.0` / `ctf/v1.1.0` | IDOR / JWT / PG | [Cycle-2](docs/security/Cycle-2/README.md) |
 | Cycle-1 | `v1.0.0` | MVP AppSec | [Cycle-1](docs/security/Cycle-1/README.md) |
@@ -112,4 +114,4 @@ Other cycles: use that cycle’s Remediation folder + insecure tag the same way;
 ## Quick infra pointer
 
 Compose overlays, TLS, smoke/journey: [`infra/README.md`](infra/README.md).  
-Prod alone must not publish Postgres `:5433` or Cycle-7 overlay ports (`:21` / `:2222` / `:2223`).
+Prod alone must not publish Postgres `:5433`, retired Cycle-7 ports (`:21` / `:2222` / `:2223`), or Cycle-8 plant ports (`:21` / `:22`) without the live overlay.

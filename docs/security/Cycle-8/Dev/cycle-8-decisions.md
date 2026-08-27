@@ -183,3 +183,4 @@ STOP
 | Writeup | OSCP style, no AD section |
 | Skin | Northwind on both tips |
 | FastAPI role | Microservice addition, not Nest replacement |
+| Tip infra | **One live plant overlay** on tip; closed boxes retire to `ctf/v1.x` (delete tip copies at Blue close) |

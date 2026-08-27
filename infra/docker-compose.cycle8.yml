@@ -1,0 +1,103 @@
+# Cycle-8 — Northwind Intake multi-service overlay (`v1.5.0` tip)
+#
+# Usage (from repo root):
+#   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle8.yml up -d --build
+#
+# Publishes: FTP :21 (+ PASV 30000-30009), Cowrie decoy :22.
+# Edge / Samba / mail stay off the host NIC (edge reached via nginx /www/).
+# Do NOT merge into default prod compose — SoftDev / lab only (ADR-036).
+#
+# @see docs/security/Cycle-8/Dev/cycle-8-decisions.md
+
+networks:
+  cycle8_internal:
+    name: kc_cycle8_internal
+    internal: true
+
+volumes:
+  cycle8_www:
+
+services:
+  cycle8-intake:
+    build:
+      context: ../intake
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_ADMIN_USER: ${DB_ADMIN_USER:-postgres}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD:-kc-change-me-prod}
+      INTAKE_DB_NAME: ${INTAKE_DB_NAME:-kc_intake}
+      PORT: 8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - '8000'
+    mem_limit: 256m
+    restart: unless-stopped
+
+  # LIVE Hydra — lisa/peanut (≠ SMTP sunshine). Anon: README only.
+  cycle8-ftp:
+    build:
+      context: ./cycle8/ftp
+    ports:
+      - '21:21'
+      - '30000-30009:30000-30009'
+    environment:
+      PASV_ADDRESS: ${CYCLE8_FTP_PASV_ADDRESS:-127.0.0.1}
+    volumes:
+      - cycle8_www:/var/www/html
+    mem_limit: 64m
+    restart: unless-stopped
+
+  # CYCLE8-DECOY — sole SSH-looking listener (not graded)
+  cycle8-cowrie:
+    image: cowrie/cowrie:latest@sha256:42e01e0e5fe705a0a63dacc0f1992b2d230740ac149af7675f48197abf740d44
+    platform: linux/amd64
+    ports:
+      - '22:2222'
+    mem_limit: 256m
+    restart: unless-stopped
+
+  # Webroot + sudo nano (F3/F4). Dual-home for pivot to Samba/mail.
+  cycle8-edge:
+    build:
+      context: ./cycle8/edge
+    volumes:
+      - cycle8_www:/var/www/html
+    networks:
+      - default
+      - cycle8_internal
+    expose:
+      - '8080'
+    mem_limit: 128m
+    restart: unless-stopped
+
+  cycle8-samba:
+    build:
+      context: ./cycle8/samba
+    networks:
+      - cycle8_internal
+    expose:
+      - '445'
+    mem_limit: 64m
+    restart: unless-stopped
+
+  cycle8-mail:
+    build:
+      context: ./cycle8/mail
+    networks:
+      - cycle8_internal
+    expose:
+      - '143'
+    mem_limit: 64m
+    restart: unless-stopped
+
+  nginx:
+    volumes:
+      - ./nginx-cycle8.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+      - cycle8-intake
+      - cycle8-edge

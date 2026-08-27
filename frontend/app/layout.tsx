@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'KC-Project',
-  description: 'v1.0.0 — Pentest-ready insecure MVP',
+  title: 'Northwind Ops',
+  description: 'Northwind employee portal — v1.5.0',
 };
 
 export default function RootLayout({

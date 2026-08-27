@@ -1,5 +1,5 @@
 /**
- * Global navigation header (v2.1.0).
+ * Global navigation header — Northwind Ops face (Cycle-8 / ADR-037).
  *
  * Auth: access JWT in memory; role from AuthContext (UX only — API enforces).
  * Logout calls POST /auth/logout (revokes refresh) and clears in-memory access token.
@@ -38,7 +38,7 @@ export default function Header() {
     <header className="border-b border-border bg-background">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
         <Link href="/" className="text-lg font-semibold tracking-tight text-foreground">
-          KC
+          Northwind
         </Link>
         <nav className="flex items-center gap-6">
           <Link href="/" className="text-sm text-muted transition-colors hover:text-foreground">
@@ -51,6 +51,12 @@ export default function Header() {
                 className="text-sm text-muted transition-colors hover:text-foreground"
               >
                 My Files
+              </Link>
+              <Link
+                href="/intake"
+                className="text-sm text-muted transition-colors hover:text-foreground"
+              >
+                Intake
               </Link>
               <Link
                 href="/notes"

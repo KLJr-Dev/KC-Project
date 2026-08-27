@@ -22,7 +22,7 @@ export default function PublicSharePage() {
       </a>
       <p className="text-xs text-muted">
         <Link href="/" className="underline hover:text-foreground">
-          Go to KC-Project home
+          Go to Northwind home
         </Link>
       </p>
     </div>
