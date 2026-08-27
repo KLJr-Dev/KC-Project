@@ -2,8 +2,8 @@
 
 Deployment and infrastructure for **KC-Project**.
 
-**Current tip:** Cycle-6 Blue on tag **`v2.3.0`** — no default SSH/FTP; Preview/bookmarks hardened.  
-**Cycle-7 SoftDev (in progress on lanes):** `docker-compose.cycle7.yml` — FTP `:21`, SSH `:2222`, Cowrie `:2223`, internal jump (ADR-035).  
+**Current tip:** Intentional insecure **`v1.4.0`** (Cycle-7 Northwind Ops) — use overlays for the box; last hardened tag **`v2.3.0`**.  
+**Cycle-7 tip:** `docker-compose.cycle7.yml` — FTP `:21`, SSH `:2222`, Cowrie `:2223`, internal jump (ADR-035).  
 **Insecure SoftDev replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.  
 **Cycle-5 CTF replay:** frozen `ctf/shells-privesc` + `docker-compose.ctf-shells.yml` (on that branch).  
 **Optional tip noise:** `docker-compose.lab-host.yml` — SSH `:2222` only (no `:8787`).  

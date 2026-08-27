@@ -1,10 +1,10 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Intentional insecure **`v1.3.0`** on `main` (Link Preview SSRF + CSRF) · [ADR-034](../decisions/ADR-034-cycle-6-product-expansion-pair.md)  
-**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5  
-**Secure replay**: tag **`v2.2.0`** (pre–Cycle-6) · CTF archives as listed in security README  
-**Next**: Cycle-6 Red on `ctf/v1.3.0` → Blue **`v2.3.0`** — [Cycle-6](../security/Cycle-6/README.md) · [pentest-ready](../release/v1.3.0-pentest-ready.md)
+**Current tip**: Intentional insecure **`v1.4.0`** on `main` (Ops Documents LFI + Northwind Ops overlays) · [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)  
+**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6  
+**Secure replay**: tag **`v2.3.0`** (Cycle-6 Blue) until Cycle-7 Blue · CTF archives as listed in security README  
+**Next**: Cycle-7 multi-day Red on `ctf/v1.4.0` → Blue **`v2.4.0`** — [Cycle-7](../security/Cycle-7/README.md) · [pentest-ready](../release/v1.4.0-pentest-ready.md)
 
 ---
 
@@ -305,13 +305,13 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 *(Legacy “SoftDev v1.3.0 — Shells & PrivEsc / cloud misconfig” projections superseded by Cycle-5 CTF-only + ADR-034.)*
 
-#### Product expansion `v1.4.0` — Multi-service story box (Cycle-7) — **planned**
+#### Product expansion `v1.4.0` — Multi-service story box (Cycle-7) — **shipped tip**
 
-**Goal**: Long-form OSCP-style box — web + FTP + real SSH foothold; optional Cowrie decoy; multi-day Red; tool variety (nmap, Nikto, Hydra).
+**Goal**: Long-form OSCP-style box — web LFI + FTP + real SSH + sudo find + dual-home jump; Cowrie decoy; multi-day Red.
 
-**Surfaces**: Compose overlays; 3–5 graded proofs; false paths documented.
+**Surfaces**: Ops Documents LFI (FC-18); `docker-compose.cycle7.yml` overlays; five graded proofs.
 
-**Blue**: `v2.4.0` — plants closed; overlays unpublished on default prod.
+**Blue**: `v2.4.0` — LFI closed; overlays unpublished on default prod; plants removed.
 
 **Supersedes** earlier draft “cryptographic failures” slot for this version number.
 

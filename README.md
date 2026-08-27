@@ -15,17 +15,17 @@ Lifecycle (SDLC) and modern DevSecOps practices.
 - Apply remediation and hardening to produce secure counterpart releases
 - Document architectural, engineering, and security decisions throughout
 
-## Current Status (tag **`v2.3.0`** — secure product)
+## Current Status (tip **`v1.4.0`** — intentional insecure · Cycle-7)
 
-**Product tip:** Cycle-6 Blue closed — Link Preview kept with destination policy; bookmark CSRF restored; no Cycle-6 plants; Preview throttle + TLS gate.  
-**Insecure Preview replay:** tag / branch **`v1.3.0`** / **`ctf/v1.3.0`**.  
+**Product tip:** Northwind Ops — Ops Documents LFI + FTP/SSH/Cowrie/jump overlays (ADR-035). Last hardened tag remains **`v2.3.0`** until Blue `v2.4.0`.  
+**Replay prior Preview plants:** **`v1.3.0`** / **`ctf/v1.3.0`**.  
 **Earlier SoftDev replay:** **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml`.  
 **Cycle-5 CTF replay:** frozen **`ctf/shells-privesc`**.  
-**Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) · **Cycle-6 pair:** [ADR-034](docs/decisions/ADR-034-cycle-6-product-expansion-pair.md)
+**Canonical roadmap:** [STRATEGY.md](docs/roadmap/STRATEGY.md) · **Cycle-7 pair:** [ADR-035](docs/decisions/ADR-035-cycle-7-multi-service-pair.md)
 
-> **Note:** Hardened demos use tag **`v2.3.0`**. Do not use `v1.3.0` / CTF branches for recruiter “secure” walks.
+> **Note:** Hardened demos use tag **`v2.3.0`**. Do not use `v1.4.0` / CTF branches for recruiter “secure” walks.
 
-Cycles **1–6 are closed**. Cycle-7 scaffolded ([Cycle-7](docs/security/Cycle-7/README.md)). Playable boxes on frozen `ctf/*` (see [security README](docs/security/README.md)).
+Cycles **1–6 are closed**. Cycle-7 tip **shipped** — multi-day Red next ([Cycle-7](docs/security/Cycle-7/README.md)). Playable boxes on frozen `ctf/*` (see [security README](docs/security/README.md)).
 
 | Cycle | Insecure / CTF | Secure / Blue |
 |-------|----------------|---------------|
@@ -35,6 +35,7 @@ Cycles **1–6 are closed**. Cycle-7 scaffolded ([Cycle-7](docs/security/Cycle-7
 | 4 | tag **`v1.2.0`** / `ctf/v1.2.0` | tag **`v2.2.0`** · frozen `remediation/v2.2.0` |
 | 5 | `ctf/shells-privesc` (no product tag) | tip hardened · frozen `remediation/shells-privesc` |
 | 6 | tag **`v1.3.0`** / `ctf/v1.3.0` | tag **`v2.3.0`** · frozen `remediation/v2.3.0` |
+| 7 | tag **`v1.4.0`** / `ctf/v1.4.0` | planned **`v2.4.0`** |
 
 | Track | Artifact |
 |-------|----------|
