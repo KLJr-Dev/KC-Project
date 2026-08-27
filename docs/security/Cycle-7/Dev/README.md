@@ -9,4 +9,6 @@
 | [v1.4.0-player-brief.md](v1.4.0-player-brief.md) | Progressive hints |
 | [v1.4.0-stride-lite.md](v1.4.0-stride-lite.md) | Threat notes |
 
+**P2 Slice 3 (frontend):** `/ops` path viewer + tip strings `v1.4.0` (LFI API + overlays live on `backend` lane).
+
 **Branching for P0:** `docs/cycle-7-p0` → PR → `main`. Product code on feature lanes after P0 merges.

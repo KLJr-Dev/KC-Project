@@ -23,6 +23,10 @@ const FEATURES = [
     description: 'Server-side URL preview and account bookmarks.',
   },
   {
+    title: 'Ops Documents',
+    description: 'Northwind Ops handbook viewer (path-based document open).',
+  },
+  {
     title: 'Admin Surface',
     description: 'Role-based admin and moderator workflows backed by database roles.',
   },
@@ -75,6 +79,9 @@ export default function HomePage() {
               <Link href="/preview" className="rounded-md border border-border px-3 py-1.5 text-sm">
                 Preview
               </Link>
+              <Link href="/ops" className="rounded-md border border-border px-3 py-1.5 text-sm">
+                Ops
+              </Link>
               <Link href="/sharing" className="rounded-md border border-border px-3 py-1.5 text-sm">
                 Sharing
               </Link>
@@ -99,9 +106,9 @@ export default function HomePage() {
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-md border border-border p-6 space-y-3">
           <h2 className="text-sm font-medium text-muted">Current Version</h2>
-          <p className="text-lg font-semibold text-foreground">v2.3.0 — Hardened tip</p>
+          <p className="text-lg font-semibold text-foreground">v1.4.0 — Intentional insecure</p>
           <p className="text-sm text-muted">
-            Link Preview with fetch policy + CSRF on bookmarks (Cycle-6 Blue).
+            Ops Documents path viewer + multi-service Northwind Ops overlays (Cycle-7 tip).
           </p>
         </div>
         {labUi ? (
