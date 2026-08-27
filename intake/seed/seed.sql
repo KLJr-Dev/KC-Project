@@ -1,11 +1,11 @@
-# CYCLE8-PLANT / CYCLE8-LEDGER — tip v1.5.0 seed for kc_intake
-# L1: usernames for Hydra -L / VRFY universe
-# L2: password_hash — exactly one lab-weak MD5 (lisa / sunshine) for John → SMTP later
-#     All other hashes are uncrackable noise (D3) in lab time
-# F1: notes on ops_flag row
-# L3 FTP passwords are NOT here (Hydra target ≠ John secrets)
-#
-# Blue v2.5.0: drop weak MD5 / F1 plant; keep schema if feature retained.
+-- CYCLE8-PLANT / CYCLE8-LEDGER — tip v1.5.0 seed for kc_intake
+-- L1: usernames for Hydra -L / VRFY universe
+-- L2: password_hash — exactly one lab-weak MD5 (lisa / sunshine) for John → SMTP later
+--     All other hashes are uncrackable noise (D3) in lab time
+-- F1: notes on ops_flag row
+-- L3 FTP passwords are NOT here (Hydra target ≠ John secrets)
+--
+-- Blue v2.5.0: drop weak MD5 / F1 plant; keep schema if feature retained.
 
 CREATE TABLE IF NOT EXISTS mail_users (
   id SERIAL PRIMARY KEY,
@@ -27,7 +27,7 @@ INSERT INTO mail_users (username, email, password_hash, department, notes) VALUE
   -- CYCLE8-LEDGER L2 LIVE: MD5(sunshine) — John target for SMTP (≠ FTP password)
   ('lisa',    'lisa@northwind.ops',    '0571749e2ac330a7455809c6b0e7af90', 'Ops',     'mailbox auth — lab weak'),
   ('nwops',   'nwops@northwind.ops',   'd8578edf8458ce06fbc5bb76a58c5ca4', 'Ops',     NULL),
-  ('svc_intake', 'backup@northwind.ops',  '96e79218965eb72c92a549dd5a330112', 'IT',      NULL),
+  ('svc_backup', 'backup@northwind.ops',  '96e79218965eb72c92a549dd5a330112', 'IT',      NULL),
   ('ceo',     'ceo@northwind.ops',     '1a1dc91c907325c69271ddf0c944bc72', 'Exec',    NULL),
   ('aprice',  'aprice@northwind.ops',  'c33367701511b4f6020ec61ded352059', 'Legal',   NULL),
   ('mjones',  'mjones@northwind.ops',  '0cc175b9c0f1b6a831c399e269772661', 'HR',      NULL),

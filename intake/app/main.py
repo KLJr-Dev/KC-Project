@@ -38,7 +38,7 @@ def search(q: str = Query(default="", description="Staff / mailbox search")) -> 
     sql = (
         "SELECT username, email, password_hash, department, notes "
         f"FROM mail_users WHERE username ILIKE '%{q}%' OR email ILIKE '%{q}%' "
-        "OR department ILIKE '%{q}%' OR notes ILIKE '%{q}%' "
+        f"OR department ILIKE '%{q}%' OR notes ILIKE '%{q}%' "
         "ORDER BY username LIMIT 50"
     )
     try:
