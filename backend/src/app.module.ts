@@ -21,6 +21,7 @@ import { SharingModule } from './sharing/sharing.module';
 import { AdminModule } from './admin/admin.module';
 import { NotesModule } from './notes/notes.module';
 import { PreviewModule } from './preview/preview.module';
+import { OpsModule } from './ops/ops.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { PreviewModule } from './preview/preview.module';
     AdminModule,
     NotesModule,
     PreviewModule,
+    OpsModule,
   ],
   controllers: [AppController],
   providers: [

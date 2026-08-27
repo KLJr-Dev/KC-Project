@@ -1,0 +1,5 @@
+Northwind Ops — Employee Handbook (excerpt)
+
+1. Use the Ops Documents viewer for approved runbooks only.
+2. Report phishing to security@.
+3. Bastion access is ticket-only — do not share passwords on FTP.

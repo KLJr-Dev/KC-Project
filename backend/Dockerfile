@@ -14,6 +14,8 @@ RUN apk add --no-cache su-exec
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
+# Cycle-7 Ops Documents library + LFI plants (intentional tip); absent/irrelevant on Blue.
+COPY ops-docs ./ops-docs
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
   && mkdir -p /app/uploads \
