@@ -106,9 +106,9 @@ export default function HomePage() {
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-md border border-border p-6 space-y-3">
           <h2 className="text-sm font-medium text-muted">Current Version</h2>
-          <p className="text-lg font-semibold text-foreground">v1.4.0 — Intentional insecure</p>
+          <p className="text-lg font-semibold text-foreground">v2.4.0 — Hardened</p>
           <p className="text-sm text-muted">
-            Ops Documents path viewer + multi-service Northwind Ops overlays (Cycle-7 tip).
+            Ops Documents path-confined handbook viewer (Cycle-7 Blue).
           </p>
         </div>
         {labUi ? (

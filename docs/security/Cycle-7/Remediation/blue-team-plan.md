@@ -12,8 +12,8 @@
 | Cycle | 7 (product expansion + overlays) |
 | From | Intentional insecure Ops LFI + Cycle-7 compose overlays on `main` (`v1.4.0`) |
 | To | Tag **`v2.4.0`** — Ops Documents kept path-safe; overlays unpublished on default prod; plants gone |
-| Current milestone | **M1** Wave A in progress / landing |
-| Code status | Wave A (LFI) shipping; B–D pending |
+| Current milestone | **M2** Wave B complete · next gate run (M3/M4) |
+| Code status | Waves A–B done; C–D pending |
 
 ```text
 main @ v1.4.0 (insecure tip)
@@ -38,7 +38,7 @@ Close Cycle-7 Red findings on the **product tip**: Ops Documents remains a featu
 |----|------|---------------|--------|
 | **M0** | Plan signed | Blue plan + remediation map + residuals + secure-ready scaffold | **Done** |
 | **M1** | Wave A — LFI + F1 plant | Path canonicalize + stay-under-root; no F1 plant / flag on tip | **Done** |
-| **M2** | Wave B — overlays / plants | Prod alone unpublished; remove F2–F5 tip plants; tip UI `v2.4.0` | Pending |
+| **M2** | Wave B — overlays / plants | Prod alone unpublished; remove F2–F5 tip plants; tip UI `v2.4.0` | **Done** |
 | **M3** | Wave C — Blue asserts | `assert-cycle7-unpublished` + LFI negative assert in smoke/gate | Pending |
 | **M4** | Wave D — gate + tag | Smoke/journey/tls-smoke; PR → `main` → tag `v2.4.0` | Pending |
 
