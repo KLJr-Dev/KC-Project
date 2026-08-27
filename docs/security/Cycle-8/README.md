@@ -5,7 +5,7 @@
 
 | Track | Role | Status |
 |-------|------|--------|
-| Docs / design | P0 decisions, box, GT, brief | **FINAL** — PR `docs/cycle-8-p0` next |
+| Docs / design | P0 decisions, box, GT, brief | **PR open** ([#34](https://github.com/KLJr-Dev/KC-Project/pull/34)) |
 | Feature lanes → `dev` → `main` | Intentional insecure tip | Pending (after P0 PR) |
 | Tag **`v1.5.0`** (+ `ctf/v1.5.0`) | Pentest-ready insecure tip | Pending |
 | PenTest | Multi-day Socratic Red; **OSCP-style writeup** ([PenTest/](PenTest/)) | Pending |
