@@ -105,8 +105,8 @@ Host flags (F3–F5) require **interactive** shell / authenticated access as des
 
 | ID | Status |
 |----|--------|
-| FC-18 LFI | **In progress** (Cycle-7) |
-| FC-14 FTP | **In progress** (Cycle-7 overlay) |
+| FC-18 LFI | **Consumed** (Cycle-7 tip `v1.4.0`) |
+| FC-14 FTP | **Consumed** (Cycle-7 overlay) |
 | FC-17 | Optional decoy only |
 | Out | AD · Win VM · FC-13 · FC-16 · SSRF/CSRF/Notes re-break |
 
