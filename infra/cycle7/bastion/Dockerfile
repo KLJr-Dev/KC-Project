@@ -9,6 +9,7 @@ RUN apk add --no-cache openssh-server bash sudo curl findutils \
   && mkdir -p /home/lab /opt/northwind /root /var/run/sshd \
   && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
   && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config \
+  && sed -i 's/^AllowTcpForwarding no/AllowTcpForwarding yes/' /etc/ssh/sshd_config \
   && echo 'AllowUsers lab' >> /etc/ssh/sshd_config \
   && echo 'lab ALL=(root) NOPASSWD: /usr/bin/find' > /etc/sudoers.d/lab-find \
   && chmod 440 /etc/sudoers.d/lab-find
