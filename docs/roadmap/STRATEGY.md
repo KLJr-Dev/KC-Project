@@ -1,10 +1,10 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Intentional insecure **`v1.4.0`** on `main` (Ops Documents LFI + Northwind Ops overlays) · Blue on **`remediation/v2.4.0`** · [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)  
-**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6  
-**Secure replay**: tag **`v2.3.0`** (Cycle-6 Blue) until Cycle-7 Blue ships · CTF archives as listed in security README  
-**Next**: Cycle-7 Blue **`v2.4.0`** — [Cycle-7 Remediation](../security/Cycle-7/Remediation/) · [secure-ready draft](../release/v2.4.0-secure-ready.md) · Red frozen [`ctf/v1.4.0`](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md)
+**Current tip**: Hardened **`v2.4.0`** on `main` (Ops Documents path-confined; Cycle-7 overlays unpublished) · [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)  
+**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7  
+**Secure replay**: tag **`v2.4.0`** · CTF archives as listed in security README  
+**Next**: Future SoftDev / product expansion (see Part 4) — Cycle-7 closed
 
 ---
 
@@ -305,13 +305,13 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 *(Legacy “SoftDev v1.3.0 — Shells & PrivEsc / cloud misconfig” projections superseded by Cycle-5 CTF-only + ADR-034.)*
 
-#### Product expansion `v1.4.0` — Multi-service story box (Cycle-7) — **shipped tip**
+#### Product expansion `v1.4.0` — Multi-service story box (Cycle-7) — **closed**
 
 **Goal**: Long-form OSCP-style box — web LFI + FTP + real SSH + sudo find + dual-home jump; Cowrie decoy; multi-day Red.
 
 **Surfaces**: Ops Documents LFI (FC-18); `docker-compose.cycle7.yml` overlays; five graded proofs.
 
-**Blue**: **`remediation/v2.4.0` in progress** — LFI closed; overlays unpublished on default prod; plants removed → tag `v2.4.0`.
+**Blue**: **`v2.4.0` tagged** — LFI closed; overlays unpublished on default prod; plants removed from tip.
 
 **Supersedes** earlier draft “cryptographic failures” slot for this version number.
 
