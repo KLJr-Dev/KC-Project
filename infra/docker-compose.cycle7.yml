@@ -39,9 +39,10 @@ services:
     restart: unless-stopped
 
   # Decoy only — not graded (timebox players off this listener).
-  # Image tags on Docker Hub are sparse; pin digest for reproducibility.
+  # Official image is amd64; force platform so Docker Desktop on Apple Silicon runs via qemu.
   cycle7-cowrie:
     image: cowrie/cowrie:latest@sha256:42e01e0e5fe705a0a63dacc0f1992b2d230740ac149af7675f48197abf740d44
+    platform: linux/amd64
     ports:
       - '2223:2222'
     mem_limit: 256m
