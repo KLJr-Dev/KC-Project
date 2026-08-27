@@ -590,3 +590,40 @@ export type OpsDocumentResult = {
 /** GET /ops/documents?path= — Bearer JWT. */
 export const opsDocumentsGet = (path: string) =>
   request<OpsDocumentResult>(`/ops/documents?path=${encodeURIComponent(path)}`);
+
+// ── Intake (Cycle-8 / v1.5.0 — FastAPI behind /api/intake/) ─────────────
+// CYCLE8-PLANT: /intake/search is intentionally injectable on the tip.
+// With NEXT_PUBLIC_API_URL=/api → GET /api/intake/search (nginx → FastAPI).
+
+export type IntakeUserRow = {
+  username: string;
+  email: string;
+  password_hash?: string;
+  department: string | null;
+  notes: string | null;
+};
+
+export type IntakeSearchResult = {
+  query: string;
+  count: number;
+  results: IntakeUserRow[];
+};
+
+export type IntakeServiceAccount = {
+  username: string;
+  password: string;
+  service: string;
+  note?: string;
+};
+
+export type IntakeServiceAccountsResult = {
+  accounts: IntakeServiceAccount[];
+};
+
+/** GET /intake/search?q= — proxied FastAPI (may be unauthenticated at edge). */
+export const intakeSearch = (q: string) =>
+  request<IntakeSearchResult>(`/intake/search?q=${encodeURIComponent(q)}`);
+
+/** CYCLE8-DECOY D2 — GET /intake/admin/service-accounts (creds fail on FTP/SMTP). */
+export const intakeServiceAccounts = () =>
+  request<IntakeServiceAccountsResult>('/intake/admin/service-accounts');

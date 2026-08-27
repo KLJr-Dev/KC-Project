@@ -31,6 +31,27 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "northwind-intake"}
 
 
+@app.get("/admin/service-accounts")
+def service_accounts() -> dict[str, Any]:
+    """CYCLE8-DECOY D2 — fake legacy integration creds; fail on FTP/SMTP (not L2/L3)."""
+    return {
+        "accounts": [
+            {
+                "username": "admin",
+                "password": "NorthwindAdmin!",
+                "service": "legacy-ftp",
+                "note": "staged cutover — do not reuse for mailbox",
+            },
+            {
+                "username": "nwops",
+                "password": "ChangeMeBeforeProd",
+                "service": "smtp-relay",
+                "note": "deprecated relay account",
+            },
+        ]
+    }
+
+
 @app.get("/search")
 def search(q: str = Query(default="", description="Staff / mailbox search")) -> JSONResponse:
     """CYCLE8-PLANT: intentional SQLi via f-string concat — do not copy to secure tip."""
