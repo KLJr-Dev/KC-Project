@@ -1,6 +1,6 @@
 # Cycle-8 — Dev workspace
 
-**Status:** **P0 FINAL** — design locked for pair `v1.5.0` → `v2.5.0`. Next: PR `docs/cycle-8-p0`, then SoftDev.
+**Status:** **Insecure tip shipped** — `v1.5.0` / `ctf/v1.5.0`. SoftDev + P5 complete; **Red open**. Next: P6 writeup freeze → P7 Blue `v2.5.0`.
 
 | Doc | Role |
 |-----|------|
@@ -9,8 +9,9 @@
 | [v1.5.0-ground-truth.md](v1.5.0-ground-truth.md) | Examiner only (flags + ledger) |
 | [v1.5.0-player-brief.md](v1.5.0-player-brief.md) | Progressive hints |
 | [v1.5.0-stride-lite.md](v1.5.0-stride-lite.md) | Threat notes |
-| [v1.5.0-execution-plan.md](v1.5.0-execution-plan.md) | Feature-lane runbook P0–P7 (stub) |
+| [v1.5.0-execution-plan.md](v1.5.0-execution-plan.md) | Feature-lane runbook P0–P7 (P5 done) |
+| [v1.5.0-integration-status.md](v1.5.0-integration-status.md) | SoftDev merge evidence |
 
 **Skin:** [ADR-037](../../../decisions/ADR-037-immersion-northwind-product-face.md) — Northwind corp face on `v1.5.0` **and** `v2.5.0`.  
 **Insecure tip (`v1.5.0` / `ctf/v1.5.0`):** FastAPI Intake plants + `docker-compose.cycle8.yml` overlays.  
-**Secure tip (`v2.5.0`):** Intake hardened / removed plants; overlays unpublished; **skin kept**.
+**Secure tip (`v2.5.0`):** Intake hardened / remove plants; **delete tip overlay copies**; **skin kept**.

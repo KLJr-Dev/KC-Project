@@ -10,7 +10,7 @@ Root [`README.md`](README.md) is the recruiter story. This file is the map.
 
 | Artifact | Role |
 |----------|------|
-| **`main`** / tag **`v2.x`** | Hardened tip — demo / recruiter walk |
+| **`main`** / tag **`v2.x`** | Hardened tip when a Blue cycle is closed — **except** during an open insecure tip (now: `v1.5.0` on `main`) |
 | **Tag `v1.x`** | Immutable insecure tip for that cycle |
 | **`ctf/*`** | Frozen Red archive (code + writeup/evidence) |
 | **`remediation/*`** | Frozen Blue archive (fix history + maps) |
@@ -65,7 +65,7 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle8.y
 ```
 
 Start: [player brief](docs/security/Cycle-8/Dev/v1.5.0-player-brief.md) (hints only).  
-Release: [v1.5.0](https://github.com/KLJr-Dev/KC-Project/releases/tag/v1.5.0) (when published).
+Release: [v1.5.0](https://github.com/KLJr-Dev/KC-Project/releases/tag/v1.5.0).
 
 **`[SPOILER]`** writeup: pending freeze on `ctf/v1.5.0` after Red.
 

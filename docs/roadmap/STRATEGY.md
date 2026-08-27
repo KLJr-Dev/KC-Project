@@ -1,10 +1,10 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Hardened **`v2.4.0`** on `main` (Ops Documents path-confined; Cycle-7 overlays unpublished) · [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)  
+**Current tip**: Intentional insecure **`v1.5.0`** on `main` (Cycle-8 Northwind Intake — Red open) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
 **Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7  
-**Secure replay**: tag **`v2.4.0`** · CTF archives as listed in security README  
-**Next**: Future SoftDev / product expansion (see Part 4) — Cycle-7 closed
+**Secure replay**: tag **`v2.4.0`** (last hardened tip) · CTF archives as listed in security README  
+**Next**: Cycle-8 Red → Blue **`v2.5.0`** (keep Northwind skin; delete tip plant overlay)
 
 ---
 
@@ -315,13 +315,15 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 **Supersedes** earlier draft “cryptographic failures” slot for this version number.
 
-#### Product expansion `v1.5.0` — Intake tool-chain box (Cycle-8) — **P0 design**
+#### Product expansion `v1.5.0` — Intake tool-chain box (Cycle-8) — **insecure tip tagged / Red open**
 
 **Goal**: Multi-day OSCP-shaped chain — sqlmap → John (SMTP hashes) → Hydra (FTP) → playable revshell → sudo nano → Samba+SMTP; Cowrie-only SSH; credential noise; Northwind immersion skin. Kali + Docker only.
 
 **Surfaces**: FastAPI Intake microservice behind Nest `/api/intake` (FC-19); `docker-compose.cycle8.yml` overlays (FC-20); five graded proofs on a hard DAG (**no John/Hydra secret reuse**).
 
-**Blue**: **`v2.5.0`** (planned) — close plants; unpublish overlays; **keep Northwind skin** → tag `v2.5.0`.
+**Status**: Tip **`v1.5.0`** / **`ctf/v1.5.0`** shipped ([pentest-ready](../release/v1.5.0-pentest-ready.md)). Red open.
+
+**Blue**: **`v2.5.0`** (planned) — close plants; delete tip overlay copies; **keep Northwind skin** → tag `v2.5.0`.
 
 **Supersedes** earlier draft “business logic & advanced exploitation” slot for this version number (logic-flaw SoftDev deferred).
 

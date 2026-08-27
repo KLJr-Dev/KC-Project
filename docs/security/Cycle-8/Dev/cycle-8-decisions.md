@@ -1,9 +1,9 @@
 # Cycle-8 — locked decisions (P0 **FINAL** 2026-08-27)
 
 **Execution:** [v1.5.0-execution-plan.md](v1.5.0-execution-plan.md) · **Box:** [v1.5.0-box-plan.md](v1.5.0-box-plan.md) · **ADR-036** · **Skin:** [ADR-037](../../../decisions/ADR-037-immersion-northwind-product-face.md)  
-**Docs branch:** `docs/cycle-8-p0` → PR → `main` (**before** SoftDev). Product code: feature lanes after P0 merges from baseline tip **`v2.4.0`**.
+**History:** P0 on `docs/cycle-8-p0` → #34; SoftDev → #35; tip tagged **`v1.5.0`** / **`ctf/v1.5.0`**.
 
-**Status:** **P0 FINAL** — grill closed; ready to develop `v1.5.0` after docs PR.
+**Status:** **Locked / historical** — design authority for the shipped insecure tip. Red open; Blue closes plants and deletes tip overlay copies.
 
 **Anti-patterns (from Cycle-7 Red):** no skippable web flag; no cleartext foothold gift in loot; no spoon-feed that kills Cowrie; every planted secret in the **credential ledger**; **no John+Hydra redundancy** (different secrets → different services).
 

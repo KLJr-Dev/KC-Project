@@ -2,7 +2,7 @@
 
 Engineering and technical documentation for KC-Project.
 
-**Current tip:** secure **`v2.4.0`** on `main`. **Play map:** [USAGE.md](../USAGE.md).
+**Current tip:** intentional insecure **`v1.5.0`** on `main` (Cycle-8 — Red open). **Last hardened:** tag **`v2.4.0`**. **Play map:** [USAGE.md](../USAGE.md).
 
 ## Contents
 
@@ -22,7 +22,7 @@ Engineering and technical documentation for KC-Project.
 
 ### [decisions/](decisions/)
 
-ADRs 001–035. Index: [decisions/README.md](decisions/README.md). Recent: **ADR-035** (Cycle-7), ADR-034 (Cycle-6), ADR-033 (Cycle-4), ADR-032 (CTF-only versioning).
+ADRs 001–037. Index: [decisions/README.md](decisions/README.md). Recent: **ADR-037** / **ADR-036** (Cycle-8), ADR-035 (Cycle-7), ADR-034 (Cycle-6).
 
 ### [deploy/](deploy/)
 
@@ -47,12 +47,8 @@ Cycle workspaces (ADR-031):
 
 ```
 docs/security/
-├── Cycle-1/   → closed (v1.0.0 → v2.0.0); PenTest on main
-├── Cycle-2/   → closed (v1.1.0 → v2.1.0); Remediation on main; PenTest on ctf/v1.1.0
-├── Cycle-3/   → closed (ctf/leak-crack-db → Blue on main; no product tag)
-├── Cycle-4/   → closed (v1.2.0 → v2.2.0); PenTest on ctf/v1.2.0; Remediation on main
-├── Cycle-5/   → closed (ctf/shells-privesc → Blue on main; no product tag)
-├── Cycle-6/   → in design (v1.3.0 → v2.3.0); docs on docs/cycle-6-p0
+├── Cycle-1/ … Cycle-7/   → closed (see security README)
+├── Cycle-8/   → insecure tip v1.5.0 / ctf/v1.5.0 — Red open
 ├── README.md
 └── cwe-inventory.md
 ```
@@ -71,6 +67,8 @@ docs/security/
 - [v1.2.0-pentest-ready.md](release/v1.2.0-pentest-ready.md) — Cycle-4 expansion Red gate (signed; tag `v1.2.0`)
 - [v2.2.0-secure-ready.md](release/v2.2.0-secure-ready.md) — Cycle-4 Blue gate (signed; tag `v2.2.0`)
 - [shells-privesc-secure-ready.md](release/shells-privesc-secure-ready.md) — Cycle-5 Blue gate (signed)
-- Cycle-6 gates (`v1.3.0-pentest-ready` / `v2.3.0-secure-ready`) — pending ship
+- [v1.3.0-pentest-ready.md](release/v1.3.0-pentest-ready.md) / [v2.3.0-secure-ready.md](release/v2.3.0-secure-ready.md) — Cycle-6
+- [v1.4.0-pentest-ready.md](release/v1.4.0-pentest-ready.md) / [v2.4.0-secure-ready.md](release/v2.4.0-secure-ready.md) — Cycle-7
+- [v1.5.0-pentest-ready.md](release/v1.5.0-pentest-ready.md) — Cycle-8 Red gate (**signed** · tag `v1.5.0`)
 
 ### [glossary.md](glossary.md)

@@ -53,7 +53,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | FC-12 · FC-15 · FC-16 | Available (later tracks) |
 | FC-14 (FTP) · FC-18 | **Consumed (Cycle-7 `v1.4.0` / `v2.4.0`)** — Red frozen `ctf/v1.4.0`; Blue tagged `v2.4.0` |
 | FC-17 | Optional decoy on Cycle-7 (not graded DoD) |
-| FC-19 · FC-20 | **Planned (Cycle-8 `v1.5.0` / `v2.5.0`)** — P0 design; build from tip `v2.4.0` |
+| FC-19 · FC-20 | **In tip (`v1.5.0` / `ctf/v1.5.0`)** — Red open; Consumed after Blue `v2.5.0` |
 
 ---
 
@@ -74,7 +74,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 ## Handoff
 
 1. Cycle-7 **closed** (`v1.4.0` / `ctf/v1.4.0` → `v2.4.0`) — [Cycle-7](../../Cycle-7/README.md).  
-2. Cycle-8 P0 → PR → `main` ([Cycle-8](../../Cycle-8/README.md) · [ADR-036](../../../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)).  
-3. Feature lanes → tip `v1.5.0` → Red → Blue `v2.5.0`.  
+2. Cycle-8 **insecure tip tagged** — Red open on `v1.5.0` / `ctf/v1.5.0` ([Cycle-8](../../Cycle-8/README.md) · [ADR-036](../../../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)).  
+3. After Red freeze → Blue `v2.5.0` (delete tip plant overlay; keep Northwind skin).  
 4. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
 5. Update this status table (`Consumed` / `Planned` / `In progress`).

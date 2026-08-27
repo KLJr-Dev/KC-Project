@@ -51,7 +51,7 @@ Checkout the branch, follow the player brief, don’t use for “secure” demos
 
 | Keep | Role |
 |------|------|
-| `main` | Secure tip |
+| `main` | Current tip (now insecure `v1.5.0` during open Red; hardened after Blue) |
 | `backend` / `frontend` / `dev` | Feature lanes (reset at product-expansion cycle start) |
 | `ctf/*` | Forever CTF archives (play / evidence) |
 | `remediation/*` | Forever Blue archives |
@@ -116,7 +116,7 @@ Pin tag **`v2.4.0`** for hardened demos (until Cycle-8 Blue). Replay prior plant
 
 ## Methodology (against historical / CTF / insecure tips)
 
-Run offensive work against **tag `v1.0.0`**, **`ctf/v1.1.0`**, **`ctf/leak-crack-db`**, SoftDev **`v1.2.0`** / **`ctf/v1.2.0`**, Cycle-6 **`v1.3.0`** / **`ctf/v1.3.0`**, or Cycle-7 **`v1.4.0`** / **`ctf/v1.4.0`** — not as expectations against hardened tip **`v2.4.0`**:
+Run offensive work against **tag `v1.5.0`** / **`ctf/v1.5.0`** (+ `docker-compose.cycle8.yml`), or historical **`v1.4.0`** / **`ctf/v1.4.0`**, **`v1.3.0`**, **`v1.2.0`**, **`ctf/shells-privesc`**, **`ctf/leak-crack-db`**, **`ctf/v1.1.0`**, **`v1.0.0`** — not as expectations against hardened tip **`v2.4.0`**:
 
 1. Verify deploy: smoke / journey / e2e; Cycle-6/7 Blue also `cycle6-blue-assert.sh` / `cycle7-blue-assert.sh`
 2. Map attack surface from that cycle’s ground truth
