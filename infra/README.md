@@ -115,8 +115,10 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 | `assert-ssh-unpublished.sh` | compose file | Prod compose must not publish `:2222` (SSH overlay-only) |
 | `assert-cycle7-unpublished.sh` | compose file | Prod compose must not publish `:21` / `:2222` / `:2223` or `cycle7-*` |
 | `cycle4-ssh-examiner.sh` | Prod + `docker-compose.ssh.yml` | F3 + loot dry-run for Cycle-4 SoftDev |
-| `cycle7-examiner.sh` | Prod + `docker-compose.cycle7.yml` | F2–F5 plant dry-run (bastion→jump) |
-| `smoke-test.sh` | Full prod stack on `:8080` | PG + SSH unpublished asserts + health → register → upload → list + demo login |
+| `cycle7-examiner.sh` | Prod + `docker-compose.cycle7.yml` | F2–F5 plant dry-run (bastion→jump) — **replay only** |
+| `cycle6-blue-assert.sh` | Full prod tip | Preview SSRF + bookmark CSRF closed (via smoke) |
+| `cycle7-blue-assert.sh` | Full prod tip | Ops path confinement; no F1 plant (via smoke) |
+| `smoke-test.sh` | Full prod stack on `:8080` | PG + SSH + Cycle-7 unpublished asserts + health → register → upload → demo login + Cycle-6/7 Blue asserts |
 | `journey-test.sh` | Full prod stack | 3 roles, demo share token API+UI, mod pending, admin files, IDOR deny |
 | `tls-smoke.sh` | Prod + `docker-compose.tls.yml` on `:8443` | HTTPS health, HSTS, HTTP→HTTPS redirect, Secure cookie |
 | `scripts/gen-lab-certs.sh` | mkcert or openssl | Write `infra/certs/localhost*.pem` |
