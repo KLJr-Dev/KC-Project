@@ -21,9 +21,9 @@ KC **Ops Documents** LFI → forgotten **FTP** → real **SSH** (Cowrie decoy) �
 | Audience | Start here | Spoilers? |
 |----------|------------|-----------|
 | **Secure tip** | tag `v2.4.0` / `main` | No |
-| **Player / Red replay** | tag/`ctf/v1.4.0` → [player brief](Dev/v1.4.0-player-brief.md) | Brief no · writeup yes |
+| **Player / Red replay** | tag/`ctf/v1.4.0` → [player brief](Dev/v1.4.0-player-brief.md) · [USAGE](../../../USAGE.md) | Brief no · writeup yes |
 | **Red writeup** | [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md) | Yes |
-| **Blue** | [Remediation/](Remediation/) · [v2.4.0-secure-ready](../../release/v2.4.0-secure-ready.md) | Yes |
+| **Blue (guided)** | [blue-handoff.md](Remediation/blue-handoff.md) | Handoff no · full map/writeup yes |
 
 ## Team folders
 

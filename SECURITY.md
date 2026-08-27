@@ -3,6 +3,8 @@
 KC-Project is a portfolio / learning lab: insecure-by-design releases and CTF
 branches exist on purpose. Please read scope before filing a report.
 
+**Playing a box or guided Blue?** Start at [USAGE.md](USAGE.md).
+
 ## In scope
 
 Unexpected vulnerabilities on the **hardened tip**:
@@ -25,7 +27,7 @@ Do **not** report intentional lab findings as security issues:
 - Issues that only reproduce with optional lab overlays (e.g. SSH compose files)
   when the default secure tip does not expose them
 
-Those surfaces are teaching material — see [docs/security/README.md](docs/security/README.md).
+Those surfaces are teaching material — see [USAGE.md](USAGE.md) and [docs/security/README.md](docs/security/README.md).
 
 ## Expectation
 

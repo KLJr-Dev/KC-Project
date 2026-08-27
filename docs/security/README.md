@@ -1,5 +1,7 @@
 # Security & Penetration Testing
 
+**Play / explore:** root [USAGE.md](../USAGE.md) (Red boxes, guided Blue, spoiler rules).
+
 ## Cycle workspace
 
 **[Cycle-1/](Cycle-1/README.md)** — **Closed** (v1.0.0 → v2.0.0).

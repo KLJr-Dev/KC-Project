@@ -2,6 +2,8 @@
 
 Engineering and technical documentation for KC-Project.
 
+**Current tip:** secure **`v2.4.0`** on `main`. **Play map:** [USAGE.md](../USAGE.md).
+
 ## Contents
 
 ### [spec/](spec/)
@@ -13,14 +15,14 @@ Engineering and technical documentation for KC-Project.
 
 ### [architecture/](architecture/)
 
-- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — secure tip `v2.2.0` (Notes) + historical insecure snapshots; pin tags for demos
+- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) — tip topology + historical snapshots; pin tags for demos
 - [auth-flow.md](architecture/auth-flow.md) — auth/RBAC flows
 - [data-model.md](architecture/data-model.md) — entities incl. Notes, demo seed IDs
 - [stride.md](architecture/stride.md) — STRIDE per attack surface
 
 ### [decisions/](decisions/)
 
-ADRs 001–034. Index: [decisions/README.md](decisions/README.md). Recent: **ADR-034** (Cycle-6 product expansion pair), ADR-033 (Cycle-4 pair), ADR-032 (CTF-only versioning).
+ADRs 001–035. Index: [decisions/README.md](decisions/README.md). Recent: **ADR-035** (Cycle-7), ADR-034 (Cycle-6), ADR-033 (Cycle-4), ADR-032 (CTF-only versioning).
 
 ### [deploy/](deploy/)
 
