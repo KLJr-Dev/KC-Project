@@ -2,10 +2,10 @@
 
 Deployment and infrastructure for **KC-Project**.
 
-**Tip policy:** tip (`main` / current SoftDev) holds **evergreen** compose + gates + Blue/unpublished asserts + **one live plant overlay** (today: Cycle-8). Closed-cycle plant overlays and examiners live on **`ctf/v1.x.0` / tags** — checkout the box, then use its compose files (do not expect prior overlays on tip).
+**Tip policy:** tip (`main` / current SoftDev) holds **evergreen** compose + gates + Blue/unpublished asserts + **one live plant overlay** (today: Cycle-8 / `v1.5.0`). Closed-cycle plant overlays and examiners live on **`ctf/v1.x.0` / tags** — checkout the box, then use its compose files (do not expect prior overlays on tip).
 
-**Current tip plant box:** Cycle-8 — `docker-compose.cycle8.yml` + `infra/cycle8/` + `nginx-cycle8.conf` (ADR-036 / ADR-037).  
-**Hardened baseline before C8 Blue:** Ops path confinement + prior Blue asserts (Cycle-6/7).  
+**Current tip plant box:** Cycle-8 — `docker-compose.cycle8.yml` + `infra/cycle8/` + `nginx-cycle8.conf` (ADR-036 / ADR-037). Tagged **`v1.5.0`**.  
+**Last hardened tip:** **`v2.4.0`** (Ops path confinement + C6/C7 Blue asserts).  
 **Optional tip noise:** `docker-compose.lab-host.yml` — SSH `:2222` only (no `:8787`).
 
 Canonical: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · [ADR-036](../docs/decisions/ADR-036-cycle-8-intake-tool-chain-pair.md).

@@ -18,7 +18,7 @@
 
 **[Cycle-7/](Cycle-7/README.md)** — **Closed** (`v1.4.0` → `v2.4.0`): Ops Documents path confinement + overlays unpublished ([ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)). [secure-ready](../release/v2.4.0-secure-ready.md).
 
-**[Cycle-8/](Cycle-8/README.md)** — **P0 design** (`v1.5.0` → `v2.5.0`): FastAPI Intake tool-chain box ([ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)). Baseline tip **`v2.4.0`**.
+**[Cycle-8/](Cycle-8/README.md)** — **Insecure tip** (`v1.5.0` → `v2.5.0`): FastAPI Intake tool-chain box ([ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)). Red open on `ctf/v1.5.0`.
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -29,7 +29,7 @@
 | 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · frozen `remediation/shells-privesc` |
 | 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | tag **`v2.3.0`** · [Remediation/](Cycle-6/Remediation/) · frozen `remediation/v2.3.0` |
 | 7 | tag/`ctf/v1.4.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md) | tag **`v2.4.0`** · [Remediation/](Cycle-7/Remediation/) · frozen `remediation/v2.4.0` |
-| 8 | (pending) `ctf/v1.5.0` | (pending) `remediation/v2.5.0` · [Cycle-8](Cycle-8/README.md) |
+| 8 | tag/`ctf/v1.5.0` · writeup pending Red | (pending) `remediation/v2.5.0` · [Cycle-8](Cycle-8/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -45,7 +45,7 @@ Checkout the branch, follow the player brief, don’t use for “secure” demos
 | Cycle-5 | `ctf/shells-privesc` | cmdi → revshell → sudo PrivEsc | [Cycle-5](Cycle-5/README.md) |
 | Cycle-6 | `ctf/v1.3.0` | Preview SSRF + bookmark CSRF | [Cycle-6](Cycle-6/README.md) |
 | Cycle-7 | `ctf/v1.4.0` | LFI + FTP/SSH/Cowrie/jump | [Cycle-7](Cycle-7/README.md) |
-| Cycle-8 | `ctf/v1.5.0` (pending) | sqlmap → John (SMTP) → Hydra (FTP) → revshell → nano → Samba/SMTP | [Cycle-8](Cycle-8/README.md) |
+| Cycle-8 | `ctf/v1.5.0` | sqlmap → John (SMTP) → Hydra (FTP) → revshell → nano → Samba/SMTP | [Cycle-8](Cycle-8/README.md) |
 
 ## Branch keepers (tip hygiene)
 
@@ -73,6 +73,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 - [shells-privesc-ctf-ready.md](../release/shells-privesc-ctf-ready.md) — Cycle-5 Red/CTF gate (**on CTF branch** · frozen)
 - [v1.3.0-pentest-ready.md](../release/v1.3.0-pentest-ready.md) — Cycle-6 expansion Red gate (**signed** · tag `v1.3.0`)
 - [v2.3.0-secure-ready.md](../release/v2.3.0-secure-ready.md) — Cycle-6 Blue gate (**signed** · tag `v2.3.0`)
+- [v1.5.0-pentest-ready.md](../release/v1.5.0-pentest-ready.md) — Cycle-8 expansion Red gate (**signed** · tag `v1.5.0`)
 - [v1.4.0-pentest-ready.md](../release/v1.4.0-pentest-ready.md) — Cycle-7 expansion Red gate (**signed** · tag `v1.4.0`)
 - [v2.4.0-secure-ready.md](../release/v2.4.0-secure-ready.md) — Cycle-7 Blue gate (**signed** · tag `v2.4.0`)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
@@ -85,7 +86,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 
 ## Scope
 
-Cycles **1–7 complete**. Cycle-8 **P0 design** (build from tip **`v2.4.0`**). Play boxes: frozen `ctf/*` above.
+Cycles **1–7 complete**. Cycle-8 **insecure tip tagged** (`v1.5.0` / `ctf/v1.5.0`); Red open. Play boxes: frozen `ctf/*` above.
 
 ## Tools
 

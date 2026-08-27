@@ -36,7 +36,7 @@ Same idea as player briefs:
 Hardened product for walkthroughs.
 
 ```bash
-git checkout v2.4.0   # or: git checkout main
+git checkout v2.4.0   # last hardened tip (pre–Cycle-8 Blue)
 cp infra/.env.example infra/.env
 docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh
@@ -53,26 +53,27 @@ Demo users: [`docs/deploy/demo-users.md`](docs/deploy/demo-users.md).
 
 Plant overlays ship **with the checkout** (tag / `ctf/*`). Tip (`main`) keeps only the **current** live box overlay plus evergreen Blue asserts — prior cycle compose/examiners are not on tip after retirement.
 
-### Featured — Cycle-7 Northwind Ops
+### Featured — Cycle-8 Northwind Intake
 
-Multi-day path: Ops LFI → FTP → SSH → sudo find → jump pivot.
+Multi-day OSCP-shaped path: Intake SQLi → John (SMTP) → Hydra (FTP) → revshell → sudo nano → Samba/SMTP. Cowrie `:22` is decoy only.
 
 ```bash
-git checkout v1.4.0
-# or: git checkout ctf/v1.4.0
+git checkout v1.5.0
+# or: git checkout ctf/v1.5.0
 cp infra/.env.example infra/.env
-docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle7.yml up -d --build
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle8.yml up -d --build
 ```
 
-Start: [player brief](docs/security/Cycle-7/Dev/v1.4.0-player-brief.md) (hints only).  
-Release: [v1.4.0](https://github.com/KLJr-Dev/KC-Project/releases/tag/v1.4.0).
+Start: [player brief](docs/security/Cycle-8/Dev/v1.5.0-player-brief.md) (hints only).  
+Release: [v1.5.0](https://github.com/KLJr-Dev/KC-Project/releases/tag/v1.5.0) (when published).
 
-**`[SPOILER]`** writeup: [`ctf/v1.4.0` PenTest](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md)
+**`[SPOILER]`** writeup: pending freeze on `ctf/v1.5.0` after Red.
 
 ### More Red boxes (tags / `ctf/*` — no featured Release required)
 
 | Box | Checkout | Skills | Brief / hub |
 |-----|----------|--------|-------------|
+| Cycle-7 | `v1.4.0` / `ctf/v1.4.0` | LFI + FTP/SSH/Cowrie/jump | [Cycle-7](docs/security/Cycle-7/README.md) (+ `docker-compose.cycle7.yml` on that checkout) |
 | Cycle-6 | `v1.3.0` / `ctf/v1.3.0` | Preview SSRF + bookmark CSRF | [Cycle-6](docs/security/Cycle-6/README.md) |
 | Cycle-5 | `ctf/shells-privesc` | cmdi → shell → PrivEsc | [Cycle-5](docs/security/Cycle-5/README.md) |
 | Cycle-4 | `v1.2.0` / `ctf/v1.2.0` | Notes XSS → SSH | [Cycle-4](docs/security/Cycle-4/README.md) (+ `docker-compose.ssh.yml` on that checkout) |
