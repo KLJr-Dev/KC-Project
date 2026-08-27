@@ -8,7 +8,7 @@
 | Docs / design | P0 decisions, box, execution, GT, brief | **Done** (#31) |
 | Feature lanes → `dev` → `main` | Intentional insecure tip | **Done** (#32) · [integration](Dev/v1.4.0-integration-status.md) |
 | Tag **`v1.4.0`** (+ `ctf/v1.4.0`) | Pentest-ready insecure tip | **Shipped** · [pentest-ready](../../release/v1.4.0-pentest-ready.md) |
-| PenTest | Multi-day Socratic Red | **Ready to start** |
+| PenTest | Multi-day Socratic Red | **Complete** — [writeup](PenTest/v1.4.0-writeup.md) |
 | **`remediation/v2.4.0`** → tag **`v2.4.0`** | Close LFI; unpublish overlays | Pending |
 
 ---
