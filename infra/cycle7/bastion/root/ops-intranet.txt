@@ -1,9 +1,0 @@
-Northwind Ops intranet (internal only)
-
-  URL:  http://cycle7-jump:8080/
-  User: nwops
-  Pass: Ops1ntranet
-
-Tunnel from Kali (example):
-  ssh -p 2222 -L 18080:cycle7-jump:8080 lab@<TARGET>
-  then browse http://127.0.0.1:18080/

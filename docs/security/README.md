@@ -92,7 +92,7 @@ Cycles **1–7 complete**. Cycle-8 **P0 design** (build from tip **`v2.4.0`**). 
 - Burp Suite / OWASP ZAP (HTTP proxy)
 - curl / httpx (API probing)
 - jwt_tool (against intentional CTF/insecure tags — not expected to forge roles on hardened `main`)
-- Docker compose stack (`infra/docker-compose.prod.yml`; SSH overlay only for `v1.2.0` / `ctf/v1.2.0` replay; Cycle-7 overlays only on `ctf/v1.4.0`)
+- Docker compose stack (`infra/docker-compose.prod.yml`; prior plant overlays only after checkout of `v1.x` / `ctf/*` — tip holds the **current** live box only)
 
 ## Entry points (secure tip / `v2.4.0`)
 
@@ -111,7 +111,7 @@ Cycles **1–7 complete**. Cycle-8 **P0 design** (build from tip **`v2.4.0`**). 
 | Public share | `GET /api/sharing/public/:token` | Token |
 | API explorers | `/dev/*` | Lab flag gated in prod |
 
-Pin tag **`v2.4.0`** for hardened demos. Replay Cycle-7 plants on **`v1.4.0`** / **`ctf/v1.4.0`** + `docker-compose.cycle7.yml`. Replay Preview plants on **`v1.3.0`** / **`ctf/v1.3.0`**. Replay Notes+SSH on **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.
+Pin tag **`v2.4.0`** for hardened demos (until Cycle-8 Blue). Replay prior plants only after **checkout**: Cycle-7 **`v1.4.0`** / **`ctf/v1.4.0`** + `docker-compose.cycle7.yml`; Preview **`v1.3.0`** / **`ctf/v1.3.0`**; Notes+SSH **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml`. Tip does not keep closed-cycle plant compose/examiners.
 
 ## Methodology (against historical / CTF / insecure tips)
 

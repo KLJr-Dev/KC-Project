@@ -2,30 +2,31 @@
 
 Deployment and infrastructure for **KC-Project**.
 
-**Current tip:** Hardened **`v2.4.0`** (Ops Documents path-confined; Cycle-7 overlays unpublished on default prod).  
-**Cycle-7 insecure replay:** tag / branch **`v1.4.0`** / **`ctf/v1.4.0`** + `docker-compose.cycle7.yml` — FTP `:21`, SSH `:2222`, Cowrie `:2223`, internal jump (ADR-035).  
-**Insecure SoftDev replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.  
-**Cycle-5 CTF replay:** frozen `ctf/shells-privesc` + `docker-compose.ctf-shells.yml` (on that branch).  
-**Optional tip noise:** `docker-compose.lab-host.yml` — SSH `:2222` only (no `:8787`).  
-Historical insecure baseline: tag `v1.0.0`. Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — do not attach those overlays without intent.
-Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · Cycle-7 pair: [ADR-035](../docs/decisions/ADR-035-cycle-7-multi-service-pair.md).
+**Tip policy:** tip (`main` / current SoftDev) holds **evergreen** compose + gates + Blue/unpublished asserts + **one live plant overlay** (today: Cycle-8). Closed-cycle plant overlays and examiners live on **`ctf/v1.x.0` / tags** — checkout the box, then use its compose files (do not expect prior overlays on tip).
+
+**Current tip plant box:** Cycle-8 — `docker-compose.cycle8.yml` + `infra/cycle8/` + `nginx-cycle8.conf` (ADR-036 / ADR-037).  
+**Hardened baseline before C8 Blue:** Ops path confinement + prior Blue asserts (Cycle-6/7).  
+**Optional tip noise:** `docker-compose.lab-host.yml` — SSH `:2222` only (no `:8787`).
+
+Canonical: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · [ADR-036](../docs/decisions/ADR-036-cycle-8-intake-tool-chain-pair.md).
 
 ---
 
-## Dual deploy paths
+## Dual deploy paths (tip)
 
 | Path | Compose file | Use case | Entry |
 |------|--------------|----------|-------|
 | **Secure / lab (primary)** | `docker-compose.prod.yml` | Day-to-day, journeys, smoke (**loopback HTTP OK**) | `http://localhost:8080` |
-| **TLS profile** | `prod` + `docker-compose.tls.yml` | **Required for LAN / recruiter secure demos**; HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
-| **SSH foothold (v1.2.0 replay only)** | `prod` + `docker-compose.ssh.yml` | Frozen SoftDev / CTF chain — **not** default tip | SSH `:2222` |
-| **Cycle-7 Northwind Ops (replay)** | `prod` + `docker-compose.cycle7.yml` | Frozen `v1.4.0` / `ctf/v1.4.0` — **not** default tip | `:21` / `:2222` / `:2223` |
+| **TLS profile** | `prod` + `docker-compose.tls.yml` | **Required for LAN / recruiter secure demos** | `https://localhost:8443` |
+| **Cycle-8 plant overlay (live tip box)** | `prod` + `docker-compose.cycle8.yml` | Insecure tip / Red until Blue closes | `:8080` + FTP `:21` + Cowrie `:22` |
 | **Lab-host noise (optional)** | `prod` + `docker-compose.lab-host.yml` | Hardened SSH-only sidecar — **no** kc-agent | SSH `:2222` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 
-**C4-F03 / C5 policy:** Prod compose alone must not publish `:2222` or `:8787` — `./infra/assert-ssh-unpublished.sh`. SoftDev SSH overlay = `v1.2.0` replay; tip lab-host overlay = optional noise only.
+**Prior Red boxes:** checkout tag / `ctf/*` first — overlays ship **with that checkout** (e.g. `v1.4.0` → `docker-compose.cycle7.yml`; `v1.2.0` → `docker-compose.ssh.yml`). See [USAGE.md](../USAGE.md).
 
-**LAN / off-loopback:** Do not advertise cleartext `:8080` on a reachable NIC as “secure.” Use the TLS overlay (or terminate TLS elsewhere). Loopback HTTP remains an accepted residual (R-01).
+**C4-F03 / C5 / C7 / C8 policy:** Prod compose alone must not publish plant ports — `./infra/assert-ssh-unpublished.sh`, `assert-cycle7-unpublished.sh`, `assert-cycle8-unpublished.sh`.
+
+**LAN / off-loopback:** Do not advertise cleartext `:8080` on a reachable NIC as “secure.” Use the TLS overlay. Loopback HTTP remains an accepted residual (R-01).
 
 ```mermaid
 flowchart TB
@@ -55,6 +56,15 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ```
 
 App: `http://localhost:8080` — API at `/api/*`.
+
+### Cycle-8 overlay (live tip box)
+
+```bash
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle8.yml up -d --build
+./infra/assert-cycle8-unpublished.sh   # against prod compose file alone
+./infra/cycle8-examiner.sh
+# Optional: CYCLE8_FTP_PASV_ADDRESS=<box-ip> for Host-Only / LAN FTP PASV
+```
 
 ### TLS profile
 
@@ -91,8 +101,8 @@ Copy to `infra/.env` before prod compose. Loaded via `env_file` in `docker-compo
 | `DB_USER` / `DB_PASSWORD` | `kc_app` / strong | Runtime DML role (C2-F07 least-priv) |
 | `DB_NAME` | `kc_prod` | Prod database |
 | `NEXT_PUBLIC_API_URL` | `/api` | Browser-relative API path |
-
-Upgrading from v2.0.0 single-user DB: set the admin/app split above, then recreate `pgdata_prod` once (`docker compose ... down -v`) **or** let backend `migrate-and-grant` create `kc_app` on an existing volume.
+| `CYCLE8_FTP_PASV_ADDRESS` | (optional) | Host IP for FTP PASV on Cycle-8 overlay |
+| `INTAKE_DB_NAME` | `kc_intake` | Intake microservice DB |
 
 ---
 
@@ -103,7 +113,7 @@ Upgrading from v2.0.0 single-user DB: set the admin/app split above, then recrea
 
 ---
 
-## Verification scripts
+## Verification scripts (tip)
 
 ```bash
 chmod +x infra/*.sh infra/postgres/init/*.sh
@@ -112,38 +122,19 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 | Script | Prereq | Purpose |
 |--------|--------|---------|
 | `assert-pg-unpublished.sh` | compose file | Prod compose must not publish `:5433` (C2-F03) |
-| `assert-ssh-unpublished.sh` | compose file | Prod compose must not publish `:2222` (SSH overlay-only) |
-| `assert-cycle7-unpublished.sh` | compose file | Prod compose must not publish `:21` / `:2222` / `:2223` or `cycle7-*` |
-| `cycle4-ssh-examiner.sh` | Prod + `docker-compose.ssh.yml` | F3 + loot dry-run for Cycle-4 SoftDev |
-| `cycle7-examiner.sh` | Prod + `docker-compose.cycle7.yml` | F2–F5 plant dry-run (bastion→jump) — **replay only** |
+| `assert-ssh-unpublished.sh` | compose file | Prod compose must not publish `:2222` |
+| `assert-cycle7-unpublished.sh` | compose file | Prod must not publish retired C7 ports/services |
+| `assert-cycle8-unpublished.sh` | compose file | Prod must not publish C8 `:21` / `:22` / `cycle8-*` |
 | `cycle6-blue-assert.sh` | Full prod tip | Preview SSRF + bookmark CSRF closed (via smoke) |
 | `cycle7-blue-assert.sh` | Full prod tip | Ops path confinement; no F1 plant (via smoke) |
-| `smoke-test.sh` | Full prod stack on `:8080` | PG + SSH + Cycle-7 unpublished asserts + health → register → upload → demo login + Cycle-6/7 Blue asserts |
-| `journey-test.sh` | Full prod stack | 3 roles, demo share token API+UI, mod pending, admin files, IDOR deny |
-| `tls-smoke.sh` | Prod + `docker-compose.tls.yml` on `:8443` | HTTPS health, HSTS, HTTP→HTTPS redirect, Secure cookie |
-| `scripts/gen-lab-certs.sh` | mkcert or openssl | Write `infra/certs/localhost*.pem` |
-| `e2e-docker.sh` | Docker available | Backend e2e vs `kc_prod` via `docker-compose.e2e.yml` host `:5433` (admin user) |
-| `vm-setup.sh` | Ubuntu + sudo | Install Docker, clone repo, prod stack, smoke + journey |
+| `cycle8-examiner.sh` | Prod + `docker-compose.cycle8.yml` | F1–F5 plant dry-run (live tip box) |
+| `smoke-test.sh` | Full prod stack on `:8080` | Unpublished asserts + health → register → upload + C6/C7 Blue |
+| `journey-test.sh` | Full prod stack | 3 roles, demo share, IDOR deny |
+| `tls-smoke.sh` | Prod + TLS overlay | HTTPS / HSTS / Secure cookie |
+| `e2e-docker.sh` | Docker | Backend e2e via `docker-compose.e2e.yml` |
+| `vm-setup.sh` | Ubuntu + sudo | Bootstrap VM + smoke/journey |
 
-### Cycle-4 SSH overlay (SoftDev / `v1.2.0` only)
-
-```bash
-docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ssh.yml up -d --build
-./infra/assert-ssh-unpublished.sh
-./infra/cycle4-ssh-examiner.sh
-# Player: ssh -p 2222 lab@<box>   # password on ctf/v1.2.0 admin ops plant (not on v2.2.0 tip seeds)
-```
-
-### Cycle-7 Northwind Ops overlay (`v1.4.0`)
-
-```bash
-docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle7.yml up -d --build
-./infra/assert-cycle7-unpublished.sh
-./infra/cycle7-examiner.sh
-# Optional: CYCLE7_FTP_PASV_ADDRESS=<box-ip> for Host-Only / LAN FTP PASV
-```
-
-### Full verify gate
+### Full verify gate (prod alone)
 
 ```bash
 docker compose -f infra/docker-compose.prod.yml up -d --build
@@ -155,28 +146,38 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.tls.yml 
 ./infra/tls-smoke.sh
 ```
 
+### Replay prior boxes
+
+Checkout the tag / `ctf/*` branch first — plant compose + examiner files are **on that revision**, not on tip after retirement.
+
+```bash
+git checkout v1.4.0   # Cycle-7 example
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle7.yml up -d --build
+./infra/cycle7-examiner.sh
+```
+
 ---
 
-## Security testing
-
-Cycle-2 Blue Team: [docs/security/Cycle-2/Remediation/](../docs/security/Cycle-2/Remediation/).  
-Cycle-1 (closed): [docs/security/Cycle-1/README.md](../docs/security/Cycle-1/README.md).
-
----
-
-## Contents
+## Tip contents
 
 | File | Purpose |
 |------|---------|
 | `compose.yml` | Dev PostgreSQL only (`kc_dev`, `:5432`) |
 | `docker-compose.prod.yml` | Full stack: postgres, backend, frontend, nginx |
-| `postgres/init/` | First-boot `kc_app` role (least-priv) |
-| `.env.example` | Prod env template → copy to `.env` |
-| `nginx.conf` | Reverse proxy `/api` → backend, `/` → frontend |
-| `smoke-test.sh` | Minimal API smoke |
-| `journey-test.sh` | Role + seed journey |
-| `e2e-docker.sh` | Full e2e vs Docker postgres |
-| `vm-setup.sh` | Ubuntu VM bootstrap |
+| `docker-compose.cycle8.yml` | **Live** plant overlay (Cowrie/FTP/edge/Samba/mail/Intake) |
+| `docker-compose.tls.yml` / `nginx-tls.conf` | TLS profile |
+| `docker-compose.lab-host.yml` | Optional SSH noise |
+| `docker-compose.e2e.yml` | e2e Postgres publish |
+| `nginx.conf` / `nginx-cycle8.conf` | Default edge / C8 Intake+www |
+| `cycle8/` | Overlay service images/config |
+| `assert-*-unpublished.sh` | Prod-alone port/service locks |
+| `cycle*-blue-assert.sh` | Prior Blue regression |
+| `cycle8-examiner.sh` | Live box dry-run |
+| `smoke-test.sh` / `journey-test.sh` / `e2e-docker.sh` / `tls-smoke.sh` / `vm-setup.sh` | Gates |
+| `postgres/init/` | First-boot `kc_app` role |
+| `.env.example` | Prod env template → `.env` |
+
+**Blue close (later):** delete tip copies of the live plant overlay (`cycle8*` compose/dir/nginx/examiner + Intake plants as designed); keep unpublished + Blue asserts; replay via `ctf/v1.5.0`.
 
 ---
 
