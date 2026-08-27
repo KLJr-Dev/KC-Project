@@ -58,7 +58,7 @@ Compose: `docker-compose.prod.yml` + **`docker-compose.cycle7.yml`** (name locke
 | # | Topic | Locked |
 |---|--------|--------|
 | 15 | LFI surface | Authenticated **Ops Documents** viewer — e.g. `GET /api/ops/documents?path=` (exact path finalized in P2; must allow `../` plant) |
-| 16 | F1 plant file | Readable via LFI (e.g. seeded ops note / flag file under controlled plant dir) |
+| 16 | F1 plant file | `ops-docs/plants/cycle7-f1.txt` via `path=../plants/cycle7-f1.txt` from library root |
 | 17 | FTP loot | Anon `loot.txt` (or similar): F2 + `lab` / password breadcrumb for `:2222` |
 | 18 | SSH user | `lab` (or `labuser`) · weak lab password from FTP · `~/user.txt` = F3 |
 | 19 | PrivEsc | `sudo NOPASSWD` on **`/usr/bin/find`** (GTFO) → `/root/root.txt` = F4 |
