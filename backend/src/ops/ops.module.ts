@@ -1,5 +1,5 @@
 /**
- * Ops domain — Cycle-7 Ops Documents (LFI plant on `v1.4.0`).
+ * Ops domain — Cycle-7 Ops Documents (path-confined on `v2.4.0`).
  */
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';

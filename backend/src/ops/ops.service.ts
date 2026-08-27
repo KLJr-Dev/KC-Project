@@ -1,42 +1,65 @@
 /**
- * Ops Documents — Cycle-7 intentional insecure tip (`v1.4.0`).
+ * Ops Documents — Cycle-7 Blue (`v2.4.0`).
  *
- * CWE-22 / FC-18: `path` is joined under the library root **without**
- * canonicalization or a “must stay inside root” check, so `../` reaches the
- * plant tree. Blue `v2.4.0` must resolve + reject escapes.
+ * Authenticated handbook read under `ops-docs/library`. Paths are resolved and
+ * must remain under the library root (closes CWE-22 / C7-F01 / FC-18).
  *
- * @see docs/security/Cycle-7/Dev/cycle-7-decisions.md
+ * @see docs/security/Cycle-7/Remediation/v2.4.0-remediation.md
  */
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import { CYCLE7_FLAG_F1_LFI } from './cycle7-plants';
+import { readFile, realpath } from 'fs/promises';
+import { join, resolve, sep } from 'path';
 
 const MAX_BYTES = 64_000;
 
 @Injectable()
 export class OpsService {
-  /** Public handbook-style docs (intended starting directory for viewers). */
+  /** Public handbook-style docs (viewer root). */
   private libraryRoot(): string {
     return join(process.cwd(), 'ops-docs', 'library');
   }
 
+  private underRoot(root: string, candidate: string): boolean {
+    return candidate === root || candidate.startsWith(root + sep);
+  }
+
   /**
    * Read a document relative to the library root.
-   *
-   * INTENTIONAL LFI: we use path.join only — we do **not** call realpath or
-   * assert the result stays under libraryRoot(), so `../plants/...` works.
+   * Rejects absolute paths and any resolve/realpath escape outside the root.
    */
   async readDocument(relPath: string): Promise<{ path: string; content: string }> {
     if (!relPath || relPath.includes('\0')) {
       throw new BadRequestException('Invalid path');
     }
+    if (relPath.startsWith('/') || /^[A-Za-z]:[\\/]/.test(relPath)) {
+      throw new BadRequestException('Invalid path');
+    }
 
-    const target = join(this.libraryRoot(), relPath);
+    const root = await realpath(this.libraryRoot());
+    const candidate = resolve(root, relPath);
+
+    if (!this.underRoot(root, candidate)) {
+      throw new BadRequestException('Path escapes library root');
+    }
+
+    let target: string;
+    try {
+      target = await realpath(candidate);
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT' || code === 'ENOTDIR') {
+        throw new NotFoundException('Document not found');
+      }
+      throw err;
+    }
+
+    if (!this.underRoot(root, target)) {
+      throw new BadRequestException('Path escapes library root');
+    }
 
     try {
       const buf = await readFile(target);
@@ -55,10 +78,5 @@ export class OpsService {
       }
       throw err;
     }
-  }
-
-  /** Dev/examiner helper — F1 string (not an HTTP route). */
-  f1Marker(): string {
-    return CYCLE7_FLAG_F1_LFI;
   }
 }

@@ -1,8 +1,8 @@
-# Ops Documents library + Cycle-7 plants
+# Ops Documents library
 #
-# library/  — intended viewer root (GET /ops/documents?path=…)
-# plants/   — F1 LFI target via path=../plants/cycle7-f1.txt
+# library/  — viewer root (GET /ops/documents?path=…)
 #
-# Copied into the backend Docker image (see Dockerfile). Not for Blue tip.
+# Cycle-7 F1 plant (`plants/`) lived on tip `v1.4.0` / archive `ctf/v1.4.0` only.
+# Blue `v2.4.0` ships library handbooks; paths are confined under library/.
 
 Northwind Ops — put handbooks and runbooks under library/.

@@ -1,10 +1,10 @@
 /**
- * Ops Documents HTTP API — Cycle-7 intentional insecure tip (`v1.4.0`).
+ * Ops Documents HTTP API — Cycle-7 Blue (`v2.4.0`).
  *
  * Routes (behind nginx `/api`):
- * - GET /ops/documents?path= — authenticated document read (LFI teaching surface)
+ * - GET /ops/documents?path= — authenticated document read (path-confined)
  *
- * CWE-22 / FC-18. See OpsService for why `path` is unsafe on this tip.
+ * C7-F01 closed: see OpsService path confinement.
  */
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';

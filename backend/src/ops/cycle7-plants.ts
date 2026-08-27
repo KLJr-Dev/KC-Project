@@ -1,7 +1,8 @@
 /**
- * Cycle-7 intentional plants (`v1.4.0`). Neutralized on Blue `v2.4.0`.
- * Flag values also live in examiner GT — do not print these in application logs.
- * F2–F5 live primarily under `infra/cycle7/`; constants here keep the tip source of truth.
+ * Cycle-7 flag constants — examiner / archive / Blue assert only.
+ *
+ * **Not** imported by Ops tip code after `v2.4.0` Blue (C7-F01).
+ * Live plants remain on tag/branch `v1.4.0` / `ctf/v1.4.0`.
  *
  * @see docs/security/Cycle-7/Dev/v1.4.0-ground-truth.md
  */
