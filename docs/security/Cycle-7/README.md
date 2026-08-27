@@ -1,6 +1,6 @@
 # Security Cycle 7 — Northwind Ops (multi-service / LFI + overlays)
 
-**Status:** **Tip shipped** · tag **`v1.4.0`** · archive **`ctf/v1.4.0`** · Red pending · pair → **`v2.4.0`** · [ADR-035](../../decisions/ADR-035-cycle-7-multi-service-pair.md)  
+**Status:** **Red frozen** · tag **`v1.4.0`** · archive **`ctf/v1.4.0`** · Blue → **`v2.4.0`** · [ADR-035](../../decisions/ADR-035-cycle-7-multi-service-pair.md)  
 **Ceiling:** Multi-day OSCP-shaped box — LFI, FTP, SSH, sudo GTFO, dual-home pivot, Cowrie decoy. **Not** a same-day micro CTF.
 
 | Track | Role | Status |
@@ -8,8 +8,8 @@
 | Docs / design | P0 decisions, box, execution, GT, brief | **Done** (#31) |
 | Feature lanes → `dev` → `main` | Intentional insecure tip | **Done** (#32) · [integration](Dev/v1.4.0-integration-status.md) |
 | Tag **`v1.4.0`** (+ `ctf/v1.4.0`) | Pentest-ready insecure tip | **Shipped** · [pentest-ready](../../release/v1.4.0-pentest-ready.md) |
-| PenTest | Multi-day Socratic Red | **Complete** — [writeup](PenTest/v1.4.0-writeup.md) |
-| **`remediation/v2.4.0`** → tag **`v2.4.0`** | Close LFI; unpublish overlays | Pending |
+| PenTest | Multi-day Socratic Red | **Frozen** — [writeup](PenTest/v1.4.0-writeup.md) (5/5) |
+| **`remediation/v2.4.0`** → tag **`v2.4.0`** | Close LFI; unpublish overlays | **In progress** · [Remediation/](Remediation/) |
 
 ---
 
