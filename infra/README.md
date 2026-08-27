@@ -2,13 +2,13 @@
 
 Deployment and infrastructure for **KC-Project**.
 
-**Current tip:** Intentional insecure **`v1.4.0`** (Cycle-7 Northwind Ops) — use overlays for the box; last hardened tag **`v2.3.0`**.  
-**Cycle-7 tip:** `docker-compose.cycle7.yml` — FTP `:21`, SSH `:2222`, Cowrie `:2223`, internal jump (ADR-035).  
+**Current tip:** Hardened **`v2.4.0`** (Ops Documents path-confined; Cycle-7 overlays unpublished on default prod).  
+**Cycle-7 insecure replay:** tag / branch **`v1.4.0`** / **`ctf/v1.4.0`** + `docker-compose.cycle7.yml` — FTP `:21`, SSH `:2222`, Cowrie `:2223`, internal jump (ADR-035).  
 **Insecure SoftDev replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.  
 **Cycle-5 CTF replay:** frozen `ctf/shells-privesc` + `docker-compose.ctf-shells.yml` (on that branch).  
 **Optional tip noise:** `docker-compose.lab-host.yml` — SSH `:2222` only (no `:8787`).  
 Historical insecure baseline: tag `v1.0.0`. Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — do not attach those overlays without intent.
-Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair: [ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md).
+Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · Cycle-7 pair: [ADR-035](../docs/decisions/ADR-035-cycle-7-multi-service-pair.md).
 
 ---
 
@@ -19,7 +19,7 @@ Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair
 | **Secure / lab (primary)** | `docker-compose.prod.yml` | Day-to-day, journeys, smoke (**loopback HTTP OK**) | `http://localhost:8080` |
 | **TLS profile** | `prod` + `docker-compose.tls.yml` | **Required for LAN / recruiter secure demos**; HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
 | **SSH foothold (v1.2.0 replay only)** | `prod` + `docker-compose.ssh.yml` | Frozen SoftDev / CTF chain — **not** default tip | SSH `:2222` |
-| **Cycle-7 Northwind Ops** | `prod` + `docker-compose.cycle7.yml` | Multi-service tip (`v1.4.0`) — FTP/SSH/Cowrie/jump | `:21` / `:2222` / `:2223` |
+| **Cycle-7 Northwind Ops (replay)** | `prod` + `docker-compose.cycle7.yml` | Frozen `v1.4.0` / `ctf/v1.4.0` — **not** default tip | `:21` / `:2222` / `:2223` |
 | **Lab-host noise (optional)** | `prod` + `docker-compose.lab-host.yml` | Hardened SSH-only sidecar — **no** kc-agent | SSH `:2222` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 

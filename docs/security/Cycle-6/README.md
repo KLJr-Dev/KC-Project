@@ -35,5 +35,5 @@
 
 ## References
 
-- Cycle-7 stub: [../Cycle-7/README.md](../Cycle-7/README.md)  
+- Cycle-7 (closed): [../Cycle-7/README.md](../Cycle-7/README.md)  
 - Bucket B: [../Cycle-2/Remediation/future-ctf-candidates.md](../Cycle-2/Remediation/future-ctf-candidates.md)

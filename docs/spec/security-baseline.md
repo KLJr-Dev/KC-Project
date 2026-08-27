@@ -1,6 +1,6 @@
 # Security Control Baseline
 
-Target security controls for hardened counterparts (`v2.N.0`). Product tip **`v2.2.0`** closed Cycle-4 Notes XSS / SSH defaults ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)). SoftDev insecure Notes tip remains on tag/`ctf/v1.2.0`.
+Target security controls for hardened counterparts (`v2.N.0`). Product tip **`v2.4.0`** closed Cycle-7 Ops LFI / overlays ([ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)); prior SoftDev Notes XSS / SSH defaults remain closed from **`v2.2.0`** ([ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md)). SoftDev insecure Notes tip remains on tag/`ctf/v1.2.0`; Cycle-7 insecure tip on tag/`ctf/v1.4.0`.
 
 ### SoftDev Blue (`v2.2.0`) — verified
 

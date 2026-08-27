@@ -70,7 +70,6 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 ## Handoff
 
-1. Cycle-7 P0 on `docs/cycle-7-p0` → PR → `main` ([Cycle-7](../../Cycle-7/README.md)).  
-2. Feature lanes → tip `v1.4.0` → Red → Blue `v2.4.0`.  
-3. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
-4. Update this status table (`Consumed` / `Planned` / `In progress`).
+1. Cycle-7 **closed** (`v1.4.0` / `ctf/v1.4.0` → `v2.4.0`) — [Cycle-7](../../Cycle-7/README.md).  
+2. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
+3. Update this status table (`Consumed` / `Planned` / `In progress`) when picking the next FC.
