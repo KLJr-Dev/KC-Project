@@ -59,10 +59,10 @@ Compose: `docker-compose.prod.yml` + **`docker-compose.cycle7.yml`** (name locke
 |---|--------|--------|
 | 15 | LFI surface | Authenticated **Ops Documents** viewer — e.g. `GET /api/ops/documents?path=` (exact path finalized in P2; must allow `../` plant) |
 | 16 | F1 plant file | `ops-docs/plants/cycle7-f1.txt` via `path=../plants/cycle7-f1.txt` from library root |
-| 17 | FTP loot | Anon `loot.txt` (or similar): F2 + `lab` / password breadcrumb for `:2222` |
-| 18 | SSH user | `lab` (or `labuser`) · weak lab password from FTP · `~/user.txt` = F3 |
+| 17 | FTP loot | Anon `pub/loot.txt`: F2 + `lab` / `labpass` for `:2222` |
+| 18 | SSH user | `lab` / `labpass` · `~/user.txt` = F3 |
 | 19 | PrivEsc | `sudo NOPASSWD` on **`/usr/bin/find`** (GTFO) → `/root/root.txt` = F4 |
-| 20 | Jump F5 | After tunnel, basic-auth page or static file holds F5 |
+| 20 | Jump F5 | Internal `http://cycle7-jump:8080/` · basic-auth `nwops` / `Ops1ntranet` (creds in `/root/ops-intranet.txt`) |
 | 21 | FC-17 | Optional decoy DB string in FTP — **not** graded |
 | 22 | Preview / CSRF / Notes | **Remain hardened** — no Cycle-6 re-break |
 

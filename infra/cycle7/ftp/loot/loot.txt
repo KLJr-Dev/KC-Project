@@ -1,0 +1,10 @@
+Northwind Ops — forgotten transfer drop (do not commit to prod)
+
+Flag: OS{0362720305fcd3c72f09b034404b931e}
+
+Bastion access (real OpenSSH — not the decoy honeypot):
+  user: lab
+  pass: labpass
+  port: 2222
+
+Note: another SSH-looking listener may exist nearby. Timebox it; prefer the port above.

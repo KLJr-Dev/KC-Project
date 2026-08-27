@@ -2,12 +2,12 @@
 
 Deployment and infrastructure for **KC-Project**.
 
-**Current tip:** Notes hardened on tag **`v2.2.0`** — no default SSH; Cycle-5 agent/PrivEsc **not** on tip.  
+**Current tip:** Cycle-6 Blue on tag **`v2.3.0`** — no default SSH/FTP; Preview/bookmarks hardened.  
+**Cycle-7 SoftDev (in progress on lanes):** `docker-compose.cycle7.yml` — FTP `:21`, SSH `:2222`, Cowrie `:2223`, internal jump (ADR-035).  
 **Insecure SoftDev replay:** tag / branch **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml` only.  
 **Cycle-5 CTF replay:** frozen `ctf/shells-privesc` + `docker-compose.ctf-shells.yml` (on that branch).  
 **Optional tip noise:** `docker-compose.lab-host.yml` — SSH `:2222` only (no `:8787`).  
 Historical insecure baseline: tag `v1.0.0`. Frozen CTF boxes (`ctf/v1.1.0`, `ctf/leak-crack-db`) — do not attach those overlays without intent.
-
 Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair: [ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md).
 
 ---
@@ -18,8 +18,9 @@ Canonical deployment: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · SoftDev pair
 |------|--------------|----------|-------|
 | **Secure / lab (primary)** | `docker-compose.prod.yml` | Day-to-day, journeys, smoke (**loopback HTTP OK**) | `http://localhost:8080` |
 | **TLS profile** | `prod` + `docker-compose.tls.yml` | **Required for LAN / recruiter secure demos**; HTTPS / HSTS / Secure cookies | `https://localhost:8443` |
-| **SSH foothold (v1.2.0 replay only)** | `prod` + `docker-compose.ssh.yml` | Frozen SoftDev / CTF chain — **not** default for `v2.2.0` | SSH `:2222` |
-| **Lab-host noise (optional)** | `prod` + `docker-compose.lab-host.yml` | Hardened SSH-only sidecar for future realism — **no** kc-agent | SSH `:2222` |
+| **SSH foothold (v1.2.0 replay only)** | `prod` + `docker-compose.ssh.yml` | Frozen SoftDev / CTF chain — **not** default tip | SSH `:2222` |
+| **Cycle-7 Northwind Ops** | `prod` + `docker-compose.cycle7.yml` | Multi-service tip (`v1.4.0`) — FTP/SSH/Cowrie/jump | `:21` / `:2222` / `:2223` |
+| **Lab-host noise (optional)** | `prod` + `docker-compose.lab-host.yml` | Hardened SSH-only sidecar — **no** kc-agent | SSH `:2222` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |
 
 **C4-F03 / C5 policy:** Prod compose alone must not publish `:2222` or `:8787` — `./infra/assert-ssh-unpublished.sh`. SoftDev SSH overlay = `v1.2.0` replay; tip lab-host overlay = optional noise only.
@@ -112,7 +113,9 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 |--------|--------|---------|
 | `assert-pg-unpublished.sh` | compose file | Prod compose must not publish `:5433` (C2-F03) |
 | `assert-ssh-unpublished.sh` | compose file | Prod compose must not publish `:2222` (SSH overlay-only) |
+| `assert-cycle7-unpublished.sh` | compose file | Prod compose must not publish `:21` / `:2222` / `:2223` or `cycle7-*` |
 | `cycle4-ssh-examiner.sh` | Prod + `docker-compose.ssh.yml` | F3 + loot dry-run for Cycle-4 SoftDev |
+| `cycle7-examiner.sh` | Prod + `docker-compose.cycle7.yml` | F2–F5 plant dry-run (bastion→jump) |
 | `smoke-test.sh` | Full prod stack on `:8080` | PG + SSH unpublished asserts + health → register → upload → list + demo login |
 | `journey-test.sh` | Full prod stack | 3 roles, demo share token API+UI, mod pending, admin files, IDOR deny |
 | `tls-smoke.sh` | Prod + `docker-compose.tls.yml` on `:8443` | HTTPS health, HSTS, HTTP→HTTPS redirect, Secure cookie |
@@ -127,6 +130,15 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.ssh.yml 
 ./infra/assert-ssh-unpublished.sh
 ./infra/cycle4-ssh-examiner.sh
 # Player: ssh -p 2222 lab@<box>   # password on ctf/v1.2.0 admin ops plant (not on v2.2.0 tip seeds)
+```
+
+### Cycle-7 Northwind Ops overlay (`v1.4.0`)
+
+```bash
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle7.yml up -d --build
+./infra/assert-cycle7-unpublished.sh
+./infra/cycle7-examiner.sh
+# Optional: CYCLE7_FTP_PASV_ADDRESS=<box-ip> for Host-Only / LAN FTP PASV
 ```
 
 ### Full verify gate
