@@ -46,7 +46,9 @@ services:
     environment:
       PASV_ADDRESS: ${CYCLE8_FTP_PASV_ADDRESS:-127.0.0.1}
     volumes:
+      # Same volume at webroot and inside lisa chroot (symlink cannot escape chroot)
       - cycle8_www:/var/www/html
+      - cycle8_www:/home/lisa/www
     mem_limit: 64m
     restart: unless-stopped
 

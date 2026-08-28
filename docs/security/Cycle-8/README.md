@@ -1,15 +1,15 @@
 # Security Cycle 8 — Northwind Intake (tool-forced chain / dual-home)
 
 **Status:** **Insecure tip tagged** · pair **`v1.5.0`** → **`v2.5.0`** · [ADR-036](../../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../../decisions/ADR-037-immersion-northwind-product-face.md)  
-**Ceiling:** Multi-day OSCP-shaped box — sqlmap → John (SMTP) → Hydra (FTP) → revshell → sudo nano → Samba+SMTP. Cowrie-only SSH theater. **Docker + Kali only**.
+**Ceiling:** Multi-day OSCP-shaped box — sqlmap → John (SMTP) → Hydra (FTP) → revshell → sudo nano → Samba pivot. Cowrie-only SSH theater. **Docker + Kali only**.
 
 | Track | Role | Status |
 |-------|------|--------|
 | Docs / design | P0 decisions, box, GT, brief | **Merged** (#34) |
 | Feature lanes → `dev` → `main` | Intentional insecure tip | **Merged** (#35) |
 | Tag **`v1.5.0`** (+ `ctf/v1.5.0`) | Pentest-ready insecure tip | **Shipped** |
-| PenTest | Multi-day Red; **OSCP-style writeup** ([PenTest/](PenTest/)) | Open |
-| **`remediation/v2.5.0`** → tag **`v2.5.0`** | Close intake plants; delete tip overlay | Pending |
+| PenTest | Red frozen — [writeup on `ctf/v1.5.0`](PenTest/v1.5.0-writeup.md) | **Done** |
+| **`remediation/v2.5.0`** → tag **`v2.5.0`** | Close intake plants; unpublish overlays | **Open** |
 
 ---
 
