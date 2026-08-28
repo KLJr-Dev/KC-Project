@@ -73,8 +73,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 ## Handoff
 
-1. Cycle-7 **closed** (`v1.4.0` / `ctf/v1.4.0` → `v2.4.0`) — [Cycle-7](../../Cycle-7/README.md).  
-2. Cycle-8 **insecure tip tagged** — Red open on `v1.5.0` / `ctf/v1.5.0` ([Cycle-8](../../Cycle-8/README.md) · [ADR-036](../../../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)).  
-3. After Red freeze → Blue `v2.5.0` (delete tip plant overlay; keep Northwind skin).  
-4. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
-5. Update this status table (`Consumed` / `Planned` / `In progress`).
+1. Cycle-8 **closed** (`v1.5.0` / `ctf/v1.5.0` → `v2.5.0`) — [Cycle-8](../../Cycle-8/README.md) · [secure-ready](../../../release/v2.5.0-secure-ready.md).  
+2. Next expansion: pick from **Available** rows below (logic-flaw / cloud / race tracks).  
+3. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
+4. Update this status table (`Consumed` / `Planned` / `In progress`).

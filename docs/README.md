@@ -2,7 +2,7 @@
 
 Engineering and technical documentation for KC-Project.
 
-**Current tip:** intentional insecure **`v1.5.0`** on `main` (Cycle-8 — Red open). **Last hardened:** tag **`v2.4.0`**. **Play map:** [USAGE.md](../USAGE.md).
+**Current tip:** secure **`v2.5.0`** on `main` (Cycle-8 **Closed**). **Insecure replay:** `v1.5.0` / `ctf/v1.5.0`. **Play map:** [USAGE.md](../USAGE.md).
 
 ## Contents
 
@@ -47,8 +47,7 @@ Cycle workspaces (ADR-031):
 
 ```
 docs/security/
-├── Cycle-1/ … Cycle-7/   → closed (see security README)
-├── Cycle-8/   → insecure tip v1.5.0 / ctf/v1.5.0 — Red open
+├── Cycle-1/ … Cycle-8/   → closed (see security README)
 ├── README.md
 └── cwe-inventory.md
 ```

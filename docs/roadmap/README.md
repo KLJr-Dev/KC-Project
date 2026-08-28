@@ -9,7 +9,7 @@ This directory contains the KC-Project development roadmap.
 3. **[ROADMAP.md](ROADMAP.md)** — Version-by-version execution detail (historical build + expansion pointers).
 4. **Phase summaries** — Retrospectives after each v0.x surface closes.
 
-**Current tip:** intentional insecure **`v1.5.0`** on `main` (Cycle-8 — Red open). **Last hardened:** **`v2.4.0`**. **Featured Red:** `v1.5.0` / `ctf/v1.5.0`. Prior replay: `v1.4.0` · `v1.3.0` · `v1.2.0` · `ctf/shells-privesc`. Cycles **1–7 closed**.
+**Current tip:** secure **`v2.5.0`** on `main` (Cycle-8 **Closed**). **Featured Red:** `v1.5.0` / `ctf/v1.5.0`. Prior replay: `v1.4.0` · `v1.3.0` · `v1.2.0` · `ctf/shells-privesc`. Cycles **1–8 closed**.
 
 ## Phase summaries (build)
 

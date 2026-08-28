@@ -119,9 +119,9 @@ Pin tag **`v2.5.0`** for hardened demos. Replay prior plants only after **checko
 
 ## Methodology (against historical / CTF / insecure tips)
 
-Run offensive work against **tag `v1.5.0`** / **`ctf/v1.5.0`** (+ `docker-compose.cycle8.yml` on that checkout), or historical **`v1.4.0`** / **`ctf/v1.4.0`**, **`v1.3.0`**, **`v1.2.0`**, **`ctf/shells-privesc`**, **`ctf/leak-crack-db`**, **`ctf/v1.1.0`**, **`v1.0.0`** — not as expectations against hardened tip **`v2.4.0`** / **`remediation/v2.5.0`**:
+Run offensive work against **tag `v1.5.0`** / **`ctf/v1.5.0`** (+ `docker-compose.cycle8.yml` on that checkout), or historical **`v1.4.0`** / **`ctf/v1.4.0`**, **`v1.3.0`**, **`v1.2.0`**, **`ctf/shells-privesc`**, **`ctf/leak-crack-db`**, **`ctf/v1.1.0`**, **`v1.0.0`** — not as expectations against hardened tip **`v2.5.0`**:
 
-1. Verify deploy: smoke / journey / e2e; Cycle-6/7 Blue also `cycle6-blue-assert.sh` / `cycle7-blue-assert.sh`
+1. Verify deploy: smoke / journey / e2e; Cycle-6/7/8 Blue also `cycle6-blue-assert.sh` / `cycle7-blue-assert.sh` / `cycle8-blue-assert.sh`
 2. Map attack surface from that cycle’s ground truth
 3. Authenticate; exercise the cycle’s surfaces
 4. Document findings in the cycle PenTest writeup (on the CTF / insecure branch)
