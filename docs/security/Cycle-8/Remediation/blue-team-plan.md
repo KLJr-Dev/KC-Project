@@ -79,8 +79,8 @@ Overlay compose remains in-repo for archive — **must not** be required for day
 
 - [x] Fill + sign secure-ready
 - [x] smoke · journey · tls-smoke · cycle6/7/8 blue asserts · cycle8 unpublished assert
-- [ ] PR `remediation/v2.5.0` → `main`
-- [ ] Tag `v2.5.0` · freeze branch · reset `backend`/`frontend`/`dev` to `main`
+- [x] PR `remediation/v2.5.0` → `main`
+- [x] Tag `v2.5.0` · freeze branch · reset `backend`/`frontend`/`dev` to `main`
 - [x] Bucket B FC-19/20 → Consumed · Cycle-8 **Closed**
 
 ---
