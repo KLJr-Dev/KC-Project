@@ -1,6 +1,6 @@
 # Cycle-8 — Dev workspace
 
-**Status:** **Insecure tip shipped** — `v1.5.0` / `ctf/v1.5.0`. SoftDev + P5 complete; **Red open**. Next: P6 writeup freeze → P7 Blue `v2.5.0`.
+**Status:** **Insecure tip shipped** — `v1.5.0` / `ctf/v1.5.0`. SoftDev + P5 + **P6 Red** complete. **P7 Blue** on `remediation/v2.5.0`.
 
 | Doc | Role |
 |-----|------|

@@ -19,8 +19,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
   && chmod 644 /var/ftp/pub/* \
   && chown root:root /var/ftp/pub/* \
   && chown -R lisa:lisa /home/lisa \
-  && chmod 600 /home/lisa/flag.txt \
-  && ln -sfn /var/www/html /home/lisa/www
+  && chmod 600 /home/lisa/flag.txt
 
 EXPOSE 21 30000-30009
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

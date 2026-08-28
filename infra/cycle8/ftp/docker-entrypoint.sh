@@ -8,7 +8,7 @@ if grep -q '^pasv_address=' "$conf"; then
 else
   echo "pasv_address=${addr}" >> "$conf"
 fi
-# Ensure www mount is writable by lisa
-mkdir -p /var/www/html
+# Shared webroot is bind-mounted at /home/lisa/www (see compose) — keep writable
+mkdir -p /var/www/html /home/lisa/www
 chown -R lisa:lisa /var/www/html /home/lisa
 exec /usr/sbin/vsftpd "$conf"
