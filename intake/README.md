@@ -2,12 +2,12 @@
 
 **Role:** Python intake/search sidecar behind nginx `/api/intake/`. Not a Nest replacement ([ADR-036](../docs/decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)).
 
-**Tip `v1.5.0`:** intentional SQLi on search (`CYCLE8-PLANT`) + weak mail hashes for John.  
-**Blue `v2.5.0`:** parameterize queries; remove weak hash / F1 plants.
+**Secure tip `v2.5.0`:** parameterized search on prod compose (`intake` service).  
+**Insecure replay:** checkout `ctf/v1.5.0` + `docker-compose.cycle8.yml` for SQLi plant.
 
 ## Local / compose
 
-Started by `docker-compose.cycle8.yml` as `cycle8-intake` (internal). Edge:
+Prod stack (`docker-compose.prod.yml`) runs `intake` internally. Edge:
 
 ```text
 GET /api/intake/health
@@ -19,8 +19,9 @@ DB: Postgres database `kc_intake` (same postgres service, separate DB).
 ## Verify
 
 ```bash
+docker compose -f infra/docker-compose.prod.yml up -d --build
 curl -sS 'http://localhost:8080/api/intake/health'
 curl -sS 'http://localhost:8080/api/intake/search?q=lisa'
 ```
 
-Examiner dry-run: `./infra/cycle8-examiner.sh` (after overlays land).
+Insecure box examiner (archive only): `git checkout ctf/v1.5.0` → `./infra/cycle8-examiner.sh`.

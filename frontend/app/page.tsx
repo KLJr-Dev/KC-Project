@@ -82,7 +82,7 @@ export default function HomePage() {
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-md border border-border p-6 space-y-3">
           <h2 className="text-sm font-medium text-muted">Portal build</h2>
-          <p className="text-lg font-semibold text-foreground">v1.5.0</p>
+          <p className="text-lg font-semibold text-foreground">v2.5.0</p>
           <p className="text-sm text-muted">
             Northwind employee portal with Ops Intake staff directory.
           </p>

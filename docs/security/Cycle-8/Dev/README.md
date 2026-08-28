@@ -1,6 +1,6 @@
 # Cycle-8 — Dev workspace
 
-**Status:** **Insecure tip shipped** — `v1.5.0` / `ctf/v1.5.0`. SoftDev + P5 complete; **Red open**. Next: P6 writeup freeze → P7 Blue `v2.5.0`.
+**Status:** **Insecure tip shipped** — `v1.5.0` / `ctf/v1.5.0`. SoftDev + P5 + **P6 Red** complete. **P7 Blue** on `remediation/v2.5.0` — **M0 signed**, **M1 next** ([plan](../Remediation/blue-team-plan.md)).
 
 | Doc | Role |
 |-----|------|
@@ -14,4 +14,4 @@
 
 **Skin:** [ADR-037](../../../decisions/ADR-037-immersion-northwind-product-face.md) — Northwind corp face on `v1.5.0` **and** `v2.5.0`.  
 **Insecure tip (`v1.5.0` / `ctf/v1.5.0`):** FastAPI Intake plants + `docker-compose.cycle8.yml` overlays.  
-**Secure tip (`v2.5.0`):** Intake hardened / remove plants; **delete tip overlay copies**; **skin kept**.
+**Secure tip (`v2.5.0`):** Intake hardened on prod compose; overlay retired from tip — replay on `ctf/v1.5.0`.

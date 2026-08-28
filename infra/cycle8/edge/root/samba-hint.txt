@@ -1,6 +1,0 @@
-Northwind Ops — internal file services
-=====================================
-CYCLE8-LEDGER L4 (partial): hostname cycle8-samba
-Look for a share whose name starts with "Ops".
-Mailbox credentials you already cracked are often reused on file shares.
-SMTP / IMAP host: cycle8-mail (internal only).

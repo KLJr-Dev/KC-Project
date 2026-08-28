@@ -1,7 +1,7 @@
-"""Northwind Intake FastAPI app (Cycle-8).
+"""Northwind Intake FastAPI app (Cycle-8 Blue / v2.5.0).
 
-CYCLE8-PLANT: /search uses string-concat SQL for intentional sqlmap path (v1.5.0).
-Blue v2.5.0: parameterize; strip weak hashes / F1. See docs/security/Cycle-8/.
+Staff directory search behind /api/intake/. Parameterized queries; no hash columns in API.
+@see docs/security/Cycle-8/Remediation/v2.5.0-remediation.md
 """
 
 from __future__ import annotations
@@ -10,10 +10,12 @@ import os
 from typing import Any
 
 import psycopg2
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 
-app = FastAPI(title="Northwind Intake", version="1.5.0", docs_url=None, redoc_url=None)
+app = FastAPI(title="Northwind Intake", version="2.5.0", docs_url=None, redoc_url=None)
+
+_MAX_QUERY_LEN = 200
 
 
 def _conn():
@@ -28,49 +30,28 @@ def _conn():
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "northwind-intake"}
-
-
-@app.get("/admin/service-accounts")
-def service_accounts() -> dict[str, Any]:
-    """CYCLE8-DECOY D2 — fake legacy integration creds; fail on FTP/SMTP (not L2/L3)."""
-    return {
-        "accounts": [
-            {
-                "username": "admin",
-                "password": "NorthwindAdmin!",
-                "service": "legacy-ftp",
-                "note": "staged cutover — do not reuse for mailbox",
-            },
-            {
-                "username": "nwops",
-                "password": "ChangeMeBeforeProd",
-                "service": "smtp-relay",
-                "note": "deprecated relay account",
-            },
-        ]
-    }
+    return {"status": "ok", "service": "northwind-intake", "version": "2.5.0"}
 
 
 @app.get("/search")
 def search(q: str = Query(default="", description="Staff / mailbox search")) -> JSONResponse:
-    """CYCLE8-PLANT: intentional SQLi via f-string concat — do not copy to secure tip."""
-    # CYCLE8-LEDGER: returns mail_users rows (L1 names + L2 password_hash for John → SMTP).
+    """Directory search — parameterized; password_hash never returned."""
+    if len(q) > _MAX_QUERY_LEN:
+        raise HTTPException(status_code=400, detail="query too long")
+
+    pattern = f"%{q}%"
     sql = (
-        "SELECT username, email, password_hash, department, notes "
-        f"FROM mail_users WHERE username ILIKE '%{q}%' OR email ILIKE '%{q}%' "
-        f"OR department ILIKE '%{q}%' OR notes ILIKE '%{q}%' "
+        "SELECT username, email, department, notes "
+        "FROM mail_users "
+        "WHERE username ILIKE %s OR email ILIKE %s OR department ILIKE %s OR notes ILIKE %s "
         "ORDER BY username LIMIT 50"
     )
     try:
         with _conn() as conn:
             with conn.cursor() as cur:
-                cur.execute(sql)
+                cur.execute(sql, (pattern, pattern, pattern, pattern))
                 cols = [d[0] for d in cur.description]
                 rows: list[dict[str, Any]] = [dict(zip(cols, r)) for r in cur.fetchall()]
         return JSONResponse({"query": q, "count": len(rows), "results": rows})
-    except Exception as exc:  # noqa: BLE001 — lab tip surfaces DB errors for sqlmap
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(exc), "sql": sql},
-        )
+    except Exception:
+        return JSONResponse(status_code=500, content={"error": "search failed"})

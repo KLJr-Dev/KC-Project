@@ -91,7 +91,8 @@ echo "  OK"
 "${ROOT}/infra/cycle7-blue-assert.sh"
 "${ROOT}/infra/assert-cycle7-unpublished.sh"
 
-# Cycle-8 — overlays unpublished on prod alone (v2.5.0 gate / tip hygiene)
+# Cycle-8 Blue — Intake SQLi closed; no graded flags (v2.5.0)
+"${ROOT}/infra/cycle8-blue-assert.sh"
 "${ROOT}/infra/assert-cycle8-unpublished.sh"
 
 echo "Smoke test passed."

@@ -1,17 +1,11 @@
 'use client';
 
 /**
- * Northwind Intake — Cycle-8 tip (`v1.5.0`).
+ * Northwind Intake — Cycle-8 Blue (`v2.5.0`).
  * Staff / mailbox directory UI → GET /api/intake/search (FastAPI behind nginx).
- * CYCLE8-PLANT: search backend is intentionally injectable (sqlmap path).
  */
 import { useState } from 'react';
-import {
-  intakeSearch,
-  intakeServiceAccounts,
-  type IntakeSearchResult,
-  type IntakeServiceAccount,
-} from '../../lib/api';
+import { intakeSearch, type IntakeSearchResult } from '../../lib/api';
 import { formatUserError } from '../../lib/errors';
 import RequireAuth from '../components/require-auth';
 import ErrorBanner from '../components/ui/error-banner';
@@ -28,7 +22,6 @@ export default function IntakePage() {
 function IntakeContent() {
   const [q, setQ] = useState('');
   const [result, setResult] = useState<IntakeSearchResult | null>(null);
-  const [accounts, setAccounts] = useState<IntakeServiceAccount[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,16 +37,6 @@ function IntakeContent() {
       setError(formatUserError(err));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadServiceAccounts = async () => {
-    setError(null);
-    try {
-      const data = await intakeServiceAccounts();
-      setAccounts(data.accounts);
-    } catch (err) {
-      setError(formatUserError(err));
     }
   };
 
@@ -111,32 +94,6 @@ function IntakeContent() {
           </ul>
         </div>
       )}
-
-      {/* CYCLE8-DECOY D2 — legacy service-account panel; creds fail on FTP/SMTP */}
-      <div className="space-y-3 rounded-md border border-border p-6">
-        <h2 className="text-sm font-medium text-foreground">Legacy service accounts</h2>
-        <p className="text-sm text-muted">
-          Internal integration credentials for staged cutover. Prefer SSO for interactive
-          access.
-        </p>
-        <button
-          type="button"
-          onClick={loadServiceAccounts}
-          className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted/30"
-        >
-          Load directory
-        </button>
-        {accounts && (
-          <ul className="space-y-2 font-mono text-xs text-muted">
-            {accounts.map((a) => (
-              <li key={`${a.username}-${a.service}`}>
-                {a.service}: {a.username} / {a.password}
-                {a.note ? ` — ${a.note}` : ''}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </div>
   );
 }

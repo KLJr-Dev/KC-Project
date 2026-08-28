@@ -18,7 +18,7 @@
 
 **[Cycle-7/](Cycle-7/README.md)** — **Closed** (`v1.4.0` → `v2.4.0`): Ops Documents path confinement + overlays unpublished ([ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md)). [secure-ready](../release/v2.4.0-secure-ready.md).
 
-**[Cycle-8/](Cycle-8/README.md)** — **Insecure tip** (`v1.5.0` → `v2.5.0`): FastAPI Intake tool-chain box ([ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)). Red open on `ctf/v1.5.0`.
+**[Cycle-8/](Cycle-8/README.md)** — **Closed** (`v1.5.0` → `v2.5.0`): FastAPI Intake tool-chain box ([ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)). [secure-ready](../release/v2.5.0-secure-ready.md).
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -29,7 +29,7 @@
 | 5 | `ctf/shells-privesc` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/shells-privesc/docs/security/Cycle-5/PenTest/shells-privesc-writeup.md) | [Remediation/](Cycle-5/Remediation/) · frozen `remediation/shells-privesc` |
 | 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | tag **`v2.3.0`** · [Remediation/](Cycle-6/Remediation/) · frozen `remediation/v2.3.0` |
 | 7 | tag/`ctf/v1.4.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md) | tag **`v2.4.0`** · [Remediation/](Cycle-7/Remediation/) · frozen `remediation/v2.4.0` |
-| 8 | tag/`ctf/v1.5.0` · writeup pending Red | (pending) `remediation/v2.5.0` · [Cycle-8](Cycle-8/README.md) |
+| 8 | tag/`ctf/v1.5.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.5.0/docs/security/Cycle-8/PenTest/v1.5.0-writeup.md) | tag **`v2.5.0`** · [Remediation/](Cycle-8/Remediation/) · frozen `remediation/v2.5.0` |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -76,6 +76,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 - [v1.5.0-pentest-ready.md](../release/v1.5.0-pentest-ready.md) — Cycle-8 expansion Red gate (**signed** · tag `v1.5.0`)
 - [v1.4.0-pentest-ready.md](../release/v1.4.0-pentest-ready.md) — Cycle-7 expansion Red gate (**signed** · tag `v1.4.0`)
 - [v2.4.0-secure-ready.md](../release/v2.4.0-secure-ready.md) — Cycle-7 Blue gate (**signed** · tag `v2.4.0`)
+- [v2.5.0-secure-ready.md](../release/v2.5.0-secure-ready.md) — Cycle-8 Blue gate (**signed** · tag `v2.5.0`)
 - [security-baseline.md](../spec/security-baseline.md) — secure-product control checklist
 - [ADR-032](../decisions/ADR-032-post-v2.1.0-versioning.md) — CTF-only cycles without product version bumps
 - [ADR-033](../decisions/ADR-033-cycle-4-softdev-version-pair.md) — Cycle-4 pair `v1.2.0`→`v2.2.0`
@@ -86,7 +87,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 
 ## Scope
 
-Cycles **1–7 complete**. Cycle-8 **insecure tip tagged** (`v1.5.0` / `ctf/v1.5.0`); Red open. Play boxes: frozen `ctf/*` above.
+Cycles **1–8 complete**. Play boxes: frozen `ctf/*` above. Hardened tip: tag **`v2.5.0`**.
 
 ## Tools
 
@@ -95,11 +96,13 @@ Cycles **1–7 complete**. Cycle-8 **insecure tip tagged** (`v1.5.0` / `ctf/v1.5
 - jwt_tool (against intentional CTF/insecure tags — not expected to forge roles on hardened `main`)
 - Docker compose stack (`infra/docker-compose.prod.yml`; prior plant overlays only after checkout of `v1.x` / `ctf/*` — tip holds the **current** live box only)
 
-## Entry points (secure tip / `v2.4.0`)
+## Entry points (secure tip / `v2.5.0` on Blue branch)
 
 | Surface | URL / path | Auth |
 |---------|------------|------|
 | App UI | `http://localhost:8080` (TLS demo `:8443`) | Browser; access JWT in memory + httpOnly refresh cookie |
+| Intake UI | `/intake` | Auth; directory search (parameterized API) |
+| Intake API | `GET /api/intake/search?q=` | Proxied FastAPI; no hash columns |
 | Notes UI | `/notes`, `/notes/[id]` | Auth; body is plain text (escaped) |
 | Link Preview | `/preview` | Auth; server fetch with destination policy |
 | Ops Documents | `/ops` | Auth; path-confined handbook read |
@@ -112,11 +115,11 @@ Cycles **1–7 complete**. Cycle-8 **insecure tip tagged** (`v1.5.0` / `ctf/v1.5
 | Public share | `GET /api/sharing/public/:token` | Token |
 | API explorers | `/dev/*` | Lab flag gated in prod |
 
-Pin tag **`v2.4.0`** for hardened demos (until Cycle-8 Blue). Replay prior plants only after **checkout**: Cycle-7 **`v1.4.0`** / **`ctf/v1.4.0`** + `docker-compose.cycle7.yml`; Preview **`v1.3.0`** / **`ctf/v1.3.0`**; Notes+SSH **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml`. Tip does not keep closed-cycle plant compose/examiners.
+Pin tag **`v2.5.0`** for hardened demos. Replay prior plants only after **checkout**: Cycle-8 **`v1.5.0`** / **`ctf/v1.5.0`** + `docker-compose.cycle8.yml`; Cycle-7 **`v1.4.0`** / **`ctf/v1.4.0`**; Preview **`v1.3.0`** / **`ctf/v1.3.0`**; Notes+SSH **`v1.2.0`** / **`ctf/v1.2.0`** + `docker-compose.ssh.yml`. Tip does not keep closed-cycle plant compose/examiners.
 
 ## Methodology (against historical / CTF / insecure tips)
 
-Run offensive work against **tag `v1.5.0`** / **`ctf/v1.5.0`** (+ `docker-compose.cycle8.yml`), or historical **`v1.4.0`** / **`ctf/v1.4.0`**, **`v1.3.0`**, **`v1.2.0`**, **`ctf/shells-privesc`**, **`ctf/leak-crack-db`**, **`ctf/v1.1.0`**, **`v1.0.0`** — not as expectations against hardened tip **`v2.4.0`**:
+Run offensive work against **tag `v1.5.0`** / **`ctf/v1.5.0`** (+ `docker-compose.cycle8.yml` on that checkout), or historical **`v1.4.0`** / **`ctf/v1.4.0`**, **`v1.3.0`**, **`v1.2.0`**, **`ctf/shells-privesc`**, **`ctf/leak-crack-db`**, **`ctf/v1.1.0`**, **`v1.0.0`** — not as expectations against hardened tip **`v2.4.0`** / **`remediation/v2.5.0`**:
 
 1. Verify deploy: smoke / journey / e2e; Cycle-6/7 Blue also `cycle6-blue-assert.sh` / `cycle7-blue-assert.sh`
 2. Map attack surface from that cycle’s ground truth

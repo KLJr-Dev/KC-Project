@@ -1,10 +1,9 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Intentional insecure **`v1.5.0`** on `main` (Cycle-8 Northwind Intake — Red open) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
-**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7  
-**Secure replay**: tag **`v2.4.0`** (last hardened tip) · CTF archives as listed in security README  
-**Next**: Cycle-8 Red → Blue **`v2.5.0`** (keep Northwind skin; delete tip plant overlay)
+**Current tip**: Secure **`v2.5.0`** on `main` (Cycle-8 Northwind Intake — **Closed**) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
+**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7 · **Cycle-8**  
+**Secure replay**: tag **`v2.5.0`** · insecure archive **`v1.5.0`** / **`ctf/v1.5.0`**
 
 ---
 
@@ -315,19 +314,19 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 **Supersedes** earlier draft “cryptographic failures” slot for this version number.
 
-#### Product expansion `v1.5.0` — Intake tool-chain box (Cycle-8) — **insecure tip tagged / Red open**
+#### Product expansion `v1.5.0` — Intake tool-chain box (Cycle-8) — **Closed (`v2.5.0`)**
 
 **Goal**: Multi-day OSCP-shaped chain — sqlmap → John (SMTP hashes) → Hydra (FTP) → playable revshell → sudo nano → Samba+SMTP; Cowrie-only SSH; credential noise; Northwind immersion skin. Kali + Docker only.
 
 **Surfaces**: FastAPI Intake microservice behind Nest `/api/intake` (FC-19); `docker-compose.cycle8.yml` overlays (FC-20); five graded proofs on a hard DAG (**no John/Hydra secret reuse**).
 
-**Status**: Tip **`v1.5.0`** / **`ctf/v1.5.0`** shipped ([pentest-ready](../release/v1.5.0-pentest-ready.md)). Red open.
+**Status**: Insecure **`v1.5.0`** / **`ctf/v1.5.0`** frozen; Red complete ([writeup on archive](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.5.0/docs/security/Cycle-8/PenTest/v1.5.0-writeup.md) · [pentest-ready](../release/v1.5.0-pentest-ready.md)).
 
-**Blue**: **`v2.5.0`** (planned) — close plants; delete tip overlay copies; **keep Northwind skin** → tag `v2.5.0`.
+**Blue**: **`v2.5.0` tagged** — Intake hardened; overlay retired from tip; **Northwind skin kept** ([secure-ready](../release/v2.5.0-secure-ready.md) signed 2026-08-28).
 
 **Supersedes** earlier draft “business logic & advanced exploitation” slot for this version number (logic-flaw SoftDev deferred).
 
-**Design docs:** [Cycle-8](../security/Cycle-8/README.md) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)
+**Design docs:** [Cycle-8](../security/Cycle-8/README.md) · [Remediation plan](../security/Cycle-8/Remediation/blue-team-plan.md) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)
 
 **Skin:** Corporate Northwind product face; no extra graded IDOR/cookie/TLS flags this cycle.
 

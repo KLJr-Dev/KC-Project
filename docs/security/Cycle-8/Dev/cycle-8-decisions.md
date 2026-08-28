@@ -3,7 +3,7 @@
 **Execution:** [v1.5.0-execution-plan.md](v1.5.0-execution-plan.md) · **Box:** [v1.5.0-box-plan.md](v1.5.0-box-plan.md) · **ADR-036** · **Skin:** [ADR-037](../../../decisions/ADR-037-immersion-northwind-product-face.md)  
 **History:** P0 on `docs/cycle-8-p0` → #34; SoftDev → #35; tip tagged **`v1.5.0`** / **`ctf/v1.5.0`**.
 
-**Status:** **Locked / historical** — design authority for the shipped insecure tip. Red open; Blue closes plants and deletes tip overlay copies.
+**Status:** **Locked / historical** — design authority for the shipped insecure tip. **Red frozen** on `ctf/v1.5.0`; Blue closes plants on `remediation/v2.5.0`.
 
 **Anti-patterns (from Cycle-7 Red):** no skippable web flag; no cleartext foothold gift in loot; no spoon-feed that kills Cowrie; every planted secret in the **credential ledger**; **no John+Hydra redundancy** (different secrets → different services).
 
