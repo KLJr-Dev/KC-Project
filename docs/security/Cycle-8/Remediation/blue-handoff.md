@@ -53,6 +53,7 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh && ./infra/journey-test.sh
 ./infra/cycle6-blue-assert.sh && ./infra/cycle7-blue-assert.sh
 # + cycle8 blue assert when added (M3)
+./infra/cycle8-blue-assert.sh
 ```
 
 TLS profile + `tls-smoke.sh` required at secure-ready gate (inherit Cycle-6/7).

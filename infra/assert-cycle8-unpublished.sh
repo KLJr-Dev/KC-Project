@@ -26,6 +26,10 @@ fail_published() {
 fail_published 21
 fail_published 22
 
+for port in $(seq 30000 30009); do
+  fail_published "$port"
+done
+
 for svc in cycle8-ftp cycle8-cowrie cycle8-edge cycle8-samba cycle8-mail cycle8-intake; do
   if grep -E "^\s*${svc}:" "$COMPOSE_FILE" >/dev/null 2>&1; then
     echo "FAIL: $COMPOSE_FILE defines ${svc} (use docker-compose.cycle8.yml overlay)" >&2
@@ -33,4 +37,4 @@ for svc in cycle8-ftp cycle8-cowrie cycle8-edge cycle8-samba cycle8-mail cycle8-
   fi
 done
 
-echo "OK: prod compose does not publish Cycle-8 :21 / :22 or cycle8-* services"
+echo "OK: prod compose does not publish Cycle-8 :21 / :22 / PASV 30000-30009 or cycle8-* services"

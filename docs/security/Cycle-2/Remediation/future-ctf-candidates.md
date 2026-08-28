@@ -53,7 +53,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | FC-12 · FC-15 · FC-16 | Available (later tracks) |
 | FC-14 (FTP) · FC-18 | **Consumed (Cycle-7 `v1.4.0` / `v2.4.0`)** — Red frozen `ctf/v1.4.0`; Blue tagged `v2.4.0` |
 | FC-17 | Optional decoy on Cycle-7 (not graded DoD) |
-| FC-19 · FC-20 | **In tip (`v1.5.0` / `ctf/v1.5.0`)** — Red open; Consumed after Blue `v2.5.0` |
+| FC-19 · FC-20 | **Consumed (Cycle-8 `v1.5.0` / `v2.5.0`)** — Red frozen `ctf/v1.5.0`; Blue tagged `v2.5.0` |
 
 ---
 

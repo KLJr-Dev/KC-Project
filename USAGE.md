@@ -10,7 +10,7 @@ Root [`README.md`](README.md) is the recruiter story. This file is the map.
 
 | Artifact | Role |
 |----------|------|
-| **`main`** / tag **`v2.x`** | Hardened tip when a Blue cycle is closed — **except** during an open insecure tip (now: `v1.5.0` on `main`) |
+| **`main`** / tag **`v2.x`** | Hardened tip — currently **`v2.5.0`** |
 | **Tag `v1.x`** | Immutable insecure tip for that cycle |
 | **`ctf/*`** | Frozen Red archive (code + writeup/evidence) |
 | **`remediation/*`** | Frozen Blue archive (fix history + maps) |
@@ -36,11 +36,13 @@ Same idea as player briefs:
 Hardened product for walkthroughs.
 
 ```bash
-git checkout v2.4.0   # last hardened tip (pre–Cycle-8 Blue)
+git checkout v2.5.0
 cp infra/.env.example infra/.env
 docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh
 ```
+
+Prior secure tip: **`v2.4.0`**.
 
 App: `http://localhost:8080`  
 TLS / recruiter LAN: see [`infra/README.md`](infra/README.md) (`docker-compose.tls.yml` → `:8443`).
@@ -51,7 +53,7 @@ Demo users: [`docs/deploy/demo-users.md`](docs/deploy/demo-users.md).
 
 ## Track: Red (primary game)
 
-Plant overlays ship **with the checkout** (tag / `ctf/*`). Tip (`main`) keeps only the **current** live box overlay plus evergreen Blue asserts — prior cycle compose/examiners are not on tip after retirement.
+Plant overlays ship **with the checkout** (tag / `ctf/*`). Tip (`main` / Blue branch) holds only the **hardened** product — prior cycle compose/examiners are not on tip after retirement.
 
 ### Featured — Cycle-8 Northwind Intake
 
@@ -65,9 +67,8 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle8.y
 ```
 
 Start: [player brief](docs/security/Cycle-8/Dev/v1.5.0-player-brief.md) (hints only).  
+**`[SPOILER]`** writeup: on `ctf/v1.5.0` — [PenTest index](docs/security/Cycle-8/PenTest/README.md).  
 Release: [v1.5.0](https://github.com/KLJr-Dev/KC-Project/releases/tag/v1.5.0).
-
-**`[SPOILER]`** writeup: pending freeze on `ctf/v1.5.0` after Red.
 
 ### More Red boxes (tags / `ctf/*` — no featured Release required)
 
@@ -89,30 +90,24 @@ Catalog: [`docs/security/README.md`](docs/security/README.md).
 
 Not a blind CTF. You get a realistic Red → Blue ticket, then harden the **same tip Red finished**.
 
+### Cycle-8 (closed)
+
+Handoff: [`blue-handoff.md`](docs/security/Cycle-8/Remediation/blue-handoff.md)  
+**`[SPOILER]`** answer key: tag [`v2.5.0`](https://github.com/KLJr-Dev/KC-Project/releases/tag/v2.5.0) · [`v2.5.0-remediation.md`](docs/security/Cycle-8/Remediation/v2.5.0-remediation.md) · frozen `remediation/v2.5.0`
+
 ### Cycle-7 example
 
 ```bash
-git fetch --tags
 git checkout -b blue/cycle-7 v1.4.0
-# work on your branch only — do not push to ctf/* or move the tag
 ```
 
-1. Read the **Blue handoff** (findings + CWE + where to look): [`docs/security/Cycle-7/Remediation/blue-handoff.md`](docs/security/Cycle-7/Remediation/blue-handoff.md)
-2. Patch until success criteria in that doc hold on prod-alone compose.
-3. Optional self-check after you think you’re done: compare to tip / asserts.
+Handoff: [`blue-handoff.md`](docs/security/Cycle-7/Remediation/blue-handoff.md) · tag [`v2.4.0`](https://github.com/KLJr-Dev/KC-Project/releases/tag/v2.4.0)
 
-**`[SPOILER]`** answer key:
-
-- Tag [`v2.4.0`](https://github.com/KLJr-Dev/KC-Project/releases/tag/v2.4.0) (hardened tip)
-- Full finding → fix map: [`v2.4.0-remediation.md`](docs/security/Cycle-7/Remediation/v2.4.0-remediation.md)
-- Frozen Blue branch: `remediation/v2.4.0`
-- Asserts on tip: `./infra/cycle7-blue-assert.sh` · `./infra/assert-cycle7-unpublished.sh` (via smoke)
-
-Other cycles: use that cycle’s Remediation folder + insecure tag the same way; Cycle-7 is the worked example.
+Other cycles: use that cycle’s Remediation folder + insecure tag the same way.
 
 ---
 
 ## Quick infra pointer
 
 Compose overlays, TLS, smoke/journey: [`infra/README.md`](infra/README.md).  
-Prod alone must not publish Postgres `:5433`, retired Cycle-7 ports (`:21` / `:2222` / `:2223`), or Cycle-8 plant ports (`:21` / `:22`) without the live overlay.
+Prod alone must not publish Postgres `:5433`, retired Cycle-7 ports (`:21` / `:2222` / `:2223`), or Cycle-8 plant ports (`:21` / `:22`) without the archive overlay checkout.

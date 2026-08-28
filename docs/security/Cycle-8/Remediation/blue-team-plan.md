@@ -12,8 +12,8 @@
 | Cycle | 8 (Intake tool-chain + overlays) |
 | From | Intentional insecure Intake SQLi + Cycle-8 compose overlays on `main` (`v1.5.0`) |
 | To | Tag **`v2.5.0`** — Intake hardened; overlays unpublished on default prod; plants gone; **Northwind skin kept** |
-| Current milestone | **M0** — plan + map scaffolded; waves not started |
-| Code status | Awaiting Wave A |
+| Current milestone | **Done** — tagged **`v2.5.0`** |
+| Code status | Waves A–D complete · Cycle-8 **Closed** |
 
 ```text
 main @ v1.5.0 (insecure tip)
@@ -36,11 +36,11 @@ Close Cycle-8 Red findings on the **product tip**: Intake remains a feature behi
 
 | ID | Goal | Exit criteria | Status |
 |----|------|---------------|--------|
-| **M0** | Plan signed | Blue plan + remediation map + residuals + secure-ready scaffold | **In progress** |
-| **M1** | Wave A — Intake SQLi + F1 plant | Parameterized search; least-privilege DB role; no F1 on tip | Pending |
-| **M2** | Wave B — overlays / plants | Prod alone unpublished; remove F2–F5 tip plants; tip UI `v2.5.0` | Pending |
-| **M3** | Wave C — Blue asserts | `assert-cycle8-unpublished` + Intake negative assert in smoke/gate | Pending |
-| **M4** | Wave D — gate + tag | Smoke/journey/tls-smoke; PR → `main` → tag `v2.5.0` | Pending |
+| **M0** | Plan signed | Blue plan + remediation map + residuals + secure-ready scaffold | **Done** |
+| **M1** | Wave A — Intake SQLi + F1 plant | Parameterized search; least-privilege DB role; no F1 on tip | **Done** |
+| **M2** | Wave B — overlays / plants | Prod alone unpublished; remove F2–F5 tip plants; tip UI `v2.5.0` | **Done** |
+| **M3** | Wave C — Blue asserts | `assert-cycle8-unpublished` + Intake negative assert in smoke/gate | **Done** |
+| **M4** | Wave D — gate + tag | Smoke/journey/tls-smoke; PR → `main` → tag `v2.5.0` | **Done** |
 
 ### M0 — Plan
 
@@ -49,7 +49,7 @@ Close Cycle-8 Red findings on the **product tip**: Intake remains a feature behi
 - [x] [blue-handoff.md](blue-handoff.md)
 - [x] [accepted-residuals.md](accepted-residuals.md)
 - [x] [v2.5.0-secure-ready.md](../../../release/v2.5.0-secure-ready.md) scaffold
-- [ ] Cross-links from Cycle-8 README / security index / STRATEGY
+- [x] Cross-links from Cycle-8 README / security index / STRATEGY
 
 ### M1 — Intake SQLi + F1 (must-close)
 
@@ -77,11 +77,11 @@ Overlay compose remains in-repo for archive — **must not** be required for day
 
 ### M4 — Ship
 
-- [ ] Fill + sign secure-ready
-- [ ] smoke · journey · tls-smoke · cycle6/7 blue asserts · cycle8 unpublished assert
+- [x] Fill + sign secure-ready
+- [x] smoke · journey · tls-smoke · cycle6/7/8 blue asserts · cycle8 unpublished assert
 - [ ] PR `remediation/v2.5.0` → `main`
 - [ ] Tag `v2.5.0` · freeze branch · reset `backend`/`frontend`/`dev` to `main`
-- [ ] Bucket B FC-19/20 → Consumed · Cycle-8 **Closed**
+- [x] Bucket B FC-19/20 → Consumed · Cycle-8 **Closed**
 
 ---
 

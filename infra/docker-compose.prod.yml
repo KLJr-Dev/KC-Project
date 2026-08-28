@@ -76,6 +76,26 @@ services:
       - '3000'
     mem_limit: 256m
 
+  intake:
+    build:
+      context: ../intake
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_ADMIN_USER: ${DB_ADMIN_USER:-postgres}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD:-kc-change-me-prod}
+      INTAKE_DB_NAME: ${INTAKE_DB_NAME:-kc_intake}
+      PORT: 8000
+    expose:
+      - '8000'
+    mem_limit: 256m
+
   nginx:
     image: nginx:alpine
     ports:
@@ -85,6 +105,7 @@ services:
     depends_on:
       - frontend
       - backend
+      - intake
     mem_limit: 128m
 
 volumes:

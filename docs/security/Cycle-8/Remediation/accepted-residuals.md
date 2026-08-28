@@ -13,4 +13,4 @@ Companion: [v2.5.0-remediation.md](v2.5.0-remediation.md) · [blue-team-plan.md]
 | **C8-R06** | Northwind corporate skin on both tips | **Accepted (product)** | ADR-037 — skin kept; plants removed |
 | **C8-R07** | FastAPI Intake as internal microservice | **Accepted (architecture)** | Hardened, not removed — edge remains Nest/nginx |
 
-Statuses to be finalized at M4 gate.
+Statuses finalized at M4 gate (2026-08-28).
