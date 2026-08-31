@@ -591,8 +591,8 @@ export type OpsDocumentResult = {
 export const opsDocumentsGet = (path: string) =>
   request<OpsDocumentResult>(`/ops/documents?path=${encodeURIComponent(path)}`);
 
-// ── Intake (Cycle-8 Blue / v2.5.0 — FastAPI behind /api/intake/) ──────────
-// With NEXT_PUBLIC_API_URL=/api → GET /api/intake/search (nginx → FastAPI).
+// ── Intake (Cycle-9 SoftDev / v1.6.0 — Nest BFF → FastAPI) ─────────────
+// Paths are under API_BASE (/api) → Nest `/intake/*` → Intake. Never call intake:8000.
 
 export type IntakeUserRow = {
   username: string;
@@ -607,6 +607,109 @@ export type IntakeSearchResult = {
   results: IntakeUserRow[];
 };
 
-/** GET /intake/search?q= — proxied FastAPI (may be unauthenticated at edge). */
+export type OnboardingStatus = 'pending' | 'approved' | 'rejected';
+
+export type OnboardingRequest = {
+  id: string;
+  employee_email: string;
+  department: string;
+  national_id_last4: string | null;
+  manager_note: string | null;
+  status: OnboardingStatus;
+  assignee_id: string | null;
+  export_relpath?: string | null;
+  created_at: string;
+  /** Present after privileged status PUT (header-trust / mod JWT). */
+  privilege_ack?: string;
+};
+
+export type OnboardingListResult = {
+  count: number;
+  items: OnboardingRequest[];
+};
+
+export type OnboardingCreateRequest = {
+  employee_email: string;
+  department: string;
+  national_id_last4?: string;
+  manager_note?: string;
+};
+
+export type SecurityEvent = {
+  id: string;
+  ts: string;
+  action: string;
+  actor: string | null;
+  detail: string | null;
+};
+
+export type SecurityEventsResult = {
+  count: number;
+  events: SecurityEvent[];
+};
+
+export type SecurityMetricsResult = {
+  uptime_hours: number;
+  open_requests: number;
+  events_ingested: number;
+  posture: string;
+};
+
+/** GET /intake/search?q= — parameterized directory search (JWT via Nest BFF). */
 export const intakeSearch = (q: string) =>
   request<IntakeSearchResult>(`/intake/search?q=${encodeURIComponent(q)}`);
+
+/** GET /intake/onboarding-requests — weak scoping on insecure tip. */
+export const intakeListOnboardingRequests = () =>
+  request<OnboardingListResult>('/intake/onboarding-requests');
+
+/** POST /intake/onboarding-requests */
+export const intakeCreateOnboardingRequest = (dto: OnboardingCreateRequest) =>
+  post<OnboardingRequest>('/intake/onboarding-requests', dto);
+
+/** GET /intake/onboarding-requests/:id — IDOR plant on insecure tip. */
+export const intakeGetOnboardingRequest = (id: string) =>
+  request<OnboardingRequest>(`/intake/onboarding-requests/${encodeURIComponent(id)}`);
+
+/** PUT /intake/onboarding-requests/:id/status — race plant; needs mod/admin hop. */
+export const intakeUpdateOnboardingStatus = (
+  id: string,
+  status: Extract<OnboardingStatus, 'approved' | 'rejected'>,
+) =>
+  put<OnboardingRequest>(`/intake/onboarding-requests/${encodeURIComponent(id)}/status`, {
+    status,
+  });
+
+/**
+ * GET /intake/onboarding-requests/:id/export?file=
+ * Blob download (Bearer), same pattern as filesDownload — traversal plant is server-side.
+ */
+export async function intakeExportOnboardingRequest(
+  id: string,
+  file: string,
+): Promise<Blob> {
+  const qs = `file=${encodeURIComponent(file)}`;
+  const res = await fetch(
+    `${API_BASE}/intake/onboarding-requests/${encodeURIComponent(id)}/export?${qs}`,
+    {
+      method: 'GET',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    },
+  );
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`${res.status} ${res.statusText}: ${body}`);
+  }
+
+  return res.blob();
+}
+
+/** GET /intake/security/events — SIEM leak plant on insecure tip. */
+export const intakeSecurityEvents = () =>
+  request<SecurityEventsResult>('/intake/security/events');
+
+/** GET /intake/security/metrics — vanity theatre support. */
+export const intakeSecurityMetrics = () =>
+  request<SecurityMetricsResult>('/intake/security/metrics');
