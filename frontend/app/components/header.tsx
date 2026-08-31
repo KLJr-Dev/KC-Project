@@ -1,5 +1,5 @@
 /**
- * Global navigation header — Northwind Ops face (Cycle-8 / ADR-037).
+ * Global navigation header — Northwind Ops face (Cycle-9 / ADR-037).
  *
  * Auth: access JWT in memory; role from AuthContext (UX only — API enforces).
  * Logout calls POST /auth/logout (revokes refresh) and clears in-memory access token.
@@ -58,6 +58,14 @@ export default function Header() {
               >
                 Intake
               </Link>
+              {(isModerator || isAdmin) && (
+                <Link
+                  href="/intake/queue"
+                  className="text-sm text-muted transition-colors hover:text-foreground"
+                >
+                  Onboarding
+                </Link>
+              )}
               <Link
                 href="/notes"
                 className="text-sm text-muted transition-colors hover:text-foreground"
@@ -93,12 +101,20 @@ export default function Header() {
             </Link>
           )}
           {isAuthenticated && isAdmin && (
-            <Link
-              href="/admin"
-              className="text-sm text-muted transition-colors hover:text-foreground"
-            >
-              Admin
-            </Link>
+            <>
+              <Link
+                href="/admin"
+                className="text-sm text-muted transition-colors hover:text-foreground"
+              >
+                Admin
+              </Link>
+              <Link
+                href="/admin/security"
+                className="text-sm text-muted transition-colors hover:text-foreground"
+              >
+                Security
+              </Link>
+            </>
           )}
           {isAuthenticated ? (
             <div className="flex items-center gap-3">
