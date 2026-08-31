@@ -20,6 +20,8 @@
 
 **[Cycle-8/](Cycle-8/README.md)** — **Closed** (`v1.5.0` → `v2.5.0`): FastAPI Intake tool-chain box ([ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)). [secure-ready](../release/v2.5.0-secure-ready.md).
 
+**[Cycle-9/](Cycle-9/README.md)** — **P0 design** (`v1.6.0` → `v2.6.0`): Onboarding/HR on Intake + weak defence ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)). Next milestone pair after Blue: `v1.10.0` → `v2.10.0` (versions 1.7–1.9 unused).
+
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
 | 1 | [PenTest/v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) · frozen `remediation/v2.0.0` |
@@ -30,6 +32,7 @@
 | 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | tag **`v2.3.0`** · [Remediation/](Cycle-6/Remediation/) · frozen `remediation/v2.3.0` |
 | 7 | tag/`ctf/v1.4.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md) | tag **`v2.4.0`** · [Remediation/](Cycle-7/Remediation/) · frozen `remediation/v2.4.0` |
 | 8 | tag/`ctf/v1.5.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.5.0/docs/security/Cycle-8/PenTest/v1.5.0-writeup.md) | tag **`v2.5.0`** · [Remediation/](Cycle-8/Remediation/) · frozen `remediation/v2.5.0` |
+| 9 | tag/`ctf/v1.6.0` (pending) | tag **`v2.6.0`** (pending) · [Cycle-9](Cycle-9/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -46,6 +49,7 @@ Checkout the branch, follow the player brief, don’t use for “secure” demos
 | Cycle-6 | `ctf/v1.3.0` | Preview SSRF + bookmark CSRF | [Cycle-6](Cycle-6/README.md) |
 | Cycle-7 | `ctf/v1.4.0` | LFI + FTP/SSH/Cowrie/jump | [Cycle-7](Cycle-7/README.md) |
 | Cycle-8 | `ctf/v1.5.0` | sqlmap → John (SMTP) → Hydra (FTP) → revshell → nano → Samba/SMTP | [Cycle-8](Cycle-8/README.md) |
+| Cycle-9 | `ctf/v1.6.0` (pending) | header trust → case IDOR → race → SIEM leak | [Cycle-9](Cycle-9/README.md) |
 
 ## Branch keepers (tip hygiene)
 
@@ -84,10 +88,11 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 - [ADR-035](../decisions/ADR-035-cycle-7-multi-service-pair.md) — Cycle-7 pair `v1.4.0`→`v2.4.0`
 - [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) — Cycle-8 pair `v1.5.0`→`v2.5.0`
 - [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md) — Northwind immersion skin (lab meta outside UI)
+- [ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) — Cycle-9 pair `v1.6.0`→`v2.6.0` (+ milestone skip to `*.10.0`)
 
 ## Scope
 
-Cycles **1–8 complete**. Play boxes: frozen `ctf/*` above. Hardened tip: tag **`v2.5.0`**.
+Cycles **1–8 complete**. Cycle-9 **P0 design**. Play boxes: frozen `ctf/*` above. Hardened tip: tag **`v2.5.0`**.
 
 ## Tools
 

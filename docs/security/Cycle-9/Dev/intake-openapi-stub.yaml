@@ -1,0 +1,267 @@
+openapi: 3.0.3
+info:
+  title: Northwind Intake API (Onboarding squad)
+  description: |
+    Cycle-9 P0 stub for FastAPI Intake expansion (v1.6.0 insecure / v2.6.0 secure).
+
+    Ownership fiction: Onboarding squad (Python/FastAPI). Platform (Nest) exposes this
+    service via a thin BFF at /api/intake/* — clients do not call Intake directly on the
+    published edge.
+
+    Insecure tip: identity via X-User-Id / X-User-Role (trusted hop).
+    Secure tip: RS256 Bearer verification inside Intake; spoof headers ignored.
+
+    Plants (insecure only): IDOR, status race, export path traversal, SIEM leak,
+    honeypot at /v1/internal/debug.
+  version: 1.6.0-draft
+
+servers:
+  - url: http://intake:8000
+    description: Internal Docker network (Nest BFF upstream)
+  - url: http://localhost:8080/api/intake
+    description: Published edge path (Nest BFF — not direct FastAPI)
+
+tags:
+  - name: health
+  - name: directory
+  - name: onboarding-requests
+  - name: security
+  - name: decoy
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Liveness / version fingerprint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  service: { type: string, example: northwind-intake }
+                  version: { type: string, example: "1.6.0" }
+
+  /search:
+    get:
+      tags: [directory]
+      summary: Staff / mailbox directory search (parameterized — no SQLi plant)
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: Search results
+
+  /onboarding-requests:
+    get:
+      tags: [onboarding-requests]
+      summary: List onboarding / HR requests
+      description: |
+        CYCLE9-PLANT (insecure): weak scoping — may list others' requests based on
+        trusted X-User-Role or lack of owner filter.
+      parameters:
+        - $ref: "#/components/parameters/XUserId"
+        - $ref: "#/components/parameters/XUserRole"
+      responses:
+        "200":
+          description: List of requests
+    post:
+      tags: [onboarding-requests]
+      summary: Submit an onboarding / HR request
+      parameters:
+        - $ref: "#/components/parameters/XUserId"
+        - $ref: "#/components/parameters/XUserRole"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingRequestCreate"
+      responses:
+        "201":
+          description: Created
+
+  /onboarding-requests/{id}:
+    get:
+      tags: [onboarding-requests]
+      summary: Get one onboarding request
+      description: |
+        CYCLE9-PLANT (insecure): IDOR — no owner/department check (FC-12).
+        Lab-fake PII: employee_email, department, national_id_last4, manager_note.
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+        - $ref: "#/components/parameters/XUserId"
+        - $ref: "#/components/parameters/XUserRole"
+      responses:
+        "200":
+          description: Request detail (may include F1 on seeded foreign id)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingRequest"
+        "404":
+          description: Not found
+
+  /onboarding-requests/{id}/status:
+    put:
+      tags: [onboarding-requests]
+      summary: Approve or reject a request
+      description: |
+        CYCLE9-PLANT (insecure): read-modify-write race on status (FC-05).
+        Only race locus in Cycle-9. Winning approve unlocks export.
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+        - $ref: "#/components/parameters/XUserId"
+        - $ref: "#/components/parameters/XUserRole"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusUpdate"
+      responses:
+        "200":
+          description: Updated request
+        "403":
+          description: Forbidden (secure tip / insufficient role)
+
+  /onboarding-requests/{id}/export:
+    get:
+      tags: [onboarding-requests]
+      summary: Download export artifact for an approved request
+      description: |
+        CYCLE9-PLANT (insecure): query param `file` joined without path confinement.
+        Practice payloads: ../  ..\\  %2e%2e%2f  nested encodings.
+        Requires status=approved first (via race or forged mod role).
+        Ops Documents LFI remains closed — this is a new Intake surface only.
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+        - name: file
+          in: query
+          required: true
+          description: Relative export filename (insecure — traversable)
+          schema: { type: string, example: package.json }
+        - $ref: "#/components/parameters/XUserId"
+        - $ref: "#/components/parameters/XUserRole"
+      responses:
+        "200":
+          description: File bytes (F3 via traversal to planted path)
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "403":
+          description: Not approved / forbidden
+        "404":
+          description: Missing (secure may collapse traversal to 404)
+
+  /security/events:
+    get:
+      tags: [security]
+      summary: Bolted-on SIEM / security events feed
+      description: |
+        CYCLE9-PLANT (insecure): Onboarding squad monitoring — may leak token/email
+        fragments or flag material (F4). Owned by FastAPI, not Nest admin audit.
+      parameters:
+        - $ref: "#/components/parameters/XUserId"
+        - $ref: "#/components/parameters/XUserRole"
+      responses:
+        "200":
+          description: Event list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SecurityEvent"
+
+  /security/metrics:
+    get:
+      tags: [security]
+      summary: Vanity metrics (noise / theatre support)
+      responses:
+        "200":
+          description: Counts / uptime fluff
+
+  /v1/internal/debug:
+    get:
+      tags: [decoy]
+      summary: Honeypot debug probe
+      description: |
+        CYCLE9-DECOY — not a graded flag. Response must clearly indicate services alerted.
+      responses:
+        "403":
+          description: Tripwire
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: unauthorized probe }
+                  detail: { type: string, example: services alerted }
+
+components:
+  parameters:
+    RequestId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, example: "9301" }
+    XUserId:
+      name: X-User-Id
+      in: header
+      required: false
+      description: |
+        CYCLE9-PLANT — trusted by Intake on insecure tip (set/forwarded by Nest BFF).
+      schema: { type: string, example: "9001" }
+    XUserRole:
+      name: X-User-Role
+      in: header
+      required: false
+      description: |
+        CYCLE9-PLANT — trusted role string (user|moderator|admin) on insecure tip.
+      schema: { type: string, enum: [user, moderator, admin], example: moderator }
+
+  schemas:
+    OnboardingRequestCreate:
+      type: object
+      required: [employee_email, department]
+      properties:
+        employee_email: { type: string, format: email }
+        department: { type: string }
+        national_id_last4: { type: string, minLength: 4, maxLength: 4 }
+        manager_note: { type: string }
+
+    OnboardingRequest:
+      type: object
+      properties:
+        id: { type: string }
+        employee_email: { type: string }
+        department: { type: string }
+        national_id_last4: { type: string }
+        manager_note: { type: string }
+        status: { type: string, enum: [pending, approved, rejected] }
+        assignee_id: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    StatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [approved, rejected] }
+
+    SecurityEvent:
+      type: object
+      properties:
+        id: { type: string }
+        ts: { type: string, format: date-time }
+        action: { type: string }
+        actor: { type: string }
+        detail: { type: string, description: "May contain sensitive fragments on insecure tip" }

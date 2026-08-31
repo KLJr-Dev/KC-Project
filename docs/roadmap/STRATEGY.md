@@ -1,9 +1,9 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Secure **`v2.5.0`** on `main` (Cycle-8 Northwind Intake — **Closed**) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
+**Current tip**: Secure **`v2.5.0`** on `main` (Cycle-8 Northwind Intake — **Closed**) · Cycle-9 **P0** ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
 **Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7 · **Cycle-8**  
-**Secure replay**: tag **`v2.5.0`** · insecure archive **`v1.5.0`** / **`ctf/v1.5.0`**
+**Secure replay**: tag **`v2.5.0`** · insecure archive **`v1.5.0`** / **`ctf/v1.5.0`** · next design **`v1.6.0` / `v2.6.0`**
 
 ---
 
@@ -329,6 +329,18 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 **Design docs:** [Cycle-8](../security/Cycle-8/README.md) · [Remediation plan](../security/Cycle-8/Remediation/blue-team-plan.md) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)
 
 **Skin:** Corporate Northwind product face; no extra graded IDOR/cookie/TLS flags this cycle.
+
+#### Product expansion `v1.6.0` — Onboarding + weak defence (Cycle-9) — **P0 design**
+
+**Goal:** Deepen FastAPI Intake into **Onboarding / HR requests**; plant header-trust auth, case IDOR, approval race, SIEM/log leak; one honeypot decoy (“services alerted”). Medium AppSec box — **no** FTP/shell chain.
+
+**Surfaces:** Intake `/onboarding-requests` + Nest thin BFF (nginx no longer hits FastAPI direct) + Security Ops theatre; export path traversal; plants baked into tip.
+
+**Blue `v2.6.0`:** Close plants (Intake **verifies RS256**); Wave B closes ~80% of v2.5.0 absolute gaps (least-priv Intake DB, intake rate limit, non-root, internal DB net, secret assert, request-ID). Residuals: HTTP loopback, demo passwords, sequential IDs, open reg, weak CSP.
+
+**Next after Blue:** Milestone skip to **`v1.10.0` → `v2.10.0`** (Cycle-10 boss lab + production showcase). Deep log-analysis Blue Team → Cycle-11+.
+
+**Design docs:** [Cycle-9](../security/Cycle-9/README.md) · [ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)
 
 ---
 
