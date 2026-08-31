@@ -89,13 +89,13 @@ INSERT INTO onboarding_requests (
     'package.json',
     NOW() - INTERVAL '12 hours'
   ),
-  -- F2 placeholder — D2b surfaces under moderator/admin header trust
+  -- F2 via privilege_ack on mod/admin status PUT (not stored here — avoids IDOR skip)
   (
     9304,
     'k.owens@northwind.ops',
     'Legal',
     '3302',
-    'CYCLE9-PLANT F2: escalation ack OS{TBA_F2} — mod queue only',
+    'Escalation packet reserved for mod queue — see status workflow',
     'pending',
     'mod-queue-9003',
     NULL,

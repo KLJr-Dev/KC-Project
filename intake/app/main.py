@@ -1,31 +1,25 @@
-"""Northwind Intake FastAPI app (Cycle-8 Blue / v2.5.0).
+"""Northwind Intake FastAPI app (Cycle-9 SoftDev / v1.6.0 insecure tip).
 
-Staff directory search behind /api/intake/. Parameterized queries; no hash columns in API.
-@see docs/security/Cycle-8/Remediation/v2.5.0-remediation.md
+Staff directory search stays parameterized (no SQLi). Onboarding plants live in
+onboarding.py / security_routes.py. Edge is Nest BFF — see ADR-038.
 """
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
-import psycopg2
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 
-app = FastAPI(title="Northwind Intake", version="2.5.0", docs_url=None, redoc_url=None)
+from . import onboarding, security_routes
+from .db import conn
+
+app = FastAPI(title="Northwind Intake", version="1.6.0", docs_url=None, redoc_url=None)
 
 _MAX_QUERY_LEN = 200
 
-
-def _conn():
-    return psycopg2.connect(
-        host=os.environ.get("DB_HOST", "postgres"),
-        port=int(os.environ.get("DB_PORT", "5432")),
-        user=os.environ.get("DB_ADMIN_USER", "postgres"),
-        password=os.environ.get("DB_ADMIN_PASSWORD", "kc-change-me-prod"),
-        dbname=os.environ.get("INTAKE_DB_NAME", "kc_intake"),
-    )
+app.include_router(onboarding.router)
+app.include_router(security_routes.router)
 
 
 @app.get("/search")
@@ -42,8 +36,8 @@ def search(q: str = Query(default="", description="Staff / mailbox search")) -> 
         "ORDER BY username LIMIT 50"
     )
     try:
-        with _conn() as conn:
-            with conn.cursor() as cur:
+        with conn() as c:
+            with c.cursor() as cur:
                 cur.execute(sql, (pattern, pattern, pattern, pattern))
                 cols = [d[0] for d in cur.description]
                 rows: list[dict[str, Any]] = [dict(zip(cols, r)) for r in cur.fetchall()]

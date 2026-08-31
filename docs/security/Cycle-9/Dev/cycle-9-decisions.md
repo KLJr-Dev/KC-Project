@@ -88,7 +88,7 @@ Compose: **`docker-compose.prod.yml` only**. No cycle9 overlay.
 | Path prefix | All Intake traffic under **`/api/intake/*`** (Nest controller/proxy). |
 | Source of truth | FastAPI owns onboarding-requests / export / events **data**. Nest does not duplicate DB writes. |
 | UI | Next calls Nest (`/api/...`) only — never `http://intake:8000` from the browser. |
-| Health | Nest may expose aggregated readiness; raw Intake `/health` still reachable via BFF for recon fingerprint. |
+| Health | **Removed** Nest + Intake HTTP `/health` (Cycle-9 SoftDev). Reachability = `/api/ping`. |
 | v2.5.0 break | SoftDev **must** remove nginx `proxy_pass http://intake:8000` for `/api/intake/`. |
 
 ### Logging / weak defence (final split)
@@ -114,7 +114,7 @@ Compose: **`docker-compose.prod.yml` only**. No cycle9 overlay.
 
 ```text
 Recon (Burp / httpx / gobuster — hygiene)
-  ├─ NOISE: staff search /health / sequential IDs / demo login
+  ├─ NOISE: staff search / sequential IDs / demo login
   ├─ NOISE: /admin/security (green theatre)
   ├─ DECOY: GET /api/intake/v1/internal/debug → "services alerted"
   ▼
@@ -172,12 +172,11 @@ STOP
 
 | Method | Path | Insecure behaviour |
 |--------|------|--------------------|
-| GET | `/health` | Unauth; version fingerprint |
 | GET | `/search` | Parameterized; staff enum (noise) |
 | GET | `/onboarding-requests` | Weak scoping / header role |
 | GET | `/onboarding-requests/{id}` | **IDOR** → F1 |
 | POST | `/onboarding-requests` | Submit request |
-| PUT | `/onboarding-requests/{id}/status` | **Race** → unlock export |
+| PUT | `/onboarding-requests/{id}/status` | **Race** + header-trust mod → F2 + unlock export |
 | GET | `/onboarding-requests/{id}/export` | Query `file=` — **path traversal** → F3 |
 | GET | `/security/events` | **SIEM leak** → F4 |
 | GET | `/security/metrics` | Vanity (noise) |
