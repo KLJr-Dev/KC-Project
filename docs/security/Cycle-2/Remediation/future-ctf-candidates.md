@@ -21,14 +21,14 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | **FC-02** | CSRF on state-changing cookie auth | 352 | **Cycle-6 `v1.3.0` / `v2.3.0`** | Weak SameSite / missing CSRF on expansion tip | Keep refresh + bookmark CSRF on hardened tip |
 | **FC-03** | SSRF via URL fetch | 918 | **Cycle-6 `v1.3.0` / `v2.3.0`** | Link Preview open fetch on expansion tip | Destination policy on secure `main` |
 | **FC-04** | JWT algorithm / key confusion | 347 | mid-chain only | Overlay (HS256/alg confusion) | RS256 fail-closed on secure |
-| **FC-05** | Race / TOCTOU | 362 | later | Timing window on fork | — |
+| **FC-05** | Race / TOCTOU | 362 | **Cycle-9 `v1.6.0` / `v2.6.0`** | Onboarding case status RMW | Atomic transition on secure tip |
 | **FC-06** | Cache / edge misconfig | 444 | later | Ops / edge overlay | — |
 | **FC-07** | Supply chain / CI secrets | 829 | later | Separate pipeline track | — |
 | **FC-08** | Cycle-2-style IDOR / HS256 / published PG | 639 / 347 / 200 | only with **new** story | Overlay — never leave broken on `main` | Ownership, DB-role guard, unpublished PG |
 | **FC-09** | Secrets leak via product surface (share plant) | 200 / 538 | **`ctf/leak-crack-db`** | Seeded public share on fork | No world-readable secrets on secure |
 | **FC-10** | Crackable lab hash / weak secret | 916 / 521 | **`ctf/leak-crack-db`** | Plant MD5 for John | Secure stays bcrypt cost ≥ 12, strong demo policy |
 | **FC-11** | CTF_MODE SQLi (search/filter) | 89 | **`ctf/leak-crack-db`** | String-concat query behind flag | Parameterized queries / no `q` concat on secure |
-| **FC-12** | Fresh IDOR (non-Cycle-2 object) | 639 | alternate web→DB box | Overlay ownership gap on new story | Ownership stays on secure |
+| **FC-12** | Fresh IDOR (non-Cycle-2 object) | 639 | **Cycle-9 `v1.6.0` / `v2.6.0`** | Onboarding case object (not files/shares) | Ownership stays on secure |
 | **FC-13** | Docker / escape / privileged mount | 250 / 552 | Cycle-5 adjacent / later | Compose overlay | Hardened prod compose stays |
 | **FC-14** | SSH / FTP sidecar | — | **C4 SSH**; **C5** shells; **Cycle-7 FTP** | Overlay insecure/CTF only | No SSH/FTP on secure day-to-day |
 | **FC-15** | Cloud misconfig / IMDS via SSRF | — | after Cycle-6 URL fetch | Cloud lab line | — |
@@ -48,9 +48,10 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | FC-14 (shells/PrivEsc) | **Consumed (Cycle-5 `ctf/shells-privesc`)** — Blue on `main` · optional SSH noise kept |
 | FC-13 | Later (not Cycle-5) |
 | FC-02 · FC-03 | **Consumed (Cycle-6 `v1.3.0` / `v2.3.0`)** — Red on `ctf/v1.3.0`; Blue `remediation/v2.3.0` |
-| FC-04 … FC-08 | Available (FC-08 = overlay-only; prefer new story) |
+| FC-04 · FC-06 · FC-07 · FC-08 | Available (FC-04 decoy-ok on C9; FC-08 = overlay-only) |
+| FC-05 · FC-12 | **Planned (Cycle-9 `v1.6.0` / `v2.6.0`)** — P0 design |
 | FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
-| FC-12 · FC-15 · FC-16 | Available (later tracks) |
+| FC-15 · FC-16 | Available (later tracks / Cycle-10+) |
 | FC-14 (FTP) · FC-18 | **Consumed (Cycle-7 `v1.4.0` / `v2.4.0`)** — Red frozen `ctf/v1.4.0`; Blue tagged `v2.4.0` |
 | FC-17 | Optional decoy on Cycle-7 (not graded DoD) |
 | FC-19 · FC-20 | **Consumed (Cycle-8 `v1.5.0` / `v2.5.0`)** — Red frozen `ctf/v1.5.0`; Blue tagged `v2.5.0` |
@@ -74,6 +75,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 ## Handoff
 
 1. Cycle-8 **closed** (`v1.5.0` / `ctf/v1.5.0` → `v2.5.0`) — [Cycle-8](../../Cycle-8/README.md) · [secure-ready](../../../release/v2.5.0-secure-ready.md).  
-2. Next expansion: pick from **Available** rows below (logic-flaw / cloud / race tracks).  
-3. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
-4. Update this status table (`Consumed` / `Planned` / `In progress`).
+2. Cycle-9 **P0** — Onboarding + weak defence (`v1.6.0` → `v2.6.0`) — [Cycle-9](../../Cycle-9/README.md) · [ADR-038](../../../decisions/ADR-038-cycle-9-onboarding-defence-pair.md). Consumes **FC-05**, **FC-12**.  
+3. After `v2.6.0`: next pair **`v1.10.0` / `v2.10.0`** (milestone skip). Deep SIEM/log-analysis → Cycle-11+.  
+4. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
+5. Update this status table (`Consumed` / `Planned` / `In progress`).
