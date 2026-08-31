@@ -20,7 +20,7 @@ router = APIRouter(tags=["onboarding-requests"])
 EXPORT_ROOT = os.environ.get("EXPORT_ROOT", "/app/exports")
 # CYCLE9-PLANT F2 — only returned after header-trust privilege (not via plain IDOR).
 F2_PRIVILEGE_ACK = (
-    "CYCLE9-PLANT F2: escalation ack OS{TBA_F2} — Onboarding squad mod channel"
+    "CYCLE9-PLANT F2: escalation ack OS{11ec516803539a84dafeef8c8e151aa2} — Onboarding squad mod channel"
 )
 # SoftDev race window (ms) so parallel PUTs can interleave without Turbo Intruder.
 _RACE_SLEEP_S = float(os.environ.get("INTAKE_RACE_SLEEP_MS", "40")) / 1000.0

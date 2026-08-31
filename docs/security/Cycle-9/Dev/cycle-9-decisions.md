@@ -140,10 +140,10 @@ STOP
 
 | ID | Placeholder | Gate |
 |----|-------------|------|
-| F1 | `OS{…}` TBA | Onboarding-request IDOR body |
-| F2 | `OS{…}` TBA | After header-trust privilege |
-| F3 | `OS{…}` TBA | File reached via export path traversal post-approve |
-| F4 | `OS{…}` TBA | `/security/events` leak |
+| F1 | `OS{833b0578fcd6f6442121e8c7a9724376}` | Onboarding-request IDOR body |
+| F2 | `OS{11ec516803539a84dafeef8c8e151aa2}` | After header-trust privilege |
+| F3 | `OS{6a5c5e3477552175a94374689243b859}` | File reached via export path traversal post-approve |
+| F4 | `OS{e5f9b003b8e5e02b2b9ebb8bc1971abf}` | `/security/events` leak |
 | D1 | — | Honeypot — “services alerted” |
 
 ---

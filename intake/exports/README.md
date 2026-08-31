@@ -8,4 +8,4 @@ From an approved request export root, practice:
 - `file=../../private/onboarding-export.flag`
 - `file=..%2F..%2Fprivate%2Fonboarding-export.flag`
 
-Pending requests must not serve exports (D2b).
+See examiner GT for the graded `OS{…}` value. Pending requests must not serve exports.

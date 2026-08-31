@@ -1,6 +1,6 @@
 -- Northwind Intake seed (Cycle-9 SoftDev / v1.6.0 insecure tip).
 -- Directory search stays parameterized (no SQLi plant).
--- CYCLE9-PLANT placeholders: real OS{32hex} filled in D4 / GT.
+-- CYCLE9-PLANT: graded flags planted (see docs/security/Cycle-9/Dev/v1.6.0-ground-truth.md).
 -- Insecure C8 replay: checkout ctf/v1.5.0 for SQLi plant seed.
 
 CREATE TABLE IF NOT EXISTS mail_users (
@@ -59,7 +59,7 @@ INSERT INTO onboarding_requests (
     'j.chen@northwind.ops',
     'HR',
     '4821',
-    'CYCLE9-PLANT F1: clearance packet OS{TBA_F1} — do not share outside Onboarding',
+    'CYCLE9-PLANT F1: clearance packet OS{833b0578fcd6f6442121e8c7a9724376} — do not share outside Onboarding',
     'pending',
     'hr-sarah-9001',
     NULL,
@@ -137,7 +137,7 @@ INSERT INTO security_events (ts, action, actor, detail) VALUES
     NOW() - INTERVAL '45 minutes',
     'siem.ingest',
     'intake-monitor',
-    'CYCLE9-PLANT F4 fragment: bearer eyJhbGciOi… leaked in shipper buffer OS{TBA_F4}'
+    'CYCLE9-PLANT F4 fragment: bearer eyJhbGciOi… leaked in shipper buffer OS{e5f9b003b8e5e02b2b9ebb8bc1971abf}'
   ),
   (NOW() - INTERVAL '20 minutes', 'onboarding.list', 'hr-sarah-9001', 'Listed open requests'),
   (NOW() - INTERVAL '5 minutes', 'health.probe', 'nginx', 'upstream intake reachability OK');
