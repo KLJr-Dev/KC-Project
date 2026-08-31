@@ -17,6 +17,8 @@ GET /api/intake/search?q=   (requires Nest JWT via BFF)
 
 DB: Postgres database `kc_intake` (same postgres service, separate DB).
 
+**Cycle-9 seed (D2a):** `onboarding_requests` ids **9301+**, `security_events`, export packages under `/app/exports/{id}/`, F3 out-of-tree at `/app/private/onboarding-export.flag` (placeholders until D4). See `exports/README.md`.
+
 ## Verify
 
 ```bash

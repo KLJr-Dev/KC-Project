@@ -1,0 +1,6 @@
+{
+  "request_id": 9302,
+  "employee_email": "m.novak@northwind.ops",
+  "kit": ["badge", "laptop", "vpn-profile"],
+  "note": "Intended export artifact — approve request before download"
+}
