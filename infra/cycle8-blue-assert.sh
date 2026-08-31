@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Cycle-8 Blue asserts (v2.5.0+): Intake parameterized via Nest BFF; no graded flags on tip.
-# Cycle-9: no HTTP /health — liveness is login + authed search.
+# Cycle-8 Blue asserts (v2.5.0+): Intake parameterized via Nest BFF; no graded flags in search.
+# Cycle-9: no HTTP /health — liveness is login + authed search. C9 graded flags live on
+# onboarding/SIEM routes (see cycle9-examiner.sh); search/wildcard must stay clean here.
 set -euo pipefail
 
 BASE="${BASE_URL:-http://localhost:8080/api}"

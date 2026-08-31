@@ -116,7 +116,8 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 | `assert-cycle8-unpublished.sh` | compose file | Prod must not publish C8 `:21` / `:22` / `cycle8-*` |
 | `cycle6-blue-assert.sh` | Full prod tip | Preview SSRF + bookmark CSRF closed (via smoke) |
 | `cycle7-blue-assert.sh` | Full prod tip | Ops path confinement; no F1 plant (via smoke) |
-| `cycle8-blue-assert.sh` | Full prod tip | Intake SQLi closed; no C8 flags on tip (via smoke) |
+| `cycle8-blue-assert.sh` | Full prod tip | Intake SQLi closed; no C8 flags in search (via smoke) |
+| `cycle9-examiner.sh` | Full prod tip (`v1.6.0`) | Onboarding F1–F4 + honeypot; ping not `/health` |
 | `smoke-test.sh` | Full prod stack on `:8080` | Unpublished asserts + ping → register → upload + C6/C7/C8 Blue |
 | `journey-test.sh` | Full prod stack | 3 roles, demo share, IDOR deny |
 | `tls-smoke.sh` | Prod + TLS overlay | HTTPS / HSTS / Secure cookie |
@@ -128,6 +129,7 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 ```bash
 docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh
+./infra/cycle9-examiner.sh
 ./infra/journey-test.sh
 ./infra/e2e-docker.sh
 ./infra/scripts/gen-lab-certs.sh

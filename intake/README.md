@@ -27,4 +27,5 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 curl -sS -H "Authorization: Bearer $TOKEN" 'http://localhost:8080/api/intake/search?q=lisa'
 ```
 
-Insecure Cycle-8 examiner (archive only): `git checkout ctf/v1.5.0` → `./infra/cycle8-examiner.sh`.
+Insecure Cycle-9 examiner: `./infra/cycle9-examiner.sh` (prod alone).  
+Insecure Cycle-8 replay: `git checkout ctf/v1.5.0` → `./infra/cycle8-examiner.sh`.
