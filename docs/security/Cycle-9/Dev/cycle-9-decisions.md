@@ -2,9 +2,9 @@
 
 **Execution:** [v1.6.0-execution-plan.md](v1.6.0-execution-plan.md) · **Box:** [v1.6.0-box-plan.md](v1.6.0-box-plan.md) · **Gaps:** [v1.6.0-gap-closure.md](v1.6.0-gap-closure.md) · **OpenAPI:** [intake-openapi-stub.yaml](intake-openapi-stub.yaml) · **ADR-038** · **Skin:** [ADR-037](../../../decisions/ADR-037-immersion-northwind-product-face.md)
 
-**Status:** **Locked for P0** — design authority until SoftDev starts. Branch: **`docs/cycle-9-p0`** → PR → `main`.
+**Status:** **P0 FINAL (locked)** — SoftDev may start only after this branch merges to `main`. Branch: **`docs/cycle-9-p0`** → PR → `main` → P1 lane reset.
 
-**Anti-patterns (from Cycles 7–8):** no skippable graded flags; no re-break of closed SSRF/CSRF/Notes/Ops LFI/SQLi; no FTP/Cowrie/revshell as primary path; no orphan LIVE secrets; no “production-grade” claim on `v2.6.0`.
+**Anti-patterns (from Cycles 7–8):** no skippable graded flags; no re-break of closed SSRF/CSRF/Notes/Ops LFI/SQLi; no FTP/Cowrie/revshell as primary path; no orphan LIVE secrets; no “production-grade” claim on `v2.6.0`; **no parallel public FastAPI app**.
 
 ---
 
@@ -79,6 +79,34 @@ Browser
 Compose: **`docker-compose.prod.yml` only**. No cycle9 overlay.
 
 **Blue JWT key:** mount same `infra/keys/jwt-public.pem` into Intake (`JWT_PUBLIC_KEY_PATH`) — shared IdP story.
+
+### Microservice hard rules (not a parallel product)
+
+| Rule | Locked |
+|------|--------|
+| One published API face | Browser only talks to **nginx → Nest**. FastAPI is upstream of Nest, never a second `:port` product. |
+| Path prefix | All Intake traffic under **`/api/intake/*`** (Nest controller/proxy). |
+| Source of truth | FastAPI owns onboarding-requests / export / events **data**. Nest does not duplicate DB writes. |
+| UI | Next calls Nest (`/api/...`) only — never `http://intake:8000` from the browser. |
+| Health | Nest may expose aggregated readiness; raw Intake `/health` still reachable via BFF for recon fingerprint. |
+| v2.5.0 break | SoftDev **must** remove nginx `proxy_pass http://intake:8000` for `/api/intake/`. |
+
+### Logging / weak defence (final split)
+
+| Layer | Owner | Insecure `v1.6.0` | Blue `v2.6.0` |
+|-------|-------|-------------------|---------------|
+| Auth JSON stdout | Nest (`logging.util`) | Keep; does **not** cover Intake mutations | Keep + `X-Request-Id` |
+| `audit_logs` table | Nest admin | Keep for Nest-native actions; **misses** Intake header-forged approvals | Optional: record BFF forwards; Intake still logs its own events |
+| **SIEM feed** `/security/events` | **FastAPI** (bolted-on) | **Graded plant F4** — leaks fragments; incomplete coverage narrative | Redact + authz; no secrets |
+| Security posture UI | Nest `/admin/security` | Theatre (green lies) → links to events via BFF | Honest or removed |
+| Correlation | Both | Weak / missing | **`X-Request-Id`** Nest → Intake; both log it (Wave B) |
+
+**Pedagogy:** Platform looks monitored; Onboarding squad’s feed is where secrets go. Deep log-analysis Blue Team stays Cycle-11+.
+
+### Header spoof SoftDev lock (was open)
+
+**Insecure BFF:** if the client sends `X-User-Id` / `X-User-Role`, **forward them as-is**; else fill from verified JWT claims. Easy Burp demo of hop trust.  
+**Blue BFF:** never forward client `X-User-*`; forward `Authorization: Bearer` only (or strip identity headers entirely). Intake verifies RS256 and ignores `X-User-*`.
 
 ---
 
@@ -264,3 +292,12 @@ HTTP `:8080` · demo passwords / lab UI · sequential IDs · open registration �
 | 8 Nest role | **A** thin BFF only |
 | 9 Blue key | **A** mount `jwt-public.pem` into Intake |
 | 10 P0 deepen | **B** OpenAPI stub before SoftDev |
+
+### Grill-3 (2026-08-31) — final SoftDev lock
+
+| # | Locked |
+|---|--------|
+| 1 Microservice | FastAPI **feeds Nest** (upstream only); **not** a parallel public product |
+| 2 Logging | Nest auth/audit stay; FastAPI owns graded `/security/events`; posture = Nest theatre |
+| 3 Spoof | Insecure BFF **forwards client `X-User-*` if present**, else JWT claims |
+| 4 SoftDev gate | No feature-lane code until `docs/cycle-9-p0` is on `main` |

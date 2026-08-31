@@ -1,6 +1,6 @@
 # ADR-038: Cycle-9 Onboarding + Weak-Defence Product Expansion Pair (v1.6.0 → v2.6.0)
 
-**Status:** Proposed (P0 on `docs/cycle-9-p0`) — amends [ADR-032](./ADR-032-post-v2.1.0-versioning.md); parallel to [ADR-036](./ADR-036-cycle-8-intake-tool-chain-pair.md)
+**Status:** Accepted (P0 FINAL on `docs/cycle-9-p0`) — amends [ADR-032](./ADR-032-post-v2.1.0-versioning.md); parallel to [ADR-036](./ADR-036-cycle-8-intake-tool-chain-pair.md)
 
 **Date:** 2026-08-31
 
@@ -32,7 +32,12 @@ Portfolio next chapter should:
 | **Platform** | NestJS + Next.js + nginx | AuthN (JWT), product UI, **thin BFF** for `/api/intake/*` |
 | **Onboarding squad** | FastAPI + `kc_intake` | Onboarding-requests domain, export, bolted-on `/security/events` |
 
-**Edge change vs `v2.5.0`:** nginx must **not** proxy `/api/intake/` directly to FastAPI. Browser → Nest BFF → FastAPI (internal). Insecure tip: BFF injects/forwards `X-User-Id` / `X-User-Role`; Intake trusts headers. Blue: Intake verifies **RS256** with mounted `jwt-public.pem` (shared IdP), ignores spoofable headers.
+**Edge change vs `v2.5.0`:** nginx must **not** proxy `/api/intake/` directly to FastAPI. Browser → Nest BFF → FastAPI (internal upstream). **Not a parallel product** — one published face (`/api/intake/*` via Nest); Next never calls Intake directly.
+
+**Insecure tip:** BFF forwards client `X-User-Id` / `X-User-Role` if present, else fills from JWT; Intake trusts headers.  
+**Blue:** BFF does not forward spoofable identity headers; Intake verifies **RS256** with mounted `jwt-public.pem` (shared IdP).
+
+**Logging:** Nest keeps auth/audit; FastAPI owns bolted-on `/security/events` (graded weak-defence plant); Nest `/admin/security` is posture theatre. Request-ID correlation is Wave B.
 
 ### Cycle-9 scope (locked)
 

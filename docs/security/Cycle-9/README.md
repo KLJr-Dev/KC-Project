@@ -5,7 +5,7 @@
 
 | Track | Role | Status |
 |-------|------|--------|
-| Docs / design | P0 decisions, box, STRIDE, execution | **In progress** |
+| Docs / design | P0 decisions, box, STRIDE, execution, OpenAPI | **FINAL — PR ready** |
 | Feature lanes → `dev` → `main` | Intentional insecure tip | Pending |
 | Tag **`v1.6.0`** (+ `ctf/v1.6.0`) | Pentest-ready insecure tip | Pending |
 | PenTest | Red writeup | Pending |

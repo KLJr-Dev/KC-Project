@@ -8,8 +8,10 @@ info:
     service via a thin BFF at /api/intake/* — clients do not call Intake directly on the
     published edge.
 
-    Insecure tip: identity via X-User-Id / X-User-Role (trusted hop).
-    Secure tip: RS256 Bearer verification inside Intake; spoof headers ignored.
+    Insecure tip: Nest BFF forwards client X-User-Id / X-User-Role if present
+    (else fills from JWT); Intake trusts those headers.
+    Secure tip: BFF does not forward spoofable identity headers; Intake verifies
+    RS256 Bearer; spoof headers ignored.
 
     Plants (insecure only): IDOR, status race, export path traversal, SIEM leak,
     honeypot at /v1/internal/debug.
