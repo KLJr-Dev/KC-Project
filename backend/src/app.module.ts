@@ -22,6 +22,7 @@ import { AdminModule } from './admin/admin.module';
 import { NotesModule } from './notes/notes.module';
 import { PreviewModule } from './preview/preview.module';
 import { OpsModule } from './ops/ops.module';
+import { IntakeBffModule } from './intake-bff/intake-bff.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { OpsModule } from './ops/ops.module';
     NotesModule,
     PreviewModule,
     OpsModule,
+    IntakeBffModule,
   ],
   controllers: [AppController],
   providers: [

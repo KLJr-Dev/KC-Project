@@ -1,17 +1,17 @@
-# Northwind Intake — FastAPI microservice (Cycle-8)
+# Northwind Intake — FastAPI microservice (Cycle-8/9)
 
-**Role:** Python intake/search sidecar behind nginx `/api/intake/`. Not a Nest replacement ([ADR-036](../docs/decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)).
+**Role:** Python Intake sidecar for Onboarding squad. Not a Nest replacement ([ADR-036](../docs/decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-038](../docs/decisions/ADR-038-cycle-9-onboarding-defence-pair.md)).
 
-**Secure tip `v2.5.0`:** parameterized search on prod compose (`intake` service).  
-**Insecure replay:** checkout `ctf/v1.5.0` + `docker-compose.cycle8.yml` for SQLi plant.
+**Edge (Cycle-9 SoftDev):** Browser → nginx → **Nest BFF** `/api/intake/*` → FastAPI (`INTAKE_URL`). FastAPI is **not** published on nginx.
+
+**Secure tip `v2.5.0`:** parameterized search.  
+**Insecure SoftDev / `v1.6.0`:** Nest hop headers + onboarding plants (in progress).  
+**Insecure replay C8:** checkout `ctf/v1.5.0` + `docker-compose.cycle8.yml` for SQLi plant.
 
 ## Local / compose
 
-Prod stack (`docker-compose.prod.yml`) runs `intake` internally. Edge:
-
 ```text
-GET /api/intake/health
-GET /api/intake/search?q=
+GET /api/intake/search?q=   (requires Nest JWT via BFF)
 ```
 
 DB: Postgres database `kc_intake` (same postgres service, separate DB).
@@ -20,8 +20,8 @@ DB: Postgres database `kc_intake` (same postgres service, separate DB).
 
 ```bash
 docker compose -f infra/docker-compose.prod.yml up -d --build
-curl -sS 'http://localhost:8080/api/intake/health'
-curl -sS 'http://localhost:8080/api/intake/search?q=lisa'
+# obtain Bearer via login, then:
+curl -sS -H "Authorization: Bearer $TOKEN" 'http://localhost:8080/api/intake/search?q=lisa'
 ```
 
-Insecure box examiner (archive only): `git checkout ctf/v1.5.0` → `./infra/cycle8-examiner.sh`.
+Insecure Cycle-8 examiner (archive only): `git checkout ctf/v1.5.0` → `./infra/cycle8-examiner.sh`.
