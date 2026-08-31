@@ -54,7 +54,7 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/journey-test.sh
 ```
 
-App: `http://localhost:8080` — API at `/api/*`, Intake at `/api/intake/*`.
+App: `http://localhost:8080` — API at `/api/*` (including `/api/intake/*` via Nest BFF → FastAPI; Cycle-9).
 
 ### TLS profile
 
@@ -156,7 +156,7 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle8.y
 | `docker-compose.tls.yml` / `nginx-tls.conf` | TLS profile |
 | `docker-compose.lab-host.yml` | Optional SSH noise |
 | `docker-compose.e2e.yml` | e2e Postgres publish |
-| `nginx.conf` | Default edge (Nest `/api/*` + Intake `/api/intake/`) |
+| `nginx.conf` | Default edge — all `/api/*` → Nest (Intake BFF proxies FastAPI; no nginx→intake direct) |
 | `assert-*-unpublished.sh` | Prod-alone port/service locks |
 | `cycle*-blue-assert.sh` | Prior Blue regression |
 | `smoke-test.sh` / `journey-test.sh` / `e2e-docker.sh` / `tls-smoke.sh` / `vm-setup.sh` | Gates |
