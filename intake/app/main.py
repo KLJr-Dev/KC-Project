@@ -28,11 +28,6 @@ def _conn():
     )
 
 
-@app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "service": "northwind-intake", "version": "2.5.0"}
-
-
 @app.get("/search")
 def search(q: str = Query(default="", description="Staff / mailbox search")) -> JSONResponse:
     """Directory search — parameterized; password_hash never returned."""

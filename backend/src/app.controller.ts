@@ -18,16 +18,6 @@ export class AppController {
     };
   }
 
-  /** GET /health — liveness (no version/build disclosure). */
-  @Get('health')
-  health() {
-    return {
-      status: 'ok',
-      service: 'kc-backend',
-      timestamp: new Date().toISOString(),
-    };
-  }
-
   /**
    * GET /admin/crash-test — Intentional error for error handling testing
    *

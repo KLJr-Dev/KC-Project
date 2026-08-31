@@ -6,7 +6,7 @@
 #   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.tls.yml up -d --build
 #
 # Checks:
-#   1) https://127.0.0.1:8443/api/health → 200 + status ok
+#   1) https://127.0.0.1:8443/api/ping → 200 + status ok
 #   2) HTTP :8080 redirects to HTTPS :8443
 #   3) Strict-Transport-Security present on HTTPS response
 #   4) Register over HTTPS sets Secure refresh cookie
@@ -32,30 +32,30 @@ fail() {
   exit 1
 }
 
-echo "TLS health → ${BASE_HTTPS}/health"
-HEALTH=""
+echo "TLS ping → ${BASE_HTTPS}/ping"
+PING=""
 HTTP_CODE=""
 BODY=""
 for i in $(seq 1 40); do
-  HEALTH=$("${CURL_TLS[@]}" -w "\n%{http_code}" "${BASE_HTTPS}/health" 2>&1) || true
-  HTTP_CODE=$(echo "${HEALTH}" | tail -1)
-  BODY=$(echo "${HEALTH}" | sed '$d')
+  PING=$("${CURL_TLS[@]}" -w "\n%{http_code}" "${BASE_HTTPS}/ping" 2>&1) || true
+  HTTP_CODE=$(echo "${PING}" | tail -1)
+  BODY=$(echo "${PING}" | sed '$d')
   if [[ "${HTTP_CODE}" == "200" ]] && echo "${BODY}" | grep -q '"status":"ok"'; then
     break
   fi
   sleep 1
 done
-[[ "${HTTP_CODE}" == "200" ]] || fail "TLS health returned ${HTTP_CODE}: ${BODY}"
-echo "${BODY}" | grep -q '"status":"ok"' || fail "unexpected health body: ${BODY}"
+[[ "${HTTP_CODE}" == "200" ]] || fail "TLS ping returned ${HTTP_CODE}: ${BODY}"
+echo "${BODY}" | grep -q '"status":"ok"' || fail "unexpected ping body: ${BODY}"
 echo "  OK"
 
 echo "HSTS header on HTTPS..."
-HDRS=$("${CURL_TLS[@]}" -D - -o /dev/null "${BASE_HTTPS}/health")
+HDRS=$("${CURL_TLS[@]}" -D - -o /dev/null "${BASE_HTTPS}/ping")
 echo "${HDRS}" | grep -qi '^strict-transport-security:' || fail "missing Strict-Transport-Security"
 echo "  OK"
 
-echo "HTTP → HTTPS redirect (${BASE_HTTP}/api/health)..."
-LOC=$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' "${BASE_HTTP}/api/health" || true)
+echo "HTTP → HTTPS redirect (${BASE_HTTP}/api/ping)..."
+LOC=$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' "${BASE_HTTP}/api/ping" || true)
 CODE=$(echo "${LOC}" | awk '{print $1}')
 URL=$(echo "${LOC}" | cut -d' ' -f2-)
 [[ "${CODE}" == "301" || "${CODE}" == "302" ]] || fail "expected redirect, got ${CODE}"

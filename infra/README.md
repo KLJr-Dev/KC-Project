@@ -117,7 +117,7 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 | `cycle6-blue-assert.sh` | Full prod tip | Preview SSRF + bookmark CSRF closed (via smoke) |
 | `cycle7-blue-assert.sh` | Full prod tip | Ops path confinement; no F1 plant (via smoke) |
 | `cycle8-blue-assert.sh` | Full prod tip | Intake SQLi closed; no C8 flags on tip (via smoke) |
-| `smoke-test.sh` | Full prod stack on `:8080` | Unpublished asserts + health → register → upload + C6/C7/C8 Blue |
+| `smoke-test.sh` | Full prod stack on `:8080` | Unpublished asserts + ping → register → upload + C6/C7/C8 Blue |
 | `journey-test.sh` | Full prod stack | 3 roles, demo share, IDOR deny |
 | `tls-smoke.sh` | Prod + TLS overlay | HTTPS / HSTS / Secure cookie |
 | `e2e-docker.sh` | Docker | Backend e2e via `docker-compose.e2e.yml` |

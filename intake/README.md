@@ -12,6 +12,7 @@
 
 ```text
 GET /api/intake/search?q=   (requires Nest JWT via BFF)
+# No Nest or Intake HTTP /health — use GET /api/ping for reachability
 ```
 
 DB: Postgres database `kc_intake` (same postgres service, separate DB).

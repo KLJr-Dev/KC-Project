@@ -75,9 +75,9 @@ describe('v0.6.x Admin Polish (e2e)', () => {
     expect(res.body).toHaveProperty('storageBytesEstimate');
   });
 
-  it('GET /health is public', async () => {
-    const res = await request(app.getHttpServer()).get('/health').expect(200);
-    expect(res.body.status).toBe('ok');
-    expect(res.body.version).toBeUndefined();
+  it('GET /ping is public; GET /health is gone', async () => {
+    const ping = await request(app.getHttpServer()).get('/ping').expect(200);
+    expect(ping.body.status).toBe('ok');
+    await request(app.getHttpServer()).get('/health').expect(404);
   });
 });

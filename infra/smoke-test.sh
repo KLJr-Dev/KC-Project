@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.0 — Smoke test: health → register → upload → list files
+# Smoke test: ping → register → upload → list files (+ cycle blue asserts)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -20,14 +20,14 @@ fail() {
   exit 1
 }
 
-echo "Health check → ${BASE}/health"
-HEALTH=""
+echo "Ping → ${BASE}/ping"
+PING=""
 HTTP_CODE=""
 BODY=""
 for i in $(seq 1 30); do
-  HEALTH=$(curl -sS -w "\n%{http_code}" "${BASE}/health" 2>&1) || true
-  HTTP_CODE=$(echo "$HEALTH" | tail -1)
-  BODY=$(echo "$HEALTH" | sed '$d')
+  PING=$(curl -sS -w "\n%{http_code}" "${BASE}/ping" 2>&1) || true
+  HTTP_CODE=$(echo "$PING" | tail -1)
+  BODY=$(echo "$PING" | sed '$d')
   if [[ "$HTTP_CODE" == "200" ]] && echo "$BODY" | grep -q '"status":"ok"'; then
     break
   fi
@@ -35,9 +35,14 @@ for i in $(seq 1 30); do
 done
 if [[ "$HTTP_CODE" != "200" ]]; then
   echo "Response ($HTTP_CODE): $BODY" >&2
-  fail "health check returned $HTTP_CODE (backend likely down — check: docker compose -f infra/docker-compose.prod.yml logs backend)"
+  fail "ping returned $HTTP_CODE (backend likely down — check: docker compose -f infra/docker-compose.prod.yml logs backend)"
 fi
-echo "$BODY" | grep -q '"status":"ok"' || fail "unexpected health body: $BODY"
+echo "$BODY" | grep -q '"status":"ok"' || fail "unexpected ping body: $BODY"
+echo "  OK"
+
+echo "GET /health must be gone..."
+HCODE=$(curl -sS -o /dev/null -w '%{http_code}' "${BASE}/health" 2>&1) || true
+[[ "$HCODE" == "404" ]] || fail "expected 404 for /health, got $HCODE"
 echo "  OK"
 
 echo "Register..."
