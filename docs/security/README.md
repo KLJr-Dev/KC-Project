@@ -20,7 +20,7 @@
 
 **[Cycle-8/](Cycle-8/README.md)** — **Closed** (`v1.5.0` → `v2.5.0`): FastAPI Intake tool-chain box ([ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)). [secure-ready](../release/v2.5.0-secure-ready.md).
 
-**[Cycle-9/](Cycle-9/README.md)** — **P0 design** (`v1.6.0` → `v2.6.0`): Onboarding/HR on Intake + weak defence ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)). Next milestone pair after Blue: `v1.10.0` → `v2.10.0` (versions 1.7–1.9 unused).
+**[Cycle-9/](Cycle-9/README.md)** — **SoftDev open** (`v1.6.0` → `v2.6.0`): Onboarding/HR on Intake + weak defence ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)). P0 [#37](https://github.com/KLJr-Dev/KC-Project/pull/37); SoftDev plan on `dev`. Next milestone pair after Blue: `v1.10.0` → `v2.10.0`.
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -92,7 +92,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 
 ## Scope
 
-Cycles **1–8 complete**. Cycle-9 **P0 design**. Play boxes: frozen `ctf/*` above. Hardened tip: tag **`v2.5.0`**.
+Cycles **1–8 complete**. Cycle-9 **SoftDev open** (P0 on `main`; rails on `dev`). Play boxes: frozen `ctf/*` above. Hardened tip until insecure ship: tag **`v2.5.0`**.
 
 ## Tools
 

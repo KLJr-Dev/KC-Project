@@ -7,6 +7,8 @@
 | [cycle-9-decisions.md](cycle-9-decisions.md) | Locked packaging / product / DAG / Wave B / pedagogy |
 | [v1.6.0-box-plan.md](v1.6.0-box-plan.md) | Player path + ceiling + two-team topology |
 | [intake-openapi-stub.yaml](intake-openapi-stub.yaml) | FastAPI contract stub (SoftDev implements) |
+| [v1.6.0-softdev-plan.md](v1.6.0-softdev-plan.md) | SoftDev workstreams on `backend` / `frontend` → `dev` |
+| [v1.6.0-integration-status.md](v1.6.0-integration-status.md) | Integration evidence when lanes merge to `dev` |
 | [v1.6.0-execution-plan.md](v1.6.0-execution-plan.md) | Feature-lane runbook P0–P7 |
 | [v1.6.0-stride-lite.md](v1.6.0-stride-lite.md) | Threat notes |
 | [v1.6.0-ground-truth.md](v1.6.0-ground-truth.md) | Examiner only (flags TBA at P2) |

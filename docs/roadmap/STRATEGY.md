@@ -1,9 +1,9 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Secure **`v2.5.0`** on `main` (Cycle-8 Northwind Intake — **Closed**) · Cycle-9 **P0** ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
+**Current tip**: Secure **`v2.5.0`** on `main` · Cycle-9 **SoftDev open** on `dev` ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · [softdev plan](../security/Cycle-9/Dev/v1.6.0-softdev-plan.md)) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
 **Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7 · **Cycle-8**  
-**Secure replay**: tag **`v2.5.0`** · insecure archive **`v1.5.0`** / **`ctf/v1.5.0`** · next design **`v1.6.0` / `v2.6.0`**
+**Secure replay**: tag **`v2.5.0`** · insecure archive **`v1.5.0`** / **`ctf/v1.5.0`** · next insecure **`v1.6.0`** (in progress)
 
 ---
 

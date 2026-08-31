@@ -1,12 +1,12 @@
 # Security Cycle 9 — Northwind Onboarding + Weak Defence
 
-**Status:** **P0 design** · pair **`v1.6.0`** → **`v2.6.0`** · [ADR-038](../../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · skin [ADR-037](../../decisions/ADR-037-immersion-northwind-product-face.md)  
-**Baseline tip:** tag **`v2.5.0`**
+**Status:** **SoftDev open (P1 done)** · pair **`v1.6.0`** → **`v2.6.0`** · [ADR-038](../../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · skin [ADR-037](../../decisions/ADR-037-immersion-northwind-product-face.md)  
+**Baseline tip:** tag **`v2.5.0`** · P0 on `main` via [#37](https://github.com/KLJr-Dev/KC-Project/pull/37) · rails on **`dev`**
 
 | Track | Role | Status |
 |-------|------|--------|
-| Docs / design | P0 decisions, box, STRIDE, execution, OpenAPI | **FINAL — PR ready** |
-| Feature lanes → `dev` → `main` | Intentional insecure tip | Pending |
+| Docs / design | P0 decisions, box, STRIDE, OpenAPI | **Merged (#37)** |
+| Feature lanes → `dev` → `main` | Intentional insecure tip | **P1 reset · SoftDev plan open** |
 | Tag **`v1.6.0`** (+ `ctf/v1.6.0`) | Pentest-ready insecure tip | Pending |
 | PenTest | Red writeup | Pending |
 | **`remediation/v2.6.0`** → tag **`v2.6.0`** | Hardened lab ceiling (~80% v2.5.0 gaps) | Pending |
