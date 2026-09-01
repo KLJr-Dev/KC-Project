@@ -1,21 +1,21 @@
 # Backend
 
-NestJS REST API for **KC-Project** secure tip on `main` (tag **`v2.2.0`**).
+NestJS REST API for **KC-Project** — secure tip tag **`v2.5.0`** on `main`; Cycle-9 insecure **`v1.6.0`** integrated on **`dev`**.
 
-SoftDev API work lands on the **`backend`** branch → `dev` → `main` ([ADR-015](../docs/decisions/ADR-015-branching-strategy.md) · [ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)).
+SoftDev API work lands on the **`backend`** branch → `dev` → `main` ([ADR-015](../docs/decisions/ADR-015-branching-strategy.md) · [ADR-038](../docs/decisions/ADR-038-cycle-9-onboarding-defence-pair.md)).
 
-**Last secure product tag:** `v2.2.0`. Insecure Notes+SSH replay: tag/`ctf/v1.2.0`.
+**Last secure product tag:** `v2.5.0`. Insecure Cycle-8 replay: tag/`ctf/v1.5.0`.
 
 ---
 
-## Current status (secure tip)
+## Current status (secure tip / Cycle-9 dev)
 
-- NestJS 11 — domains: users, auth, files, sharing, admin, **notes** + audit
+- NestJS 11 — domains: users, auth, files, sharing, admin, notes, preview, ops, **intake-bff**, audit
+- **Intake BFF (Cycle-9):** thin JWT proxy to FastAPI; insecure tip forwards client `X-User-*`
 - PostgreSQL 16 via TypeORM migrations; least-priv app role in prod
 - Ternary RBAC with DB-authoritative `HasRoleGuard`
-- **Notes (v2.2.0):** CRUD, parameterized `q`, mod flag, admin delete-any; SVG/HTML attach rejected; download disposition
-- Demo seeds: users 9001–9004, files 9101–9104, notes 9201–9206 (no Cycle-4 secret plants)
-- E2E: Notes suite + Cycle-2/3/4 regression; `./infra/e2e-docker.sh`
+- Demo seeds: users 9001–9004, files 9101–9104, notes 9201–9206; Intake onboarding 9301+ on `dev`
+- E2E: full suite; `./infra/e2e-docker.sh` · `./infra/cycle9-examiner.sh` on insecure tip
 - Swagger: disabled in production unless explicitly enabled
 
 ---

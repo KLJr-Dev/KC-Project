@@ -2,7 +2,7 @@
 
 **Execution:** [v1.6.0-execution-plan.md](v1.6.0-execution-plan.md) · **Box:** [v1.6.0-box-plan.md](v1.6.0-box-plan.md) · **Gaps:** [v1.6.0-gap-closure.md](v1.6.0-gap-closure.md) · **OpenAPI:** [intake-openapi-stub.yaml](intake-openapi-stub.yaml) · **ADR-038** · **Skin:** [ADR-037](../../../decisions/ADR-037-immersion-northwind-product-face.md)
 
-**Status:** **P0 FINAL (locked)** — SoftDev may start only after this branch merges to `main`. Branch: **`docs/cycle-9-p0`** → PR → `main` → P1 lane reset.
+**Status:** **P0 FINAL (locked)** · SoftDev **integrated on `dev`** — flags filled; examiner green.
 
 **Anti-patterns (from Cycles 7–8):** no skippable graded flags; no re-break of closed SSRF/CSRF/Notes/Ops LFI/SQLi; no FTP/Cowrie/revshell as primary path; no orphan LIVE secrets; no “production-grade” claim on `v2.6.0`; **no parallel public FastAPI app**.
 
@@ -136,7 +136,7 @@ STOP
 5. **DEMO** unlocks G1 only.  
 6. **Ops LFI stays closed** — traversal plant is **new** on Intake export only.
 
-### Flags (examiner — values at P2)
+### Flags (examiner — filled at D4)
 
 | ID | Placeholder | Gate |
 |----|-------------|------|

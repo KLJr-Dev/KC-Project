@@ -5,6 +5,7 @@ Deployment and infrastructure for **KC-Project**.
 **Tip policy:** tip (`main` / current SoftDev) holds **evergreen** compose + gates + Blue/unpublished asserts. Closed-cycle plant overlays and examiners live on **`ctf/v1.x.0` / tags** — checkout the box, then use its compose files (do not expect prior overlays on tip).
 
 **Current hardened tip:** **`v2.5.0`** on `main`.  
+**Cycle-9 insecure (on `dev`):** prod compose only — `./infra/cycle9-examiner.sh` after `./infra/smoke-test.sh`.  
 **Insecure Cycle-8 replay:** tag / **`ctf/v1.5.0`** — overlay on that checkout only.  
 **Optional tip noise:** `docker-compose.lab-host.yml` — SSH `:2222` only (no `:8787`).
 

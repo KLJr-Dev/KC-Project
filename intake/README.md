@@ -5,7 +5,7 @@
 **Edge (Cycle-9 SoftDev):** Browser → nginx → **Nest BFF** `/api/intake/*` → FastAPI (`INTAKE_URL`). FastAPI is **not** published on nginx.
 
 **Secure tip `v2.5.0`:** parameterized search.  
-**Insecure SoftDev / `v1.6.0`:** Nest hop headers + onboarding plants (in progress).  
+**Insecure SoftDev / `v1.6.0`:** Nest BFF hop headers + onboarding plants (IDOR, race, export PT, SIEM, honeypot).  
 **Insecure replay C8:** checkout `ctf/v1.5.0` + `docker-compose.cycle8.yml` for SQLi plant.
 
 ## Local / compose
@@ -17,7 +17,7 @@ GET /api/intake/search?q=   (requires Nest JWT via BFF)
 
 DB: Postgres database `kc_intake` (same postgres service, separate DB).
 
-**Cycle-9 seed (D2a):** `onboarding_requests` ids **9301+**, `security_events`, export packages under `/app/exports/{id}/`, F3 out-of-tree at `/app/private/onboarding-export.flag` (placeholders until D4). See `exports/README.md`.
+**Cycle-9 seed:** `onboarding_requests` ids **9301+**, `security_events`, export packages under `/app/exports/{id}/`, F3 out-of-tree at `/app/private/onboarding-export.flag`. See `exports/README.md`.
 
 ## Verify
 

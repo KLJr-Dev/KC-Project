@@ -1,7 +1,7 @@
 # Security Cycle 9 — Northwind Onboarding + Weak Defence
 
 **Status:** **SoftDev integrated on `dev`** · pair **`v1.6.0`** → **`v2.6.0`** · [ADR-038](../../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · skin [ADR-037](../../decisions/ADR-037-immersion-northwind-product-face.md)  
-**Baseline tip:** tag **`v2.5.0`** · P0 on `main` via [#37](https://github.com/KLJr-Dev/KC-Project/pull/37) · **`dev`** @ `d94919f`
+**Baseline tip:** tag **`v2.5.0`** · P0 on `main` via [#37](https://github.com/KLJr-Dev/KC-Project/pull/37) · **`dev`** integrated — PR → `main` pending
 
 | Track | Role | Status |
 |-------|------|--------|

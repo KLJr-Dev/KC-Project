@@ -12,6 +12,7 @@ NestJS application source for KC-Project v1.0.0.
 | `FilesModule` | `files/` | Upload, download, approve |
 | `SharingModule` | `sharing/` | Share CRUD, public token download |
 | `AdminModule` | `admin/` | Admin users, stats, role changes |
+| `IntakeBffModule` | `intake-bff/` | Cycle-9 thin proxy to FastAPI (`/api/intake/*`) |
 | `AuditModule` | `audit/` | AuditLog persistence |
 
 ## Key files
