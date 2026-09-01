@@ -12,12 +12,13 @@ NestJS application source for KC-Project v1.0.0.
 | `FilesModule` | `files/` | Upload, download, approve |
 | `SharingModule` | `sharing/` | Share CRUD, public token download |
 | `AdminModule` | `admin/` | Admin users, stats, role changes |
+| `IntakeBffModule` | `intake-bff/` | Cycle-9 thin proxy to FastAPI (`/api/intake/*`) |
 | `AuditModule` | `audit/` | AuditLog persistence |
 
 ## Key files
 
 - `main.ts` — bootstrap, CORS, Swagger, ValidationPipe
-- `app.controller.ts` — `/ping`, `/health`, `/admin/crash-test`
+- `app.controller.ts` — `/ping`, `/admin/crash-test` (no `/health`)
 - `data-source.ts` — TypeORM CLI (migrations)
 - `migrations/` — schema + demo user/file/share seeds
 

@@ -36,6 +36,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      intake:
+        condition: service_started
     env_file:
       - .env
     environment:
@@ -56,6 +58,7 @@ services:
       REFRESH_COOKIE_PATH: ${REFRESH_COOKIE_PATH:-/api/auth}
       JWT_PRIVATE_KEY_PATH: /run/secrets/jwt-private.pem
       JWT_PUBLIC_KEY_PATH: /run/secrets/jwt-public.pem
+      INTAKE_URL: ${INTAKE_URL:-http://intake:8000}
     volumes:
       - uploads:/app/uploads
       - ../infra/keys/jwt-private.pem:/run/secrets/jwt-private.pem:ro

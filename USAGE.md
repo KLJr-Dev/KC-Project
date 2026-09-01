@@ -55,6 +55,21 @@ Demo users: [`docs/deploy/demo-users.md`](docs/deploy/demo-users.md).
 
 Plant overlays ship **with the checkout** (tag / `ctf/*`). Tip (`main` / Blue branch) holds only the **hardened** product — prior cycle compose/examiners are not on tip after retirement.
 
+### Featured — Cycle-9 Northwind Onboarding (on `dev`; PR to `main` pending)
+
+Medium AppSec path: Nest BFF → FastAPI hop header trust → onboarding-request IDOR → race approve → export path traversal → SIEM leak. No infra tool-chain; prod compose only.
+
+```bash
+git checkout dev
+cp infra/.env.example infra/.env
+docker compose -f infra/docker-compose.prod.yml up -d --build
+./infra/cycle9-examiner.sh
+```
+
+Start: [player brief](docs/security/Cycle-9/Dev/v1.6.0-player-brief.md) (hints only).  
+Examiner GT: [ground truth](docs/security/Cycle-9/Dev/v1.6.0-ground-truth.md) (**`[SPOILER]`**).  
+Hub: [Cycle-9](docs/security/Cycle-9/README.md).
+
 ### Featured — Cycle-8 Northwind Intake
 
 Multi-day OSCP-shaped path: Intake SQLi → John (SMTP) → Hydra (FTP) → revshell → sudo nano → Samba/SMTP. Cowrie `:22` is decoy only.
@@ -74,6 +89,7 @@ Release: [v1.5.0](https://github.com/KLJr-Dev/KC-Project/releases/tag/v1.5.0).
 
 | Box | Checkout | Skills | Brief / hub |
 |-----|----------|--------|-------------|
+| Cycle-9 | `dev` → tag `v1.6.0` (pending) | header trust → IDOR → race → export PT → SIEM | [Cycle-9](docs/security/Cycle-9/README.md) |
 | Cycle-7 | `v1.4.0` / `ctf/v1.4.0` | LFI + FTP/SSH/Cowrie/jump | [Cycle-7](docs/security/Cycle-7/README.md) (+ `docker-compose.cycle7.yml` on that checkout) |
 | Cycle-6 | `v1.3.0` / `ctf/v1.3.0` | Preview SSRF + bookmark CSRF | [Cycle-6](docs/security/Cycle-6/README.md) |
 | Cycle-5 | `ctf/shells-privesc` | cmdi → shell → PrivEsc | [Cycle-5](docs/security/Cycle-5/README.md) |

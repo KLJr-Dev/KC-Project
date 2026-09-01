@@ -1,5 +1,5 @@
 #!/bin/bash
-# CYCLE8: Intake entrypoint — wait for Postgres, seed kc_intake, run uvicorn.
+# Intake entrypoint — wait for Postgres, seed kc_intake (C8 directory + C9 onboarding), run uvicorn.
 set -euo pipefail
 
 DB_HOST="${DB_HOST:-postgres}"
@@ -27,5 +27,14 @@ PGPASSWORD="$DB_ADMIN_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_ADMIN_U
 
 echo "intake: applying seed..."
 PGPASSWORD="$DB_ADMIN_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_ADMIN_USER" -d "$INTAKE_DB" -f /app/seed/seed.sql
+
+# SoftDev sanity: export tree + F3 plant must be present for D2b routes.
+EXPORT_ROOT="${EXPORT_ROOT:-/app/exports}"
+F3_FLAG_PATH="${F3_FLAG_PATH:-/app/private/onboarding-export.flag}"
+[[ -d "${EXPORT_ROOT}/9302" && -d "${EXPORT_ROOT}/9303" ]] \
+  || { echo "intake: missing export packages under ${EXPORT_ROOT}" >&2; exit 1; }
+[[ -f "${F3_FLAG_PATH}" ]] \
+  || { echo "intake: missing F3 plant at ${F3_FLAG_PATH}" >&2; exit 1; }
+echo "intake: export tree OK (F3 plant present)"
 
 exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}"

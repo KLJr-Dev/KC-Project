@@ -5,6 +5,7 @@ Deployment and infrastructure for **KC-Project**.
 **Tip policy:** tip (`main` / current SoftDev) holds **evergreen** compose + gates + Blue/unpublished asserts. Closed-cycle plant overlays and examiners live on **`ctf/v1.x.0` / tags** — checkout the box, then use its compose files (do not expect prior overlays on tip).
 
 **Current hardened tip:** **`v2.5.0`** on `main`.  
+**Cycle-9 insecure (on `dev`):** prod compose only — `./infra/cycle9-examiner.sh` after `./infra/smoke-test.sh`.  
 **Insecure Cycle-8 replay:** tag / **`ctf/v1.5.0`** — overlay on that checkout only.  
 **Optional tip noise:** `docker-compose.lab-host.yml` — SSH `:2222` only (no `:8787`).
 
@@ -54,7 +55,7 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/journey-test.sh
 ```
 
-App: `http://localhost:8080` — API at `/api/*`, Intake at `/api/intake/*`.
+App: `http://localhost:8080` — API at `/api/*` (including `/api/intake/*` via Nest BFF → FastAPI; Cycle-9).
 
 ### TLS profile
 
@@ -116,8 +117,9 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 | `assert-cycle8-unpublished.sh` | compose file | Prod must not publish C8 `:21` / `:22` / `cycle8-*` |
 | `cycle6-blue-assert.sh` | Full prod tip | Preview SSRF + bookmark CSRF closed (via smoke) |
 | `cycle7-blue-assert.sh` | Full prod tip | Ops path confinement; no F1 plant (via smoke) |
-| `cycle8-blue-assert.sh` | Full prod tip | Intake SQLi closed; no C8 flags on tip (via smoke) |
-| `smoke-test.sh` | Full prod stack on `:8080` | Unpublished asserts + health → register → upload + C6/C7/C8 Blue |
+| `cycle8-blue-assert.sh` | Full prod tip | Intake SQLi closed; no C8 flags in search (via smoke) |
+| `cycle9-examiner.sh` | Full prod tip (`v1.6.0`) | Onboarding F1–F4 + honeypot; ping not `/health` |
+| `smoke-test.sh` | Full prod stack on `:8080` | Unpublished asserts + ping → register → upload + C6/C7/C8 Blue |
 | `journey-test.sh` | Full prod stack | 3 roles, demo share, IDOR deny |
 | `tls-smoke.sh` | Prod + TLS overlay | HTTPS / HSTS / Secure cookie |
 | `e2e-docker.sh` | Docker | Backend e2e via `docker-compose.e2e.yml` |
@@ -128,6 +130,7 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 ```bash
 docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh
+./infra/cycle9-examiner.sh
 ./infra/journey-test.sh
 ./infra/e2e-docker.sh
 ./infra/scripts/gen-lab-certs.sh
@@ -156,7 +159,7 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle8.y
 | `docker-compose.tls.yml` / `nginx-tls.conf` | TLS profile |
 | `docker-compose.lab-host.yml` | Optional SSH noise |
 | `docker-compose.e2e.yml` | e2e Postgres publish |
-| `nginx.conf` | Default edge (Nest `/api/*` + Intake `/api/intake/`) |
+| `nginx.conf` | Default edge — all `/api/*` → Nest (Intake BFF proxies FastAPI; no nginx→intake direct) |
 | `assert-*-unpublished.sh` | Prod-alone port/service locks |
 | `cycle*-blue-assert.sh` | Prior Blue regression |
 | `smoke-test.sh` / `journey-test.sh` / `e2e-docker.sh` / `tls-smoke.sh` / `vm-setup.sh` | Gates |

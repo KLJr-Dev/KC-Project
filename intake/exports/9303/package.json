@@ -1,0 +1,6 @@
+{
+  "request_id": 9303,
+  "employee_email": "a.reid@northwind.ops",
+  "kit": ["badge", "finance-gl-access"],
+  "note": "Staged package under /app/exports/9303/ — traversal plant is outside this tree"
+}

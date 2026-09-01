@@ -17,7 +17,7 @@ export default function HomePage() {
           Northwind
         </h1>
         <p className="mx-auto max-w-2xl text-lg text-muted">
-          Employee portal for files, notes, and ops intake across Northwind.
+          Employee portal for files, notes, onboarding, and ops intake across Northwind.
         </p>
         {!isAuthenticated ? (
           <div className="flex items-center justify-center gap-4 pt-2">
@@ -49,6 +49,14 @@ export default function HomePage() {
               <Link href="/intake" className="rounded-md border border-border px-3 py-1.5 text-sm">
                 Intake
               </Link>
+              {(isModerator || isAdmin) && (
+                <Link
+                  href="/intake/queue"
+                  className="rounded-md border border-border px-3 py-1.5 text-sm"
+                >
+                  Onboarding queue
+                </Link>
+              )}
               <Link href="/notes" className="rounded-md border border-border px-3 py-1.5 text-sm">
                 Notes
               </Link>
@@ -70,9 +78,17 @@ export default function HomePage() {
                 </Link>
               )}
               {isAdmin && (
-                <Link href="/admin" className="rounded-md border border-border px-3 py-1.5 text-sm">
-                  Admin
-                </Link>
+                <>
+                  <Link href="/admin" className="rounded-md border border-border px-3 py-1.5 text-sm">
+                    Admin
+                  </Link>
+                  <Link
+                    href="/admin/security"
+                    className="rounded-md border border-border px-3 py-1.5 text-sm"
+                  >
+                    Security Ops
+                  </Link>
+                </>
               )}
             </div>
           </div>
@@ -82,9 +98,9 @@ export default function HomePage() {
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-md border border-border p-6 space-y-3">
           <h2 className="text-sm font-medium text-muted">Portal build</h2>
-          <p className="text-lg font-semibold text-foreground">v2.5.0</p>
+          <p className="text-lg font-semibold text-foreground">v1.6.0</p>
           <p className="text-sm text-muted">
-            Northwind employee portal with Ops Intake staff directory.
+            Northwind employee portal with Ops Intake onboarding and Security Ops.
           </p>
         </div>
         {labUi ? (

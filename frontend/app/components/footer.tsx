@@ -6,7 +6,7 @@ export default function Footer() {
   return (
     <footer className="border-t border-border bg-background">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <span className="text-xs text-muted">Northwind Ops v2.5.0</span>
+        <span className="text-xs text-muted">Northwind Ops v1.6.0</span>
         <div className="flex gap-4 text-xs text-muted">
           {labUi && (
             <a href="/dev" className="hover:text-foreground">

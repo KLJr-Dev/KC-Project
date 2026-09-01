@@ -12,8 +12,12 @@ Next.js App Router — **v1.0.0 product UI** on main routes; API explorers at `/
 | `/files/[id]` | File detail — access-denied banner for non-owners |
 | `/sharing` | My Shares — own shares + shareable files |
 | `/share/[token]` | Public share landing (friendly URL) |
-| `/moderator` | Review queue (mod/admin) |
+| `/intake` | Ops documents (path-confined) |
+| `/intake` | Staff search + onboarding requests |
+| `/intake/queue` | Onboarding approval queue (mod/admin) |
+| `/moderator` | File review queue (mod/admin) |
 | `/admin` | Admin dashboard + system-wide files |
+| `/admin/security` | Security Ops posture + Intake events (admin) |
 
 ## Dev / pentest routes
 

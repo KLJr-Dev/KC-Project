@@ -15,7 +15,7 @@ info:
 
     Plants (insecure only): IDOR, status race, export path traversal, SIEM leak,
     honeypot at /v1/internal/debug.
-  version: 1.6.0-draft
+  version: 1.6.0
 
 servers:
   - url: http://intake:8000
@@ -24,29 +24,12 @@ servers:
     description: Published edge path (Nest BFF — not direct FastAPI)
 
 tags:
-  - name: health
   - name: directory
   - name: onboarding-requests
   - name: security
   - name: decoy
 
 paths:
-  /health:
-    get:
-      tags: [health]
-      summary: Liveness / version fingerprint
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status: { type: string, example: ok }
-                  service: { type: string, example: northwind-intake }
-                  version: { type: string, example: "1.6.0" }
-
   /search:
     get:
       tags: [directory]
@@ -116,6 +99,8 @@ paths:
       description: |
         CYCLE9-PLANT (insecure): read-modify-write race on status (FC-05).
         Only race locus in Cycle-9. Winning approve unlocks export.
+        SoftDev: requires trusted X-User-Role moderator|admin (header spoof).
+        Successful privileged PUT returns privilege_ack containing F2.
       parameters:
         - $ref: "#/components/parameters/RequestId"
         - $ref: "#/components/parameters/XUserId"

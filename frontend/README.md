@@ -1,10 +1,10 @@
 # Frontend
 
-Next.js App Router UI for **KC-Project** secure tip (tag **`v2.2.0`**).
+Next.js App Router UI for **KC-Project** — secure tip tag **`v2.5.0`** on `main`; Cycle-9 insecure **`v1.6.0`** integrated on **`dev`**.
 
 The frontend is an **untrusted client**. Product pages apply client-side filtering; the API is the real security boundary. Notes body is **plain text** (React-escaped) — C4-F01 closed ([ADR-033](../docs/decisions/ADR-033-cycle-4-softdev-version-pair.md)).
 
-SoftDev UI work lands on the **`frontend`** branch → `dev` → `main` ([ADR-015](../docs/decisions/ADR-015-branching-strategy.md)). Insecure Notes XSS replay: tag / branch **`v1.2.0`** / **`ctf/v1.2.0`**.
+SoftDev UI work lands on the **`frontend`** branch → `dev` → `main` ([ADR-015](../docs/decisions/ADR-015-branching-strategy.md)).
 
 ---
 
@@ -13,7 +13,7 @@ SoftDev UI work lands on the **`frontend`** branch → `dev` → `main` ([ADR-01
 - Next.js 16, React 19, Tailwind CSS
 - Types from OpenAPI (`lib/types.gen.ts`) + manual Notes types
 - Auth: access JWT in memory + httpOnly refresh cookie
-- **Product UI:** files, **notes** (escaped body), sharing, moderator, admin
+- **Product UI:** files, notes, intake/onboarding, security ops, sharing, moderator, admin
 - **Dev explorers:** `/dev/*` (lab-gated in prod)
 - **Public share:** `/share/[token]`
 
@@ -29,8 +29,12 @@ SoftDev UI work lands on the **`frontend`** branch → `dev` → `main` ([ADR-01
 | `/notes`, `/notes/[id]` | Auth | Notes (plain-text body) |
 | `/sharing` | Auth | My shares |
 | `/share/[token]` | None | Public download landing |
-| `/moderator` | Mod+admin | Approval queue |
+| `/ops` | Auth | Ops documents (path-confined) |
+| `/intake` | Auth | Staff search + onboarding requests |
+| `/intake/queue` | Mod+admin | Onboarding approval queue |
+| `/moderator` | Mod+admin | File approval queue |
 | `/admin` | Admin | Users, stats, all files |
+| `/admin/security` | Admin | Security Ops posture + events |
 | `/dev/*` | Lab flag | API explorers |
 
 ---

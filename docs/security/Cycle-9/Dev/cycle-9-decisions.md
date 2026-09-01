@@ -2,7 +2,7 @@
 
 **Execution:** [v1.6.0-execution-plan.md](v1.6.0-execution-plan.md) · **Box:** [v1.6.0-box-plan.md](v1.6.0-box-plan.md) · **Gaps:** [v1.6.0-gap-closure.md](v1.6.0-gap-closure.md) · **OpenAPI:** [intake-openapi-stub.yaml](intake-openapi-stub.yaml) · **ADR-038** · **Skin:** [ADR-037](../../../decisions/ADR-037-immersion-northwind-product-face.md)
 
-**Status:** **P0 FINAL (locked)** — SoftDev may start only after this branch merges to `main`. Branch: **`docs/cycle-9-p0`** → PR → `main` → P1 lane reset.
+**Status:** **P0 FINAL (locked)** · SoftDev **integrated on `dev`** — flags filled; examiner green.
 
 **Anti-patterns (from Cycles 7–8):** no skippable graded flags; no re-break of closed SSRF/CSRF/Notes/Ops LFI/SQLi; no FTP/Cowrie/revshell as primary path; no orphan LIVE secrets; no “production-grade” claim on `v2.6.0`; **no parallel public FastAPI app**.
 
@@ -88,7 +88,7 @@ Compose: **`docker-compose.prod.yml` only**. No cycle9 overlay.
 | Path prefix | All Intake traffic under **`/api/intake/*`** (Nest controller/proxy). |
 | Source of truth | FastAPI owns onboarding-requests / export / events **data**. Nest does not duplicate DB writes. |
 | UI | Next calls Nest (`/api/...`) only — never `http://intake:8000` from the browser. |
-| Health | Nest may expose aggregated readiness; raw Intake `/health` still reachable via BFF for recon fingerprint. |
+| Health | **Removed** Nest + Intake HTTP `/health` (Cycle-9 SoftDev). Reachability = `/api/ping`. |
 | v2.5.0 break | SoftDev **must** remove nginx `proxy_pass http://intake:8000` for `/api/intake/`. |
 
 ### Logging / weak defence (final split)
@@ -114,7 +114,7 @@ Compose: **`docker-compose.prod.yml` only**. No cycle9 overlay.
 
 ```text
 Recon (Burp / httpx / gobuster — hygiene)
-  ├─ NOISE: staff search /health / sequential IDs / demo login
+  ├─ NOISE: staff search / sequential IDs / demo login
   ├─ NOISE: /admin/security (green theatre)
   ├─ DECOY: GET /api/intake/v1/internal/debug → "services alerted"
   ▼
@@ -136,14 +136,14 @@ STOP
 5. **DEMO** unlocks G1 only.  
 6. **Ops LFI stays closed** — traversal plant is **new** on Intake export only.
 
-### Flags (examiner — values at P2)
+### Flags (examiner — filled at D4)
 
 | ID | Placeholder | Gate |
 |----|-------------|------|
-| F1 | `OS{…}` TBA | Onboarding-request IDOR body |
-| F2 | `OS{…}` TBA | After header-trust privilege |
-| F3 | `OS{…}` TBA | File reached via export path traversal post-approve |
-| F4 | `OS{…}` TBA | `/security/events` leak |
+| F1 | `OS{833b0578fcd6f6442121e8c7a9724376}` | Onboarding-request IDOR body |
+| F2 | `OS{11ec516803539a84dafeef8c8e151aa2}` | After header-trust privilege |
+| F3 | `OS{6a5c5e3477552175a94374689243b859}` | File reached via export path traversal post-approve |
+| F4 | `OS{e5f9b003b8e5e02b2b9ebb8bc1971abf}` | `/security/events` leak |
 | D1 | — | Honeypot — “services alerted” |
 
 ---
@@ -172,12 +172,11 @@ STOP
 
 | Method | Path | Insecure behaviour |
 |--------|------|--------------------|
-| GET | `/health` | Unauth; version fingerprint |
 | GET | `/search` | Parameterized; staff enum (noise) |
 | GET | `/onboarding-requests` | Weak scoping / header role |
 | GET | `/onboarding-requests/{id}` | **IDOR** → F1 |
 | POST | `/onboarding-requests` | Submit request |
-| PUT | `/onboarding-requests/{id}/status` | **Race** → unlock export |
+| PUT | `/onboarding-requests/{id}/status` | **Race** + header-trust mod → F2 + unlock export |
 | GET | `/onboarding-requests/{id}/export` | Query `file=` — **path traversal** → F3 |
 | GET | `/security/events` | **SIEM leak** → F4 |
 | GET | `/security/metrics` | Vanity (noise) |
