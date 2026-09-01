@@ -20,7 +20,7 @@
 
 **[Cycle-8/](Cycle-8/README.md)** — **Closed** (`v1.5.0` → `v2.5.0`): FastAPI Intake tool-chain box ([ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md)). [secure-ready](../release/v2.5.0-secure-ready.md).
 
-**[Cycle-9/](Cycle-9/README.md)** — **SoftDev integrated on `dev`** (`v1.6.0` → `v2.6.0`): Onboarding/HR on Intake + weak defence ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)). P0 [#37](https://github.com/KLJr-Dev/KC-Project/pull/37); triad + examiner green; **P5 PR → `main` pending**. Next milestone pair after Blue: `v1.10.0` → `v2.10.0`.
+**[Cycle-9/](Cycle-9/README.md)** — **Red open** (`v1.6.0` → `v2.6.0`): Onboarding/HR on Intake + weak defence ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)). Shipped [#38](https://github.com/KLJr-Dev/KC-Project/pull/38); Red on **`ctf/v1.6.0`**. [pentest-ready](../release/v1.6.0-pentest-ready.md).
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -32,7 +32,7 @@
 | 6 | tag/`ctf/v1.3.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.3.0/docs/security/Cycle-6/PenTest/v1.3.0-writeup.md) | tag **`v2.3.0`** · [Remediation/](Cycle-6/Remediation/) · frozen `remediation/v2.3.0` |
 | 7 | tag/`ctf/v1.4.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md) | tag **`v2.4.0`** · [Remediation/](Cycle-7/Remediation/) · frozen `remediation/v2.4.0` |
 | 8 | tag/`ctf/v1.5.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.5.0/docs/security/Cycle-8/PenTest/v1.5.0-writeup.md) | tag **`v2.5.0`** · [Remediation/](Cycle-8/Remediation/) · frozen `remediation/v2.5.0` |
-| 9 | tag/`ctf/v1.6.0` (pending) | tag **`v2.6.0`** (pending) · [Cycle-9](Cycle-9/README.md) |
+| 9 | tag/`ctf/v1.6.0` · [writeup](Cycle-9/PenTest/) (in progress) | tag **`v2.6.0`** (pending) · [Cycle-9](Cycle-9/README.md) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -49,13 +49,13 @@ Checkout the branch, follow the player brief, don’t use for “secure” demos
 | Cycle-6 | `ctf/v1.3.0` | Preview SSRF + bookmark CSRF | [Cycle-6](Cycle-6/README.md) |
 | Cycle-7 | `ctf/v1.4.0` | LFI + FTP/SSH/Cowrie/jump | [Cycle-7](Cycle-7/README.md) |
 | Cycle-8 | `ctf/v1.5.0` | sqlmap → John (SMTP) → Hydra (FTP) → revshell → nano → Samba/SMTP | [Cycle-8](Cycle-8/README.md) |
-| Cycle-9 | `ctf/v1.6.0` (pending) | header trust → case IDOR → race → SIEM leak | [Cycle-9](Cycle-9/README.md) |
+| Cycle-9 | `v1.6.0` / `ctf/v1.6.0` | header trust → case IDOR → race → export PT → SIEM | [Cycle-9](Cycle-9/README.md) |
 
 ## Branch keepers (tip hygiene)
 
 | Keep | Role |
 |------|------|
-| `main` | Current tip — secure **`v2.5.0`** until Cycle-9 PR merges; then intentional insecure **`v1.6.0`** |
+| `main` | Current intentional insecure tip — **`v1.6.0`** (Cycle-9 Red open) |
 | `backend` / `frontend` / `dev` | Feature lanes (reset at product-expansion cycle start) |
 | `ctf/*` | Forever CTF archives (play / evidence) |
 | `remediation/*` | Forever Blue archives |
@@ -92,7 +92,7 @@ Delete merged one-off hotfixes when done (e.g. `hotfix/*` after merge). Don’t 
 
 ## Scope
 
-Cycles **1–8 complete**. Cycle-9 **SoftDev integrated on `dev`** (P5 release pending). Play boxes: frozen `ctf/*` above. Hardened tip until insecure ship: tag **`v2.5.0`** on `main`.
+Cycles **1–8 complete**. Cycle-9 **Red open** on tag **`v1.6.0`** / **`ctf/v1.6.0`**. Secure replay: tag **`v2.5.0`**.
 
 ## Tools
 

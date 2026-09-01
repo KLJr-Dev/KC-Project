@@ -1,9 +1,9 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Secure **`v2.5.0`** on `main` · Cycle-9 **integrated on `dev`** ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · [integration status](../security/Cycle-9/Dev/v1.6.0-integration-status.md)) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
+**Current tip**: Insecure **`v1.6.0`** on `main` · Cycle-9 **Red open** on **`ctf/v1.6.0`** ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · [pentest-ready](../release/v1.6.0-pentest-ready.md)) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
 **Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7 · **Cycle-8**  
-**Secure replay**: tag **`v2.5.0`** · insecure archive **`v1.5.0`** / **`ctf/v1.5.0`** · next insecure **`v1.6.0`** (integrated on **`dev`**, PR pending)
+**Secure replay**: tag **`v2.5.0`** · insecure archive **`v1.5.0`** / **`ctf/v1.5.0`** · current insecure **`v1.6.0`** / **`ctf/v1.6.0`**
 
 ---
 

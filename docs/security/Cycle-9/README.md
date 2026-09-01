@@ -1,14 +1,14 @@
 # Security Cycle 9 — Northwind Onboarding + Weak Defence
 
-**Status:** **SoftDev integrated on `dev`** · pair **`v1.6.0`** → **`v2.6.0`** · [ADR-038](../../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · skin [ADR-037](../../decisions/ADR-037-immersion-northwind-product-face.md)  
-**Baseline tip:** tag **`v2.5.0`** · P0 on `main` via [#37](https://github.com/KLJr-Dev/KC-Project/pull/37) · **`dev`** integrated — PR → `main` pending
+**Status:** **Red open** · pair **`v1.6.0`** → **`v2.6.0`** · [ADR-038](../../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · skin [ADR-037](../../decisions/ADR-037-immersion-northwind-product-face.md)  
+**Baseline tip:** tag **`v1.6.0`** on `main` · archive **`ctf/v1.6.0`**
 
 | Track | Role | Status |
 |-------|------|--------|
 | Docs / design | P0 decisions, box, STRIDE, OpenAPI | **Merged (#37)** |
-| Feature lanes → `dev` → `main` | Intentional insecure tip | **Integrated on `dev`** ([integration status](Dev/v1.6.0-integration-status.md)) |
-| Tag **`v1.6.0`** (+ `ctf/v1.6.0`) | Pentest-ready insecure tip | Pending |
-| PenTest | Red writeup | Pending |
+| Feature lanes → `dev` → `main` | Intentional insecure tip | **Shipped** ([#38](https://github.com/KLJr-Dev/KC-Project/pull/38)) |
+| Tag **`v1.6.0`** (+ `ctf/v1.6.0`) | Pentest-ready insecure tip | **Shipped** ([pentest-ready](../../release/v1.6.0-pentest-ready.md)) |
+| PenTest | Red writeup | **Open** on **`ctf/v1.6.0`** |
 | **`remediation/v2.6.0`** → tag **`v2.6.0`** | Hardened lab ceiling (~80% v2.5.0 gaps) | Pending |
 
 ---
@@ -22,7 +22,7 @@
 | Audience | Start here | Spoilers? |
 |----------|------------|-----------|
 | **Secure tip (today)** | tag **`v2.5.0`** / `main` | No |
-| **Player / Red (when shipped)** | tag/`ctf/v1.6.0` → [player brief](Dev/v1.6.0-player-brief.md) | Brief no · writeup yes |
+| **Player / Red** | tag/`ctf/v1.6.0` → [player brief](Dev/v1.6.0-player-brief.md) | Brief no · writeup yes |
 | **Red writeup** | [PenTest/](PenTest/) | Yes |
 | **Blue** | [Remediation/](Remediation/) | Yes |
 
