@@ -95,6 +95,9 @@ services:
       DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD:-kc-change-me-prod}
       INTAKE_DB_NAME: ${INTAKE_DB_NAME:-kc_intake}
       PORT: 8000
+      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt-public.pem
+    volumes:
+      - ../infra/keys/jwt-public.pem:/run/secrets/jwt-public.pem:ro
     expose:
       - '8000'
     mem_limit: 256m

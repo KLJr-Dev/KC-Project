@@ -1,8 +1,8 @@
 /**
- * Cycle-9 SoftDev — thin Nest BFF → FastAPI Intake (Onboarding squad).
+ * Cycle-9 Blue — thin Nest BFF → FastAPI Intake (Onboarding squad).
  *
- * Platform owns AuthN (JWT). FastAPI is the source of truth for Intake data.
- * Insecure tip: hop identity via X-User-* (see controller CYCLE9-PLANT).
+ * Platform owns AuthN (JWT). FastAPI re-verifies RS256 and is SoT for Intake data.
+ * Hop X-User-* are derived only from the verified JWT (never client-supplied).
  */
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 
@@ -17,6 +17,8 @@ export type IntakeForwardResult = {
 export type IntakeHopIdentity = {
   userId: string;
   userRole: string;
+  /** Forwarded so Intake can verify RS256 independently. */
+  authorization?: string;
 };
 
 @Injectable()
@@ -45,6 +47,9 @@ export class IntakeBffService {
       'X-User-Role': identity.userRole,
       Accept: '*/*',
     };
+    if (identity.authorization) {
+      headers.Authorization = identity.authorization;
+    }
     if (body && body.length > 0 && contentType) {
       headers['Content-Type'] = contentType;
     }
