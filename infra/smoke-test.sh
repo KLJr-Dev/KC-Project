@@ -100,4 +100,8 @@ echo "  OK"
 "${ROOT}/infra/cycle8-blue-assert.sh"
 "${ROOT}/infra/assert-cycle8-unpublished.sh"
 
+# Cycle-9 Blue — onboarding IDOR / hop / export / SIEM closed (v2.6.0)
+"${ROOT}/infra/assert-no-default-secrets.sh"
+"${ROOT}/infra/cycle9-blue-assert.sh"
+
 echo "Smoke test passed."
