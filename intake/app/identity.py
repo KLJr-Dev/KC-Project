@@ -1,7 +1,8 @@
-"""Intake identity — verify Platform RS256 JWT; ignore client hop headers."""
+"""Intake identity — verify Platform RS256 JWT; privilege from Nest-planted hop role."""
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 from functools import lru_cache
@@ -9,6 +10,8 @@ from pathlib import Path
 
 import jwt
 from fastapi import Header, HTTPException
+
+logger = logging.getLogger("intake.identity")
 
 
 @dataclass(frozen=True)
@@ -30,13 +33,28 @@ def _public_key_pem() -> str:
         raise RuntimeError(f"JWT public key unreadable at {path}: {exc}") from exc
 
 
+def _normalize_role(raw: str | None) -> str:
+    role = (raw or "user").strip().lower()
+    if role not in ("user", "moderator", "admin"):
+        return "user"
+    return role
+
+
 def hop_identity(
     authorization: str | None = Header(default=None),
+    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
+    x_user_role: str | None = Header(default=None, alias="X-User-Role"),
+    x_request_id: str | None = Header(default=None, alias="X-Request-Id"),
 ) -> HopIdentity:
     """
-    Blue (v2.6.0): AuthN/AuthZ from verified Bearer RS256 only.
-    Client `X-User-*` headers are intentionally unused (spoof-proof).
+    Blue (v2.6.0):
+    - AuthN: verify Bearer RS256 (sub).
+    - AuthZ role: Nest-planted X-User-Role only when X-User-Id == JWT sub.
+      JWT role claim alone never elevates.
     """
+    if x_request_id:
+        logger.info("intake request_id=%s", x_request_id)
+
     if not authorization or not authorization.lower().startswith("bearer "):
         raise HTTPException(status_code=401, detail="missing bearer token")
     token = authorization.split(" ", 1)[1].strip()
@@ -57,9 +75,12 @@ def hop_identity(
     if not uid:
         raise HTTPException(status_code=401, detail="invalid token subject")
 
-    role = str(payload.get("role") or "user").strip().lower()
-    if role not in ("user", "moderator", "admin"):
+    hop_uid = (x_user_id or "").strip()
+    if hop_uid and hop_uid == uid:
+        role = _normalize_role(x_user_role)
+    else:
         role = "user"
+
     return HopIdentity(user_id=uid, role=role)
 
 

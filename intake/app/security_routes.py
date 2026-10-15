@@ -67,15 +67,3 @@ def security_metrics(identity: HopIdentity = Depends(hop_identity)) -> JSONRespo
             "posture": "nominal",
         }
     )
-
-
-@router.get("/v1/internal/debug", tags=["decoy"])
-def honeypot(identity: HopIdentity = Depends(hop_identity)) -> JSONResponse:
-    _ = identity
-    return JSONResponse(
-        status_code=403,
-        content={
-            "error": "unauthorized probe",
-            "detail": "services alerted",
-        },
-    )

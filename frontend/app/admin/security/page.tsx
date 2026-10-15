@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Security Ops posture — Cycle-9 SoftDev (`v1.6.0`).
- * CYCLE9-THEATRE: static green checks; events come from Intake SIEM feed via BFF.
+ * Security Ops — Cycle-9 Blue (`v2.6.0`).
+ * Admin-only event feed; posture copy is informational (not a control plane).
  */
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -17,14 +17,6 @@ import RequireRole from '../../components/require-role';
 import ErrorBanner from '../../components/ui/error-banner';
 import LoadingSpinner from '../../components/ui/loading-spinner';
 import EmptyState from '../../components/ui/empty-state';
-
-const POSTURE_CHECKS = [
-  { id: 'edge', label: 'Platform edge JWT verification', status: 'pass' as const },
-  { id: 'intake', label: 'Intake upstream reachability', status: 'pass' as const },
-  { id: 'siem', label: 'Onboarding squad event shipper', status: 'pass' as const },
-  { id: 'export', label: 'Export package staging', status: 'pass' as const },
-  { id: 'honeypot', label: 'Internal debug tripwire', status: 'pass' as const },
-];
 
 export default function AdminSecurityPage() {
   return (
@@ -63,7 +55,8 @@ function SecurityPosture() {
       <div>
         <h1 className="text-2xl font-semibold text-foreground">Security Ops</h1>
         <p className="mt-1 text-sm text-muted">
-          Platform posture checklist and Onboarding squad event feed.{' '}
+          Onboarding squad event feed for admins. This page is not a live control plane —
+          JWT and Intake authz are enforced on the API.{' '}
           <Link href="/admin" className="text-foreground underline">
             Admin home
           </Link>
@@ -72,27 +65,17 @@ function SecurityPosture() {
 
       <ErrorBanner message={error} />
 
-      {/* CYCLE9-THEATRE: always-green static checks — not a real control plane. */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium text-foreground">Posture</h2>
-        <ul className="divide-y divide-border rounded-md border border-border">
-          {POSTURE_CHECKS.map((check) => (
-            <li
-              key={check.id}
-              className="flex items-center justify-between gap-4 px-4 py-3 text-sm"
-            >
-              <span className="text-foreground">{check.label}</span>
-              <span className="font-medium text-green-700 dark:text-green-400">
-                {check.status === 'pass' ? 'OK' : check.status}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {metrics && (
-          <p className="text-xs text-muted">
-            Metrics: uptime {metrics.uptime_hours}h · open requests {metrics.open_requests} ·
-            events {metrics.events_ingested} · posture {metrics.posture}
+      <section className="space-y-2">
+        <h2 className="text-lg font-medium text-foreground">Feed health</h2>
+        {metrics ? (
+          <p className="text-sm text-muted">
+            Uptime {metrics.uptime_hours}h · open requests {metrics.open_requests} · events{' '}
+            {metrics.events_ingested}
           </p>
+        ) : loading ? (
+          <LoadingSpinner label="Loading metrics…" />
+        ) : (
+          <p className="text-sm text-muted">Metrics unavailable.</p>
         )}
       </section>
 
@@ -110,7 +93,7 @@ function SecurityPosture() {
         {loading ? (
           <LoadingSpinner label="Loading events…" />
         ) : events.length === 0 ? (
-          <EmptyState title="No events" description="Intake SIEM feed is empty." />
+          <EmptyState title="No events" description="Intake event feed is empty." />
         ) : (
           <ul className="divide-y divide-border rounded-md border border-border">
             {events.map((ev) => (

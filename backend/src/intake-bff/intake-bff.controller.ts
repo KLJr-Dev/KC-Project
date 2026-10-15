@@ -2,28 +2,37 @@
  * Cycle-9 Blue — Nest Intake BFF (`/intake/*` behind nginx `/api`).
  *
  * Thin proxy only — no onboarding business logic (FastAPI is SoT).
- * Hop identity is taken from the verified JWT only (never client X-User-*).
+ * Hop identity: JWT AuthN + role reloaded from DB (never client X-User-*).
  */
 import {
   All,
   Controller,
+  ForbiddenException,
   Get,
+  NotFoundException,
   Param,
   Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import type { Request, Response } from 'express';
+import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
+import { User } from '../users/entities/user.entity';
 import { IntakeBffService } from './intake-bff.service';
 
 @Controller('intake')
 @UseGuards(JwtAuthGuard)
 export class IntakeBffController {
-  constructor(private readonly intakeBff: IntakeBffService) {}
+  constructor(
+    private readonly intakeBff: IntakeBffService,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+  ) {}
 
   @Get('search')
   async search(
@@ -98,13 +107,10 @@ export class IntakeBffController {
     await this.proxyTo(req, res, user, 'security/metrics');
   }
 
+  /** Secure tip: honeypot removed (C9-F06). */
   @Get('v1/internal/debug')
-  async honeypot(
-    @Req() req: Request,
-    @Res() res: Response,
-    @CurrentUser() user: JwtPayload,
-  ): Promise<void> {
-    await this.proxyTo(req, res, user, 'v1/internal/debug');
+  honeypotGone(): never {
+    throw new NotFoundException();
   }
 
   private async proxyTo(
@@ -113,12 +119,21 @@ export class IntakeBffController {
     user: JwtPayload,
     pathAndQuery: string,
   ): Promise<void> {
-    // Blue: never forward client X-User-*; plant identity from verified JWT only.
-    // Also forward Authorization so Intake can independently verify RS256.
+    const dbUser = await this.userRepo.findOne({ where: { id: user.sub } });
+    if (!dbUser) {
+      throw new ForbiddenException('Insufficient permissions');
+    }
+
     const authHeader = req.headers.authorization;
     const authorization =
       typeof authHeader === 'string' && authHeader.trim() !== ''
         ? authHeader.trim()
+        : undefined;
+
+    const requestIdHeader = req.headers['x-request-id'];
+    const requestId =
+      typeof requestIdHeader === 'string' && requestIdHeader.trim() !== ''
+        ? requestIdHeader.trim()
         : undefined;
 
     const { body, contentType } = this.encodeBody(req);
@@ -127,8 +142,9 @@ export class IntakeBffController {
       pathAndQuery,
       {
         userId: user.sub,
-        userRole: user.role || 'user',
+        userRole: dbUser.role || 'user',
         authorization,
+        requestId,
       },
       body,
       contentType,
@@ -136,6 +152,9 @@ export class IntakeBffController {
 
     if (upstream.contentType) {
       res.setHeader('Content-Type', upstream.contentType);
+    }
+    if (requestId) {
+      res.setHeader('X-Request-Id', requestId);
     }
     res.status(upstream.status).send(upstream.body);
   }

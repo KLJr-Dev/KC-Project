@@ -1,7 +1,6 @@
-"""Northwind Intake FastAPI app (Cycle-9 SoftDev / v1.6.0 insecure tip).
+"""Northwind Intake FastAPI app (Cycle-9 Blue / v2.6.0).
 
-Staff directory search stays parameterized (no SQLi). Onboarding plants live in
-onboarding.py / security_routes.py. Edge is Nest BFF — see ADR-038.
+Staff directory search stays parameterized (no SQLi). Edge is Nest BFF — see ADR-038.
 """
 
 from __future__ import annotations
@@ -14,7 +13,7 @@ from fastapi.responses import JSONResponse
 from . import onboarding, security_routes
 from .db import conn
 
-app = FastAPI(title="Northwind Intake", version="1.6.0", docs_url=None, redoc_url=None)
+app = FastAPI(title="Northwind Intake", version="2.6.0", docs_url=None, redoc_url=None)
 
 _MAX_QUERY_LEN = 200
 
