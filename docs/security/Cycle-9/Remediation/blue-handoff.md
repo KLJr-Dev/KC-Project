@@ -19,11 +19,13 @@ git checkout -b blue/cycle-9 v1.6.0
 
 | ID | Severity | CWE | OWASP 2025 | Title | Where to look | Success when |
 |----|----------|-----|------------|-------|---------------|--------------|
-| **C9-F01** | _TBD_ | 639 | A01 Broken Access Control | Onboarding-request IDOR | `intake/app/onboarding.py` GET by id | Owner/dept/authz check; F1 absent |
-| **C9-F02** | _TBD_ | 287 | A07 Authentication Failures | Intake trusts `X-User-*` hop headers | `intake/app/identity.py`, Nest `intake-bff/` | Intake verifies RS256; rejects spoof headers |
-| **C9-F03** | _TBD_ | 367 | A04 Insecure Design | Status RMW race | `onboarding.py` PUT status | Row lock / version column; no TOCTOU window |
-| **C9-F04** | _TBD_ | 22 | A01 Broken Access Control | Export path traversal | export route + `/app/exports/` tree | `resolve()` + `startswith()` confinement |
-| **C9-F05** | _TBD_ | 200 | A02 Security Misconfiguration | SIEM events leak secrets | `security_routes.py` | Redact + authz; no graded fragments |
+| **C9-F01** | Critical | 639 | A01 Broken Access Control | Onboarding-request IDOR | `intake/app/onboarding.py` GET by id | Owner/dept/authz check; F1 absent |
+| **C9-F02** | Critical | 287 / 639 | A01 / A07 | Intake trusts `X-User-*` hop headers | `intake/app/identity.py`, Nest `intake-bff/` | Intake verifies RS256; rejects spoof headers |
+| **C9-F03** | Medium | 367 | A04 Insecure Design | Status RMW race | `onboarding.py` PUT status | Row lock / version column; no TOCTOU window |
+| **C9-F04** | High | 22 | A01 Broken Access Control | Export path traversal | export route + `/app/exports/` tree | `resolve()` + `startswith()` confinement |
+| **C9-F05** | High | 200 | A02 Security Misconfiguration | SIEM events leak secrets | `security_routes.py` | Redact + authz; no graded fragments |
+
+**Red freeze:** 2026-10-15 — F1–F4 recovered on `ctf/v1.6.0`; writeup [v1.6.0-writeup.md](../PenTest/v1.6.0-writeup.md). C9-F03 observed as design risk, not PoC’d.
 
 ## Scope reminders
 
