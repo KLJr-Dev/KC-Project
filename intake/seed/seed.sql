@@ -59,7 +59,7 @@ INSERT INTO onboarding_requests (
     'j.chen@northwind.ops',
     'HR',
     '4821',
-    'CYCLE9-PLANT F1: clearance packet OS{833b0578fcd6f6442121e8c7a9724376} — do not share outside Onboarding',
+    'Clearance packet — Onboarding internal only',
     'pending',
     'hr-sarah-9001',
     NULL,
@@ -137,7 +137,7 @@ INSERT INTO security_events (ts, action, actor, detail) VALUES
     NOW() - INTERVAL '45 minutes',
     'siem.ingest',
     'intake-monitor',
-    'CYCLE9-PLANT F4 fragment: bearer eyJhbGciOi… leaked in shipper buffer OS{e5f9b003b8e5e02b2b9ebb8bc1971abf}'
+    'siem.ingest batch ok — shipper buffer flushed'
   ),
   (NOW() - INTERVAL '20 minutes', 'onboarding.list', 'hr-sarah-9001', 'Listed open requests'),
   (NOW() - INTERVAL '5 minutes', 'health.probe', 'nginx', 'upstream intake reachability OK');

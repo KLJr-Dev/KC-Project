@@ -118,6 +118,9 @@ chmod +x infra/*.sh infra/postgres/init/*.sh
 | `cycle6-blue-assert.sh` | Full prod tip | Preview SSRF + bookmark CSRF closed (via smoke) |
 | `cycle7-blue-assert.sh` | Full prod tip | Ops path confinement; no F1 plant (via smoke) |
 | `cycle8-blue-assert.sh` | Full prod tip | Intake SQLi closed; no C8 flags in search (via smoke) |
+| `cycle9-blue-assert.sh` | Full prod tip | Onboarding IDOR/hop/export/SIEM closed (via smoke) |
+| `assert-no-default-secrets.sh` | `.env` scan | Warn on weak defaults; fail if `REQUIRE_STRONG_SECRETS=1` |
+| `cycle9-examiner.sh` | Insecure tip / `ctf/v1.6.0` | Red plant prover — **not** Blue gate |
 | `cycle9-examiner.sh` | Full prod tip (`v1.6.0`) | Onboarding F1–F4 + honeypot; ping not `/health` |
 | `smoke-test.sh` | Full prod stack on `:8080` | Unpublished asserts + ping → register → upload + C6/C7/C8 Blue |
 | `journey-test.sh` | Full prod stack | 3 roles, demo share, IDOR deny |

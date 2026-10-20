@@ -5,7 +5,10 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     postgresql-client \
-  && rm -rf /var/lib/apt/lists/*
+    gosu \
+  && rm -rf /var/lib/apt/lists/* \
+  && groupadd --gid 1001 intake \
+  && useradd --uid 1001 --gid intake --shell /usr/sbin/nologin --create-home intake
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -15,12 +18,12 @@ COPY seed ./seed
 COPY exports ./exports
 COPY private ./private
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh \
+  && chown -R intake:intake /app/exports /app/private
 
-# CYCLE9-PLANT: export base + out-of-tree F3 path (see exports/README.md)
 ENV PORT=8000
 ENV EXPORT_ROOT=/app/exports
-ENV F3_FLAG_PATH=/app/private/onboarding-export.flag
 EXPOSE 8000
 
+# Entrypoint starts as root for seed/grants, then su-exec to intake.
 ENTRYPOINT ["/entrypoint.sh"]

@@ -49,7 +49,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 | FC-13 | Later (not Cycle-5) |
 | FC-02 · FC-03 | **Consumed (Cycle-6 `v1.3.0` / `v2.3.0`)** — Red on `ctf/v1.3.0`; Blue `remediation/v2.3.0` |
 | FC-04 · FC-06 · FC-07 · FC-08 | Available (FC-04 decoy-ok on C9; FC-08 = overlay-only) |
-| FC-05 · FC-12 | **Planned (Cycle-9 `v1.6.0` / `v2.6.0`)** — P0 design |
+| FC-05 · FC-12 | **Consumed (Cycle-9 `v1.6.0` / `v2.6.0`)** — Red frozen `ctf/v1.6.0`; Blue tagged `v2.6.0` |
 | FC-09 · FC-10 · FC-11 | **Consumed (`ctf/leak-crack-db`)** — Cycle-3 closed; Blue on `main` |
 | FC-15 · FC-16 | Available (later tracks / Cycle-10+) |
 | FC-14 (FTP) · FC-18 | **Consumed (Cycle-7 `v1.4.0` / `v2.4.0`)** — Red frozen `ctf/v1.4.0`; Blue tagged `v2.4.0` |
@@ -75,7 +75,7 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 ## Handoff
 
 1. Cycle-8 **closed** (`v1.5.0` / `ctf/v1.5.0` → `v2.5.0`) — [Cycle-8](../../Cycle-8/README.md) · [secure-ready](../../../release/v2.5.0-secure-ready.md).  
-2. Cycle-9 **P0** — Onboarding + weak defence (`v1.6.0` → `v2.6.0`) — [Cycle-9](../../Cycle-9/README.md) · [ADR-038](../../../decisions/ADR-038-cycle-9-onboarding-defence-pair.md). Consumes **FC-05**, **FC-12**.  
-3. After `v2.6.0`: next pair **`v1.10.0` / `v2.10.0`** (milestone skip). Deep SIEM/log-analysis → Cycle-11+.  
+2. Cycle-9 **closed** (`v1.6.0` / `ctf/v1.6.0` → `v2.6.0`) — [Cycle-9](../../Cycle-9/README.md) · [secure-ready](../../../release/v2.6.0-secure-ready.md). **FC-05**, **FC-12** Consumed.  
+3. Next pair **`v1.10.0` / `v2.10.0`** (milestone skip). Deep SIEM/log-analysis → Cycle-11+.  
 4. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
 5. Update this status table (`Consumed` / `Planned` / `In progress`).

@@ -1,10 +1,10 @@
 /**
- * Cycle-9 SoftDev — thin Nest BFF → FastAPI Intake (Onboarding squad).
+ * Cycle-9 Blue — thin Nest BFF → FastAPI Intake (Onboarding squad).
  *
- * Platform owns AuthN (JWT). FastAPI is the source of truth for Intake data.
- * Insecure tip: hop identity via X-User-* (see controller CYCLE9-PLANT).
+ * Forwards Bearer + Nest-planted hop identity (DB role). Never client X-User-*.
  */
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 
 const FETCH_TIMEOUT_MS = 15_000;
 
@@ -17,6 +17,8 @@ export type IntakeForwardResult = {
 export type IntakeHopIdentity = {
   userId: string;
   userRole: string;
+  authorization?: string;
+  requestId?: string;
 };
 
 @Injectable()
@@ -25,10 +27,6 @@ export class IntakeBffService {
     return (process.env.INTAKE_URL || 'http://intake:8000').replace(/\/$/, '');
   }
 
-  /**
-   * Proxy one request to FastAPI. `pathAndQuery` is everything after `/intake/`
-   * (e.g. `search?q=lisa` or `onboarding-requests/9301`).
-   */
   async forward(
     method: string,
     pathAndQuery: string,
@@ -39,12 +37,17 @@ export class IntakeBffService {
     const url = `${this.baseUrl()}/${pathAndQuery.replace(/^\//, '')}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const requestId = identity.requestId || randomUUID();
 
     const headers: Record<string, string> = {
       'X-User-Id': identity.userId,
       'X-User-Role': identity.userRole,
+      'X-Request-Id': requestId,
       Accept: '*/*',
     };
+    if (identity.authorization) {
+      headers.Authorization = identity.authorization;
+    }
     if (body && body.length > 0 && contentType) {
       headers['Content-Type'] = contentType;
     }

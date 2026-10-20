@@ -1,10 +1,10 @@
-"""Onboarding / HR requests — Cycle-9 plants (IDOR, race, export traversal)."""
+"""Onboarding / HR requests — hardened for v2.6.0 (Cycle-9 Blue)."""
 
 from __future__ import annotations
 
 import os
-import time
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import unquote
 
@@ -13,17 +13,11 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from .db import conn
-from .identity import HopIdentity, hop_identity
+from .identity import HopIdentity, assert_can_access_request, hop_identity
 
 router = APIRouter(tags=["onboarding-requests"])
 
 EXPORT_ROOT = os.environ.get("EXPORT_ROOT", "/app/exports")
-# CYCLE9-PLANT F2 — only returned after header-trust privilege (not via plain IDOR).
-F2_PRIVILEGE_ACK = (
-    "CYCLE9-PLANT F2: escalation ack OS{11ec516803539a84dafeef8c8e151aa2} — Onboarding squad mod channel"
-)
-# SoftDev race window (ms) so parallel PUTs can interleave without Turbo Intruder.
-_RACE_SLEEP_S = float(os.environ.get("INTAKE_RACE_SLEEP_MS", "40")) / 1000.0
 
 
 class OnboardingCreate(BaseModel):
@@ -61,9 +55,20 @@ def _fetch_one(request_id: int) -> dict[str, Any] | None:
     return _row_to_dict(row, cols)
 
 
+def _safe_export_path(request_id: int, file: str) -> Path:
+    """Resolve `file` under EXPORT_ROOT/{id}/ — reject traversal."""
+    rel = unquote(file).replace("\\", "/").lstrip("/")
+    export_dir = Path(EXPORT_ROOT).joinpath(str(request_id)).resolve()
+    target = (export_dir / rel).resolve()
+    try:
+        target.relative_to(export_dir)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="invalid file path") from exc
+    return target
+
+
 @router.get("/onboarding-requests")
 def list_requests(identity: HopIdentity = Depends(hop_identity)) -> JSONResponse:
-    """CYCLE9-PLANT: weak scoping — users see assignee match; mods see all."""
     with conn() as c:
         with c.cursor() as cur:
             if identity.is_privileged:
@@ -117,11 +122,10 @@ def get_request(
     request_id: int,
     identity: HopIdentity = Depends(hop_identity),
 ) -> JSONResponse:
-    """CYCLE9-PLANT: IDOR — no owner/department check (FC-12)."""
-    _ = identity  # hop required, but not used for authz
     row = _fetch_one(request_id)
     if not row:
         raise HTTPException(status_code=404, detail="request not found")
+    assert_can_access_request(identity, row.get("assignee_id"))
     return JSONResponse(row)
 
 
@@ -131,23 +135,18 @@ def update_status(
     body: StatusUpdate,
     identity: HopIdentity = Depends(hop_identity),
 ) -> JSONResponse:
-    """CYCLE9-PLANT: RMW race on status (FC-05); privileged hop required to approve/reject."""
     if not identity.is_privileged:
-        # T4: plain user cannot change others' (or any) status without header spoof.
         raise HTTPException(status_code=403, detail="moderator or admin role required")
 
     with conn() as c:
         with c.cursor() as cur:
             cur.execute(
-                "SELECT id, status FROM onboarding_requests WHERE id = %s",
+                "SELECT id, status FROM onboarding_requests WHERE id = %s FOR UPDATE",
                 (request_id,),
             )
             row = cur.fetchone()
             if not row:
                 raise HTTPException(status_code=404, detail="request not found")
-
-            # Intentional TOCTOU window for race lab (no row lock / version column).
-            time.sleep(_RACE_SLEEP_S)
 
             cur.execute(
                 "UPDATE onboarding_requests SET status = %s WHERE id = %s",
@@ -157,8 +156,6 @@ def update_status(
 
     updated = _fetch_one(request_id)
     payload: dict[str, Any] = updated or {"id": str(request_id), "status": body.status}
-    # F2 surfaces after successful header-trust privilege action.
-    payload["privilege_ack"] = F2_PRIVILEGE_ACK
     return JSONResponse(payload)
 
 
@@ -168,26 +165,19 @@ def export_request(
     file: str = Query(..., min_length=1, max_length=512),
     identity: HopIdentity = Depends(hop_identity),
 ):
-    """CYCLE9-PLANT: approved-only export; `file` joined without path confinement."""
-    _ = identity
     row = _fetch_one(request_id)
     if not row:
         raise HTTPException(status_code=404, detail="request not found")
+    assert_can_access_request(identity, row.get("assignee_id"))
     if row["status"] != "approved":
         raise HTTPException(status_code=403, detail="export requires approved status")
 
-    # Decode once more so %2e%2e%2f-style practice still works if double-encoded upstream.
-    # Accept Windows-style separators in lab payloads.
-    rel = unquote(file).replace("\\", "/")
-    export_dir = os.path.join(EXPORT_ROOT, str(request_id))
-    # Insecure join — no resolve()/startswith() confinement (Ops LFI stays closed elsewhere).
-    target = os.path.join(export_dir, rel)
-
-    if not os.path.isfile(target):
+    target = _safe_export_path(request_id, file)
+    if not target.is_file():
         raise HTTPException(status_code=404, detail="file not found")
 
     return FileResponse(
         target,
         media_type="application/octet-stream",
-        filename=os.path.basename(target) or "export.bin",
+        filename=target.name or "export.bin",
     )

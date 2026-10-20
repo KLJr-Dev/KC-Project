@@ -1,31 +1,38 @@
 /**
- * Cycle-9 SoftDev — Nest Intake BFF (`/intake/*` behind nginx `/api`).
+ * Cycle-9 Blue — Nest Intake BFF (`/intake/*` behind nginx `/api`).
  *
  * Thin proxy only — no onboarding business logic (FastAPI is SoT).
- * Explicit paths match the Cycle-9 OpenAPI stub (Nest 11 splat wildcards
- * did not register reliably for multi-segment proxying).
+ * Hop identity: JWT AuthN + role reloaded from DB (never client X-User-*).
  */
 import {
   All,
   Controller,
+  ForbiddenException,
   Get,
-  Headers,
+  NotFoundException,
   Param,
   Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import type { Request, Response } from 'express';
+import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
+import { User } from '../users/entities/user.entity';
 import { IntakeBffService } from './intake-bff.service';
 
 @Controller('intake')
 @UseGuards(JwtAuthGuard)
 export class IntakeBffController {
-  constructor(private readonly intakeBff: IntakeBffService) {}
+  constructor(
+    private readonly intakeBff: IntakeBffService,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+  ) {}
 
   @Get('search')
   async search(
@@ -33,11 +40,9 @@ export class IntakeBffController {
     @Res() res: Response,
     @CurrentUser() user: JwtPayload,
     @Query('q') q: string | undefined,
-    @Headers('x-user-id') xUserId?: string,
-    @Headers('x-user-role') xUserRole?: string,
   ): Promise<void> {
     const qs = q !== undefined ? `search?q=${encodeURIComponent(q)}` : 'search';
-    await this.proxyTo(req, res, user, xUserId, xUserRole, qs);
+    await this.proxyTo(req, res, user, qs);
   }
 
   @All('onboarding-requests')
@@ -45,10 +50,8 @@ export class IntakeBffController {
     @Req() req: Request,
     @Res() res: Response,
     @CurrentUser() user: JwtPayload,
-    @Headers('x-user-id') xUserId?: string,
-    @Headers('x-user-role') xUserRole?: string,
   ): Promise<void> {
-    await this.proxyTo(req, res, user, xUserId, xUserRole, 'onboarding-requests');
+    await this.proxyTo(req, res, user, 'onboarding-requests');
   }
 
   @All('onboarding-requests/:id')
@@ -57,10 +60,8 @@ export class IntakeBffController {
     @Res() res: Response,
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
-    @Headers('x-user-id') xUserId?: string,
-    @Headers('x-user-role') xUserRole?: string,
   ): Promise<void> {
-    await this.proxyTo(req, res, user, xUserId, xUserRole, `onboarding-requests/${id}`);
+    await this.proxyTo(req, res, user, `onboarding-requests/${id}`);
   }
 
   @All('onboarding-requests/:id/status')
@@ -69,17 +70,8 @@ export class IntakeBffController {
     @Res() res: Response,
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
-    @Headers('x-user-id') xUserId?: string,
-    @Headers('x-user-role') xUserRole?: string,
   ): Promise<void> {
-    await this.proxyTo(
-      req,
-      res,
-      user,
-      xUserId,
-      xUserRole,
-      `onboarding-requests/${id}/status`,
-    );
+    await this.proxyTo(req, res, user, `onboarding-requests/${id}/status`);
   }
 
   @Get('onboarding-requests/:id/export')
@@ -89,14 +81,12 @@ export class IntakeBffController {
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
     @Query('file') file: string | undefined,
-    @Headers('x-user-id') xUserId?: string,
-    @Headers('x-user-role') xUserRole?: string,
   ): Promise<void> {
     const qs =
       file !== undefined
         ? `onboarding-requests/${id}/export?file=${encodeURIComponent(file)}`
         : `onboarding-requests/${id}/export`;
-    await this.proxyTo(req, res, user, xUserId, xUserRole, qs);
+    await this.proxyTo(req, res, user, qs);
   }
 
   @Get('security/events')
@@ -104,10 +94,8 @@ export class IntakeBffController {
     @Req() req: Request,
     @Res() res: Response,
     @CurrentUser() user: JwtPayload,
-    @Headers('x-user-id') xUserId?: string,
-    @Headers('x-user-role') xUserRole?: string,
   ): Promise<void> {
-    await this.proxyTo(req, res, user, xUserId, xUserRole, 'security/events');
+    await this.proxyTo(req, res, user, 'security/events');
   }
 
   @Get('security/metrics')
@@ -115,54 +103,58 @@ export class IntakeBffController {
     @Req() req: Request,
     @Res() res: Response,
     @CurrentUser() user: JwtPayload,
-    @Headers('x-user-id') xUserId?: string,
-    @Headers('x-user-role') xUserRole?: string,
   ): Promise<void> {
-    await this.proxyTo(req, res, user, xUserId, xUserRole, 'security/metrics');
+    await this.proxyTo(req, res, user, 'security/metrics');
   }
 
+  /** Secure tip: honeypot removed (C9-F06). */
   @Get('v1/internal/debug')
-  async honeypot(
-    @Req() req: Request,
-    @Res() res: Response,
-    @CurrentUser() user: JwtPayload,
-    @Headers('x-user-id') xUserId?: string,
-    @Headers('x-user-role') xUserRole?: string,
-  ): Promise<void> {
-    await this.proxyTo(req, res, user, xUserId, xUserRole, 'v1/internal/debug');
+  honeypotGone(): never {
+    throw new NotFoundException();
   }
 
   private async proxyTo(
     req: Request,
     res: Response,
     user: JwtPayload,
-    xUserId: string | undefined,
-    xUserRole: string | undefined,
     pathAndQuery: string,
   ): Promise<void> {
-    // CYCLE9-PLANT: trust client hop headers when present; else fill from JWT.
-    // HasRoleGuard is intentionally NOT applied here — Nest-native routes still
-    // reload role from DB; this BFF hop is the weak microservice boundary.
-    const userId =
-      typeof xUserId === 'string' && xUserId.trim() !== ''
-        ? xUserId.trim()
-        : user.sub;
-    const userRole =
-      typeof xUserRole === 'string' && xUserRole.trim() !== ''
-        ? xUserRole.trim()
-        : user.role || 'user';
+    const dbUser = await this.userRepo.findOne({ where: { id: user.sub } });
+    if (!dbUser) {
+      throw new ForbiddenException('Insufficient permissions');
+    }
+
+    const authHeader = req.headers.authorization;
+    const authorization =
+      typeof authHeader === 'string' && authHeader.trim() !== ''
+        ? authHeader.trim()
+        : undefined;
+
+    const requestIdHeader = req.headers['x-request-id'];
+    const requestId =
+      typeof requestIdHeader === 'string' && requestIdHeader.trim() !== ''
+        ? requestIdHeader.trim()
+        : undefined;
 
     const { body, contentType } = this.encodeBody(req);
     const upstream = await this.intakeBff.forward(
       req.method,
       pathAndQuery,
-      { userId, userRole },
+      {
+        userId: user.sub,
+        userRole: dbUser.role || 'user',
+        authorization,
+        requestId,
+      },
       body,
       contentType,
     );
 
     if (upstream.contentType) {
       res.setHeader('Content-Type', upstream.contentType);
+    }
+    if (requestId) {
+      res.setHeader('X-Request-Id', requestId);
     }
     res.status(upstream.status).send(upstream.body);
   }
