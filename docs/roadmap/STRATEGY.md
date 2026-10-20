@@ -1,9 +1,9 @@
 # KC-Project Development Strategy
 
-**Date**: March 5, 2026 (updated August 2026)  
-**Current tip**: Insecure **`v1.6.0`** on `main` · Cycle-9 **Red open** on **`ctf/v1.6.0`** ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · [pentest-ready](../release/v1.6.0-pentest-ready.md)) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
-**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7 · **Cycle-8**  
-**Secure replay**: tag **`v2.5.0`** · insecure archive **`v1.5.0`** / **`ctf/v1.5.0`** · current insecure **`v1.6.0`** / **`ctf/v1.6.0`**
+**Date**: March 5, 2026 (updated October 2026)  
+**Current tip**: Secure **`v2.6.0`** on `main` · Cycle-9 **Closed** ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · [secure-ready](../release/v2.6.0-secure-ready.md)) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
+**Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7 · Cycle-8 · **Cycle-9**  
+**Secure replay**: tag **`v2.6.0`** · insecure archive **`v1.6.0`** / **`ctf/v1.6.0`**
 
 ---
 
@@ -330,7 +330,7 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 **Skin:** Corporate Northwind product face; no extra graded IDOR/cookie/TLS flags this cycle.
 
-#### Product expansion `v1.6.0` — Onboarding + weak defence (Cycle-9) — **P0 design**
+#### Product expansion `v1.6.0` — Onboarding + weak defence (Cycle-9) — **Closed**
 
 **Goal:** Deepen FastAPI Intake into **Onboarding / HR requests**; plant header-trust auth, case IDOR, approval race, SIEM/log leak; one honeypot decoy (“services alerted”). Medium AppSec box — **no** FTP/shell chain.
 

@@ -11,7 +11,7 @@
 | Cycle | 9 (Onboarding / HR defence pair) |
 | From | Intentional insecure tip `v1.6.0` (Nest BFF hop trust + onboarding plants) |
 | To | Tag **`v2.6.0`** — Intake verifies RS256; plants closed; Wave B ~80% |
-| Current milestone | **M4** — gate + tag |
+| Current milestone | **Done** — tagged **`v2.6.0`** |
 
 ```text
 tag v1.6.0 (insecure tip)
@@ -38,7 +38,7 @@ Close Cycle-9 Red findings on the product tip: Nest BFF never trusts client `X-U
 | **M1** | Wave A — plants | F01–F06 closed; DB-role hop; honeypot 404; flags stripped | **Done** |
 | **M2** | Wave B — gap closure | least-priv DB, rate limit, non-root, dbnet, request-id, secrets assert | **Done** |
 | **M3** | Asserts | `cycle9-blue-assert.sh` + secrets assert wired into smoke | **Done** |
-| **M4** | Gate + tag | smoke/journey · PR → `main` · tag `v2.6.0` | Pending |
+| **M4** | Gate + tag | smoke/journey/tls · PR → `main` · tag `v2.6.0` | **Done** |
 
 ---
 

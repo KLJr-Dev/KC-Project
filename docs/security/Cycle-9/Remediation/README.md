@@ -1,7 +1,7 @@
 # Cycle-9 — Remediation
 
-**Status:** **In progress** · branch **`remediation/v2.6.0`** (from `v1.6.0`)  
-**Target tag:** `v2.6.0`
+**Status:** **Closed** · branch **`remediation/v2.6.0`** · tag **`v2.6.0`**  
+**From:** insecure tip `v1.6.0` / `ctf/v1.6.0`
 
 | Doc | Role |
 |-----|------|
@@ -10,6 +10,6 @@
 | [v2.6.0-remediation.md](v2.6.0-remediation.md) | Finding → fix map (**spoiler**) |
 | [accepted-residuals.md](accepted-residuals.md) | Lab residuals |
 
-Gate: `docs/release/v2.6.0-secure-ready.md` (scaffold at M3/M4)
+Gate: [v2.6.0-secure-ready.md](../../../release/v2.6.0-secure-ready.md)
 
-Wave A = plants (F01–F05). Wave B = gap closure per [../Dev/v1.6.0-gap-closure.md](../Dev/v1.6.0-gap-closure.md).
+Wave A = plants (F01–F06). Wave B = gap closure per [../Dev/v1.6.0-gap-closure.md](../Dev/v1.6.0-gap-closure.md).
