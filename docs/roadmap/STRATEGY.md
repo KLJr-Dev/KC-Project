@@ -1,8 +1,9 @@
 # KC-Project Development Strategy
 
 **Date**: March 5, 2026 (updated October 2026)  
-**Current tip**: Secure **`v2.6.0`** on `main` · Cycle-9 **Closed** ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · [secure-ready](../release/v2.6.0-secure-ready.md)) · [ADR-036](../decisions/ADR-036-cycle-8-intake-tool-chain-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
+**Current tip**: Secure **`v2.6.0`** on `main` · Cycle-9 **Closed** · Cycle-10 **SoftDev P0** ([ADR-039](../decisions/ADR-039-cycle-10-enterprise-pair.md) · [Cycle-10](../security/Cycle-10/README.md) · [topology](../diagrams/c10-v1.10.0-topology.md)) · [ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
 **Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7 · Cycle-8 · **Cycle-9**  
+**In progress**: **Cycle-10** SoftDev → pair **`v1.10.0`** / **`v2.10.0`**  
 **Secure replay**: tag **`v2.6.0`** · insecure archive **`v1.6.0`** / **`ctf/v1.6.0`**
 
 ---
@@ -338,9 +339,15 @@ Each v1.N.0 introduces a **new attack category** across the entire system:
 
 **Blue `v2.6.0`:** Close plants (Intake **verifies RS256**); Wave B closes ~80% of v2.5.0 absolute gaps (least-priv Intake DB, intake rate limit, non-root, internal DB net, secret assert, request-ID). Residuals: HTTP loopback, demo passwords, sequential IDs, open reg, weak CSP.
 
-**Next after Blue:** Milestone skip to **`v1.10.0` → `v2.10.0`** (Cycle-10 boss lab + production showcase). Deep log-analysis Blue Team → Cycle-11+.
+**Next after Blue:** Milestone skip to **`v1.10.0` → `v2.10.0`** (Cycle-10) — **in SoftDev P0**. Deep log-analysis curriculum → Cycle-11+ / post-`v2.10.0` optional.
 
 **Design docs:** [Cycle-9](../security/Cycle-9/README.md) · [ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)
+
+#### Product expansion `v1.10.0` — Enterprise lab + production showcase (Cycle-10) — **SoftDev P0**
+
+**Goal:** Five-zone Northwind lab (web → `docproc` shell → mail/pivot → bastion) then Blue **`v2.10.0`** zero-residual production tip.
+
+**Design docs:** [Cycle-10](../security/Cycle-10/README.md) · [ADR-039](../decisions/ADR-039-cycle-10-enterprise-pair.md) · [topology](../diagrams/c10-v1.10.0-topology.md)
 
 ---
 

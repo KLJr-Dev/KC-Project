@@ -76,6 +76,6 @@ Surfaces deliberately **deferred** for a later insecure fork. Tag **`v2.1.0`** s
 
 1. Cycle-8 **closed** (`v1.5.0` / `ctf/v1.5.0` → `v2.5.0`) — [Cycle-8](../../Cycle-8/README.md) · [secure-ready](../../../release/v2.5.0-secure-ready.md).  
 2. Cycle-9 **closed** (`v1.6.0` / `ctf/v1.6.0` → `v2.6.0`) — [Cycle-9](../../Cycle-9/README.md) · [secure-ready](../../../release/v2.6.0-secure-ready.md). **FC-05**, **FC-12** Consumed.  
-3. Next pair **`v1.10.0` / `v2.10.0`** (milestone skip). Deep SIEM/log-analysis → Cycle-11+.  
+3. Cycle-10 **SoftDev P0** — pair **`v1.10.0` / `v2.10.0`** ([ADR-039](../../../decisions/ADR-039-cycle-10-enterprise-pair.md) · [Cycle-10](../../Cycle-10/README.md)). Deep SIEM curriculum → Cycle-11+ / post-`v2.10.0`.  
 4. For CTF-only boxes: `git checkout -b ctf/<scenario>` (ADR-032).  
 5. Update this status table (`Consumed` / `Planned` / `In progress`).
