@@ -1,0 +1,15 @@
+From: docs@northwind.lab
+To: ops@northwind.lab
+Subject: Q4 integration cutover — READ
+Date: Fri, 14 Nov 2025 09:12:00 +0000
+
+Ops,
+
+Document Ops cutover starts this week. The runbook is attached
+(runbook-q4.txt) — follow it in order. After packet intake is green,
+pull the jump-box note from the dept Samba share listed in the runbook.
+
+Warehouse desks: fluorescent work in annex B should not block portal
+access; Document Ops inbox stays the packet path.
+
+— Document Ops

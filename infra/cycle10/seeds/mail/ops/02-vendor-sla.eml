@@ -1,0 +1,14 @@
+From: vendors@northwind.lab
+To: ops@northwind.lab
+Subject: Re: Partner packet SLA — Document Ops desk
+Date: Thu, 13 Nov 2025 16:40:00 +0000
+
+Ops,
+
+Reminder: inbound vendor packets go through Document Ops on the portal,
+not the old SFTP-only path. Partners.northwind.lab remains for bulk drops
+when Document Ops is offline.
+
+SLA: classify within one business day during Q4 cutover.
+
+— Vendor Relations

@@ -4,12 +4,13 @@ Deployment and infrastructure for **KC-Project**.
 
 **Tip policy:** tip (`main` / current SoftDev) holds **evergreen** compose + gates + Blue/unpublished asserts. Closed-cycle plant overlays and examiners live on **`ctf/v1.x.0` / tags** — checkout the box, then use its compose files (do not expect prior overlays on tip).
 
-**Current hardened tip:** **`v2.5.0`** on `main`.  
-**Cycle-9 insecure (on `dev`):** prod compose only — `./infra/cycle9-examiner.sh` after `./infra/smoke-test.sh`.  
+**Current hardened tip:** **`v2.6.0`** on `main`.  
+**Cycle-10 SoftDev (lanes):** `docker-compose.prod.yml` + [`docker-compose.cycle10-lab.yml`](docker-compose.cycle10-lab.yml) — see [`cycle10/README.md`](cycle10/README.md).  
+**Cycle-9 insecure replay:** tag / **`ctf/v1.6.0`**.  
 **Insecure Cycle-8 replay:** tag / **`ctf/v1.5.0`** — overlay on that checkout only.  
 **Optional tip noise:** `docker-compose.lab-host.yml` — SSH `:2222` only (no `:8787`).
 
-Canonical: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · [ADR-036](../docs/decisions/ADR-036-cycle-8-intake-tool-chain-pair.md).
+Canonical: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · [ADR-039](../docs/decisions/ADR-039-cycle-10-enterprise-pair.md).
 
 ---
 
@@ -18,6 +19,7 @@ Canonical: [STRATEGY.md](../docs/roadmap/STRATEGY.md) · [ADR-036](../docs/decis
 | Path | Compose file | Use case | Entry |
 |------|--------------|----------|-------|
 | **Secure / lab (primary)** | `docker-compose.prod.yml` | Day-to-day, journeys, smoke (**loopback HTTP OK**) | `http://localhost:8080` |
+| **Cycle-10 lab (SoftDev)** | `prod` + `docker-compose.cycle10-lab.yml` | Five-zone enterprise lab (`v1.10.0`) | edge HTTPS (B7+) |
 | **TLS profile** | `prod` + `docker-compose.tls.yml` | **Required for LAN / recruiter secure demos** | `https://localhost:8443` |
 | **Lab-host noise (optional)** | `prod` + `docker-compose.lab-host.yml` | Hardened SSH-only sidecar — **no** kc-agent | SSH `:2222` |
 | **Native dev** | `compose.yml` (DB only) | `npm run start:dev` on host | `:4000` API, `:3000` UI |

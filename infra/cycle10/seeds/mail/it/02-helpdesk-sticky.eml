@@ -1,0 +1,12 @@
+From: helpdesk@northwind.lab
+To: it@northwind.lab
+Subject: sticky note on ws-admin — please stop
+Date: Tue, 11 Nov 2025 14:22:00 +0000
+
+Team,
+
+Someone keeps writing bastion guesses on the helpdesk sticky pad again.
+Those notes are wrong and they confuse cutover. Use the runbook / dept
+share path — do not copy passwords off whiteboards.
+
+— IT Ops

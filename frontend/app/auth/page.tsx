@@ -175,10 +175,20 @@ function AuthPageContent() {
   ];
 
   return (
-    <div className="flex justify-center pt-8">
+    <div className="flex justify-center pt-4">
       <div className="w-full max-w-md space-y-6">
-        {/* Tabs */}
-        <div className="flex rounded-md border border-border">
+        <div className="space-y-2">
+          <span className="nw-stamp">Employee access</span>
+          <h1 className="text-2xl font-semibold text-foreground">
+            {mode === 'login' ? 'Sign in' : 'Register'}
+          </h1>
+          <p className="text-sm text-muted">
+            Northwind Traders Document Portal. Use your work email when IT has
+            provisioned an account, or self-register for basic file access.
+          </p>
+        </div>
+
+        <div className="flex rounded-md border border-border bg-surface">
           {tabs.map((tab) => (
             <button
               key={tab.key}
@@ -195,20 +205,19 @@ function AuthPageContent() {
           ))}
         </div>
 
-        {/* Register form */}
         {mode === 'register' && (
-          <form onSubmit={handleRegister} className="space-y-4" noValidate>
+          <form onSubmit={handleRegister} className="space-y-4 rounded-md border border-border bg-surface p-5" noValidate>
             <ErrorBanner message={regError} />
             <SuccessBanner message={regSuccess} />
 
             <FormInput
               id="reg-email"
-              label="Email"
+              label="Work email"
               type="email"
               value={regEmail}
               onChange={setRegEmail}
               required
-              placeholder="you@example.com"
+              placeholder="you@northwind.lab"
               error={regFieldErrors.email}
               disabled={regLoading}
               autoComplete="email"
@@ -220,7 +229,7 @@ function AuthPageContent() {
               value={regUsername}
               onChange={setRegUsername}
               required
-              placeholder="Choose a username"
+              placeholder="first.last"
               error={regFieldErrors.username}
               disabled={regLoading}
               autoComplete="username"
@@ -240,7 +249,7 @@ function AuthPageContent() {
             />
 
             <SubmitButton loading={regLoading} loadingText="Creating account…">
-              Create Account
+              Create portal account
             </SubmitButton>
 
             <p className="text-center text-sm text-muted">
@@ -256,20 +265,19 @@ function AuthPageContent() {
           </form>
         )}
 
-        {/* Login form */}
         {mode === 'login' && (
-          <form onSubmit={handleLogin} className="space-y-4" noValidate>
+          <form onSubmit={handleLogin} className="space-y-4 rounded-md border border-border bg-surface p-5" noValidate>
             <ErrorBanner message={loginError} />
             <SuccessBanner message={loginSuccess} />
 
             <FormInput
               id="login-email"
-              label="Email"
+              label="Work email"
               type="email"
               value={loginEmail}
               onChange={setLoginEmail}
               required
-              placeholder="you@example.com"
+              placeholder="you@northwind.lab"
               error={loginFieldErrors.email}
               disabled={loginLoading}
               autoComplete="email"
@@ -306,7 +314,7 @@ function AuthPageContent() {
         )}
 
         {isLabUiEnabled() && DEMO_USERS.length > 0 && (
-          <div className="rounded-lg border border-border p-4">
+          <div className="rounded-md border border-border bg-surface p-4">
             <button
               type="button"
               onClick={() => setShowDemo(!showDemo)}
@@ -326,7 +334,7 @@ function AuthPageContent() {
                       setLoginPassword(d.password);
                       setLoginError(null);
                     }}
-                    className="block w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/30"
+                    className="block w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-accent-soft/40"
                   >
                     <span className="font-medium">{d.label}</span>
                     <span className="ml-2 text-muted">{d.email}</span>

@@ -47,7 +47,7 @@ function OpsContent() {
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-foreground">Ops Documents</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Ops handbook</h1>
         <p className="text-sm text-muted">
           Browse Northwind Ops handbook files by relative path under the document library.
         </p>

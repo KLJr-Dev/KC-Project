@@ -1,6 +1,6 @@
 # Cycle-10 — Dev workspace
 
-**Status:** **P0 design** on `docs/cycle-10-p0` · pair **`v1.10.0`** → **`v2.10.0`** ([ADR-039](../../../decisions/ADR-039-cycle-10-enterprise-pair.md))
+**Status:** SoftDev **frozen** (`v1.10.0` / `ctf/v1.10.0`) · pair → **`v2.10.0`** ([ADR-039](../../../decisions/ADR-039-cycle-10-enterprise-pair.md)) · [pentest-ready](../../../release/v1.10.0-pentest-ready.md)
 
 | Doc | Role |
 |-----|------|
@@ -14,11 +14,11 @@
 | [v1.10.0-data-model.md](v1.10.0-data-model.md) | New packet entities + existing DBs |
 | [v1.10.0-credential-ledger.md](v1.10.0-credential-ledger.md) | LIVE / NOISE / DECOY |
 | [v1.10.0-reachability-matrix.md](v1.10.0-reachability-matrix.md) | fw allow/deny |
-| [v1.10.0-ground-truth.md](v1.10.0-ground-truth.md) | Examiner stubs |
-| [v1.10.0-player-brief.md](v1.10.0-player-brief.md) | Progressive hints stub |
-| [packets-openapi-stub.yaml](packets-openapi-stub.yaml) | Nest packet API stub |
+| [v1.10.0-ground-truth.md](v1.10.0-ground-truth.md) | Examiner (flags + gates) |
+| [v1.10.0-player-brief.md](v1.10.0-player-brief.md) | Progressive hints |
+| [packets-openapi-stub.yaml](packets-openapi-stub.yaml) | Nest packet API stub (SoT is Nest) |
 
 **Diagrams:** [topology](../../../diagrams/c10-v1.10.0-topology.md) · [auth](../../../diagrams/c10-v1.10.0-auth-flow.md) · [attack](../../../diagrams/c10-v1.10.0-attack-graph.md) · [dependency](../../../diagrams/c10-v1.10.0-dependency-graph.md)
 
 **Skin:** [ADR-037](../../../decisions/ADR-037-immersion-northwind-product-face.md)  
-**Lab packaging:** one `docker-compose.cycle10-lab.yml` entrypoint (to be implemented in SoftDev B1+).
+**Lab packaging:** [`infra/docker-compose.cycle10-lab.yml`](../../../../infra/docker-compose.cycle10-lab.yml) + [`infra/cycle10-examiner.sh`](../../../../infra/cycle10-examiner.sh) (infra plants + Nest packets RBAC).

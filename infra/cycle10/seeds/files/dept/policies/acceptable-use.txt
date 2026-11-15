@@ -1,0 +1,8 @@
+Northwind Traders — Acceptable Use (excerpt)
+============================================
+1. Document Portal accounts are individual. Do not share passwords.
+2. Partner packets are handled only by Document Ops staff.
+3. Dept Samba shares are for working files, not crown credentials.
+4. SSH to management hosts only from approved jump boxes.
+
+Questions: it@northwind.lab

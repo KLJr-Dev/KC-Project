@@ -11,11 +11,14 @@
  * API_BASE is `/api` behind nginx (same-site). Prefer TLS lab profile for non-loopback.
  */
 import type {
+  AccessRequest,
+  AccessRequestResult,
   AuthResponse,
   CreateNoteRequest,
   CreateSharing,
   CreateUser,
   DeleteResponse,
+  DocumentPacket,
   FileResponse,
   LoginRequest,
   NoteResponse,
@@ -713,3 +716,55 @@ export const intakeSecurityEvents = () =>
 /** GET /intake/security/metrics — vanity theatre support. */
 export const intakeSecurityMetrics = () =>
   request<SecurityMetricsResult>('/intake/security/metrics');
+
+// ── Packets / Stage-0 (Cycle-10 SoftDev / v1.10.0) ─────────────────────
+// Browser talks only to Nest. Never call docproc/intake hosts from the client.
+
+/** POST /access-requests — public Stage-0 form; creates moderator (not admin). */
+export const accessRequestSubmit = (dto: AccessRequest) =>
+  post<AccessRequestResult>('/access-requests', dto);
+
+/** GET /packets — moderator|admin; plain user → 403. */
+export const packetsList = () => request<DocumentPacket[]>('/packets');
+
+/** GET /packets/:id — owner-scoped. */
+export const packetsGetById = (id: string) => request<DocumentPacket>(`/packets/${id}`);
+
+/**
+ * POST /packets — multipart field `file` → Nest → docproc helper plant.
+ * Filename is preserved by design (graded surface lives server-side).
+ */
+export async function packetsUpload(file: File): Promise<DocumentPacket> {
+  const form = new FormData();
+  form.append('file', file);
+
+  const res = await fetch(`${API_BASE}/packets`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: form,
+    credentials: 'include',
+  });
+
+  if (res.status === 401) {
+    try {
+      const refreshed = await authRefresh();
+      setAccessToken(refreshed.token);
+      return packetsUpload(file);
+    } catch {
+      clearAccessToken();
+    }
+  }
+
+  if (!res.ok) {
+    const body = await res.text();
+    try {
+      const json = JSON.parse(body) as ApiErrorResponse;
+      if (json.statusCode && json.message) throw new ApiError(json);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
+    throw new Error(`${res.status} ${res.statusText}: ${body}`);
+  }
+
+  return res.json() as Promise<DocumentPacket>;
+}

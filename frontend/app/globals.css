@@ -2,16 +2,20 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Northwind Document Portal — cool fluorescent office / warehouse ink + Document Ops teal */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --muted: #71717a;
-  --border: #e4e4e7;
-  --ring: #171717;
-  --error: #ef4444;
-  --success: #22c55e;
-  --primary: #171717;
-  --primary-foreground: #ffffff;
+  --background: #e8edf0;
+  --foreground: #152028;
+  --muted: #5a6872;
+  --border: #c5ced4;
+  --ring: #1a4d57;
+  --error: #b42318;
+  --success: #1b6b4a;
+  --primary: #1a4d57;
+  --primary-foreground: #f2f7f8;
+  --surface: #f3f6f8;
+  --accent-soft: #d5e4e7;
+  --stamp: #1a4d57;
 }
 
 @theme inline {
@@ -24,29 +28,70 @@
   --color-success: var(--success);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-surface: var(--surface);
+  --color-accent-soft: var(--accent-soft);
+  --color-stamp: var(--stamp);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --muted: #a1a1aa;
-  --border: #27272a;
-  --ring: #ededed;
-  --error: #f87171;
-  --success: #4ade80;
-  --primary: #ededed;
-  --primary-foreground: #0a0a0a;
+  --background: #10161a;
+  --foreground: #e2e8eb;
+  --muted: #93a0a8;
+  --border: #2a343b;
+  --ring: #6eb0bb;
+  --error: #f97066;
+  --success: #47b881;
+  --primary: #6eb0bb;
+  --primary-foreground: #0c1417;
+  --surface: #171e24;
+  --accent-soft: #1c3136;
+  --stamp: #6eb0bb;
 }
 
 body {
-  background: var(--background);
+  background:
+    linear-gradient(180deg, rgba(26, 77, 87, 0.07) 0%, transparent 42%),
+    radial-gradient(900px 380px at 90% -5%, rgba(26, 77, 87, 0.09), transparent 55%),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-input:focus-visible {
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 1px;
+}
+
+.nw-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.25rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.nw-stamp {
+  display: inline-block;
+  border: 1.5px solid color-mix(in srgb, var(--stamp) 70%, transparent);
+  color: var(--stamp);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.15rem;
+  transform: rotate(-1.5deg);
 }

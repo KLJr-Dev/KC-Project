@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Northwind Traders — Document Portal</title>
+  <style>
+    :root {
+      --bg: #e8edf0;
+      --fg: #152028;
+      --muted: #5a6872;
+      --border: #c5ced4;
+      --primary: #1a4d57;
+      --surface: #f3f6f8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      color: var(--fg);
+      background:
+        linear-gradient(180deg, rgba(26, 77, 87, 0.08) 0%, transparent 40%),
+        var(--bg);
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 92%, white);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .mark {
+      width: 28px;
+      height: 28px;
+      background: var(--primary);
+      color: #f2f7f8;
+      font: 700 11px/28px ui-monospace, monospace;
+      text-align: center;
+      letter-spacing: 0.04em;
+      border-radius: 4px;
+    }
+    .brand { display: flex; flex-direction: column; }
+    .brand strong { font-size: 14px; }
+    .brand span { font-size: 11px; color: var(--muted); }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 56px 24px 40px;
+    }
+    .stamp {
+      display: inline-block;
+      border: 1.5px solid color-mix(in srgb, var(--primary) 70%, transparent);
+      color: var(--primary);
+      font: 600 10px/1 ui-monospace, monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      transform: rotate(-1.5deg);
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 40px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .lede {
+      margin: 0 0 28px;
+      font-size: 17px;
+      line-height: 1.5;
+      color: var(--muted);
+      max-width: 34em;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    a.btn {
+      display: inline-block;
+      text-decoration: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    a.btn-primary {
+      background: var(--primary);
+      color: #f2f7f8;
+    }
+    a.btn-ghost {
+      border: 1px solid var(--border);
+      color: var(--fg);
+      background: var(--surface);
+    }
+    .panel {
+      margin-top: 48px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 16px 18px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .panel strong { color: var(--fg); }
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 64px;
+      padding: 16px 24px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="mark">NW</div>
+    <div class="brand">
+      <strong>Northwind</strong>
+      <span>Document Portal</span>
+    </div>
+  </header>
+  <main>
+    <div class="stamp">Internal</div>
+    <h1>Northwind Traders</h1>
+    <p class="lede">
+      Employee document portal for files, partner packets, and Document Ops.
+      Sign in with credentials issued by Northwind IT.
+    </p>
+    <div class="actions">
+      <a class="btn btn-primary" href="/auth?mode=login">Sign in to portal</a>
+      <a class="btn btn-ghost" href="/auth">Self-service register</a>
+    </div>
+    <div class="panel">
+      <strong>Q4 cutover notice.</strong>
+      Partner drops continue via the Document Ops desk. Warehouse and office staff
+      use the same portal — handbook and intake tools remain under Ops.
+    </div>
+  </main>
+  <footer>
+    <span>Northwind Traders · Internal · 1.10.0</span>
+    <span>edge.northwind.lab</span>
+  </footer>
+  <!-- document staff access requests: /staff-access/ -->
+</body>
+</html>

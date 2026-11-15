@@ -106,8 +106,8 @@ function IntakeContent() {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold text-foreground">Ops Intake</h1>
         <p className="text-sm text-muted">
-          Staff directory and onboarding / HR requests for Northwind. Routed through the platform
-          gateway.
+          Staff directory and onboarding / HR requests for Northwind Traders — warehouse
+          and office hires routed through the Document Portal gateway.
         </p>
         {(isModerator || isAdmin) && (
           <p className="text-sm text-muted">
