@@ -10,7 +10,7 @@ Root [`README.md`](README.md) is the recruiter story. This file is the map.
 
 | Artifact | Role |
 |----------|------|
-| **`main`** / tag **`v2.x`** | Hardened tip — currently **`v2.5.0`** |
+| **`main`** / tag **`v2.x`** | Hardened tip when Blue ships; tip may hold insecure SoftDev freeze mid-cycle (**`v1.10.0`** now) |
 | **Tag `v1.x`** | Immutable insecure tip for that cycle |
 | **`ctf/*`** | Frozen Red archive (code + writeup/evidence) |
 | **`remediation/*`** | Frozen Blue archive (fix history + maps) |
@@ -33,27 +33,43 @@ Same idea as player briefs:
 
 ## Track: Secure tip (demo — not a challenge)
 
-Hardened product for walkthroughs.
+Last closed hardened tip for walkthroughs (Cycle-9 Blue):
 
 ```bash
-git checkout v2.5.0
+git checkout v2.6.0
 cp infra/.env.example infra/.env
 docker compose -f infra/docker-compose.prod.yml up -d --build
 ./infra/smoke-test.sh
 ```
 
-Prior secure tip: **`v2.4.0`**.
-
 App: `http://localhost:8080`  
-TLS / recruiter LAN: see [`infra/README.md`](infra/README.md) (`docker-compose.tls.yml` → `:8443`).
-
+TLS / recruiter LAN: see [`infra/README.md`](infra/README.md) (`docker-compose.tls.yml` → `:8443`).  
 Demo users: [`docs/deploy/demo-users.md`](docs/deploy/demo-users.md).
+
+> Mid Cycle-10 SoftDev freeze, **`main`** also carries insecure **`v1.10.0`** (Document Portal + lab). For a *secure* demo, pin **`v2.6.0`**.
 
 ---
 
 ## Track: Red (primary game)
 
-Plant overlays ship **with the checkout** (tag / `ctf/*`). Tip (`main` / Blue branch) holds only the **hardened** product — prior cycle compose/examiners are not on tip after retirement.
+Plant overlays ship **with the checkout** (tag / `ctf/*`). After Blue, tip holds the hardened product — prior-cycle overlays retire from tip.
+
+### Featured — Cycle-10 Northwind Document Portal (**boss · Red open**)
+
+Hard OSCP / HTB multi-day path: HTTPS-only edge → Document Ops → processor shell → PrivEsc → archive/mail/share pivot → network-gated bastion crown. Five-zone lab; sole host publish **`:443`**.
+
+```bash
+git checkout v1.10.0
+# or: git checkout ctf/v1.10.0
+cp infra/.env.example infra/.env
+docker compose -f infra/docker-compose.prod.yml \
+  -f infra/docker-compose.cycle10-lab.yml up -d --build
+```
+
+App: **`https://localhost/`** (port **443** only).  
+Start: [player brief + RoE](docs/security/Cycle-10/Dev/v1.10.0-player-brief.md) (hints only).  
+**`[SPOILER]`** writeup: fill on `ctf/v1.10.0` — [PenTest index](docs/security/Cycle-10/PenTest/README.md).  
+Gate: [v1.10.0-pentest-ready](docs/release/v1.10.0-pentest-ready.md).
 
 ### Featured — Cycle-9 Northwind Onboarding
 
@@ -90,6 +106,7 @@ Release: [v1.5.0](https://github.com/KLJr-Dev/KC-Project/releases/tag/v1.5.0).
 
 | Box | Checkout | Skills | Brief / hub |
 |-----|----------|--------|-------------|
+| Cycle-10 | `v1.10.0` / `ctf/v1.10.0` | Document Ops → RCE → PrivEsc → mail/share → bastion | [Cycle-10](docs/security/Cycle-10/README.md) |
 | Cycle-9 | `v1.6.0` / `ctf/v1.6.0` | header trust → IDOR → race → export PT → SIEM | [Cycle-9](docs/security/Cycle-9/README.md) |
 | Cycle-7 | `v1.4.0` / `ctf/v1.4.0` | LFI + FTP/SSH/Cowrie/jump | [Cycle-7](docs/security/Cycle-7/README.md) (+ `docker-compose.cycle7.yml` on that checkout) |
 | Cycle-6 | `v1.3.0` / `ctf/v1.3.0` | Preview SSRF + bookmark CSRF | [Cycle-6](docs/security/Cycle-6/README.md) |
