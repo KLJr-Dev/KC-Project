@@ -1,0 +1,57 @@
+openapi: 3.0.3
+info:
+  title: Northwind Document Packets (Cycle-10 stub)
+  version: 1.10.0
+  description: Nest-owned packet API — SoftDev implements; moderator-only upload.
+paths:
+  /packets:
+    get:
+      summary: List packets for caller
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Packet list
+        '401':
+          description: Unauthorized
+    post:
+      summary: Upload document packet (moderator+)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Accepted — queued/processed by docproc helper
+        '403':
+          description: Forbidden — plain user
+  /packets/{id}:
+    get:
+      summary: Packet status/metadata
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Packet detail
+        '404':
+          description: Not found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

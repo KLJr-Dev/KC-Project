@@ -22,6 +22,8 @@
 
 **[Cycle-9/](Cycle-9/README.md)** — **Closed** (`v1.6.0` → `v2.6.0`): Onboarding/HR on Intake + weak defence ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)). Red **`ctf/v1.6.0`**; Blue tag **`v2.6.0`** ([secure-ready](../release/v2.6.0-secure-ready.md)).
 
+**[Cycle-10/](Cycle-10/README.md)** — **SoftDev P0** (`v1.10.0` → `v2.10.0`): enterprise five-zone lab + production showcase ([ADR-039](../decisions/ADR-039-cycle-10-enterprise-pair.md)). Topology [c10-v1.10.0-topology](../diagrams/c10-v1.10.0-topology.md).
+
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
 | 1 | [PenTest/v1.0.0-writeup.md](Cycle-1/PenTest/v1.0.0-writeup.md) · tag `v1.0.0` | [v2.0.0-remediation.md](Cycle-1/Remediation/v2.0.0-remediation.md) · frozen `remediation/v2.0.0` |
