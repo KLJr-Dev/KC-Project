@@ -1,0 +1,6 @@
+Cutover scratch notes — October (superseded by Q4 runbook)
+----------------------------------------------------------
+- Old jump host naming was nw-jump-01 (retired).
+- Current integrate host is on CORP+APP; see JUMPBOX.txt for live creds.
+- Bastion is MGMT-only; sticky notes on helpdesk desks are unreliable.
+- Packet helper lives on docproc — portal Document Ops inbox feeds it.

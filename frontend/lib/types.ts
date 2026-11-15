@@ -60,6 +60,31 @@ export interface UpdateNoteRequest {
 
 // ── Generic ──────────────────────────────────────────────────────────
 
+/** Cycle-10 Stage-0 access request (POST /access-requests). */
+export interface AccessRequest {
+  email: string;
+  username: string;
+  password: string;
+  reason?: string;
+}
+
+export interface AccessRequestResult {
+  message: string;
+  email: string;
+  role: string;
+}
+
+/** Cycle-10 document packet row (GET/POST /packets). */
+export interface DocumentPacket {
+  id: string;
+  ownerUserId: string;
+  originalName: string;
+  storageKey?: string;
+  status: string;
+  helperOutput?: string;
+  createdAt: string;
+}
+
 export interface DeleteResponse {
   deleted: string | boolean;
 }

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""CYCLE10-PLANT — document helper.
+"""Northwind document helper — classify uploaded packet filenames.
 
-Insecure: runs `file` via shell on the uploaded path (metachar / command injection).
-SoftDev B5 stub; Nest wires upload → this HTTP endpoint in B6.
+Listen: 0.0.0.0:9090 (DOCPROC_HELPER_PORT). Inbox: /opt/docproc/inbox.
 """
 from __future__ import annotations
 
@@ -31,11 +30,9 @@ class Handler(BaseHTTPRequestHandler):
         self._send(404, "not found\n")
 
     def do_POST(self) -> None:
-        # CYCLE10-PLANT
         length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(length).decode("utf-8", errors="replace")
         qs = parse_qs(urlparse(self.path).query)
-        # Prefer query filename; fall back to body field
         name = (qs.get("name") or [None])[0]
         if not name and "name=" in raw:
             name = raw.split("name=", 1)[1].split("&", 1)[0]
@@ -43,13 +40,12 @@ class Handler(BaseHTTPRequestHandler):
             self._send(400, "missing name\n")
             return
         os.makedirs(INBOX, exist_ok=True)
-        # Write body payload if present as file bytes after first newline
-        # (best-effort; injection names may not be valid paths)
+        # Best-effort write (injection names may not be valid paths)
         safe_write = name.replace("/", "_").split(";")[0].split("|")[0].strip()
         if safe_write and "\n" in raw:
             with open(os.path.join(INBOX, safe_write[:64] or "upload.bin"), "wb") as f:
                 f.write(raw.split("\n", 1)[1].encode())
-        # CYCLE10-PLANT — attacker-controlled name interpolated into shell
+        # Attacker-controlled name interpolated into shell
         try:
             out = subprocess.check_output(
                 f"file {name}",
@@ -70,7 +66,6 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> None:
     os.makedirs(INBOX, exist_ok=True)
-    # Drop privileges for helper process when started as root via entrypoint
     httpd = HTTPServer(("0.0.0.0", PORT), Handler)
     print(f"[helper] listening on {PORT}", flush=True)
     httpd.serve_forever()

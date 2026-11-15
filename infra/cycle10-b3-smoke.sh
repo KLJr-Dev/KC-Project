@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# SoftDev B3 gate: CORP hosts up; only integrate shares MGMT with bastion (among corp).
+# Cycle-10 SoftDev B3 gate — CORPORATE zone
+#
+# Proves: integrate dual-homes net_app+net_corp+net_mgmt; mail/files/workstations
+# exist; corp hosts must NOT attach net_mgmt. Chains B2 smoke first.
+# Authority: ADR-039 · topology · cycle10-b2-smoke.sh
 # Usage: ./infra/cycle10-b3-smoke.sh
 set -euo pipefail
 
@@ -56,4 +60,4 @@ if docker exec c10-mail getent hosts bastion >/dev/null 2>&1; then
   fail "mail unexpectedly resolves bastion"
 fi
 
-echo "OK: B3 CORPORATE — integrate dual-home + bastion path; noise off MGMT"
+echo "OK: B3 CORPORATE — integrate dual-home + bastion path; workstations off MGMT"

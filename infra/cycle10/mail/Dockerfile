@@ -1,17 +1,20 @@
-# CYCLE10-PLANT — mail (CORP). SoftDev B3 stub; B8 seeds required ops thread.
+# Host: mail.northwind.lab — corporate maildir
 FROM alpine:3.20
+
+COPY seeds/mail/ops/ /tmp/ops-seed/
+COPY seeds/mail/it/ /tmp/it-seed/
 
 RUN apk add --no-cache bash \
   && adduser -D -s /sbin/nologin mailer \
-  && mkdir -p /var/mail/northwind/ops /var/mail/northwind/noise \
-  && printf '%s\n' 'CYCLE10-PLANT mail.northwind.lab — maildir stub (B3)' \
+  && mkdir -p /var/mail/northwind/ops /var/mail/northwind/it \
+  && printf '%s\n' \
+    'Northwind Traders — corporate maildir' \
+    'Mailboxes: ops@ · it@  (Document Ops cutover traffic lives under ops/)' \
     > /var/mail/northwind/README \
-  && printf '%s\n' 'B8 will drop required ops thread + runbook attachment here.' \
-    > /var/mail/northwind/ops/.keep \
-  && printf '%s\n' 'Subject: bastion is Summer2024' \
-    'From: it@northwind.lab' \
-    '' \
-    'try Summer2024 on bastion (NOISE — rejects)' \
-    > /var/mail/northwind/noise/false-bastion.eml
+  && cp /tmp/ops-seed/*.eml /var/mail/northwind/ops/ \
+  && cp /tmp/ops-seed/runbook-q4.txt /var/mail/northwind/ops/ \
+  && cp /tmp/it-seed/*.eml /var/mail/northwind/it/ \
+  && chown -R mailer:mailer /var/mail/northwind \
+  && rm -rf /tmp/ops-seed /tmp/it-seed
 
-CMD ["sh", "-c", "echo '[c10-mail] maildir stub ready'; sleep infinity"]
+CMD ["sh", "-c", "echo '[c10-mail] Northwind maildir ready'; sleep infinity"]

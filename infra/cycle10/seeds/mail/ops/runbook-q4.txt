@@ -1,0 +1,11 @@
+Northwind Q4 Integration Runbook
+================================
+1. Confirm packet intake is green.
+2. Pull integration material from the dept Samba share:
+   host: files.northwind.lab
+   share: dept
+   user: smbuser
+   pass: password
+   path: /integration/JUMPBOX.txt
+3. SSH to integrate.northwind.lab with the credentials in JUMPBOX.txt.
+4. Bastion access is from integrate only; ignore helpdesk sticky notes.

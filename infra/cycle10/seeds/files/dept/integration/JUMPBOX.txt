@@ -1,0 +1,8 @@
+Northwind integration jump box
+------------------------------
+host: integrate.northwind.lab
+user: integrator
+pass: Passw0rd
+
+Use this host for cutover jobs. Bastion SSH is allowed from here only.
+Do not redistribute helpdesk sticky-note passwords.

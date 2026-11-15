@@ -1,17 +1,31 @@
-# CYCLE10-NOISE — ws-admin (MGMT). Shell clutter; no crown.
+# Host: ws-admin.northwind.lab
 FROM alpine:3.20
 
 RUN apk add --no-cache openssh-server bash \
   && ssh-keygen -A \
   && adduser -D -s /bin/bash helpdesk \
   && echo 'helpdesk:Summer2024' | chpasswd \
-  && mkdir -p /home/helpdesk /var/run/sshd \
+  && mkdir -p /home/helpdesk/Desktop /home/helpdesk/Documents /var/run/sshd \
   && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
   && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config \
   && echo 'AllowUsers helpdesk' >> /etc/ssh/sshd_config \
+  && echo 'Banner /etc/ssh/northwind-banner' >> /etc/ssh/sshd_config \
+  && printf '%s\n' \
+    'Northwind Traders — ws-admin (helpdesk workstation)' \
+    'CORP network only. Not a jump host.' \
+    > /etc/ssh/northwind-banner \
   && printf '%s\n' \
     'NOTE: bastion password is Summer2024 — try that first' \
     > /home/helpdesk/sticky-note.txt \
+  && printf '%s\n' \
+    'Todo: reset printer queue · ticket NW-8841 · coffee order' \
+    > /home/helpdesk/Desktop/todo.txt \
+  && printf '%s\n' \
+    'Helpdesk shift notes — do not put live bastion passwords here.' \
+    > /home/helpdesk/Documents/shift-notes.txt \
+  && printf '%s\n' \
+    'Northwind helpdesk desktop. Sticky notes are unreliable.' \
+    > /etc/motd \
   && chown -R helpdesk:helpdesk /home/helpdesk
 
 EXPOSE 22

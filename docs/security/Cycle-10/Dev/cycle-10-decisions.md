@@ -23,8 +23,9 @@
 | 10 | Bastion reachability | **Only `integrate` → `bastion`** |
 | 11 | Bastion secret | Requires **`docproc` root** |
 | 12 | `integrate` | Dual-home APP+CORP; not an IP router |
-| 13 | Edge TLS (v1) | HTTPS present but weak |
+| 13 | Edge TLS (v1) | HTTPS present but weak; **only host publish `:443→443`** |
 | 14 | Edge TLS (v2) | HTTPS default + redirects + strict cookies/headers |
+| 13b | External publish | **HTTPS edge only** — no partners/honeypot/Cowrie/prod `:8080` host ports; internals after foothold |
 
 ## C. Graded path / RBAC
 
@@ -37,7 +38,7 @@
 | 19 | Proofs | `local.txt` + `proof.txt` on `docproc`; crown on `bastion` |
 | 20 | Mail | **Required** ops email + runbook attachment |
 | 21 | Restore DB | After `docproc` foothold; fw exception |
-| 22 | Partner SFTP | Exists; cannot skip web gate |
+| 22 | Partner SFTP | Exists on DMZ **unpublished**; cannot skip web gate; not a host-facing path |
 | 23 | IdP | Keycloak-style on both tips; **not graded** |
 
 ## D. Must not

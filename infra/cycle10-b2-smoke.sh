@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# SoftDev B2 gate: MANAGEMENT hosts exist; bastion closed from internet.
+# Cycle-10 SoftDev B2 gate — MANAGEMENT zone
+#
+# Proves: c10-bastion / logs / backup present; bastion has no host publish;
+# bastion attached only to nw_c10_mgmt. Runtime checks when Docker is up.
+# Authority: ADR-039 · infra/cycle10/HOST-INVENTORY.md
 # Usage: ./infra/cycle10-b2-smoke.sh
+# Chains into: cycle10-b3-smoke.sh …
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -36,8 +41,8 @@ NETS="$(docker inspect -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{
 echo "$NETS" | grep -qw nw_c10_mgmt || fail "bastion not on nw_c10_mgmt (got: $NETS)"
 echo "$NETS" | grep -Eq 'nw_c10_(dmz|app)' && fail "bastion attached to non-MGMT zone: $NETS" || true
 
-docker exec c10-bastion test -f /root/crown.txt || fail "crown placeholder missing"
-docker exec c10-logs test -f /var/log/northwind/README || fail "logs stub missing"
-docker exec c10-backup test -f /backup/northwind/README || fail "backup stub missing"
+docker exec c10-bastion test -f /root/crown.txt || fail "crown missing"
+docker exec c10-logs test -f /var/log/northwind/README || fail "logs collector missing"
+docker exec c10-backup test -f /backup/northwind/README || fail "backup collector missing"
 
-echo "OK: B2 MANAGEMENT — bastion unpublished, MGMT-only, stubs up"
+echo "OK: B2 MANAGEMENT — bastion unpublished, MGMT-only, collectors up"

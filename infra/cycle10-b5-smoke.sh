@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# SoftDev B5 gate: docproc helper, local/proof layout, find sudo PrivEsc, archive reach.
+# Cycle-10 SoftDev B5 gate — docproc LIVE OS
+#
+# Proves: helper /health · local.txt/proof.txt/bastion.secret · sudo find PrivEsc
+# · db-archive DNS from docproc (net_data NIC). Chains B4 smoke.
+# Authority: ADR-039 · box-plan · infra/cycle10/docproc/
 # Usage: ./infra/cycle10-b5-smoke.sh
 set -euo pipefail
 
@@ -53,12 +57,33 @@ docker exec c10-docproc test -f /home/docuser/local.txt || fail "local.txt missi
 docker exec c10-docproc test -f /root/proof.txt || fail "proof.txt missing"
 docker exec c10-docproc test -f /root/bastion.secret || fail "bastion.secret missing"
 
-# PrivEsc path: sudo find → GTFOBins id
+# Hard gate: foothold user can read local, cannot read root proofs / shadow / sudoers
+docker exec -u docuser c10-docproc grep -q 'OS{c10local' /home/docuser/local.txt \
+  || fail "docuser cannot read local.txt"
+if docker exec -u docuser c10-docproc cat /root/proof.txt >/dev/null 2>&1; then
+  fail "docuser must not read /root/proof.txt without PrivEsc"
+fi
+if docker exec -u docuser c10-docproc cat /root/bastion.secret >/dev/null 2>&1; then
+  fail "docuser must not read /root/bastion.secret without PrivEsc"
+fi
+if docker exec -u docuser c10-docproc cat /etc/shadow >/dev/null 2>&1; then
+  fail "docuser must not read /etc/shadow"
+fi
+if docker exec -u docuser c10-docproc cat /etc/sudoers >/dev/null 2>&1; then
+  fail "docuser must not read /etc/sudoers"
+fi
+if docker exec -u docuser c10-docproc ls /root >/dev/null 2>&1; then
+  fail "docuser must not list /root"
+fi
+
+# PrivEsc path: sudo find → GTFOBins id → then root proofs readable via find -exec
 docker exec -u docuser c10-docproc sudo /usr/bin/find /etc/passwd -exec id \; 2>/dev/null | grep -q 'uid=0' \
   || fail "sudo find PrivEsc smoke failed"
+docker exec -u docuser c10-docproc sudo /usr/bin/find /root/proof.txt -exec cat {} \; 2>/dev/null \
+  | grep -q 'OS{c10proof' || fail "PrivEsc cannot read proof.txt"
 
 # archive reachable from docproc (DATA NIC exception)
 docker exec c10-docproc getent hosts db-archive >/dev/null \
   || fail "docproc cannot resolve db-archive"
 
-echo "OK: B5 docproc — helper, proofs, PrivEsc, archive DNS"
+echo "OK: B5 docproc — helper, proofs, PrivEsc gates, archive DNS"

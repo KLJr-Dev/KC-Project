@@ -1,8 +1,7 @@
 /**
- * Global navigation header — Northwind Ops face (Cycle-9 / ADR-037).
+ * Global navigation — Northwind Document Portal (Cycle-10 / ADR-037).
  *
  * Auth: access JWT in memory; role from AuthContext (UX only — API enforces).
- * Logout calls POST /auth/logout (revokes refresh) and clears in-memory access token.
  */
 'use client';
 
@@ -12,17 +11,22 @@ import { useAuth } from '../../lib/auth-context';
 import { useTheme } from '../../lib/theme-context';
 import { authMe } from '../../lib/api';
 
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="text-sm text-muted transition-colors hover:text-foreground"
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default function Header() {
   const { isAuthenticated, logout, isAdmin, isModerator, role } = useAuth();
   const { resolved, toggleTheme } = useTheme();
   const [username, setUsername] = useState<string | null>(null);
 
-  /**
-   * Fetch the authenticated user's profile on mount (and when auth state
-   * changes). Displays the username in the header to prove the JWT flow
-   * works. Falls back silently on error — the header just shows "Logout"
-   * without a username if the call fails.
-   */
   useEffect(() => {
     if (!isAuthenticated) {
       setUsername(null);
@@ -35,92 +39,58 @@ export default function Header() {
   }, [isAuthenticated]);
 
   return (
-    <header className="border-b border-border bg-background">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
-        <Link href="/" className="text-lg font-semibold tracking-tight text-foreground">
-          Northwind
+    <header className="border-b border-border bg-surface/90 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3">
+        <Link href="/" className="flex items-center gap-2.5 min-w-0">
+          <span className="nw-mark" aria-hidden>
+            NW
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold tracking-tight text-foreground">
+              Northwind
+            </span>
+            <span className="block text-[11px] leading-tight text-muted">
+              Document Portal
+            </span>
+          </span>
         </Link>
-        <nav className="flex items-center gap-6">
-          <Link href="/" className="text-sm text-muted transition-colors hover:text-foreground">
-            Home
-          </Link>
+
+        <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+          <NavLink href="/">Home</NavLink>
+
           {isAuthenticated && (
             <>
-              <Link
-                href="/files"
-                className="text-sm text-muted transition-colors hover:text-foreground"
-              >
-                My Files
-              </Link>
-              <Link
-                href="/intake"
-                className="text-sm text-muted transition-colors hover:text-foreground"
-              >
-                Intake
-              </Link>
+              <span className="hidden h-3 w-px bg-border sm:block" aria-hidden />
+              <NavLink href="/files">Files</NavLink>
+              <NavLink href="/notes">Notes</NavLink>
+              <NavLink href="/sharing">Sharing</NavLink>
+              <NavLink href="/preview">Preview</NavLink>
+              <span className="hidden h-3 w-px bg-border sm:block" aria-hidden />
+              <NavLink href="/ops">Ops</NavLink>
+              <NavLink href="/intake">Intake</NavLink>
               {(isModerator || isAdmin) && (
-                <Link
-                  href="/intake/queue"
-                  className="text-sm text-muted transition-colors hover:text-foreground"
-                >
-                  Onboarding
-                </Link>
+                <>
+                  <NavLink href="/packets">Packets</NavLink>
+                  <NavLink href="/intake/queue">Onboarding</NavLink>
+                  <NavLink href="/moderator">Review</NavLink>
+                </>
               )}
-              <Link
-                href="/notes"
-                className="text-sm text-muted transition-colors hover:text-foreground"
-              >
-                Notes
-              </Link>
-              <Link
-                href="/preview"
-                className="text-sm text-muted transition-colors hover:text-foreground"
-              >
-                Preview
-              </Link>
-              <Link
-                href="/ops"
-                className="text-sm text-muted transition-colors hover:text-foreground"
-              >
-                Ops
-              </Link>
-              <Link
-                href="/sharing"
-                className="text-sm text-muted transition-colors hover:text-foreground"
-              >
-                Sharing
-              </Link>
+              {isAdmin && (
+                <>
+                  <span className="hidden h-3 w-px bg-border sm:block" aria-hidden />
+                  <NavLink href="/admin">Admin</NavLink>
+                  <NavLink href="/admin/security">Security</NavLink>
+                </>
+              )}
             </>
           )}
-          {isAuthenticated && (isModerator || isAdmin) && (
-            <Link
-              href="/moderator"
-              className="text-sm text-muted transition-colors hover:text-foreground"
-            >
-              Review
-            </Link>
-          )}
-          {isAuthenticated && isAdmin && (
-            <>
-              <Link
-                href="/admin"
-                className="text-sm text-muted transition-colors hover:text-foreground"
-              >
-                Admin
-              </Link>
-              <Link
-                href="/admin/security"
-                className="text-sm text-muted transition-colors hover:text-foreground"
-              >
-                Security
-              </Link>
-            </>
-          )}
+
           {isAuthenticated ? (
             <div className="flex items-center gap-3">
               {username && (
                 <span className="text-sm text-foreground">
-                  {username} {role && <span className="text-xs text-muted">({role})</span>}
+                  {username}
+                  {role ? <span className="ml-1 text-xs text-muted">({role})</span> : null}
                 </span>
               )}
               <button
@@ -133,12 +103,13 @@ export default function Header() {
             </div>
           ) : (
             <Link
-              href="/auth"
-              className="text-sm text-muted transition-colors hover:text-foreground"
+              href="/auth?mode=login"
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               Sign In
             </Link>
           )}
+
           <button
             type="button"
             onClick={toggleTheme}

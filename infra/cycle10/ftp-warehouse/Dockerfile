@@ -1,11 +1,11 @@
-# CYCLE10-NOISE — ftp-warehouse (CORP). vsftpd-style clutter; no web-skip secret.
+# Host: ftp-warehouse.northwind.lab — internal warehouse FTP
 FROM alpine:3.20
 
 RUN apk add --no-cache vsftpd bash \
   && adduser -D -s /sbin/nologin warehouse \
   && echo 'warehouse:shipit' | chpasswd \
   && mkdir -p /var/ftp/pub \
-  && printf '%s\n' 'CYCLE10-NOISE warehouse drop — not partner SFTP graded path' \
+  && printf '%s\n' 'Warehouse receiving drop — internal use only' \
     > /var/ftp/pub/README \
   && cat > /etc/vsftpd/vsftpd.conf <<'EOF'
 listen=YES

@@ -1,10 +1,10 @@
 # KC-Project Development Strategy
 
-**Date**: March 5, 2026 (updated October 2026)  
-**Current tip**: Secure **`v2.6.0`** on `main` · Cycle-9 **Closed** · Cycle-10 **SoftDev P0** ([ADR-039](../decisions/ADR-039-cycle-10-enterprise-pair.md) · [Cycle-10](../security/Cycle-10/README.md) · [topology](../diagrams/c10-v1.10.0-topology.md)) · [ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
+**Date**: March 5, 2026 (updated November 2026)  
+**Current tip**: Insecure **`v1.10.0`** / **`ctf/v1.10.0`** (Cycle-10 SoftDev frozen) · next Red · pair → **`v2.10.0`** ([ADR-039](../decisions/ADR-039-cycle-10-enterprise-pair.md) · [Cycle-10](../security/Cycle-10/README.md) · [pentest-ready](../release/v1.10.0-pentest-ready.md)) · [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)  
 **Cycles closed**: Cycle-1 · Cycle-2 · Cycle-3 · Cycle-4 · Cycle-5 · Cycle-6 · Cycle-7 · Cycle-8 · **Cycle-9**  
-**In progress**: **Cycle-10** SoftDev → pair **`v1.10.0`** / **`v2.10.0`**  
-**Secure replay**: tag **`v2.6.0`** · insecure archive **`v1.6.0`** / **`ctf/v1.6.0`**
+**In progress**: **Cycle-10** Red on **`ctf/v1.10.0`** → Blue **`v2.10.0`**  
+**Secure replay (prior)**: tag **`v2.6.0`** · insecure archive **`v1.6.0`** / **`ctf/v1.6.0`**
 
 ---
 

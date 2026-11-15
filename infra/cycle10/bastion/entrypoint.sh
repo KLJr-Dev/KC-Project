@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CYCLE10-PLANT — bastion: SSH only from integrate.northwind.lab
+# bastion — allow SSH only from integrate.northwind.lab
 set -euo pipefail
 
 echo "[c10-bastion] locking sshd to integrate only"
@@ -7,7 +7,6 @@ echo "[c10-bastion] locking sshd to integrate only"
 iptables -F INPUT || true
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-# default: drop new SSH until integrate resolves
 iptables -A INPUT -p tcp --dport 22 -j DROP
 iptables -P INPUT DROP
 iptables -P OUTPUT ACCEPT

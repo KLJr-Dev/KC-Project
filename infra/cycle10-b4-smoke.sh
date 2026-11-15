@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# SoftDev B4 gate: db-archive on internal net_data; unpublished.
+# Cycle-10 SoftDev B4 gate — DATA (db-archive)
+#
+# Proves: c10-db-archive only on net_data; no host ports; healthy + LIVE seed row.
+# Chains B3 smoke. Authority: ADR-039 · reachability matrix (docproc exception later B5)
 # Usage: ./infra/cycle10-b4-smoke.sh
 set -euo pipefail
 
@@ -43,7 +46,11 @@ done
   || fail "db-archive not healthy"
 
 docker exec c10-db-archive psql -U archive -d northwind_archive -c \
-  "SELECT tag FROM service_accounts WHERE tag='LIVE' LIMIT 1;" | grep -q LIVE \
-  || fail "LIVE service_accounts stub missing"
+  "SELECT username FROM service_accounts WHERE username='docs' LIMIT 1;" | grep -q docs \
+  || fail "docs service_account seed missing"
+
+docker exec c10-db-archive psql -U archive -d northwind_archive -c \
+  "SELECT subject FROM mailbox_exports WHERE subject LIKE '%runbook%' LIMIT 1;" | grep -qi runbook \
+  || fail "mailbox_exports runbook seed missing"
 
 echo "OK: B4 DATA — db-archive healthy on net_data (unpublished)"

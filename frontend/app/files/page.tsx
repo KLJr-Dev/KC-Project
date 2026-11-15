@@ -107,7 +107,10 @@ function MyFilesContent() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold text-foreground">My Files</h1>
-        <p className="mt-1 text-sm text-muted">Upload, download, and manage your files.</p>
+        <p className="mt-1 text-sm text-muted">
+          Working documents for your Northwind desk — upload, download, and manage
+          personal files in the Document Portal.
+        </p>
       </div>
 
       <ErrorBanner message={error} />

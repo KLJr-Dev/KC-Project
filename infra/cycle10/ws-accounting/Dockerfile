@@ -1,4 +1,4 @@
-# CYCLE10-NOISE — ws-accounting (CORP). No graded secrets.
+# Host: ws-accounting.northwind.lab
 FROM alpine:3.20
 
 RUN apk add --no-cache openssh-server bash \
@@ -8,7 +8,7 @@ RUN apk add --no-cache openssh-server bash \
   && mkdir -p /home/ledger /var/run/sshd \
   && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
   && echo 'AllowUsers ledger' >> /etc/ssh/sshd_config \
-  && printf '%s\n' 'Q1 spreadsheets — nothing for bastion' > /home/ledger/README \
+  && printf '%s\n' 'Q1 spreadsheets — local workstation only' > /home/ledger/README \
   && chown -R ledger:ledger /home/ledger
 
 EXPOSE 22

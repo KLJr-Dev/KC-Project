@@ -1,4 +1,4 @@
-# Cycle-10 runtime inventory — 2026-11-15T19:47:03Z
+# Cycle-10 runtime inventory — 2026-11-15T20:06:26Z
 
 ## c10-fw
 - image: `infra-c10-fw`
@@ -15,7 +15,7 @@
 - uname: Linux bastion.northwind.lab 6.12.5-linuxkit #1 SMP Tue Jan 21 10:23:32 UTC 2025 aarch64 Linux
 - os: Alpine Linux v3.20
 - key paths:
-  - -rw-------    1 root     root            26 Nov 15 19:38 /root/crown.txt
+  - -rw-------    1 root     root            37 Nov 15 20:01 /root/crown.txt
 
 ## c10-logs
 - image: `infra-c10-logs`
@@ -24,7 +24,7 @@
 - uname: Linux logs.northwind.lab 6.12.5-linuxkit #1 SMP Tue Jan 21 10:23:32 UTC 2025 aarch64 Linux
 - os: Alpine Linux v3.20
 - key paths:
-  - -rw-r--r--    1 root     root            54 Nov 15 19:38 /var/log/northwind/README
+  - -rw-r--r--    1 root     root            49 Nov 15 20:01 /var/log/northwind/README
 
 ## c10-backup
 - image: `infra-c10-backup`
@@ -33,7 +33,7 @@
 - uname: Linux backup.northwind.lab 6.12.5-linuxkit #1 SMP Tue Jan 21 10:23:32 UTC 2025 aarch64 Linux
 - os: Alpine Linux v3.20
 - key paths:
-  - -rw-r--r--    1 root     root            46 Nov 15 19:38 /backup/northwind/README
+  - -rw-r--r--    1 root     root            37 Nov 15 20:01 /backup/northwind/README
 
 ## c10-ws-admin
 - image: `infra-c10-ws-admin`
@@ -50,7 +50,7 @@
 - uname: Linux integrate.northwind.lab 6.12.5-linuxkit #1 SMP Tue Jan 21 10:23:32 UTC 2025 aarch64 Linux
 - os: Alpine Linux v3.20
 - key paths:
-  - -rw-r--r--    1 root     root           174 Nov 15 19:39 /opt/northwind/ROLE
+  - -rw-r--r--    1 root     root           174 Nov 15 20:01 /opt/northwind/ROLE
 
 ## c10-mail
 - image: `infra-c10-mail`
@@ -59,7 +59,7 @@
 - uname: Linux mail.northwind.lab 6.12.5-linuxkit #1 SMP Tue Jan 21 10:23:32 UTC 2025 aarch64 Linux
 - os: Alpine Linux v3.20
 - key paths:
-  - drwxr-xr-x    4 root     root          4096 Nov 15 19:39 /var/mail/northwind
+  - drwxr-xr-x    4 root     root          4096 Nov 15 20:01 /var/mail/northwind
 
 ## c10-files
 - image: `infra-c10-files`
@@ -69,7 +69,7 @@
 - Version 4.19.9
 - os: Alpine Linux v3.20
 - key paths:
-  - drwxr-xr-x    1 root     root          4096 Nov 15 19:39 /shares/dept
+  - drwxr-xr-x    1 root     root          4096 Nov 15 20:01 /shares/dept
 
 ## c10-ws-accounting
 - image: `infra-c10-ws-accounting`
@@ -112,10 +112,10 @@
 - Python 3.12.13
 - os: Alpine Linux v3.20
 - key paths:
-  - -rw-------    1 root     root            26 Nov 15 19:42 /root/proof.txt
-  - -rw-------    1 root     root            35 Nov 15 19:42 /root/bastion.secret
-  - -rw-r--r--    1 docuser  docuser         26 Nov 15 19:42 /home/docuser/local.txt
-  - -rwxr-xr-x    1 root     root          2915 Nov 15 19:40 /opt/docproc/bin/helper.py
+  - -rw-------    1 root     root            37 Nov 15 20:01 /root/proof.txt
+  - -rw-------    1 root     root             9 Nov 15 20:01 /root/bastion.secret
+  - -rw-r--r--    1 docuser  docuser         37 Nov 15 20:01 /home/docuser/local.txt
+  - -rwxr-xr-x    1 root     root          3180 Nov 15 19:56 /opt/docproc/bin/helper.py
 
 ## c10-edge
 - image: `infra-c10-edge`
@@ -125,7 +125,7 @@
 - nginx version: nginx/1.27.5
 - os: Alpine Linux v3.21
 - key paths:
-  - -rw-r--r--    1 root     root           355 Nov 15 19:44 /usr/share/nginx/html/index.html
+  - -rw-r--r--    1 root     root           624 Nov 15 19:56 /usr/share/nginx/html/index.html
 
 ## c10-partners
 - image: `infra-c10-partners`
@@ -134,7 +134,7 @@
 - uname: Linux partners.northwind.lab 6.12.5-linuxkit #1 SMP Tue Jan 21 10:23:32 UTC 2025 aarch64 Linux
 - os: Alpine Linux v3.20
 - key paths:
-  - drwxr-xr-x    2 vendor   vendor        4096 Nov 15 19:46 /var/sftp/incoming
+  - drwxr-xr-x    2 vendor   vendor        4096 Nov 15 20:01 /var/sftp/incoming
 
 ## c10-honeypot
 - image: `infra-c10-honeypot`

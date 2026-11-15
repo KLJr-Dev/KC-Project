@@ -1,0 +1,4 @@
+Legacy vendor drop notes (2019)
+-------------------------------
+Historical SFTP drop instructions. Prefer partners.northwind.lab for
+current partner uploads. Do not use retired FTP paths under ftp-warehouse.

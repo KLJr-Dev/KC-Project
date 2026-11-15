@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Dump runtime OS/version/FS fingerprints for Cycle-10 lab containers.
-# Usage: ./infra/cycle10-inventory.sh
+# Cycle-10 SoftDev — runtime host inventory dump
+#
+# Prints OS/version/networks/published ports/key FS paths for every c10-* container.
+# SoftDev snapshot committed as infra/cycle10/HOST-INVENTORY.runtime.md
+# Spec table: infra/cycle10/HOST-INVENTORY.md
+# Usage: ./infra/cycle10-inventory.sh[ > infra/cycle10/HOST-INVENTORY.runtime.md]
 set -euo pipefail
 
 CONTAINERS=(
@@ -35,7 +39,7 @@ for c in "${CONTAINERS[@]}"; do
     echo "- key paths:"
     for p in /root/crown.txt /root/proof.txt /root/bastion.secret /home/docuser/local.txt \
       /opt/docproc/bin/helper.py /shares/dept /var/mail/northwind /var/sftp/incoming \
-      /usr/share/nginx/html/index.html /opt/honeypot/NOTICE /backup/northwind/README \
+      /usr/share/nginx/html/index.html /opt/remote/NOTICE /backup/northwind/README \
       /var/log/northwind/README /opt/northwind/ROLE; do
       if [ -e "$p" ]; then ls -ld "$p" 2>/dev/null | sed "s/^/  - /"; fi
     done

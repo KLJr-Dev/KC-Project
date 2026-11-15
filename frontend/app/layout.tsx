@@ -17,8 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Northwind Ops',
-  description: 'Northwind employee portal — v2.6.0',
+  title: 'Northwind Traders — Document Portal',
+  description:
+    'Northwind Traders employee document portal — files, partner packets, and Document Ops.',
 };
 
 export default function RootLayout({

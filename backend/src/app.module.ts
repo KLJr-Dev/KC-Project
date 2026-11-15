@@ -23,6 +23,7 @@ import { NotesModule } from './notes/notes.module';
 import { PreviewModule } from './preview/preview.module';
 import { OpsModule } from './ops/ops.module';
 import { IntakeBffModule } from './intake-bff/intake-bff.module';
+import { PacketsModule } from './packets/packets.module'; // Cycle-10 SoftDev B6 (ADR-039)
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { IntakeBffModule } from './intake-bff/intake-bff.module';
     PreviewModule,
     OpsModule,
     IntakeBffModule,
+    PacketsModule,
   ],
   controllers: [AppController],
   providers: [

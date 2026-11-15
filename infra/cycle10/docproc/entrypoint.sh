@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Run helper as docuser; keep root for sudo PrivEsc path.
+# Cycle-10 — docproc entrypoint
+# Runs helper as docuser; container stays root-capable for sudo PrivEsc path.
 set -euo pipefail
 chown -R docuser:docuser /opt/docproc/inbox
 echo "[c10-docproc] starting helper as docuser on :9090"

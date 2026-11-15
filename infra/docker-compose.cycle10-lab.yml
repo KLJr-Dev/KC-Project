@@ -1,29 +1,78 @@
-# Cycle-10 enterprise lab — SoftDev overlay (v1.10.0 insecure tip)
+# Cycle-10 enterprise lab — SoftDev overlay for intentional-insecure tip `v1.10.0`
+#
+# Pair: v1.10.0 (this overlay) → Red → v2.10.0 (product compose, plants gone)
+# Authority:
+#   ADR-039 · docs/security/Cycle-10/Dev/cycle-10-decisions.md
+#   docs/diagrams/c10-v1.10.0-topology.md
+#   docs/security/Cycle-10/Dev/v1.10.0-reachability-matrix.md
+#   infra/cycle10/HOST-INVENTORY.md
 #
 # Usage:
-#   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle10-lab.yml up -d --build
+#   docker compose -f infra/docker-compose.prod.yml \
+#                  -f infra/docker-compose.cycle10-lab.yml up -d --build
 #
-# ADR-039 / topology: five zones + fw. Bridges ≠ firewall allowlist.
-# Prod-alone must stay clean — ./infra/assert-cycle10-unpublished.sh
+# Design locks:
+#   - Five zones + fw; bridges ≠ allowlist
+#   - Bastion reachable only from integrate (iptables + net_mgmt NIC)
+#   - docproc→db-archive via shared net_data (graded exception)
+#   - **Only host publish: edge HTTPS :443** (partners/honeypot/prod nginx unpublished)
+#   - Prod-alone must stay clean → ./infra/assert-cycle10-unpublished.sh
 #
-# SoftDev: B1–B5 ✅ → B7 DMZ → B6 product / B8 seeds …
+# SoftDev: B1–B9 + immersion tip. Graded external face = Document Portal TLS only.
+#
+# Lab overlay — five zones + host images
 
 networks:
+  # DMZ — edge (published) + partners/honeypot (internal theater, no host ports)
   net_dmz:
     name: nw_c10_dmz
+  # APP — portal/api/docproc (+ edge upstream NIC)
   net_app:
     name: nw_c10_app
+  # DATA — internal; archive + docproc exception NIC
   net_data:
     name: nw_c10_data
     internal: true
+  # CORP — mail/files/integrate + workstations (internal)
   net_corp:
     name: nw_c10_corp
     internal: true
+  # MGMT — bastion/logs/backup + integrate admin NIC (internal)
   net_mgmt:
     name: nw_c10_mgmt
     internal: true
 
 services:
+  # ---------------------------------------------------------------------------
+  # Product service network attachments (B6) — merge onto prod definitions
+  # DOCPROC_URL: Nest packets plant calls helper on docproc:9090
+  # Aliases: edge nginx upstreams use portal/api DNS names
+  # ---------------------------------------------------------------------------
+  backend:
+    environment:
+      DOCPROC_URL: ${DOCPROC_URL:-http://docproc:9090}
+      # Graded tip is edge HTTPS :443 — cookies/CORS must match (not cleartext :8080)
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://127.0.0.1,https://localhost,https://edge.northwind.lab}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    networks:
+      edge:
+      dbnet:
+      net_app:
+        aliases: [api.northwind.lab, api]
+
+  frontend:
+    networks:
+      edge:
+      net_app:
+        aliases: [portal.northwind.lab, portal]
+
+  # Lab tip: no cleartext host publish — attackers only get edge :443
+  nginx:
+    ports: !reset []
+
+  # ---------------------------------------------------------------------------
+  # B1 — zone firewall (SUPPORT). Default-deny FORWARD; rules evolve B2–B9.
+  # ---------------------------------------------------------------------------
   c10-fw:
     build:
       context: ./cycle10/fw
@@ -47,10 +96,12 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: SUPPORT
-      kc.plant: CYCLE10-SUPPORT
+      kc.role: collector
 
-  # --- B2 MANAGEMENT (internal — no host ports) ---
+  # ---------------------------------------------------------------------------
+  # B2 — MANAGEMENT (bastion + collectors + helpdesk workstation)
+  # Bastion: no host ports; SSH filtered to integrate only (entrypoint iptables)
+  # ---------------------------------------------------------------------------
   c10-bastion:
     build:
       context: ./cycle10/bastion
@@ -67,8 +118,7 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: LIVE
-      kc.plant: CYCLE10-PLANT
+      kc.role: path
 
   c10-logs:
     build:
@@ -82,8 +132,7 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: SUPPORT
-      kc.plant: CYCLE10-SUPPORT
+      kc.role: collector
 
   c10-backup:
     build:
@@ -97,10 +146,9 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: SUPPORT
-      kc.plant: CYCLE10-SUPPORT
+      kc.role: collector
 
-  # NOISE admin workstation — CORP only (no bastion L2); sticky-note decoy
+  # helpdesk workstation on CORP only (no net_mgmt NIC)
   c10-ws-admin:
     build:
       context: ./cycle10/ws-admin
@@ -115,11 +163,13 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: NOISE
-      kc.plant: CYCLE10-NOISE
+      kc.role: workstation
 
-  # --- B3 CORPORATE ---
-  # Dual-home APP+CORP + net_mgmt NIC = sole approved bastion path (not an IP router)
+  # ---------------------------------------------------------------------------
+  # B3 — CORPORATE
+  # integrate: dual-home APP+CORP + net_mgmt NIC = sole approved bastion path
+  # (not an IP router — ADR-039)
+  # ---------------------------------------------------------------------------
   c10-integrate:
     build:
       context: ./cycle10/integrate
@@ -138,12 +188,12 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: LIVE
-      kc.plant: CYCLE10-PLANT
+      kc.role: path
 
   c10-mail:
     build:
-      context: ./cycle10/mail
+      context: ./cycle10
+      dockerfile: mail/Dockerfile
     container_name: c10-mail
     hostname: mail.northwind.lab
     networks:
@@ -153,12 +203,12 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: LIVE
-      kc.plant: CYCLE10-PLANT
+      kc.role: path
 
   c10-files:
     build:
-      context: ./cycle10/files
+      context: ./cycle10
+      dockerfile: files/Dockerfile
     container_name: c10-files
     hostname: files.northwind.lab
     networks:
@@ -170,8 +220,7 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: LIVE
-      kc.plant: CYCLE10-PLANT
+      kc.role: path
 
   c10-ws-accounting:
     build:
@@ -187,8 +236,7 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: NOISE
-      kc.plant: CYCLE10-NOISE
+      kc.role: workstation
 
   c10-ftp-warehouse:
     build:
@@ -204,8 +252,7 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: NOISE
-      kc.plant: CYCLE10-NOISE
+      kc.role: workstation
 
   c10-mon-legacy:
     build:
@@ -221,12 +268,12 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: NOISE
-      kc.plant: CYCLE10-NOISE
+      kc.role: workstation
 
-  # --- B4 DATA ---
-  # Product postgres/redis stay on prod nets for now; archive is lab-only on net_data.
-  # B5/B6: docproc exception + product services join net_data as needed.
+  # ---------------------------------------------------------------------------
+  # B4 — DATA: stale archive Postgres (LIVE debt). Unpublished.
+  # Product postgres/redis remain on prod nets; join as needed in later SoftDev.
+  # ---------------------------------------------------------------------------
   c10-db-archive:
     build:
       context: ./cycle10/db-archive
@@ -234,7 +281,7 @@ services:
     hostname: db-archive.northwind.lab
     environment:
       POSTGRES_USER: archive
-      POSTGRES_PASSWORD: archive-b4-stub
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: northwind_archive
     networks:
       net_data:
@@ -250,10 +297,12 @@ services:
       retries: 10
     labels:
       kc.cycle: '10'
-      kc.role: LIVE
-      kc.plant: CYCLE10-PLANT
+      kc.role: path
 
-  # --- B5 docproc (APP + DATA NIC = archive exception) ---
+  # ---------------------------------------------------------------------------
+  # B5 — docproc LIVE OS: helper RCE plant + local/proof + sudo find PrivEsc
+  # net_data NIC = compose-level exception for archive reachability
+  # ---------------------------------------------------------------------------
   c10-docproc:
     build:
       context: ./cycle10/docproc
@@ -270,10 +319,12 @@ services:
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: LIVE
-      kc.plant: CYCLE10-PLANT
+      kc.role: path
 
-  # --- B7 DMZ (only published host ports in the lab) ---
+  # ---------------------------------------------------------------------------
+  # B7 — DMZ
+  # ONLY host publish: edge HTTPS :443. partners/honeypot stay on net_dmz (no HostPort).
+  # ---------------------------------------------------------------------------
   c10-edge:
     build:
       context: ./cycle10/edge
@@ -285,13 +336,12 @@ services:
       net_app:
         aliases: [edge.app.northwind.lab]
     ports:
-      - '8443:443'
+      - '443:443'
     mem_limit: 64m
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: LIVE
-      kc.plant: CYCLE10-PLANT
+      kc.role: path
 
   c10-partners:
     build:
@@ -301,14 +351,12 @@ services:
     networks:
       net_dmz:
         aliases: [partners.northwind.lab, partners]
-    ports:
-      - '2122:22'
+    # No host ports — reachable only after foothold on DMZ/APP nets
     mem_limit: 32m
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: LIVE
-      kc.plant: CYCLE10-PLANT
+      kc.role: path
 
   c10-honeypot:
     build:
@@ -318,12 +366,9 @@ services:
     networks:
       net_dmz:
         aliases: [honeypot.northwind.lab, honeypot]
-    ports:
-      - '2223:2222'
+    # No host ports — not an external Cowrie/SSH face
     mem_limit: 32m
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: DECOY
-      kc.plant: CYCLE10-DECOY
-
+      kc.role: remote

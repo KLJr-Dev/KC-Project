@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
-# CYCLE10-SUPPORT — Cycle-10 zone fw
-# SoftDev evolves rules as segments come up (B1–B9).
+# c10-fw — zone sentinel (FORWARD default DROP)
+#
+# SoftDev isolation is primarily:
+#   - compose NIC membership (who shares which bridge)
+#   - internal: true on DATA / CORP / MGMT
+#   - bastion INPUT iptables (integrate-only SSH)
+#
+# This container sits on all five nets. Same-bridge peers do not hit FORWARD.
+# Keep DROP policy so accidental L3 routing via fw stays closed.
 set -euo pipefail
 
 echo "[c10-fw] applying baseline default-deny forward policy"
@@ -15,11 +22,5 @@ iptables -P FORWARD DROP
 
 iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-# B3: integrate→bastion via bastion INPUT + integrate net_mgmt NIC.
-# B5: docproc→db-archive via shared net_data NIC (compose exception).
-# Later:
-#   edge → portal/api
-#   api → intake/worker/db/redis/objects/docproc
-
-echo "[c10-fw] baseline ready (B5 docproc); sleeping"
+echo "[c10-fw] baseline ready; sleeping"
 exec sleep infinity
