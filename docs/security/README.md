@@ -22,9 +22,7 @@
 
 **[Cycle-9/](Cycle-9/README.md)** — **Closed** (`v1.6.0` → `v2.6.0`): Onboarding/HR on Intake + weak defence ([ADR-038](../decisions/ADR-038-cycle-9-onboarding-defence-pair.md)). Red **`ctf/v1.6.0`**; Blue tag **`v2.6.0`** ([secure-ready](../release/v2.6.0-secure-ready.md)).
 
-**[Cycle-10/](Cycle-10/README.md)** — **SoftDev frozen** (`v1.10.0` / `ctf/v1.10.0`): five-zone enterprise lab + Document Portal plant ([ADR-039](../decisions/ADR-039-cycle-10-enterprise-pair.md)). Next: Red on **`ctf/v1.10.0`** → Blue **`v2.10.0`**.
-
-**[Cycle-10/](Cycle-10/README.md)** — **SoftDev P0** (`v1.10.0` → `v2.10.0`): enterprise five-zone lab + production showcase ([ADR-039](../decisions/ADR-039-cycle-10-enterprise-pair.md)). Topology [c10-v1.10.0-topology](../diagrams/c10-v1.10.0-topology.md).
+**[Cycle-10/](Cycle-10/README.md)** — **SoftDev frozen · Red open** (`v1.10.0` / `ctf/v1.10.0`): five-zone enterprise lab + Document Portal plant ([ADR-039](../decisions/ADR-039-cycle-10-enterprise-pair.md)). Player: [Dev/v1.10.0-player-brief.md](Cycle-10/Dev/v1.10.0-player-brief.md). Next: Red freeze → Blue **`v2.10.0`**. Topology [c10-v1.10.0-topology](../diagrams/c10-v1.10.0-topology.md).
 
 | Cycle | Offensive | Defensive (on `main`) |
 |-------|-----------|------------------------|
@@ -37,6 +35,7 @@
 | 7 | tag/`ctf/v1.4.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.4.0/docs/security/Cycle-7/PenTest/v1.4.0-writeup.md) | tag **`v2.4.0`** · [Remediation/](Cycle-7/Remediation/) · frozen `remediation/v2.4.0` |
 | 8 | tag/`ctf/v1.5.0` · [writeup](https://github.com/KLJr-Dev/KC-Project/blob/ctf/v1.5.0/docs/security/Cycle-8/PenTest/v1.5.0-writeup.md) | tag **`v2.5.0`** · [Remediation/](Cycle-8/Remediation/) · frozen `remediation/v2.5.0` |
 | 9 | tag/`ctf/v1.6.0` · [writeup](Cycle-9/PenTest/) | tag **`v2.6.0`** · [Cycle-9](Cycle-9/README.md) |
+| 10 | tag/`ctf/v1.10.0` · [PenTest](Cycle-10/PenTest/) (Red open) | Blue **`v2.10.0`** (after Red) |
 
 Legacy redirect: [pentest-cheat-sheet.md](pentest-cheat-sheet.md) → ground truth
 
@@ -46,6 +45,7 @@ Checkout the branch, follow the player brief, don’t use for “secure” demos
 
 | Box | Branch | Skills | Start |
 |-----|--------|--------|-------|
+| Cycle-10 | `v1.10.0` / `ctf/v1.10.0` | Document Ops → RCE → PrivEsc → mail/share → bastion | [player brief + RoE](Cycle-10/Dev/v1.10.0-player-brief.md) |
 | Cycle-2 | `ctf/v1.1.0` | IDOR / JWT / PG | tag or branch README |
 | Cycle-3 | `ctf/leak-crack-db` | leak → crack → SQLi → DB | [Cycle-3](Cycle-3/README.md) |
 | Cycle-4 | `ctf/v1.2.0` | Notes XSS → SSH foothold | [Cycle-4](Cycle-4/README.md) |
@@ -59,7 +59,7 @@ Checkout the branch, follow the player brief, don’t use for “secure” demos
 
 | Keep | Role |
 |------|------|
-| `main` | Current tip — **`v2.6.0`** after Cycle-9 Blue (insecure archive `v1.6.0` / `ctf/v1.6.0`) |
+| `main` | Current tip — insecure **`v1.10.0`** SoftDev freeze (Cycle-10 Red open); last secure tag **`v2.6.0`** |
 | `backend` / `frontend` / `dev` | Feature lanes (reset at product-expansion cycle start) |
 | `ctf/*` | Forever CTF archives (play / evidence) |
 | `remediation/*` | Forever Blue archives |

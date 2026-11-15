@@ -26,10 +26,15 @@ Anonymous → `/staff-access/` → `moderator` → packet upload → `docproc` s
 
 ```bash
 git checkout ctf/v1.10.0
-# see PenTest/README.md
+# full RoE + lab start:
+# docs/security/Cycle-10/Dev/v1.10.0-player-brief.md
 ```
 
-Player: [Dev/v1.10.0-player-brief.md](Dev/v1.10.0-player-brief.md) · Examiner: [Dev/v1.10.0-ground-truth.md](Dev/v1.10.0-ground-truth.md) · Writeup: [PenTest/](PenTest/)
+| Audience | Doc |
+|----------|-----|
+| Player / RoE | [Dev/v1.10.0-player-brief.md](Dev/v1.10.0-player-brief.md) |
+| Examiner **`[SPOILER]`** | [Dev/v1.10.0-ground-truth.md](Dev/v1.10.0-ground-truth.md) |
+| Writeup | [PenTest/](PenTest/) on `ctf/v1.10.0` |
 
 ## Related
 

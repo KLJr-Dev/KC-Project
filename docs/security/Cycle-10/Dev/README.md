@@ -15,7 +15,7 @@
 | [v1.10.0-credential-ledger.md](v1.10.0-credential-ledger.md) | LIVE / NOISE / DECOY |
 | [v1.10.0-reachability-matrix.md](v1.10.0-reachability-matrix.md) | fw allow/deny |
 | [v1.10.0-ground-truth.md](v1.10.0-ground-truth.md) | Examiner (flags + gates) |
-| [v1.10.0-player-brief.md](v1.10.0-player-brief.md) | Progressive hints |
+| [v1.10.0-player-brief.md](v1.10.0-player-brief.md) | Player brief · full RoE · progressive hints |
 | [packets-openapi-stub.yaml](packets-openapi-stub.yaml) | Nest packet API stub (SoT is Nest) |
 
 **Diagrams:** [topology](../../../diagrams/c10-v1.10.0-topology.md) · [auth](../../../diagrams/c10-v1.10.0-auth-flow.md) · [attack](../../../diagrams/c10-v1.10.0-attack-graph.md) · [dependency](../../../diagrams/c10-v1.10.0-dependency-graph.md)
