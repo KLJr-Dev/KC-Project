@@ -1,0 +1,329 @@
+# Cycle-10 enterprise lab — SoftDev overlay (v1.10.0 insecure tip)
+#
+# Usage:
+#   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.cycle10-lab.yml up -d --build
+#
+# ADR-039 / topology: five zones + fw. Bridges ≠ firewall allowlist.
+# Prod-alone must stay clean — ./infra/assert-cycle10-unpublished.sh
+#
+# SoftDev: B1–B5 ✅ → B7 DMZ → B6 product / B8 seeds …
+
+networks:
+  net_dmz:
+    name: nw_c10_dmz
+  net_app:
+    name: nw_c10_app
+  net_data:
+    name: nw_c10_data
+    internal: true
+  net_corp:
+    name: nw_c10_corp
+    internal: true
+  net_mgmt:
+    name: nw_c10_mgmt
+    internal: true
+
+services:
+  c10-fw:
+    build:
+      context: ./cycle10/fw
+    container_name: c10-fw
+    hostname: fw.northwind.lab
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      net_dmz:
+        aliases: [fw.northwind.lab, fw]
+      net_app:
+        aliases: [fw.app.northwind.lab]
+      net_data:
+        aliases: [fw.data.northwind.lab]
+      net_corp:
+        aliases: [fw.corp.northwind.lab]
+      net_mgmt:
+        aliases: [fw.mgmt.northwind.lab]
+    mem_limit: 64m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: SUPPORT
+      kc.plant: CYCLE10-SUPPORT
+
+  # --- B2 MANAGEMENT (internal — no host ports) ---
+  c10-bastion:
+    build:
+      context: ./cycle10/bastion
+    container_name: c10-bastion
+    hostname: bastion.northwind.lab
+    cap_add:
+      - NET_ADMIN
+    networks:
+      net_mgmt:
+        aliases: [bastion.northwind.lab, bastion]
+    expose:
+      - '22'
+    mem_limit: 64m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: LIVE
+      kc.plant: CYCLE10-PLANT
+
+  c10-logs:
+    build:
+      context: ./cycle10/logs
+    container_name: c10-logs
+    hostname: logs.northwind.lab
+    networks:
+      net_mgmt:
+        aliases: [logs.northwind.lab, logs]
+    mem_limit: 32m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: SUPPORT
+      kc.plant: CYCLE10-SUPPORT
+
+  c10-backup:
+    build:
+      context: ./cycle10/backup
+    container_name: c10-backup
+    hostname: backup.northwind.lab
+    networks:
+      net_mgmt:
+        aliases: [backup.northwind.lab, backup]
+    mem_limit: 32m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: SUPPORT
+      kc.plant: CYCLE10-SUPPORT
+
+  # NOISE admin workstation — CORP only (no bastion L2); sticky-note decoy
+  c10-ws-admin:
+    build:
+      context: ./cycle10/ws-admin
+    container_name: c10-ws-admin
+    hostname: ws-admin.northwind.lab
+    networks:
+      net_corp:
+        aliases: [ws-admin.northwind.lab, ws-admin]
+    expose:
+      - '22'
+    mem_limit: 32m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: NOISE
+      kc.plant: CYCLE10-NOISE
+
+  # --- B3 CORPORATE ---
+  # Dual-home APP+CORP + net_mgmt NIC = sole approved bastion path (not an IP router)
+  c10-integrate:
+    build:
+      context: ./cycle10/integrate
+    container_name: c10-integrate
+    hostname: integrate.northwind.lab
+    networks:
+      net_app:
+        aliases: [integrate.app.northwind.lab]
+      net_corp:
+        aliases: [integrate.northwind.lab, integrate]
+      net_mgmt:
+        aliases: [integrate.mgmt.northwind.lab]
+    expose:
+      - '22'
+    mem_limit: 64m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: LIVE
+      kc.plant: CYCLE10-PLANT
+
+  c10-mail:
+    build:
+      context: ./cycle10/mail
+    container_name: c10-mail
+    hostname: mail.northwind.lab
+    networks:
+      net_corp:
+        aliases: [mail.northwind.lab, mail]
+    mem_limit: 32m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: LIVE
+      kc.plant: CYCLE10-PLANT
+
+  c10-files:
+    build:
+      context: ./cycle10/files
+    container_name: c10-files
+    hostname: files.northwind.lab
+    networks:
+      net_corp:
+        aliases: [files.northwind.lab, files]
+    expose:
+      - '445'
+    mem_limit: 64m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: LIVE
+      kc.plant: CYCLE10-PLANT
+
+  c10-ws-accounting:
+    build:
+      context: ./cycle10/ws-accounting
+    container_name: c10-ws-accounting
+    hostname: ws-accounting.northwind.lab
+    networks:
+      net_corp:
+        aliases: [ws-accounting.northwind.lab, ws-accounting]
+    expose:
+      - '22'
+    mem_limit: 32m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: NOISE
+      kc.plant: CYCLE10-NOISE
+
+  c10-ftp-warehouse:
+    build:
+      context: ./cycle10/ftp-warehouse
+    container_name: c10-ftp-warehouse
+    hostname: ftp-warehouse.northwind.lab
+    networks:
+      net_corp:
+        aliases: [ftp-warehouse.northwind.lab, ftp-warehouse]
+    expose:
+      - '21'
+    mem_limit: 32m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: NOISE
+      kc.plant: CYCLE10-NOISE
+
+  c10-mon-legacy:
+    build:
+      context: ./cycle10/mon-legacy
+    container_name: c10-mon-legacy
+    hostname: mon-legacy.northwind.lab
+    networks:
+      net_corp:
+        aliases: [mon-legacy.northwind.lab, mon-legacy]
+    expose:
+      - '8080'
+    mem_limit: 32m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: NOISE
+      kc.plant: CYCLE10-NOISE
+
+  # --- B4 DATA ---
+  # Product postgres/redis stay on prod nets for now; archive is lab-only on net_data.
+  # B5/B6: docproc exception + product services join net_data as needed.
+  c10-db-archive:
+    build:
+      context: ./cycle10/db-archive
+    container_name: c10-db-archive
+    hostname: db-archive.northwind.lab
+    environment:
+      POSTGRES_USER: archive
+      POSTGRES_PASSWORD: archive-b4-stub
+      POSTGRES_DB: northwind_archive
+    networks:
+      net_data:
+        aliases: [db-archive.northwind.lab, db-archive]
+    expose:
+      - '5432'
+    mem_limit: 256m
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U archive -d northwind_archive']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    labels:
+      kc.cycle: '10'
+      kc.role: LIVE
+      kc.plant: CYCLE10-PLANT
+
+  # --- B5 docproc (APP + DATA NIC = archive exception) ---
+  c10-docproc:
+    build:
+      context: ./cycle10/docproc
+    container_name: c10-docproc
+    hostname: docproc.northwind.lab
+    networks:
+      net_app:
+        aliases: [docproc.northwind.lab, docproc]
+      net_data:
+        aliases: [docproc.data.northwind.lab]
+    expose:
+      - '9090'
+    mem_limit: 128m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: LIVE
+      kc.plant: CYCLE10-PLANT
+
+  # --- B7 DMZ (only published host ports in the lab) ---
+  c10-edge:
+    build:
+      context: ./cycle10/edge
+    container_name: c10-edge
+    hostname: edge.northwind.lab
+    networks:
+      net_dmz:
+        aliases: [edge.northwind.lab, edge]
+      net_app:
+        aliases: [edge.app.northwind.lab]
+    ports:
+      - '8443:443'
+    mem_limit: 64m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: LIVE
+      kc.plant: CYCLE10-PLANT
+
+  c10-partners:
+    build:
+      context: ./cycle10/partners
+    container_name: c10-partners
+    hostname: partners.northwind.lab
+    networks:
+      net_dmz:
+        aliases: [partners.northwind.lab, partners]
+    ports:
+      - '2122:22'
+    mem_limit: 32m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: LIVE
+      kc.plant: CYCLE10-PLANT
+
+  c10-honeypot:
+    build:
+      context: ./cycle10/honeypot
+    container_name: c10-honeypot
+    hostname: honeypot.northwind.lab
+    networks:
+      net_dmz:
+        aliases: [honeypot.northwind.lab, honeypot]
+    ports:
+      - '2223:2222'
+    mem_limit: 32m
+    restart: unless-stopped
+    labels:
+      kc.cycle: '10'
+      kc.role: DECOY
+      kc.plant: CYCLE10-DECOY
+
