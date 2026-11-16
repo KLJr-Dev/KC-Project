@@ -8,7 +8,7 @@ Base image pin for Alpine hosts: **`alpine:3.20`**. Edge: **`nginx:1.27-alpine`*
 | Service | DNS | Zone | Base / runtime | Users | Key filesystem | Listen | Host publish |
 |---------|-----|------|----------------|-------|----------------|--------|--------------|
 | `c10-fw` | `fw.northwind.lab` | all NICs | alpine 3.20 + iptables | root | `/entrypoint.sh` | — | none |
-| `c10-bastion` | `bastion.northwind.lab` | MGMT | alpine 3.20 + openssh + iptables | `nwadmin` | `/root/crown.txt` (600) | `:22` | **none** |
+| `c10-bastion` | `bastion.northwind.lab` | MGMT | alpine 3.20 + openssh + iptables + sudo | `nwadmin` | `/root/crown.txt` (600) · sudo ALL (passwd) | `:22` | **none** |
 | `c10-logs` | `logs.northwind.lab` | MGMT | alpine 3.20 | root | `/var/log/northwind/*` | — | none |
 | `c10-backup` | `backup.northwind.lab` | MGMT | alpine 3.20 | root | `/backup/northwind/*` | — | none |
 | `c10-ws-admin` | `ws-admin.northwind.lab` | CORP | alpine 3.20 + openssh | `helpdesk` | `/home/helpdesk/sticky-note.txt` | `:22` | none |
@@ -28,7 +28,7 @@ Base image pin for Alpine hosts: **`alpine:3.20`**. Edge: **`nginx:1.27-alpine`*
 
 | Host | User | Password | Notes |
 |------|------|----------|-------|
-| bastion | `nwadmin` | `Welcome1` | Same string in `docproc:/root/bastion.secret` (root-only) |
+| bastion | `nwadmin` | `Welcome1` | SSH + **sudo** (same pass). Secret also in `docproc:/root/bastion.secret` |
 | integrate | `integrator` | `Passw0rd` | Dual-home path host |
 | files (Samba) | `smbuser` | `password` | `/shares/dept/integration/JUMPBOX.txt` → integrate |
 | partners SFTP | `vendor` | `vendor` | Cannot skip web gate |
