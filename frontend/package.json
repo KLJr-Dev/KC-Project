@@ -12,7 +12,7 @@
     "generate:types": "curl -s http://localhost:4000/api/docs-json -o openapi.json && openapi-typescript openapi.json -o lib/types.gen.ts"
   },
   "dependencies": {
-    "next": "16.1.6",
+    "next": "16.4.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
