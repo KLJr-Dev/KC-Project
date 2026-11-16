@@ -1,12 +1,12 @@
 # Security Cycle 10 — Northwind enterprise lab + production showcase
 
-**Status:** **SoftDev frozen** — tip **`v1.10.0`** / **`ctf/v1.10.0`** · next **Red** · pair → **`v2.10.0`** · [ADR-039](../../decisions/ADR-039-cycle-10-enterprise-pair.md) · skin [ADR-037](../../decisions/ADR-037-immersion-northwind-product-face.md) · [pentest-ready](../../release/v1.10.0-pentest-ready.md)
+**Status:** **Red frozen** — tip **`v1.10.0`** / **`ctf/v1.10.0`** · **3/3** proofs · next **Blue `v2.10.0`** · [ADR-039](../../decisions/ADR-039-cycle-10-enterprise-pair.md) · skin [ADR-037](../../decisions/ADR-037-immersion-northwind-product-face.md) · [pentest-ready](../../release/v1.10.0-pentest-ready.md)
 
 | Track | Tip / branch | Role |
 |-------|--------------|------|
 | **SoftDev** | tag **`v1.10.0`** / **`ctf/v1.10.0`** | Five-zone lab + document-packet plant chain — **done** |
-| **Red** | `ctf/v1.10.0` | HTB/OSCP-style full compromise writeup — **next** |
-| **Blue** | `remediation/v2.10.0` → tag **`v2.10.0`** | Zero accepted security residuals |
+| **Red** | `ctf/v1.10.0` | Full compromise writeup — **frozen** ([PenTest/v1.10.0-writeup.md](PenTest/v1.10.0-writeup.md)) |
+| **Blue** | `remediation/v2.10.0` → tag **`v2.10.0`** | Zero accepted security residuals — **next** |
 
 **Topology:** [c10-v1.10.0-topology.md](../../diagrams/c10-v1.10.0-topology.md)
 
