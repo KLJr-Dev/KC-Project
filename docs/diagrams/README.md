@@ -4,13 +4,13 @@ Canonical standalone diagrams for KC-Project.
 
 Inline diagrams in [architecture/](../architecture/) remain version-specific. Files here are the cross-cutting counterparts.
 
-**Last verified:** product tip tag **`v2.6.0`** · Cycle-10 SoftDev P0 diagrams for **`v1.10.0`** (insecure design).
+**Last verified:** insecure tip **`v1.10.0`** / **`ctf/v1.10.0`** (SoftDev frozen · Red next) · prior secure **`v2.6.0`**.
 
 ---
 
 ## Contents
 
-### Cycle-10 / `v1.10.0` (design)
+### Cycle-10 / `v1.10.0` (frozen tip)
 
 - [c10-v1.10.0-topology.md](c10-v1.10.0-topology.md) — five-zone lab topology  
 - [c10-v1.10.0-auth-flow.md](c10-v1.10.0-auth-flow.md) — access request → moderator → packets  

@@ -20,7 +20,21 @@
 
 ## Graded spine (short)
 
-Anonymous → hidden access dir → `moderator` → packet upload → `docproc` shell → local/proof → `db-archive` → **mail required** → files → `integrate` → `bastion` crown (only from integrate + secret after `docproc` root).
+Anonymous → `/staff-access/` → `moderator` → packet upload → `docproc` shell → local/proof → `db-archive` → **mail required** → files → `integrate` → `bastion` crown (only from integrate + secret after `docproc` root). Host face: **HTTPS `:443` only**.
+
+## Red start
+
+```bash
+git checkout ctf/v1.10.0
+# full RoE + lab start:
+# docs/security/Cycle-10/Dev/v1.10.0-player-brief.md
+```
+
+| Audience | Doc |
+|----------|-----|
+| Player / RoE | [Dev/v1.10.0-player-brief.md](Dev/v1.10.0-player-brief.md) |
+| Examiner **`[SPOILER]`** | [Dev/v1.10.0-ground-truth.md](Dev/v1.10.0-ground-truth.md) |
+| Writeup | [PenTest/](PenTest/) on `ctf/v1.10.0` |
 
 ## Related
 
