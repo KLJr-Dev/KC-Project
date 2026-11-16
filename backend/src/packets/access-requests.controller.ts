@@ -1,13 +1,10 @@
 /**
- * Cycle-10 — Stage-0 public access request (`POST /access-requests`).
+ * Public Document Ops access request (`POST /access-requests`).
  *
- * CYCLE10-PLANT: unauthenticated endpoint discovers via HTML comment →
- * hidden frontend form. Creates **moderator** account only (never admin).
- * Open `/auth/register` remains noise (role=user → packets 403).
- *
- * No JwtAuthGuard by design (anonymous Stage 0).
+ * Unauthenticated by design for SoftEng onboarding UX — creates a *pending*
+ * ticket only. Role elevation is admin-only (see AdminAccessRequestsController).
  */
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { AccessRequestsService } from './access-requests.service';
 import { AccessRequestDto } from './dto/access-request.dto';
 
@@ -16,6 +13,7 @@ export class AccessRequestsController {
   constructor(private readonly access: AccessRequestsService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   submit(@Body() dto: AccessRequestDto) {
     return this.access.submit(dto);
   }

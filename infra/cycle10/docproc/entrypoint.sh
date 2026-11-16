@@ -1,7 +1,6 @@
-#!/usr/bin/env bash
-# Cycle-10 — docproc entrypoint
-# Runs helper as docuser; container stays root-capable for sudo PrivEsc path.
+#!/bin/bash
+# Start document helper as the container user (non-root image).
 set -euo pipefail
-chown -R docuser:docuser /opt/docproc/inbox
-echo "[c10-docproc] starting helper as docuser on :9090"
-exec su -s /bin/bash docuser -c "python3 /opt/docproc/bin/helper.py"
+mkdir -p /opt/docproc/inbox
+echo "[c10-docproc] starting helper on :9090"
+exec python3 /opt/docproc/bin/helper.py

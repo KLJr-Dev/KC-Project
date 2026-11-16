@@ -6,12 +6,14 @@ import {
   Get,
   HttpCode,
   Param,
+  Post,
   Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
+import { AlertsService } from './alerts.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { HasRoleGuard, HasRole } from '../auth/guards/has-role.guard';
 import { GetAdminUsersResponseDto } from './dto/get-admin-users-response.dto';
@@ -25,7 +27,10 @@ import { AdminStatsResponseDto } from './dto/admin-stats-response.dto';
 @Controller('admin')
 @UseGuards(JwtAuthGuard, HasRoleGuard)
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly alertsService: AlertsService,
+  ) {}
 
   /**
    * GET /admin/users — List all users with details
@@ -161,6 +166,28 @@ export class AdminController {
   })
   async getAuditLogs() {
     return this.adminService.getAuditLogs();
+  }
+
+  /**
+   * GET /admin/alerts — Defense Ops alert queue (admin only).
+   */
+  @Get('alerts')
+  @HasRole('admin')
+  @ApiOperation({ summary: 'List security alerts (admin only)' })
+  async getAlerts(@Query('acked') acked?: string) {
+    const parsed =
+      acked === 'true' ? true : acked === 'false' ? false : undefined;
+    return this.alertsService.findAll(parsed);
+  }
+
+  /**
+   * POST /admin/alerts/:id/ack — Acknowledge an alert (admin only).
+   */
+  @Post('alerts/:id/ack')
+  @HasRole('admin')
+  @ApiOperation({ summary: 'Acknowledge a security alert (admin only)' })
+  async ackAlert(@Param('id') id: string) {
+    return this.alertsService.ack(id);
   }
 
   /**

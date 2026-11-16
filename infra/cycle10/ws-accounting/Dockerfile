@@ -4,7 +4,7 @@ FROM alpine:3.20
 RUN apk add --no-cache openssh-server bash \
   && ssh-keygen -A \
   && adduser -D -s /bin/bash ledger \
-  && echo 'ledger:Account1ng!' | chpasswd \
+  && echo "ledger:${LEDGER_SSH_PASSWORD:-NwLedger-ChangeMe-9b4e2a!}" | chpasswd \
   && mkdir -p /home/ledger /var/run/sshd \
   && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
   && echo 'AllowUsers ledger' >> /etc/ssh/sshd_config \

@@ -1,17 +1,14 @@
 /**
- * Cycle-10 — Document Ops packet inbox (moderator graded path).
- *
- * List + multipart upload → Nest `/packets` only (never docproc from browser).
+ * Document Ops packet inbox — moderator|admin only (client + API RBAC).
+ * Uploads go to Nest `/packets` only (never docproc from the browser).
  */
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { packetsList, packetsUpload } from '../../lib/api';
 import type { DocumentPacket } from '../../lib/types';
 import { formatUserError } from '../../lib/errors';
-import { useAuth } from '../../lib/auth-context';
-import RequireAuth from '../components/require-auth';
+import RequireRole from '../components/require-role';
 import ErrorBanner from '../components/ui/error-banner';
 import SuccessBanner from '../components/ui/success-banner';
 import EmptyState from '../components/ui/empty-state';
@@ -20,34 +17,10 @@ import SubmitButton from '../components/ui/submit-button';
 
 export default function PacketsPage() {
   return (
-    <RequireAuth>
-      <PacketsBody />
-    </RequireAuth>
+    <RequireRole roles={['moderator', 'admin']}>
+      <PacketsWorkspace />
+    </RequireRole>
   );
-}
-
-function PacketsBody() {
-  const { isModerator, isAdmin, role } = useAuth();
-  const canUse = isModerator || isAdmin;
-
-  if (!canUse) {
-    return (
-      <div className="mx-auto max-w-lg space-y-4 py-12 text-center">
-        <span className="nw-stamp">Document Ops</span>
-        <h1 className="text-2xl font-semibold text-foreground">Packets restricted</h1>
-        <p className="text-sm text-muted">
-          The packet inbox is limited to Document Operations staff
-          {role ? ` (signed in as ${role})` : ''}. Open registration does not
-          grant intake — use a Document Ops staff account if your desk was provisioned.
-        </p>
-        <Link href="/files" className="text-sm text-foreground underline">
-          Back to My Files
-        </Link>
-      </div>
-    );
-  }
-
-  return <PacketsWorkspace />;
 }
 
 function PacketsWorkspace() {

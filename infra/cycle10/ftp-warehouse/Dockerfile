@@ -3,7 +3,7 @@ FROM alpine:3.20
 
 RUN apk add --no-cache vsftpd bash \
   && adduser -D -s /sbin/nologin warehouse \
-  && echo 'warehouse:shipit' | chpasswd \
+  && echo "warehouse:${FTP_PASSWORD:-NwFtp-ChangeMe-7a2d9c!}" | chpasswd \
   && mkdir -p /var/ftp/pub \
   && printf '%s\n' 'Warehouse receiving drop — internal use only' \
     > /var/ftp/pub/README \

@@ -1,11 +1,6 @@
 /**
- * Cycle-10 — Stage-0 access request body (`POST /access-requests`).
- *
- * CYCLE10-PLANT: successful submit creates a **moderator** (not admin).
- * Password policy mirrors `/auth/register` so open-register noise and Stage-0
- * share the same strength rules — only the resulting *role* differs.
- *
- * @see ../../auth/dto/register.dto.ts
+ * Public Document Ops access request body (`POST /access-requests`).
+ * Password policy mirrors `/auth/register`. Submit creates a pending ticket only.
  */
 import {
   IsEmail,
@@ -43,7 +38,7 @@ export class AccessRequestDto {
   @IsNotEmpty()
   password!: string;
 
-  /** Free-text reason — theatre for Northwind document-portal immersion. */
+  /** Free-text business justification for admin review. */
   @IsOptional()
   @IsString()
   @MaxLength(500)

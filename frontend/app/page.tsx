@@ -11,13 +11,6 @@ export default function HomePage() {
 
   return (
     <div className="space-y-14">
-      <div
-        // CYCLE10-PLANT — Stage-0 discovery (must appear in view-source)
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{
-          __html: '<!-- document staff access requests: /staff-access/ -->',
-        }}
-      />
       <section className="relative overflow-hidden rounded-lg border border-border bg-surface px-6 py-14 sm:px-10">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.35]"

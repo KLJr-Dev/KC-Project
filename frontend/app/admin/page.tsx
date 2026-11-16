@@ -5,6 +5,9 @@ import {
   adminListUsers,
   adminGetStats,
   adminGetAuditLogs,
+  adminListAccessRequests,
+  adminApproveAccessRequest,
+  adminDenyAccessRequest,
   filesList,
   filesDownload,
   type AdminRole,
@@ -12,7 +15,7 @@ import {
   type AdminStatsResponse,
   type AuditLogEntry,
 } from '../../lib/api';
-import type { FileResponse } from '../../lib/types';
+import type { AccessRequestListItem, FileResponse } from '../../lib/types';
 import { formatUserError } from '../../lib/errors';
 import { formatDate } from '../../lib/format';
 import RequireRole from '../components/require-role';
@@ -21,6 +24,7 @@ import FileTable from '../components/file-table';
 import ErrorBanner from '../components/ui/error-banner';
 import LoadingSpinner from '../components/ui/loading-spinner';
 import EmptyState from '../components/ui/empty-state';
+import Link from 'next/link';
 
 export default function AdminPage() {
   return (
@@ -38,6 +42,7 @@ function AdminDashboard() {
   const [stats, setStats] = useState<AdminStatsResponse | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [pendingAccess, setPendingAccess] = useState<AccessRequestListItem[]>([]);
   const [allFiles, setAllFiles] = useState<FileResponse[]>([]);
   const [filesLoading, setFilesLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -79,6 +84,14 @@ function AdminDashboard() {
     }
   };
 
+  const loadPendingAccess = async () => {
+    try {
+      setPendingAccess(await adminListAccessRequests('pending'));
+    } catch {
+      /* optional */
+    }
+  };
+
   const loadFiles = async () => {
     setFilesLoading(true);
     try {
@@ -114,7 +127,21 @@ function AdminDashboard() {
     loadAdminUsers();
     loadStats();
     loadAudit();
+    loadPendingAccess();
     loadFiles();
+  };
+
+  const reviewAccess = async (id: string, action: 'approve' | 'deny') => {
+    setError(null);
+    try {
+      if (action === 'approve') await adminApproveAccessRequest(id);
+      else await adminDenyAccessRequest(id);
+      await loadPendingAccess();
+      await loadAudit();
+      await loadAdminUsers();
+    } catch (err) {
+      setError(formatUserError(err));
+    }
   };
 
   useEffect(() => {
@@ -133,7 +160,12 @@ function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="mt-1 text-sm text-muted">Users, files, stats, and audit trail.</p>
+          <p className="mt-1 text-sm text-muted">
+            Users, Document Ops access queue, files, stats, and audit.{' '}
+            <Link href="/admin/security" className="underline text-foreground">
+              Defense Ops
+            </Link>
+          </p>
         </div>
         <button
           type="button"
@@ -145,6 +177,44 @@ function AdminDashboard() {
       </div>
 
       <ErrorBanner message={error} />
+
+      <div className="space-y-3">
+        <h2 className="text-sm font-medium text-foreground">
+          Document Ops access requests ({pendingAccess.length} pending)
+        </h2>
+        {pendingAccess.length === 0 ? (
+          <p className="text-sm text-muted">No pending staff access requests.</p>
+        ) : (
+          <ul className="divide-y divide-border rounded-md border border-border">
+            {pendingAccess.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+                <div>
+                  <p className="font-medium text-foreground">
+                    {r.username} · {r.email}
+                  </p>
+                  <p className="text-xs text-muted">{r.justification || 'No justification'}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => reviewAccess(r.id, 'approve')}
+                    className="rounded-md bg-primary px-3 py-1 text-xs text-primary-foreground"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => reviewAccess(r.id, 'deny')}
+                    className="rounded-md border border-border px-3 py-1 text-xs"
+                  >
+                    Deny
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {statsLoading ? (
         <LoadingSpinner label="Loading stats…" />

@@ -72,10 +72,10 @@ fi
   c10-edge c10-partners c10-honeypot \
   nginx
 
-# HTTPS edge holding page + plant comment
+# HTTPS edge holding page — Blue: no Stage-0 discovery gift
 code="$(curl -sk -o /tmp/c10-edge.html -w '%{http_code}' https://127.0.0.1:443/ || true)"
 [[ "$code" == "200" ]] || fail "edge HTTPS :443 expected 200 got ${code}"
-grep -q '/staff-access/' /tmp/c10-edge.html || fail "edge HTML missing /staff-access/ discovery comment"
+grep -q '/staff-access/' /tmp/c10-edge.html && fail "edge HTML still has /staff-access/ discovery gift" || true
 
 # Former noise publishes must be closed
 nc -z 127.0.0.1 2122 2>/dev/null && fail "partners must not listen on host :2122" || true

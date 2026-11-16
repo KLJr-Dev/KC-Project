@@ -79,7 +79,7 @@ export default function Header() {
                 <>
                   <span className="hidden h-3 w-px bg-border sm:block" aria-hidden />
                   <NavLink href="/admin">Admin</NavLink>
-                  <NavLink href="/admin/security">Security</NavLink>
+                  <NavLink href="/admin/security">Defense</NavLink>
                 </>
               )}
             </>

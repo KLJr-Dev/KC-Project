@@ -60,7 +60,7 @@ export interface UpdateNoteRequest {
 
 // ── Generic ──────────────────────────────────────────────────────────
 
-/** Cycle-10 Stage-0 access request (POST /access-requests). */
+/** Document Ops access request (POST /access-requests) — pending ticket only. */
 export interface AccessRequest {
   email: string;
   username: string;
@@ -71,7 +71,20 @@ export interface AccessRequest {
 export interface AccessRequestResult {
   message: string;
   email: string;
-  role: string;
+  status: 'pending';
+}
+
+export type AccessRequestStatus = 'pending' | 'approved' | 'denied';
+
+export interface AccessRequestListItem {
+  id: string;
+  email: string;
+  username: string;
+  justification: string;
+  status: AccessRequestStatus;
+  createdAt: string;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
 }
 
 /** Cycle-10 document packet row (GET/POST /packets). */

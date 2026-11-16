@@ -104,4 +104,10 @@ echo "  OK"
 "${ROOT}/infra/assert-no-default-secrets.sh"
 "${ROOT}/infra/cycle9-blue-assert.sh"
 
+# Cycle-10 Blue — enterprise plants closed; Defense Ops; sole :443 (v2.10.0)
+# Plant dictionary always fails; product .env uses REQUIRE_STRONG_SECRETS when set in CI
+"${ROOT}/infra/assert-no-default-secrets.sh"
+"${ROOT}/infra/cycle10-blue-assert.sh"
+"${ROOT}/infra/assert-cycle10-unpublished.sh"
+
 echo "Smoke test passed."

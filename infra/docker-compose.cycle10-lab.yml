@@ -1,24 +1,19 @@
-# Cycle-10 enterprise lab — SoftDev overlay for intentional-insecure tip `v1.10.0`
+# Cycle-10 enterprise lab — Blue-hardened tip `v2.10.0` (plants closed)
 #
-# Pair: v1.10.0 (this overlay) → Red → v2.10.0 (product compose, plants gone)
 # Authority:
 #   ADR-039 · docs/security/Cycle-10/Dev/cycle-10-decisions.md
-#   docs/diagrams/c10-v1.10.0-topology.md
-#   docs/security/Cycle-10/Dev/v1.10.0-reachability-matrix.md
+#   docs/security/Cycle-10/Dev/v2.10.0-reachability-matrix.md (Blue)
 #   infra/cycle10/HOST-INVENTORY.md
 #
 # Usage:
 #   docker compose -f infra/docker-compose.prod.yml \
 #                  -f infra/docker-compose.cycle10-lab.yml up -d --build
 #
-# Design locks:
-#   - Five zones + fw; bridges ≠ allowlist
-#   - Bastion reachable only from integrate (iptables + net_mgmt NIC)
-#   - docproc→db-archive via shared net_data (graded exception)
-#   - **Only host publish: edge HTTPS :443** (partners/honeypot/prod nginx unpublished)
+# Design locks (Blue):
+#   - Five zones + fw FORWARD default-deny; no APP→DATA dual-home on docproc
+#   - Bastion SSH only from integrate (host INPUT iptables)
+#   - **Only host publish: edge HTTPS :443**
 #   - Prod-alone must stay clean → ./infra/assert-cycle10-unpublished.sh
-#
-# SoftDev: B1–B9 + immersion tip. Graded external face = Document Portal TLS only.
 #
 # Lab overlay — five zones + host images
 
@@ -105,6 +100,8 @@ services:
   c10-bastion:
     build:
       context: ./cycle10/bastion
+      args:
+        BASTION_SSH_PASSWORD: ${BASTION_SSH_PASSWORD:-NwBastion-ChangeMe-9f3a2c!}
     container_name: c10-bastion
     hostname: bastion.northwind.lab
     cap_add:
@@ -114,11 +111,15 @@ services:
         aliases: [bastion.northwind.lab, bastion]
     expose:
       - '22'
+    read_only: true
+    tmpfs:
+      - /tmp:size=8m
+      - /var/run/sshd:size=1m
     mem_limit: 64m
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: path
+      kc.role: bastion
 
   c10-logs:
     build:
@@ -281,7 +282,8 @@ services:
     hostname: db-archive.northwind.lab
     environment:
       POSTGRES_USER: archive
-      POSTGRES_PASSWORD: postgres
+      # Strong secret via ARCHIVE_DB_PASSWORD (no weak lab defaults)
+      POSTGRES_PASSWORD: ${ARCHIVE_DB_PASSWORD:-NwArchive-RotateMe-7c1e4b!}
       POSTGRES_DB: northwind_archive
     networks:
       net_data:
@@ -300,8 +302,7 @@ services:
       kc.role: path
 
   # ---------------------------------------------------------------------------
-  # B5 — docproc LIVE OS: helper RCE plant + local/proof + sudo find PrivEsc
-  # net_data NIC = compose-level exception for archive reachability
+  # B5 — docproc helper (APP-only; no DATA dual-home — Blue v2.10.0)
   # ---------------------------------------------------------------------------
   c10-docproc:
     build:
@@ -311,15 +312,17 @@ services:
     networks:
       net_app:
         aliases: [docproc.northwind.lab, docproc]
-      net_data:
-        aliases: [docproc.data.northwind.lab]
     expose:
       - '9090'
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+      - /opt/docproc/inbox:size=64m,uid=1000,gid=1000,mode=1777
     mem_limit: 128m
     restart: unless-stopped
     labels:
       kc.cycle: '10'
-      kc.role: path
+      kc.role: helper
 
   # ---------------------------------------------------------------------------
   # B7 — DMZ
