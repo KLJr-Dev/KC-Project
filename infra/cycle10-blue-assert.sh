@@ -52,6 +52,11 @@ CODE=$(auth_code GET "${BASE}/packets")
 [[ "$CODE" == "403" ]] || fail "packets as user expected 403 got $CODE"
 echo "  OK"
 
+echo "W01: plain user GET /users directory must be 403..."
+CODE=$(auth_code GET "${BASE}/users")
+[[ "$CODE" == "403" ]] || fail "users list as user expected 403 got $CODE"
+echo "  OK"
+
 echo "D01: user audit-logs must be 403..."
 CODE=$(auth_code GET "${BASE}/admin/audit-logs")
 [[ "$CODE" == "403" ]] || fail "audit-logs as user expected 403 got $CODE"

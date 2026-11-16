@@ -220,6 +220,25 @@ Weaknesses introduced during v0.4.x (authorization & administrative surface) tha
 
 ---
 
+## Cycle-10 Wave C — verified on `v2.10.0`
+
+| Control | Implementation | Status |
+|---------|----------------|--------|
+| Users directory IDOR closed | `GET /users` admin-only; get/update self-or-admin | **Verified** |
+| Sharing AuthZ DB-authoritative | Mutations load actor role from DB | **Verified** |
+| Login lockout | 5 fails / 15m + Defense Ops alert | **Verified** |
+| Public register off (tip) | `ALLOW_PUBLIC_REGISTER=0` | **Verified** |
+| Helmet + body limits | Nest `helmet()` + JSON limit; nginx `client_max_body_size` | **Verified** |
+| Strict CSP | External `theme-init.js`; no `unsafe-inline`/`unsafe-eval` in script-src | **Verified** |
+| JWT custody | Compose secrets; private PEM gitignored; gen script | **Verified** |
+| Container CIS-ish | RO rootfs, tmpfs, `no-new-privileges`, `cap_drop` | **Verified** |
+| Blue reachability | `cycle10-blue-reachability.sh`; docproc↛archive | **Verified** |
+| Request ID + audit UUID | Middleware + redacted audit details | **Verified** |
+| Swagger off in prod | `ENABLE_SWAGGER=false` / `NODE_ENV=production` | **Verified** |
+| Demo strip | Lab UI off; no client password strings on tip | **Verified** |
+
+---
+
 ## Baseline Compliance Check
 
 When hardening a v1.N.0 to produce v2.N.0, verify every control in this document. A version qualifies as v2.N.0 when:

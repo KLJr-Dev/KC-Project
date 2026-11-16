@@ -18,6 +18,7 @@ import { randomUUID } from 'crypto';
 import { DocumentPacket } from './entities/document-packet.entity';
 import { AuditService } from '../admin/audit.service';
 import { AlertsService } from '../admin/alerts.service';
+import { detectMimeFromBuffer } from '../files/upload-security';
 
 const DOCPROC_URL = process.env.DOCPROC_URL || 'http://docproc:9090';
 const HELPER_TIMEOUT_MS = 8_000;
@@ -75,6 +76,22 @@ export class PacketsService {
         );
       }
       throw err;
+    }
+
+    if (file.buffer?.length) {
+      const mime = detectMimeFromBuffer(file.buffer);
+      if (!mime) {
+        await this.audit.record(ownerUserId, 'packet_helper_reject', id, {
+          reason: 'invalid_content',
+        });
+        await this.alerts.raise(
+          'medium',
+          'packet_reject',
+          'Packet upload rejected: unrecognized content',
+          'packet_helper_reject',
+        );
+        throw new BadRequestException('unrecognized or disallowed file content');
+      }
     }
 
     let helperOutput = '';

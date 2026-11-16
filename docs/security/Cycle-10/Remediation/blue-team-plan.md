@@ -9,20 +9,21 @@
 |-------|-------|
 | Cycle | 10 (Enterprise five-zone defence pair) |
 | From | Intentional insecure tip `v1.10.0` |
-| To | Tag **`v2.10.0`** — plants closed; zero residuals; sole `:443` |
-| Current milestone | **M5** — asserts + gate |
+| To | Tag **`v2.10.0`** — plants closed; Wave C production-grade; zero residuals |
+| Current milestone | **M10** — gate / tag |
 
 ## Milestones
 
 | ID | Goal | Exit criteria | Status |
 |----|------|---------------|--------|
-| **M0** | Plan signed | Handoff + map + empty residuals | **Done** |
-| **M1** | App plants | F01 pending tickets + F02 safe helper + W-fixes | **Done** |
-| **M2** | Infra + fw + secrets | F03–F05 + FORWARD matrix + password rotation | **Done** |
-| **M3** | Defense Ops | D01 audit + D02 alerts UI | **Done** |
-| **M4** | Platform | Edge TLS/CSP, RO rootfs, tip `2.10.0`, comment pass | **Done** |
-| **M5** | Gate | `cycle10-blue-assert.sh` + smoke + secure-ready + tag | **In progress** |
+| **M0–M4** | Plants + Defense Ops + platform Wave A/B | F01–F05, D01–D02 | **Done** |
+| **M5a** | Land A/B on branch | Commit Wave A/B | **Done** |
+| **M6** | Wave C AppSec | Users IDOR, sharing DB role, lockout, helmet, MIME | **Done** |
+| **M7** | Browser + secrets | CSP theme, Next/nginx headers, JWT secrets, register off | **Done** |
+| **M8** | Containers + data/net | RO/caps, healthchecks, Blue reachability, edge :80 | **Done** |
+| **M9** | Obs + demo/docs | Request-id, audit UUID, CI, demo strip, topology | **Done** |
+| **M10** | Gate | smoke/assert green → secure-ready → tag | **In progress** |
 
 ## Out of scope
 
-Re-breaking C6–C9 · non-443 HostPorts · merging CTF writeup · full SIEM product
+Full SIEM · mTLS edge→api · re-breaking C6–C9 · merging CTF · L3 fw router

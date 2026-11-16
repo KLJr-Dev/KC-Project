@@ -10,7 +10,7 @@ Base image pin for Alpine hosts: **`alpine:3.20`**. Edge: **`nginx:1.27-alpine`*
 | `c10-fw` | `fw.northwind.lab` | all NICs | root | FORWARD default-deny | — | none |
 | `c10-bastion` | `bastion.northwind.lab` | MGMT | `nwadmin` | SSH only from integrate; **no sudo ALL**; no graded crown | `:22` | **none** |
 | `c10-logs` | `logs.northwind.lab` | MGMT | root | collectors | — | none |
-| `c10-backup` | `backup.northwind.lab` | MGMT | root | backup | — | none |
+| `c10-backup` | `backup.northwind.lab` | MGMT | root | pg_dump / retention job (see below) | — | none |
 | `c10-ws-admin` | `ws-admin.northwind.lab` | CORP | `helpdesk` | helpdesk desktop | `:22` | none |
 | `c10-integrate` | `integrate.northwind.lab` | APP+CORP+MGMT | `integrator` | jump host; vault-issued SSH | `:22` | none |
 | `c10-mail` | `mail.northwind.lab` | CORP | `mailer` | maildir (no password loot) | — | none |
@@ -20,7 +20,7 @@ Base image pin for Alpine hosts: **`alpine:3.20`**. Edge: **`nginx:1.27-alpine`*
 | `c10-mon-legacy` | `mon-legacy.northwind.lab` | CORP | root | busybox httpd | `:8080` | none |
 | `c10-db-archive` | `db-archive.northwind.lab` | DATA | `archive` | strong `ARCHIVE_DB_PASSWORD` | `:5432` | none |
 | `c10-docproc` | `docproc.northwind.lab` | **APP only** | `docuser` | non-root helper; allowlisted `file` argv; no sudo | `:9090` | none |
-| `c10-edge` | `edge.northwind.lab` | DMZ(+APP) | nginx | HSTS/CSP; sole publish | `:443` | **`443→443`** |
+| `c10-edge` | `edge.northwind.lab` | DMZ(+APP) | nginx | HSTS/CSP; sole publish | `:443` / `:80` | **`443→443`**, **`80→80` (301 only)** |
 | `c10-partners` | `partners.northwind.lab` | DMZ | `vendor` | SFTP | `:22` | **none** |
 | `c10-honeypot` | `honeypot.northwind.lab` | DMZ | decoy accounts | unpublished | `:2222` | **none** |
 
@@ -42,4 +42,12 @@ All host passwords come from compose build-args / env (`BASTION_SSH_PASSWORD`, `
 
 - Bastion SSH: iptables INPUT allow **only** `integrate` IP; no host publish.
 - **docproc ↛ db-archive** (no `net_data` NIC on docproc).
-- Internet: only **443** on host (edge HTTPS).
+- Internet: only **443** (+ **80** redirect) on host (edge).
+
+## Backup / retention (showcase)
+
+`c10-backup` is the MGMT landing for automated dumps. Showcase posture:
+
+- Nightly `pg_dump` of product `postgres` (dbnet) and optional archive snapshot.
+- Retain **7 days** local on the backup volume; no offsite required for the lab tip.
+- Secrets for dump auth come from Compose env / `*_FILE` — never baked into the image.

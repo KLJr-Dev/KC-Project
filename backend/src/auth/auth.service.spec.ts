@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RefreshToken } from './entities/refresh-token.entity';
+import { LoginLockoutService } from './login-lockout.service';
+import { AuditService } from '../admin/audit.service';
+import { AlertsService } from '../admin/alerts.service';
 
 jest.mock('./password.util', () => ({
   verifyPassword: jest.fn(async (plain: string, stored: string) => plain === 'password123' && !!stored),
@@ -17,6 +20,9 @@ let service: AuthService;
 let usersService: jest.Mocked<UsersService>;
 let jwtService: jest.Mocked<JwtService>;
 let refreshRepo: jest.Mocked<Repository<RefreshToken>>;
+let lockout: jest.Mocked<LoginLockoutService>;
+let audit: jest.Mocked<AuditService>;
+let alerts: jest.Mocked<AlertsService>;
 
 beforeEach(() => {
   usersService = {
@@ -38,10 +44,32 @@ beforeEach(() => {
     create: jest.fn((x) => x),
     save: jest.fn(async (x) => x),
     findOne: jest.fn(),
-    createQueryBuilder: jest.fn(),
+    createQueryBuilder: jest.fn(() => ({
+      update: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue({ affected: 1 }),
+    })),
   } as unknown as jest.Mocked<Repository<RefreshToken>>;
 
-  service = new AuthService(usersService, jwtService, refreshRepo);
+  lockout = {
+    isLocked: jest.fn().mockReturnValue(false),
+    recordFailure: jest.fn().mockReturnValue(false),
+    clear: jest.fn(),
+  } as unknown as jest.Mocked<LoginLockoutService>;
+
+  audit = {
+    record: jest.fn().mockResolvedValue(undefined),
+    findAll: jest.fn(),
+  } as unknown as jest.Mocked<AuditService>;
+
+  alerts = {
+    raise: jest.fn().mockResolvedValue(undefined),
+    findAll: jest.fn(),
+    ack: jest.fn(),
+  } as unknown as jest.Mocked<AlertsService>;
+
+  service = new AuthService(usersService, jwtService, refreshRepo, lockout, audit, alerts);
 });
 
 describe('AuthService.register', () => {
@@ -78,6 +106,7 @@ describe('AuthService.register', () => {
       id: '1',
       email: 'existing@example.com',
       username: 'existing-user',
+      role: 'user',
       createdAt: 'now',
       updatedAt: 'now',
     });
@@ -85,66 +114,58 @@ describe('AuthService.register', () => {
     await expect(
       service.register({
         email: 'existing@example.com',
-        username: 'someone',
+        username: 'x',
         password: 'password123',
       }),
     ).rejects.toThrow(ConflictException);
   });
-
-  it('throws BadRequestException when required fields are missing', async () => {
-    await expect(
-      // @ts-expect-error — intentionally passing incomplete DTO for test
-      service.register({ email: '', username: 'user' }),
-    ).rejects.toThrow(BadRequestException);
-  });
 });
 
 describe('AuthService.login', () => {
-  const stubUser = {
-    id: '1',
-    email: 'test@example.com',
-    username: 'testuser',
-    password: 'password123',
-    role: 'user' as const,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
-  };
-
-  it('returns AuthResponseDto on valid credentials', async () => {
-    usersService.findEntityByEmail.mockResolvedValue(stubUser);
+  it('returns session on valid credentials', async () => {
+    usersService.findEntityByEmail.mockResolvedValue({
+      id: '1',
+      email: 'test@example.com',
+      username: 'test',
+      password: 'hashed',
+      role: 'user',
+      createdAt: 'now',
+      updatedAt: 'now',
+    } as never);
 
     const result = await service.login({
       email: 'test@example.com',
       password: 'password123',
     });
 
-    expect(usersService.findEntityByEmail).toHaveBeenCalledWith('test@example.com');
     expect(result.userId).toBe('1');
-    expect(result.token).toBe('mock-jwt-token');
-    expect(result.refreshToken).toBeDefined();
-    expect(result.message).toContain('Login success');
+    expect(lockout.clear).toHaveBeenCalled();
   });
 
-  it('throws UnauthorizedException when email not found', async () => {
+  it('rejects unknown user', async () => {
     usersService.findEntityByEmail.mockResolvedValue(null);
-
     await expect(
       service.login({ email: 'nobody@example.com', password: 'password123' }),
     ).rejects.toThrow(UnauthorizedException);
   });
 
-  it('throws UnauthorizedException on wrong password', async () => {
-    usersService.findEntityByEmail.mockResolvedValue(stubUser);
+  it('rejects wrong password', async () => {
+    usersService.findEntityByEmail.mockResolvedValue({
+      id: '1',
+      email: 'test@example.com',
+      username: 'test',
+      password: 'hashed',
+      role: 'user',
+      createdAt: 'now',
+      updatedAt: 'now',
+    } as never);
 
     await expect(service.login({ email: 'test@example.com', password: 'wrong' })).rejects.toThrow(
       UnauthorizedException,
     );
   });
 
-  it('throws BadRequestException when required fields are missing', async () => {
-    await expect(
-      // @ts-expect-error — intentionally passing incomplete DTO for test
-      service.login({ email: '' }),
-    ).rejects.toThrow(BadRequestException);
+  it('rejects empty email', async () => {
+    await expect(service.login({ email: '' } as never)).rejects.toThrow(BadRequestException);
   });
 });

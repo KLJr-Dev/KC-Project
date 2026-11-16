@@ -1,8 +1,6 @@
 # Cycle-10 Blue — bastion (MGMT jump host)
-#
-# SSH password from BASTION_SSH_PASSWORD (build-arg / runtime). No sudo ALL.
-# INPUT filter in entrypoint: SSH only from integrate (hard gate).
-# No graded crown file on the secure tip.
+# Password via BASTION_SSH_PASSWORD. Entrypoint INPUT: SSH from integrate only.
+# Least privilege: no broad sudo; operator shell only.
 FROM alpine:3.20
 
 ARG BASTION_SSH_PASSWORD=NwBastion-ChangeMe-9f3a2c!

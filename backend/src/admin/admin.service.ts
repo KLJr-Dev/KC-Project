@@ -16,6 +16,7 @@ import {
   canEscalateUserToModerator,
   roleRank,
 } from '../auth/roles';
+import { AuthService } from '../auth/auth.service';
 
 /**
  * AdminService — Administrative Business Logic.
@@ -38,6 +39,7 @@ export class AdminService {
     @InjectRepository(SharingEntity)
     private readonly sharingRepository: Repository<SharingEntity>,
     private readonly auditService: AuditService,
+    private readonly authService: AuthService,
   ) {}
 
   /**
@@ -223,6 +225,14 @@ export class AdminService {
    * @param userId - User ID to delete
    * @throws NotFoundException if user not found
    */
+  async revokeUserSessions(userId: string): Promise<{ revoked: true }> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with id "${userId}" not found`);
+    }
+    return this.authService.revokeAllSessions(userId);
+  }
+
   async deleteUser(userId: string, actorId: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
@@ -230,10 +240,9 @@ export class AdminService {
       throw new NotFoundException(`User with id "${userId}" not found`);
     }
 
-    // Delete the user immediately, no confirmation, no recoverability
+    await this.authService.revokeAllSessions(userId);
     await this.usersRepository.remove(user);
 
-    // CWE-532: No audit trail — log to console, lost on restart
     logAdminEvent('delete_user', { actorId, targetUserId: userId, email: user.email });
     await this.auditService.record(actorId, 'delete_user', userId, { email: user.email });
   }

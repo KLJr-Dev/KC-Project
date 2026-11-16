@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AdminService } from './admin.service';
 import { AlertsService } from './alerts.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -69,6 +70,7 @@ export class AdminController {
    */
   @Put('users/:id/role')
   @HasRole('admin')
+  @Throttle({ default: { limit: 5, ttl: 3_600_000 } })
   @ApiOperation({
     summary: 'Update a user role (admin only)',
     description: 'Change a user role. Requires admin from the database via HasRoleGuard.',
@@ -102,6 +104,7 @@ export class AdminController {
    */
   @Put('users/:id/role/escalate')
   @HasRole('admin')
+  @Throttle({ default: { limit: 5, ttl: 3_600_000 } })
   @ApiOperation({
     summary: 'Escalate user role (admin only)',
     description: 'Promote a user to moderator. Admin-only (v2.0.0).',
@@ -188,6 +191,17 @@ export class AdminController {
   @ApiOperation({ summary: 'Acknowledge a security alert (admin only)' })
   async ackAlert(@Param('id') id: string) {
     return this.alertsService.ack(id);
+  }
+
+  /**
+   * POST /admin/users/:id/revoke-sessions — Kill all refresh sessions (admin).
+   */
+  @Post('users/:id/revoke-sessions')
+  @HasRole('admin')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Revoke all refresh sessions for a user (admin only)' })
+  async revokeSessions(@Param('id') userId: string) {
+    return this.adminService.revokeUserSessions(userId);
   }
 
   /**

@@ -8,4 +8,4 @@ Companion: [v2.10.0-remediation.md](v2.10.0-remediation.md) · [ADR-039](../../.
 |----|------|-------------|-------|
 | — | *(none)* | — | Fill only if ADR-039 is amended; otherwise keep empty at tag `v2.10.0` |
 
-Finalized when Wave A/B + asserts close on `remediation/v2.10.0`.
+Finalized empty for Wave A/B + Wave C on `remediation/v2.10.0` → tag `v2.10.0`.

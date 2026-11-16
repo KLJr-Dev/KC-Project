@@ -1,0 +1,50 @@
+name: security-ci
+
+on:
+  push:
+    branches: [main, remediation/v2.10.0, 'remediation/**']
+  pull_request:
+
+jobs:
+  secrets-and-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Plant / weak secret scan (tip tree)
+        run: ./infra/assert-no-default-secrets.sh
+      - name: Strong secrets gate (when infra/.env present)
+        run: |
+          if [ -f infra/.env ]; then
+            REQUIRE_STRONG_SECRETS=1 ./infra/assert-no-default-secrets.sh
+          else
+            echo "No infra/.env in CI — tip scan only (expected)"
+          fi
+      - name: Backend deps
+        working-directory: backend
+        run: npm ci
+      - name: Backend npm audit (high+)
+        working-directory: backend
+        continue-on-error: true
+        run: npm audit --audit-level=high
+      - name: Frontend deps
+        working-directory: frontend
+        run: npm ci
+      - name: Frontend npm audit (high+)
+        working-directory: frontend
+        continue-on-error: true
+        run: npm audit --audit-level=high
+      - name: Backend typecheck
+        working-directory: backend
+        run: npx tsc --noEmit -p tsconfig.build.json
+      - name: Generate ephemeral JWT for unit tests
+        run: ./infra/scripts/gen-jwt-keys.sh
+      - name: Backend unit tests
+        working-directory: backend
+        run: npm test -- --passWithNoTests

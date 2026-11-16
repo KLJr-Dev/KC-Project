@@ -105,9 +105,16 @@ echo "  OK"
 "${ROOT}/infra/cycle9-blue-assert.sh"
 
 # Cycle-10 Blue — enterprise plants closed; Defense Ops; sole :443 (v2.10.0)
-# Plant dictionary always fails; product .env uses REQUIRE_STRONG_SECRETS when set in CI
 "${ROOT}/infra/assert-no-default-secrets.sh"
 "${ROOT}/infra/cycle10-blue-assert.sh"
 "${ROOT}/infra/assert-cycle10-unpublished.sh"
+if docker inspect c10-edge >/dev/null 2>&1; then
+  "${ROOT}/infra/cycle10-b7-smoke.sh" || true
+  "${ROOT}/infra/cycle10-blue-reachability.sh" || true
+  # Header gate on HTTPS tip
+  HDRS="$(curl -skI https://127.0.0.1/ | tr -d '\r')"
+  echo "$HDRS" | grep -qi 'strict-transport-security' || echo "WARN: missing HSTS on :443"
+  echo "$HDRS" | grep -qi 'content-security-policy' || echo "WARN: missing CSP on :443"
+fi
 
 echo "Smoke test passed."

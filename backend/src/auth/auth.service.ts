@@ -1,23 +1,11 @@
 /**
- * M5 / v2.0.0 — AuthService (register / login / refresh / logout).
- *
- * Security measures:
- * - CWE-256: Passwords hashed with bcrypt (cost ≥ 12) via UsersService.create;
- *   login uses verifyPassword — never string-equals plaintext.
- * - CWE-208 / CWE-203: Unknown-user login burns bcrypt compare budget then
- *   returns the same UnauthorizedException message as bad password (M3).
- * - CWE-613: Access JWT short-lived (expiresIn from jwt-config); refresh
- *   tokens stored hashed and rotated (M4).
- * - CWE-532: Prefer truncateSecret for any token fields in logs; never log
- *   raw passwords (request body still may appear in TypeORM SQL logs until
- *   logging is disabled in production — see AppModule M5).
- *
- * Session issuance returns refreshToken to the controller, which sets an
- * httpOnly cookie and strips it from the JSON body (M6).
+ * AuthService — register / login / refresh / logout (v2.10.0).
+ * Soft lockout + audit on failures; public register gated by ALLOW_PUBLIC_REGISTER.
  */
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -25,7 +13,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -35,6 +23,18 @@ import { logAuthEvent, truncateSecret } from '../common/logging.util';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { hashRefreshToken, newRefreshTokenRaw, refreshExpiresAtIso } from './refresh.util';
 import { burnPasswordCompareBudget, verifyPassword } from './password.util';
+import { LoginLockoutService } from './login-lockout.service';
+import { AuditService } from '../admin/audit.service';
+import { AlertsService } from '../admin/alerts.service';
+
+function emailDomainOnly(email: string): string {
+  const at = email.indexOf('@');
+  return at >= 0 ? `*@${email.slice(at + 1)}` : '*';
+}
+
+function hashEmail(email: string): string {
+  return createHash('sha256').update(email.trim().toLowerCase()).digest('hex').slice(0, 16);
+}
 
 @Injectable()
 export class AuthService {
@@ -43,12 +43,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectRepository(RefreshToken)
     private readonly refreshRepo: Repository<RefreshToken>,
+    private readonly lockout: LoginLockoutService,
+    private readonly audit: AuditService,
+    private readonly alerts: AlertsService,
   ) {}
 
-  /**
-   * Issue access JWT + persisted refresh token (hash-at-rest).
-   * Role claim is informational; HasRoleGuard re-loads role from DB (M1).
-   */
   private async issueSession(userId: string, role: string): Promise<AuthResponseDto> {
     const token = this.jwtService.sign({ sub: userId, role });
     const refreshRaw = newRefreshTokenRaw();
@@ -68,11 +67,11 @@ export class AuthService {
     };
   }
 
-  /**
-   * Register a new user. Password strength already enforced by RegisterDto.
-   * UsersService hashes before INSERT.
-   */
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
+    if (process.env.ALLOW_PUBLIC_REGISTER === '0') {
+      throw new ForbiddenException('Public registration is disabled');
+    }
+
     const { email, username, password } = dto;
 
     if (!email || !username || !password) {
@@ -81,7 +80,6 @@ export class AuthService {
 
     const existing = await this.usersService.findByEmail(email);
     if (existing) {
-      // Generic conflict — avoid confirming which field collided (enum adjacent).
       throw new ConflictException('Unable to register with the provided details');
     }
 
@@ -95,32 +93,63 @@ export class AuthService {
     return { ...session, message: 'Registration success' };
   }
 
-  /**
-   * Authenticate with email + password.
-   * Fail closed on non-bcrypt stored credentials (post-migration invariant).
-   */
-  async login(dto: LoginDto): Promise<AuthResponseDto> {
+  async login(dto: LoginDto, ip = 'unknown'): Promise<AuthResponseDto> {
     const { email, password } = dto;
 
     if (!email || !password) {
       throw new BadRequestException('Missing required login fields');
     }
 
+    if (this.lockout.isLocked(email, ip)) {
+      await this.audit.record('anonymous', 'login_lockout', hashEmail(email), {
+        domain: emailDomainOnly(email),
+      });
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     const user = await this.usersService.findEntityByEmail(email);
     if (!user) {
       await burnPasswordCompareBudget(password);
+      const locked = this.lockout.recordFailure(email, ip);
+      await this.audit.record('anonymous', 'login_failure', hashEmail(email), {
+        domain: emailDomainOnly(email),
+      });
+      if (locked) {
+        await this.alerts.raise(
+          'high',
+          'login_lockout',
+          'Account login temporarily locked after repeated failures',
+          'login_lockout',
+        );
+      }
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const ok = await verifyPassword(password, user.password);
     if (!ok) {
+      const locked = this.lockout.recordFailure(email, ip);
+      await this.audit.record(user.id, 'login_failure', hashEmail(email), {
+        domain: emailDomainOnly(email),
+      });
+      if (locked) {
+        await this.alerts.raise(
+          'high',
+          'login_lockout',
+          'Account login temporarily locked after repeated failures',
+          'login_lockout',
+        );
+        await this.audit.record(user.id, 'login_lockout', hashEmail(email), {
+          domain: emailDomainOnly(email),
+        });
+      }
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    this.lockout.clear(email, ip);
     const session = await this.issueSession(user.id, user.role ?? 'user');
     logAuthEvent('login', {
       userId: user.id,
-      email: user.email,
+      email: emailDomainOnly(user.email),
       token: truncateSecret(session.token),
     });
 
@@ -142,7 +171,6 @@ export class AuthService {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    // Rotate: revoke old, issue new pair (limits replay window of stolen refresh).
     stored.revoked = true;
     await this.refreshRepo.save(stored);
 
@@ -161,22 +189,24 @@ export class AuthService {
     return user;
   }
 
-  /** Revoke all refresh tokens for the user. Access JWT expires naturally. */
   async logout(userId: string): Promise<{ message: string }> {
+    await this.revokeAllSessions(userId);
+    logAuthEvent('logout', { userId, note: 'refresh tokens revoked' });
+    return { message: 'Logged out' };
+  }
+
+  /** Admin / logout — revoke every refresh row for a user (v2.10.0). */
+  async revokeAllSessions(userId: string): Promise<{ revoked: true }> {
     await this.refreshRepo
       .createQueryBuilder()
       .update(RefreshToken)
       .set({ revoked: true })
       .where('"userId" = :userId AND revoked = false', { userId })
       .execute();
-    logAuthEvent('logout', { userId, note: 'refresh tokens revoked' });
-    return { message: 'Logged out' };
+    logAuthEvent('revoke_all_sessions', { userId });
+    return { revoked: true };
   }
 
-  /**
-   * Resolve userId from raw refresh cookie/token **without** rotating.
-   * Used by Cycle-6 cookie-auth bookmark plant (CSRF teaching surface).
-   */
   async resolveUserIdFromRefresh(rawRefreshToken: string): Promise<string> {
     if (!rawRefreshToken) {
       throw new UnauthorizedException('Unauthorized');
