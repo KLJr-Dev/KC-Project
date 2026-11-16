@@ -2,16 +2,21 @@
 """Northwind document helper — classify uploaded packet filenames.
 
 Listen: 0.0.0.0:9090 (DOCPROC_HELPER_PORT). Inbox: /opt/docproc/inbox.
+
+Security (v2.10.0): filename allowlist + subprocess argv list (shell=False).
+Never interpolate untrusted input into a shell command (A03).
 """
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 INBOX = "/opt/docproc/inbox"
 PORT = int(os.environ.get("DOCPROC_HELPER_PORT", "9090"))
+SAFE_NAME = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -25,31 +30,34 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         if self.path.startswith("/health"):
-            self._send(200, "docproc-helper/1.10.0\n")
+            self._send(200, "docproc-helper/2.10.0\n")
             return
         self._send(404, "not found\n")
 
     def do_POST(self) -> None:
         length = int(self.headers.get("Content-Length", "0"))
-        raw = self.rfile.read(length).decode("utf-8", errors="replace")
+        raw = self.rfile.read(length)
         qs = parse_qs(urlparse(self.path).query)
         name = (qs.get("name") or [None])[0]
-        if not name and "name=" in raw:
-            name = raw.split("name=", 1)[1].split("&", 1)[0]
+        if name:
+            name = unquote(name)
         if not name:
             self._send(400, "missing name\n")
             return
+        if not SAFE_NAME.match(name):
+            self._send(400, "invalid name\n")
+            return
+
         os.makedirs(INBOX, exist_ok=True)
-        # Best-effort write (injection names may not be valid paths)
-        safe_write = name.replace("/", "_").split(";")[0].split("|")[0].strip()
-        if safe_write and "\n" in raw:
-            with open(os.path.join(INBOX, safe_write[:64] or "upload.bin"), "wb") as f:
-                f.write(raw.split("\n", 1)[1].encode())
-        # Attacker-controlled name interpolated into shell
+        dest = os.path.join(INBOX, name)
+        if raw:
+            with open(dest, "wb") as f:
+                f.write(raw)
+
         try:
             out = subprocess.check_output(
-                f"file {name}",
-                shell=True,
+                ["file", "--", name],
+                shell=False,
                 cwd=INBOX,
                 stderr=subprocess.STDOUT,
                 timeout=5,

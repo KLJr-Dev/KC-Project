@@ -34,7 +34,7 @@ export function redactSensitive(input: Record<string, unknown>): Record<string, 
 }
 
 export function logAuthEvent(
-  event: 'register' | 'login' | 'logout',
+  event: 'register' | 'login' | 'logout' | 'revoke_all_sessions',
   details: Record<string, unknown>,
 ): void {
   console.log(

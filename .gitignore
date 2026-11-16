@@ -8,3 +8,10 @@ infra/.env
 infra/certs/*.pem
 infra/certs/*-key.pem
 infra/certs/*.key
+
+# JWT private key — generate via infra/scripts/gen-jwt-keys.sh
+infra/keys/jwt-private.pem
+infra/certs/db/*.key
+infra/certs/db/*.srl
+infra/secrets/*
+!infra/secrets/.gitkeep

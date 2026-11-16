@@ -1,16 +1,9 @@
 /**
- * Cycle-10 — PacketsService (SoftDev B6).
+ * Document packets service (Cycle-10 Blue / v2.10.0).
  *
- * Graded plant (CYCLE10-PLANT):
- * After storing packet metadata, calls docproc helper with the client's
- * **unsanitized** original filename in the query string. Helper runs
- * `file {name}` via shell → command injection / reverse shell.
- *
- * Hard gate: controller enforces @HasRole(['moderator','admin']); plain user 403.
- * Env: DOCPROC_URL (default http://docproc:9090) — lab overlay attaches backend to net_app.
- *
- * @see infra/cycle10/docproc/helper.py
- * @see docs/security/Cycle-10/Dev/v1.10.0-box-plan.md
+ * callHelper: basename + allowlist + encodeURIComponent before contacting
+ * docproc — never pass untrusted strings into a shell (A03).
+ * Hard gate: controller @HasRole(['moderator','admin']); DB role authoritative.
  */
 import {
   BadRequestException,
@@ -20,21 +13,27 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { basename } from 'path';
 import { randomUUID } from 'crypto';
 import { DocumentPacket } from './entities/document-packet.entity';
+import { AuditService } from '../admin/audit.service';
+import { AlertsService } from '../admin/alerts.service';
+import { detectMimeFromBuffer } from '../files/upload-security';
 
-/** Lab DNS name from cycle10-lab overlay; override for native SoftDev. */
 const DOCPROC_URL = process.env.DOCPROC_URL || 'http://docproc:9090';
 const HELPER_TIMEOUT_MS = 8_000;
+/** Safe packet filenames only — no shell metacharacters / path segments. */
+const SAFE_NAME = /^[A-Za-z0-9._-]{1,128}$/;
 
 @Injectable()
 export class PacketsService {
   constructor(
     @InjectRepository(DocumentPacket)
     private readonly packetRepo: Repository<DocumentPacket>,
+    private readonly audit: AuditService,
+    private readonly alerts: AlertsService,
   ) {}
 
-  /** List packets owned by the authenticated moderator. */
   async listForOwner(ownerUserId: string): Promise<DocumentPacket[]> {
     return this.packetRepo.find({
       where: { ownerUserId },
@@ -42,7 +41,6 @@ export class PacketsService {
     });
   }
 
-  /** Owner-scoped get; 404 if missing or not owned (no IDOR across mods for SoftDev). */
   async getById(id: string, ownerUserId: string): Promise<DocumentPacket> {
     const row = await this.packetRepo.findOne({ where: { id } });
     if (!row || row.ownerUserId !== ownerUserId) {
@@ -51,10 +49,6 @@ export class PacketsService {
     return row;
   }
 
-  /**
-   * Accept multipart upload, persist row, invoke docproc helper.
-   * CYCLE10-PLANT: `originalname` is passed through without sanitization/encoding.
-   */
   async upload(
     file: Express.Multer.File,
     ownerUserId: string,
@@ -65,14 +59,67 @@ export class PacketsService {
 
     const id = randomUUID();
     const storageKey = file.path || file.filename;
-    const originalName = file.originalname || 'upload.bin';
+
+    let originalName: string;
+    try {
+      originalName = this.sanitizeOriginalName(file.originalname || 'upload.bin');
+    } catch (err) {
+      if (err instanceof BadRequestException) {
+        await this.audit.record(ownerUserId, 'packet_helper_reject', id, {
+          reason: 'invalid_name',
+        });
+        await this.alerts.raise(
+          'medium',
+          'packet_reject',
+          'Packet upload rejected: invalid filename',
+          'packet_helper_reject',
+        );
+      }
+      throw err;
+    }
+
+    if (file.buffer?.length) {
+      const mime = detectMimeFromBuffer(file.buffer);
+      if (!mime) {
+        await this.audit.record(ownerUserId, 'packet_helper_reject', id, {
+          reason: 'invalid_content',
+        });
+        await this.alerts.raise(
+          'medium',
+          'packet_reject',
+          'Packet upload rejected: unrecognized content',
+          'packet_helper_reject',
+        );
+        throw new BadRequestException('unrecognized or disallowed file content');
+      }
+    }
 
     let helperOutput = '';
+    let status = 'processed';
     try {
       helperOutput = await this.callHelper(originalName, file.buffer);
+      await this.audit.record(ownerUserId, 'packet_upload', id, {
+        originalName,
+      });
     } catch (err) {
-      // SoftDev: still persist the packet so UI/examiner can see helper errors
-      helperOutput = `helper-error: ${(err as Error).message}`;
+      const msg = (err as Error).message || 'helper failed';
+      if (err instanceof BadRequestException) {
+        await this.audit.record(ownerUserId, 'packet_helper_reject', id, {
+          reason: 'invalid_name',
+        });
+        await this.alerts.raise(
+          'medium',
+          'packet_reject',
+          'Packet upload rejected: invalid filename',
+          'packet_helper_reject',
+        );
+        throw err;
+      }
+      status = 'helper_error';
+      helperOutput = 'helper-error: unavailable';
+      await this.audit.record(ownerUserId, 'packet_helper_error', id, {
+        reason: msg.slice(0, 120),
+      });
     }
 
     const row = this.packetRepo.create({
@@ -80,20 +127,31 @@ export class PacketsService {
       ownerUserId,
       originalName,
       storageKey,
-      status: 'processed',
-      helperOutput: helperOutput.slice(0, 4000),
+      status,
+      helperOutput: this.redactHelperOutput(helperOutput),
       createdAt: new Date().toISOString(),
     });
     await this.packetRepo.insert(row);
     return row;
   }
 
-  /**
-   * CYCLE10-PLANT — intentional: do **not** URI-encode `originalName`.
-   * Shell metacharacters (`;`, `|`, backticks, …) must reach helper.py.
-   */
+  /** Basename + allowlist — rejects path traversal and shell metacharacters. */
+  sanitizeOriginalName(raw: string): string {
+    const base = basename(raw.replace(/\\/g, '/')).trim();
+    if (!SAFE_NAME.test(base)) {
+      throw new BadRequestException('invalid filename');
+    }
+    return base;
+  }
+
+  private redactHelperOutput(text: string): string {
+    return text
+      .replace(/OS\{[0-9a-fA-F]{32}\}/g, '[redacted]')
+      .slice(0, 2000);
+  }
+
   private async callHelper(originalName: string, body?: Buffer): Promise<string> {
-    const url = `${DOCPROC_URL}/?name=${originalName}`;
+    const url = `${DOCPROC_URL}/?name=${encodeURIComponent(originalName)}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), HELPER_TIMEOUT_MS);
     try {
@@ -104,11 +162,15 @@ export class PacketsService {
         body: body && body.length ? new Uint8Array(body) : undefined,
       });
       const text = await res.text();
+      if (res.status === 400) {
+        throw new BadRequestException('invalid filename');
+      }
       if (!res.ok) {
-        throw new ServiceUnavailableException(`docproc ${res.status}: ${text}`);
+        throw new ServiceUnavailableException(`docproc ${res.status}`);
       }
       return text;
     } catch (err) {
+      if (err instanceof BadRequestException) throw err;
       if ((err as Error).name === 'AbortError') {
         throw new ServiceUnavailableException('docproc helper timeout');
       }

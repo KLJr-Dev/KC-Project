@@ -1,6 +1,6 @@
 # Security Cycle 10 — Northwind enterprise lab + production showcase
 
-**Status:** **SoftDev frozen** — tip **`v1.10.0`** / **`ctf/v1.10.0`** · next **Red** · pair → **`v2.10.0`** · [ADR-039](../../decisions/ADR-039-cycle-10-enterprise-pair.md) · skin [ADR-037](../../decisions/ADR-037-immersion-northwind-product-face.md) · [pentest-ready](../../release/v1.10.0-pentest-ready.md)
+**Status:** **Blue in progress** on **`remediation/v2.10.0`** → tag **`v2.10.0`** · Red frozen **`ctf/v1.10.0`** · [ADR-039](../../decisions/ADR-039-cycle-10-enterprise-pair.md) · [secure-ready](../../release/v2.10.0-secure-ready.md)
 
 | Track | Tip / branch | Role |
 |-------|--------------|------|
@@ -16,7 +16,7 @@
 |------|------|
 | [Dev/](Dev/) | Decisions, box plan, SoftDev/execution, STRIDE, auth, data, ledger, matrix |
 | [PenTest/](PenTest/) | Red evidence (after freeze) |
-| [Remediation/](Remediation/) | Blue plan / map / residuals (after Red) |
+| [Remediation/](Remediation/) | Blue handoff / plan / map / residuals |
 
 ## Graded spine (short)
 
@@ -39,4 +39,4 @@ git checkout ctf/v1.10.0
 ## Related
 
 - [STRATEGY](../../roadmap/STRATEGY.md) · [future-ctf-candidates](../Cycle-2/Remediation/future-ctf-candidates.md)  
-- Releases: [v1.10.0-pentest-ready](../../release/v1.10.0-pentest-ready.md) (**signed**) · [v2.10.0-secure-ready](../../release/v2.10.0-secure-ready.md) (scaffold)
+- Releases: [v1.10.0-pentest-ready](../../release/v1.10.0-pentest-ready.md) (**signed**) · [v2.10.0-secure-ready](../../release/v2.10.0-secure-ready.md) (unsigned — Blue)

@@ -4,7 +4,7 @@ FROM alpine:3.20
 RUN apk add --no-cache openssh-server openssh-sftp-server bash \
   && ssh-keygen -A \
   && adduser -D -s /sbin/nologin vendor \
-  && echo 'vendor:vendor' | chpasswd \
+  && echo "vendor:${VENDOR_SSH_PASSWORD:-NwVendor-ChangeMe-1c3e5a!}" | chpasswd \
   && mkdir -p /var/sftp/incoming /var/run/sshd \
   && chown root:root /var/sftp \
   && chmod 755 /var/sftp \

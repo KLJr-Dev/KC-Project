@@ -1,11 +1,6 @@
 /**
- * Cycle-10 — `document_packet` table (kc_prod).
- *
- * SoftDev B6a migration: 1777900000000-CreateDocumentPacket.ts
- * Data model notes: docs/security/Cycle-10/Dev/v1.10.0-data-model.md
- *
- * `originalName` retains client filename (plant surface for helper).
- * `helperOutput` stores truncated docproc response for SoftDev/debug.
+ * `document_packet` table (kc_prod) — Cycle-10 Document Ops.
+ * `originalName` is allowlisted before helper invoke; `helperOutput` is redacted.
  */
 import { Entity, PrimaryColumn, Column } from 'typeorm';
 
@@ -17,7 +12,7 @@ export class DocumentPacket {
   @Column()
   ownerUserId!: string;
 
-  /** Client-supplied filename — intentionally preserved for CYCLE10-PLANT. */
+  /** Client filename after basename + allowlist sanitization. */
   @Column()
   originalName!: string;
 

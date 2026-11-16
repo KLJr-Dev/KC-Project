@@ -4,11 +4,11 @@ FROM alpine:3.20
 RUN apk add --no-cache openssh-server bash \
   && ssh-keygen -A \
   && adduser -D -s /bin/bash tempuser \
-  && echo 'tempuser:guest' | chpasswd \
+  && echo "tempuser:${HP_GUEST_PASSWORD:-NwHpGuest-ChangeMe-3f7a2b!}" | chpasswd \
   && adduser -D -s /bin/bash hpadmin \
-  && echo 'hpadmin:admin' | chpasswd \
+  && echo "hpadmin:${HP_ADMIN_PASSWORD:-NwHpAdmin-ChangeMe-5d9c4e!}" | chpasswd \
   && adduser -D -s /bin/bash rootish \
-  && echo 'rootish:Summer2024' | chpasswd \
+  && echo "rootish:${HP_ROOTISH_PASSWORD:-NwHpRoot-ChangeMe-6e8b1f!}" | chpasswd \
   && mkdir -p /var/run/sshd /opt/remote \
   && printf '%s\n' \
     'Northwind Traders — Remote Access Gateway' \

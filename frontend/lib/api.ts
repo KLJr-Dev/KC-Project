@@ -12,7 +12,9 @@
  */
 import type {
   AccessRequest,
+  AccessRequestListItem,
   AccessRequestResult,
+  AccessRequestStatus,
   AuthResponse,
   CreateNoteRequest,
   CreateSharing,
@@ -482,6 +484,16 @@ export interface AuditLogEntry {
   createdAt: string;
 }
 
+export interface SecurityAlert {
+  id: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  kind: string;
+  message: string;
+  sourceAction: string;
+  acked: boolean;
+  createdAt: string;
+}
+
 export interface UpdateUserRoleRequest {
   role: AdminRole;
 }
@@ -519,6 +531,16 @@ export const adminListUsers = (params?: {
 export const adminGetStats = () => request<AdminStatsResponse>('/admin/stats');
 
 export const adminGetAuditLogs = () => request<AuditLogEntry[]>('/admin/audit-logs');
+
+/** GET /admin/alerts — Defense Ops alert queue (admin only). */
+export const adminGetAlerts = (acked?: boolean) => {
+  const q =
+    typeof acked === 'boolean' ? `?acked=${acked ? 'true' : 'false'}` : '';
+  return request<SecurityAlert[]>(`/admin/alerts${q}`);
+};
+
+export const adminAckAlert = (id: string) =>
+  post<SecurityAlert>(`/admin/alerts/${id}/ack`, {});
 
 /**
  * PUT /admin/users/:id/role — Update a user's role (admin only)
@@ -720,9 +742,21 @@ export const intakeSecurityMetrics = () =>
 // ── Packets / Stage-0 (Cycle-10 SoftDev / v1.10.0) ─────────────────────
 // Browser talks only to Nest. Never call docproc/intake hosts from the client.
 
-/** POST /access-requests — public Stage-0 form; creates moderator (not admin). */
+/** POST /access-requests — public form; creates pending ticket only (no role grant). */
 export const accessRequestSubmit = (dto: AccessRequest) =>
   post<AccessRequestResult>('/access-requests', dto);
+
+/** GET /admin/access-requests — admin review queue. */
+export const adminListAccessRequests = (status?: AccessRequestStatus) => {
+  const q = status ? `?status=${encodeURIComponent(status)}` : '';
+  return request<AccessRequestListItem[]>(`/admin/access-requests${q}`);
+};
+
+export const adminApproveAccessRequest = (id: string) =>
+  post<AccessRequestListItem>(`/admin/access-requests/${id}/approve`, {});
+
+export const adminDenyAccessRequest = (id: string) =>
+  post<AccessRequestListItem>(`/admin/access-requests/${id}/deny`, {});
 
 /** GET /packets — moderator|admin; plain user → 403. */
 export const packetsList = () => request<DocumentPacket[]>('/packets');
@@ -730,10 +764,7 @@ export const packetsList = () => request<DocumentPacket[]>('/packets');
 /** GET /packets/:id — owner-scoped. */
 export const packetsGetById = (id: string) => request<DocumentPacket>(`/packets/${id}`);
 
-/**
- * POST /packets — multipart field `file` → Nest → docproc helper plant.
- * Filename is preserved by design (graded surface lives server-side).
- */
+/** POST /packets — multipart field `file`; filename allowlisted server-side. */
 export async function packetsUpload(file: File): Promise<DocumentPacket> {
   const form = new FormData();
   form.append('file', file);

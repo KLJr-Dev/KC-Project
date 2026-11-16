@@ -1,13 +1,20 @@
-# v2.6.0 — production Docker stack (Cycle-9 Blue)
-# Usage: cp infra/.env.example infra/.env && docker compose -f infra/docker-compose.prod.yml up -d --build
-# Postgres is NOT published on the host. DB lives on internal network.
+# v2.10.0 — production / showcase Docker stack (Cycle-10 Blue)
+# Dev HTTP :8080 is non-showcase. Lab tip: combine with docker-compose.cycle10-lab.yml (:443).
 #
-# Wave B: kc_intake_app least-priv, non-root intake, internal dbnet, CPU limits.
+# Secrets: Compose secrets for JWT PEMs; DB passwords via env / *_FILE.
+# Generate JWT: ./infra/scripts/gen-jwt-keys.sh
+# Generate DB TLS: ./infra/scripts/gen-db-tls.sh
 
 networks:
   edge:
   dbnet:
     internal: true
+
+secrets:
+  jwt_private:
+    file: ./keys/jwt-private.pem
+  jwt_public:
+    file: ./keys/jwt-public.pem
 
 services:
   postgres:
@@ -25,6 +32,8 @@ services:
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
     mem_limit: 512m
     cpus: 1.0
+    security_opt:
+      - no-new-privileges:true
     networks:
       - dbnet
     healthcheck:
@@ -52,28 +61,49 @@ services:
       DB_USER: ${DB_USER:-kc_app}
       DB_PASSWORD: ${DB_PASSWORD:-kc-app-change-me}
       DB_NAME: ${DB_NAME:-kc_prod}
+      DB_SSL: ${DB_SSL:-false}
+      DB_SSL_CA_PATH: /run/secrets/db-ca.crt
       PORT: ${PORT:-4000}
-      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-secret}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
       NODE_ENV: production
       ENABLE_SWAGGER: ${ENABLE_SWAGGER:-false}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://127.0.0.1:8080,http://localhost:8080}
-      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      ALLOW_PUBLIC_REGISTER: ${ALLOW_PUBLIC_REGISTER:-0}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://127.0.0.1,https://localhost,http://127.0.0.1:8080,http://localhost:8080}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
       REFRESH_COOKIE_PATH: ${REFRESH_COOKIE_PATH:-/api/auth}
-      JWT_PRIVATE_KEY_PATH: /run/secrets/jwt-private.pem
-      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt-public.pem
+      JWT_PRIVATE_KEY_PATH: /run/secrets/jwt_private
+      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_public
       INTAKE_URL: ${INTAKE_URL:-http://intake:8000}
+      NEXT_PUBLIC_ENABLE_LAB_UI: 'false'
+    secrets:
+      - jwt_private
+      - jwt_public
     volumes:
       - uploads:/app/uploads
-      - ../infra/keys/jwt-private.pem:/run/secrets/jwt-private.pem:ro
-      - ../infra/keys/jwt-public.pem:/run/secrets/jwt-public.pem:ro
     expose:
       - '4000'
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     mem_limit: 512m
     cpus: 1.0
     networks:
       - edge
       - dbnet
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "node -e \"require('http').get('http://127.0.0.1:4000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   frontend:
     build:
@@ -85,10 +115,18 @@ services:
       - backend
     expose:
       - '3000'
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     mem_limit: 256m
     cpus: 0.5
     networks:
       - edge
+    # Next standalone may lack curl/wget — rely on depends_on; optional probe later
 
   intake:
     build:
@@ -108,11 +146,19 @@ services:
       INTAKE_DB_USER: ${INTAKE_DB_USER:-kc_intake_app}
       INTAKE_DB_PASSWORD: ${INTAKE_DB_PASSWORD:-kc-intake-app-change-me}
       PORT: 8000
-      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt-public.pem
-    volumes:
-      - ../infra/keys/jwt-public.pem:/run/secrets/jwt-public.pem:ro
+      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_public
+      DB_SSL: ${DB_SSL:-false}
+    secrets:
+      - jwt_public
     expose:
       - '8000'
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     mem_limit: 256m
     cpus: 0.5
     networks:
@@ -129,6 +175,20 @@ services:
       - frontend
       - backend
       - intake
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:size=16m
+      - /var/run:size=8m
+      - /tmp:size=8m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - NET_BIND_SERVICE
     mem_limit: 128m
     cpus: 0.25
     networks:

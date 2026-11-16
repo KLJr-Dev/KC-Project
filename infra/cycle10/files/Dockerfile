@@ -1,5 +1,8 @@
-# Host: files.northwind.lab — Samba dept + legacy shares
+# Host: files.northwind.lab — Samba dept + legacy shares (Blue: strong SMB secret)
 FROM alpine:3.20
+
+ARG SMB_PASSWORD=NwSmb-ChangeMe-8a4f1d!
+ENV SMB_PASSWORD=${SMB_PASSWORD}
 
 COPY seeds/files/ /tmp/files-seed/
 
@@ -21,7 +24,7 @@ RUN printf '%s\n' \
   && printf '%s\n' \
     'Archived vendor notes — prefer partners.northwind.lab for live drops' \
     > /shares/legacy/README \
-  && printf '%s\n%s\n' 'password' 'password' | smbpasswd -a -s smbuser \
+  && printf '%s\n%s\n' "${SMB_PASSWORD:-NwSmb-ChangeMe-8a4f1d!}" "${SMB_PASSWORD:-NwSmb-ChangeMe-8a4f1d!}" | smbpasswd -a -s smbuser \
   && chown -R smbuser:smbuser /shares \
   && rm -rf /tmp/files-seed
 

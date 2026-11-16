@@ -1,10 +1,13 @@
-# Host: ws-admin.northwind.lab
+# Host: ws-admin.northwind.lab — helpdesk workstation (Blue: no password decoys)
 FROM alpine:3.20
+
+ARG HELPDESK_SSH_PASSWORD=NwHelpdesk-ChangeMe-2b6c9e!
+ENV HELPDESK_SSH_PASSWORD=${HELPDESK_SSH_PASSWORD}
 
 RUN apk add --no-cache openssh-server bash \
   && ssh-keygen -A \
   && adduser -D -s /bin/bash helpdesk \
-  && echo 'helpdesk:Summer2024' | chpasswd \
+  && echo "helpdesk:${HELPDESK_SSH_PASSWORD}" | chpasswd \
   && mkdir -p /home/helpdesk/Desktop /home/helpdesk/Documents /var/run/sshd \
   && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
   && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config \
@@ -15,16 +18,13 @@ RUN apk add --no-cache openssh-server bash \
     'CORP network only. Not a jump host.' \
     > /etc/ssh/northwind-banner \
   && printf '%s\n' \
-    'NOTE: bastion password is Summer2024 — try that first' \
-    > /home/helpdesk/sticky-note.txt \
-  && printf '%s\n' \
     'Todo: reset printer queue · ticket NW-8841 · coffee order' \
     > /home/helpdesk/Desktop/todo.txt \
   && printf '%s\n' \
-    'Helpdesk shift notes — do not put live bastion passwords here.' \
+    'Helpdesk shift notes — MGMT credentials come from vault only.' \
     > /home/helpdesk/Documents/shift-notes.txt \
   && printf '%s\n' \
-    'Northwind helpdesk desktop. Sticky notes are unreliable.' \
+    'Northwind helpdesk desktop.' \
     > /etc/motd \
   && chown -R helpdesk:helpdesk /home/helpdesk
 

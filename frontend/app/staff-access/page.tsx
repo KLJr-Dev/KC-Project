@@ -1,8 +1,6 @@
 /**
- * Cycle-10 Stage-0 — hidden document-staff access request (`/staff-access`).
- *
- * Public route (no auth). Discovery plant: HTML comment on `/` + edge static.
- * POST /access-requests → Nest creates **moderator** (never admin).
+ * Document Ops staff access request (`/staff-access`).
+ * Public form submits a pending ticket — admin must approve before login works.
  */
 'use client';
 
@@ -27,7 +25,6 @@ function validateUsername(username: string): string | null {
   return null;
 }
 
-/** Mirrors Nest password-policy (length 12 + complexity). */
 function validatePassword(password: string): string | null {
   if (!password) return 'Password is required';
   if (password.length < 12) return 'Password must be at least 12 characters';
@@ -69,7 +66,7 @@ export default function StaffAccessPage() {
         reason: reason.trim() || undefined,
       });
       setSuccess(
-        `${res.message} Your Document Ops role will be ${res.role}. Continue at Sign in.`,
+        `${res.message} (${res.status}). An administrator must approve before you can sign in.`,
       );
       setPassword('');
     } catch (err) {
@@ -97,11 +94,11 @@ export default function StaffAccessPage() {
         </h1>
         <p className="text-sm text-muted">
           Document Operations accounts are issued for packet intake and partner-drop
-          review. Self-service portal registration does not include Document Ops.
+          review. Requests are reviewed by an administrator before access is granted.
         </p>
         <p className="rounded-md border border-border bg-surface px-3 py-2 text-xs text-muted">
-          Policy NW-DO-14: access is limited to document staff. Requests are reviewed
-          against department staffing. Do not share credentials across desks.
+          Policy NW-DO-14: access is limited to document staff. Do not share credentials
+          across desks.
         </p>
       </div>
 

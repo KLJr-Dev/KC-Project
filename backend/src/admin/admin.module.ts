@@ -9,7 +9,7 @@ import { AuthModule } from '../auth/auth.module';
 import { AuditModule } from '../audit/audit.module';
 
 /**
- * Admin module — administrative operations over User / audit entities.
+ * Admin module — users, audit, Defense Ops alerts.
  * AuthModule provides JwtAuthGuard + HasRoleGuard (DB role is authoritative).
  */
 @Module({

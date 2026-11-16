@@ -91,42 +91,33 @@ describe('Enumeration Surface (v0.2.3)', () => {
     await registerAndLogin(httpServer, 'b@test.com', 'user-b', STRONG);
     await registerAndLogin(httpServer, 'c@test.com', 'user-c', STRONG);
 
+    // Self OK; foreign IDs 403 (v2.10.0 — no user directory IDOR)
     await request(httpServer)
-      .get('/users/1')
+      .get(`/users/${userA.userId}`)
       .set('Authorization', `Bearer ${userA.token}`)
       .expect(200);
     await request(httpServer)
       .get('/users/2')
       .set('Authorization', `Bearer ${userA.token}`)
-      .expect(200);
+      .expect(403);
     await request(httpServer)
       .get('/users/3')
       .set('Authorization', `Bearer ${userA.token}`)
-      .expect(200);
-
-    await request(httpServer)
-      .get('/users/4')
-      .set('Authorization', `Bearer ${userA.token}`)
-      .expect(404);
+      .expect(403);
   });
 
-  it('GET /users returns all users to any authenticated user (directory residual)', async () => {
+  it('GET /users is admin-only (directory closed)', async () => {
     const httpServer = app.getHttpServer();
     const STRONG = 'Password123!';
 
     await registerAndLogin(httpServer, 'a@test.com', 'user-a', STRONG);
     await registerAndLogin(httpServer, 'b@test.com', 'user-b', STRONG);
-    await registerAndLogin(httpServer, 'c@test.com', 'user-c', STRONG);
-    await registerAndLogin(httpServer, 'd@test.com', 'user-d', STRONG);
     const userE = await registerAndLogin(httpServer, 'e@test.com', 'user-e', STRONG);
 
-    const res = await request(httpServer)
+    await request(httpServer)
       .get('/users')
       .set('Authorization', `Bearer ${userE.token}`)
-      .expect(200);
-
-    expect(res.body.items).toHaveLength(5);
-    expect(res.body.total).toBe(5);
+      .expect(403);
   });
 
   it('GET /files returns only caller-owned files', async () => {
@@ -192,21 +183,19 @@ describe('Enumeration Surface (v0.2.3)', () => {
    * 200 vs 404 timing oracle: both return quickly but status code
    * difference confirms resource existence.
    */
-  it('200 vs 404 status difference confirms resource existence — CWE-203', async () => {
+  it('non-self user IDs return 403 (no existence oracle for peers)', async () => {
     const httpServer = app.getHttpServer();
 
-    const user = await registerAndLogin(httpServer, 'a@test.com', 'user-a', 'pass');
+    const user = await registerAndLogin(httpServer, 'a@test.com', 'user-a', 'Password123!');
 
-    const existsRes = await request(httpServer)
-      .get('/users/1')
+    const selfRes = await request(httpServer)
+      .get(`/users/${user.userId}`)
       .set('Authorization', `Bearer ${user.token}`);
-    expect(existsRes.status).toBe(200);
+    expect(selfRes.status).toBe(200);
 
-    const missingRes = await request(httpServer)
+    const peerRes = await request(httpServer)
       .get('/users/999')
       .set('Authorization', `Bearer ${user.token}`);
-    expect(missingRes.status).toBe(404);
-
-    // The status code difference is the oracle — no constant-time response
+    expect(peerRes.status).toBe(403);
   });
 });

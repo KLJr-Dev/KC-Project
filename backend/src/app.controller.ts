@@ -18,6 +18,12 @@ export class AppController {
     };
   }
 
+  /** Liveness for compose healthchecks (unauthenticated). */
+  @Get('health')
+  health() {
+    return { status: 'ok', version: '2.10.0' };
+  }
+
   /**
    * GET /admin/crash-test — Intentional error for error handling testing
    *

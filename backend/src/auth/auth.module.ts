@@ -14,13 +14,16 @@ import { User } from '../users/entities/user.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { HasRoleGuard } from './guards/has-role.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { LoginLockoutService } from './login-lockout.service';
 import { loadJwtRuntimeConfig } from './jwt-config';
+import { AuditModule } from '../audit/audit.module';
 
 const jwtCfg = loadJwtRuntimeConfig();
 
 @Module({
   imports: [
     UsersModule,
+    AuditModule,
     TypeOrmModule.forFeature([User, RefreshToken]),
     JwtModule.register(
       jwtCfg.algorithm === 'RS256'
@@ -42,7 +45,7 @@ const jwtCfg = loadJwtRuntimeConfig();
     ),
   ],
   controllers: [AuthController],
-  providers: [AuthService, HasRoleGuard, JwtAuthGuard],
+  providers: [AuthService, HasRoleGuard, JwtAuthGuard, LoginLockoutService],
   exports: [JwtModule, HasRoleGuard, JwtAuthGuard, TypeOrmModule, AuthService],
 })
 export class AuthModule {}

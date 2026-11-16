@@ -42,7 +42,7 @@ export class AuthController {
   }
 
   @Post('register')
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
@@ -52,12 +52,19 @@ export class AuthController {
   }
 
   @Post('login')
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async login(
     @Body() dto: LoginDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
-    const session = await this.authService.login(dto);
+    const ip =
+      (typeof req.headers['x-forwarded-for'] === 'string'
+        ? req.headers['x-forwarded-for'].split(',')[0]?.trim()
+        : '') ||
+      req.ip ||
+      'unknown';
+    const session = await this.authService.login(dto, ip);
     return this.writeSession(res, session);
   }
 
