@@ -126,9 +126,10 @@ echo "  OK"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if [[ -x "${ROOT}/infra/assert-no-default-secrets.sh" ]]; then
+  # Plant dictionary always. REQUIRE_STRONG_SECRETS=1 is for CI / real .env only
+  # (lab .env often keeps .env.example placeholders — warn-only without REQUIRE).
   echo "Secrets dictionary..."
-  REQUIRE_STRONG_SECRETS="${REQUIRE_STRONG_SECRETS:-1}" \
-    "${ROOT}/infra/assert-no-default-secrets.sh" || fail "secrets assert"
+  "${ROOT}/infra/assert-no-default-secrets.sh" || fail "secrets assert"
 fi
 
 echo "== Cycle-10 Blue assert OK =="

@@ -78,17 +78,24 @@ services:
     secrets:
       - jwt_private
       - jwt_public
-    volumes:
-      - uploads:/app/uploads
+    # uploads via tmpfs — avoids Docker Desktop userns sticky volume ownership
+    # that blocked root migrate seed writes (EACCES). Lab tip does not need durable uploads.
     expose:
       - '4000'
     read_only: true
     tmpfs:
       - /tmp:size=64m
+      - /app/uploads:size=128m,mode=1777
     security_opt:
       - no-new-privileges:true
+    # Drop all, then allow only what entrypoint needs to chown uploads + su-exec → node
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - SETUID
+      - SETGID
     mem_limit: 512m
     cpus: 1.0
     networks:
@@ -157,8 +164,14 @@ services:
       - /tmp:size=32m
     security_opt:
       - no-new-privileges:true
+    # Drop all, then allow only what entrypoint needs to gosu → intake
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - SETUID
+      - SETGID
     mem_limit: 256m
     cpus: 0.5
     networks:
@@ -196,4 +209,3 @@ services:
 
 volumes:
   pgdata_prod:
-  uploads:
