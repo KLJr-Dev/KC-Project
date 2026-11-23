@@ -67,7 +67,7 @@ async function bootstrap() {
     const config = new DocumentBuilder()
       .setTitle('KC-Project API')
       .setDescription('KC-Project HTTP API')
-      .setVersion('2.10.0')
+      .setVersion('2.10.1')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);

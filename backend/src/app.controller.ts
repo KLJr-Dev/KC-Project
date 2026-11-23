@@ -21,7 +21,7 @@ export class AppController {
   /** Liveness for compose healthchecks (unauthenticated). */
   @Get('health')
   health() {
-    return { status: 'ok', version: '2.10.0' };
+    return { status: 'ok', version: '2.10.1' };
   }
 
   /**

@@ -15,8 +15,8 @@ Seeded via migrations (`migrationsRun: true`) for local/CI. Cleartext below is f
 
 Passwords are **bcrypt-hashed** in the DB. Tip users are admin-provisioned (or access-request approve) when public register is off.
 
-## Secure tip (`v2.10.0`)
+## Secure tip (`v2.10.1`)
 
 - No quick-fill UI (`NEXT_PUBLIC_ENABLE_LAB_UI=false`).
 - Inject CI credentials via env / secrets — do not bake into frontend modules.
-- See [v2.10.0-secure-ready.md](../release/v2.10.0-secure-ready.md).
+- See [v2.10.1-secure-ready.md](../release/v2.10.1-secure-ready.md) · base [v2.10.0](../release/v2.10.0-secure-ready.md).

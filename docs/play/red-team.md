@@ -1,7 +1,7 @@
 # Red Team catalog — playable levels
 
 **Pillar:** Penetration Testing · **Spoiler policy:** [USAGE.md](../../USAGE.md)  
-**Secure tip (demo):** tag / `main` **`v2.10.0`** — see [blue-team.md](blue-team.md).
+**Secure tip (demo):** tag / `main` **`v2.10.1`** — see [blue-team.md](blue-team.md).
 
 Checkout the **insecure** tip, run compose, open the player brief. Writeups are **`[SPOILER]`**.
 

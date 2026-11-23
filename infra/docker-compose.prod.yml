@@ -1,4 +1,4 @@
-# v2.10.0 — production / showcase Docker stack (Cycle-10 Blue)
+# v2.10.1 — production / showcase Docker stack (Cycle-10 Blue + nginx2root pin)
 # Dev HTTP :8080 is non-showcase. Lab tip: combine with docker-compose.cycle10-lab.yml (:443).
 #
 # Secrets: Compose secrets for JWT PEMs; DB passwords via env / *_FILE.
@@ -179,7 +179,7 @@ services:
       - dbnet
 
   nginx:
-    image: nginx:alpine
+    image: nginx:1.30.7-alpine
     ports:
       - '8080:80'
     volumes:

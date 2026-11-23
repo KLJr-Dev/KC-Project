@@ -1,7 +1,7 @@
 # Host: edge.northwind.lab — weak HTTPS :8443 → :443
 # TLS1.2 + legacy ciphers, server_tokens on, no HSTS (v1 posture).
 # Proxies /api → api:4000 and / → portal:3000 when product is on net_app.
-FROM nginx:1.27-alpine
+FROM nginx:1.30.7-alpine
 
 RUN apk add --no-cache openssl \
   && mkdir -p /etc/nginx/certs /usr/share/nginx/html/.well-known \
