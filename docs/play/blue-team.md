@@ -2,11 +2,11 @@
 
 **Pillar:** Blue / hardening + SSDLC · **Spoiler policy:** remediation maps are **`[SPOILER]`** if you still want to play Red first.
 
-**Current showcase tip:** **`main` / `v2.10.0`** — production-grade Cycle-10 Blue ([secure-ready](../release/v2.10.0-secure-ready.md)).
+**Current showcase tip:** **`main` / `v2.10.1`** — Cycle-10 Blue + nginx2root pin ([secure-ready](../release/v2.10.1-secure-ready.md) · base [v2.10.0](../release/v2.10.0-secure-ready.md)).
 
 | Cycle | Skills (defensive) | Checkout | Verify | Remediation |
 |-------|-------------------|----------|--------|-------------|
-| **10** | zones, CSP/HSTS, AuthZ, lockout, CIS-ish containers, Defense Ops | `v2.10.0` / `main` / `remediation/v2.10.0` | `cycle10-blue-assert.sh` + `cycle10-blue-reachability.sh` | [map](../security/Cycle-10/Remediation/v2.10.0-remediation.md) |
+| **10** | zones, CSP/HSTS, AuthZ, lockout, CIS-ish containers, Defense Ops | `v2.10.1` / `main` (archive `v2.10.0` / `remediation/v2.10.0`) | `cycle10-blue-assert.sh` + `cycle10-blue-reachability.sh` | [map](../security/Cycle-10/Remediation/v2.10.0-remediation.md) |
 | **9** | BFF trust, IDOR/race harden, export/SIEM | `v2.6.0` / `remediation/v2.6.0` | `cycle9-blue-assert.sh` + smoke | [map](../security/Cycle-9/Remediation/v2.6.0-remediation.md) |
 | **8** | Intake toolchain harden | `v2.5.0` / `remediation/v2.5.0` | smoke + cycle asserts | [map](../security/Cycle-8/Remediation/v2.5.0-remediation.md) |
 | **7** | path confinement, overlays unpublished | `v2.4.0` | smoke | [map](../security/Cycle-7/Remediation/v2.4.0-remediation.md) |
@@ -20,7 +20,7 @@
 ## Showcase tip — Cycle-10 Blue
 
 ```bash
-git checkout v2.10.0   # or main
+git checkout v2.10.1   # or main / v2.10.0 archive
 cp infra/.env.example infra/.env
 ./infra/scripts/gen-jwt-keys.sh
 docker compose -f infra/docker-compose.prod.yml \

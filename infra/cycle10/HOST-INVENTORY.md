@@ -3,7 +3,7 @@
 **Authority:** [v2 reachability](../../docs/security/Cycle-10/Dev/v2.10.0-reachability-matrix.md) · [README](./README.md)  
 **Refresh runtime facts:** `./infra/cycle10-inventory.sh` → [`HOST-INVENTORY.runtime.md`](./HOST-INVENTORY.runtime.md)
 
-Base image pin for Alpine hosts: **`alpine:3.20`**. Edge: **`nginx:1.27-alpine`**. Archive: **`postgres:16-alpine`**.
+Base image pin for Alpine hosts: **`alpine:3.20`**. Edge: **`nginx:1.30.7-alpine`** (nginx2root / CVE-2026-123007+). Archive: **`postgres:16-alpine`**.
 
 | Service | DNS | Zone | Users | Key notes | Listen | Host publish |
 |---------|-----|------|-------|-----------|--------|--------------|

@@ -1,6 +1,6 @@
 # Documentation index
 
-**Tip:** secure **`v2.10.0`** on `main` · Cycle-10 **Closed** (Blue signed).  
+**Tip:** secure **`v2.10.1`** (nginx2root pin; Cycle-10 Blue base `v2.10.0`).  
 **Play:** [play/red-team.md](play/red-team.md) · [play/blue-team.md](play/blue-team.md) · [USAGE.md](../USAGE.md)
 
 ## Four pillars
@@ -41,6 +41,6 @@
 | 7 | `v1.4.0` / `ctf/v1.4.0` | `v2.4.0` |
 | 8 | `v1.5.0` / `ctf/v1.5.0` | `v2.5.0` |
 | 9 | `v1.6.0` / `ctf/v1.6.0` | `v2.6.0` |
-| 10 | `v1.10.0` / `ctf/v1.10.0` | **`v2.10.0`** |
+| 10 | `v1.10.0` / `ctf/v1.10.0` | **`v2.10.1`** (base `v2.10.0`) |
 
 Tip README template for archive chapters: [play/readme-contract.md](play/readme-contract.md).

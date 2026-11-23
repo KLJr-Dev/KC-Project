@@ -6,8 +6,8 @@ Long-running full-stack **AppSec / DevSecOps** lab: design a realistic Nest/Next
 build → insecure tip → Red → Blue → hardened tip → expand
 ```
 
-**Tip now:** Insecure **`v1.10.0`** / **`ctf/v1.10.0`** (Red frozen). Blue on **`remediation/v2.10.0`** → tag **`v2.10.0`**.  
-**Prior secure replay:** tag **`v2.6.0`** (Cycle-9 closed).  
+**Tip now:** Secure showcase **`v2.10.1`** / `main` (Cycle-10 Blue + nginx2root pin). Red archive: **`v1.10.0`** / **`ctf/v1.10.0`**.  
+**Prior secure freeze:** tag **`v2.10.0`** · Cycle-9: **`v2.6.0`**.  
 **Pairing model:** product cycles use `v1.x` (insecure) → `v2.x` (secure); some boxes are CTF-only (`ctf/*`).
 
 ## Stack
@@ -20,7 +20,7 @@ NestJS · Next.js · PostgreSQL · Docker Compose · nginx · Cycle-10 five-zone
 - Offensive writeups on `ctf/*` and Blue remediation maps on `remediation/*`
 - Verifiable tip: Cycle-10 examiner · prior-cycle Blue asserts · smoke / journey
 
-Cycles **1–9 are closed**; **Cycle-10** Red frozen on **`ctf/v1.10.0`** — Blue Wave C on **`remediation/v2.10.0`**. Catalog: [docs/security/README.md](docs/security/README.md) · strategy: [docs/roadmap/STRATEGY.md](docs/roadmap/STRATEGY.md) · portfolio framing: [docs/roadmap/PORTFOLIO-VISION.md](docs/roadmap/PORTFOLIO-VISION.md)
+Cycles **1–10 closed**; secure tip **`v2.10.1`** (nginx2root hotfix on Blue `v2.10.0`). Catalog: [docs/security/README.md](docs/security/README.md) · strategy: [docs/roadmap/STRATEGY.md](docs/roadmap/STRATEGY.md) · portfolio framing: [docs/roadmap/PORTFOLIO-VISION.md](docs/roadmap/PORTFOLIO-VISION.md)
 
 ## Run the insecure tip (Cycle-10)
 
@@ -41,8 +41,8 @@ Gate: [v1.10.0-pentest-ready](docs/release/v1.10.0-pentest-ready.md) · [infra/c
 ## Run the secure tip (Cycle-10 Blue / prior replay)
 
 ```bash
-# Cycle-10 Blue tip (after merge / tag v2.10.0):
-git checkout remediation/v2.10.0   # or v2.10.0
+# Cycle-10 Blue tip (current: v2.10.1; archive v2.10.0):
+git checkout v2.10.1   # or main / remediation/v2.10.0
 cp infra/.env.example infra/.env
 ./infra/scripts/gen-jwt-keys.sh
 docker compose -f infra/docker-compose.prod.yml \

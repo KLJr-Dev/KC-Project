@@ -3,7 +3,7 @@
 Engineering and security documentation for KC-Project.
 
 **Start here:** **[INDEX.md](INDEX.md)** (pillars + folder map).  
-**Current tip:** secure **`v2.10.0`** on `main` (Cycle-10 **Closed**).  
+**Current tip:** secure **`v2.10.1`** (Cycle-10 Blue + nginx2root pin).  
 **Play:** [play/red-team.md](play/red-team.md) · [play/blue-team.md](play/blue-team.md) · root [USAGE.md](../USAGE.md).
 
 ## Contents
@@ -48,7 +48,7 @@ Cycle-1…10 workspaces (ADR-031). Index: [security/README.md](security/README.m
 
 ### [release/](release/)
 
-Gates including [v2.10.0-secure-ready.md](release/v2.10.0-secure-ready.md) (**signed**).
+Gates: [v2.10.1-secure-ready.md](release/v2.10.1-secure-ready.md) (hotfix) · [v2.10.0-secure-ready.md](release/v2.10.0-secure-ready.md) (**signed** Blue freeze).
 
 ### [showcase/](showcase/)
 

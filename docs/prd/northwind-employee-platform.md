@@ -2,7 +2,7 @@
 
 **Product face:** Northwind Traders employee document / ops portal (lab immersion — [ADR-037](../decisions/ADR-037-immersion-northwind-product-face.md)).  
 **Engineering tip:** NestJS + Next.js + PostgreSQL + Docker Compose (+ Cycle-10 five-zone lab).  
-**Current secure tip:** **`v2.10.0`**.
+**Current secure tip:** **`v2.10.1`** (Cycle-10 Blue `v2.10.0` + nginx2root pin).
 
 ## Goals
 
